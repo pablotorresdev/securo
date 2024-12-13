@@ -15,7 +15,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            //            .csrf(csrf -> csrf.disable()) //CSRF protege contra comandos maliciosos enviados desde navegadores autenticados. Deshabilitado para simplificar en desarrollo, debe habilitarse en producción
+            //            .csrf(csrf -> csrf
+            //                .ignoringRequestMatchers("/api/**") // Ignorar rutas que empiezan con /api/
+            //            )
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().authenticated() // Todas las rutas requieren autenticación
             )
@@ -42,5 +45,6 @@ public class SecurityConfig {
 
         return new InMemoryUserDetailsManager(user);
     }
+
 }
 
