@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit User</title>
+</head>
+<body>
+<h1>Edit User</h1>
+
+<!-- Display error if user not found -->
+<div th:if="${error}">
+    <p style="color:red;" th:text="${error}"></p>
+</div>
+
+<form th:action="@{/admin/edit-user/{username}(username=${user.username})}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" th:value="${user.username}" readonly>
+    <br>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+
+    <label for="role">Role:</label>
+    <select id="role" name="role" required>
+        <option value="ADMIN" th:selected="${#authorization.expression('hasRole(''ADMIN'')')}">Admin</option>
+        <option value="USER1" th:selected="${#authorization.expression('hasRole(''USER1'')')}">User1</option>
+        <option value="USER2" th:selected="${#authorization.expression('hasRole(''USER2'')')}">User2</option>
+    </select>
+    <br><br>
+
+    <button type="submit">Save Changes</button>
+</form>
+
+<a th:href="@{/admin/users}">Back to User List</a>
+</body>
+</html>

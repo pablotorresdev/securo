@@ -19,6 +19,11 @@
         <td>
             <span th:each="role : ${user.authorities}" th:text="${role.authority}">[role]</span>
         </td>
+        <td>
+            <a th:href="@{/admin/edit-user/{username}(username=${user.username})}">
+                <button type="button">Edit</button>
+            </a>
+        </td>
     </tr>
     </tbody>
 </table>

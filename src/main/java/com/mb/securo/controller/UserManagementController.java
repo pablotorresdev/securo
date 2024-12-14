@@ -6,9 +6,12 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,5 +76,39 @@ public class UserManagementController {
         // Redirect to the user list
         return "redirect:/admin/users";
     }
+
+    @GetMapping("/admin/edit-user/{username}")
+    public String showEditUserForm(@PathVariable String username, Model model) {
+        // Fetch user details
+        if (!userDetailsManager.userExists(username)) {
+            model.addAttribute("error", "User not found!");
+            return "redirect:/admin/users";
+        }
+        UserDetails user = userDetailsManager.loadUserByUsername(username);
+        model.addAttribute("user", user);
+        return "edit-user"; // Refers to edit-user.html
+    }
+
+    @PostMapping("/admin/edit-user/{username}")
+    public String editUser(@PathVariable String username,
+        @RequestParam String password,
+        @RequestParam String role,
+        Model model) {
+        // Check if the user exists
+        if (!userDetailsManager.userExists(username)) {
+            model.addAttribute("error", "User not found!");
+            return "redirect:/admin/users";
+        }
+
+        // Update the user's details
+        userDetailsManager.updateUser(User.builder()
+            .username(username)
+            .password(passwordEncoder.encode(password))
+            .roles(role)
+            .build());
+
+        return "redirect:/admin/users"; // Redirect back to the user list
+    }
+
 }
 
