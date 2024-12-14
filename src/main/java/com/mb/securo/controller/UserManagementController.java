@@ -1,20 +1,19 @@
 package com.mb.securo.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 public class UserManagementController {
@@ -40,6 +39,9 @@ public class UserManagementController {
         // Fetch all users and their details
         List<UserDetails> users = new ArrayList<>();
         for (String username : usernames) {
+            if(!userDetailsManager.userExists(username)) {
+                continue;
+            }
             UserDetails user = userDetailsManager.loadUserByUsername(username);
             users.add(user);
         }
@@ -108,6 +110,22 @@ public class UserManagementController {
             .build());
 
         return "redirect:/admin/users"; // Redirect back to the user list
+    }
+
+    @PostMapping("/admin/delete-user")
+    public String deleteUser(@RequestParam String username, RedirectAttributes redirectAttributes) {
+        // Check if the user exists
+        if (!userDetailsManager.userExists(username)) {
+            redirectAttributes.addFlashAttribute("error", "User not found!");
+            return "redirect:/admin/users";
+        }
+
+        // Delete the user
+        userDetailsManager.deleteUser(username);
+        usernames.remove(username);
+
+        redirectAttributes.addFlashAttribute("success", "User deleted successfully!");
+        return "redirect:/admin/users";
     }
 
 }
