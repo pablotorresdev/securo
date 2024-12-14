@@ -2,11 +2,9 @@ package com.mb.securo.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,18 +14,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.securo.entity.User;
+import com.mb.securo.repository.UserRepository;
+
 @Controller
 @RequestMapping("/admin")
 public class UserManagementController {
 
-    private final InMemoryUserDetailsManager userDetailsManager;
+    private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     // Store usernames manually for simplicity
     private final List<String> usernames;
 
-    public UserManagementController(InMemoryUserDetailsManager userDetailsManager, PasswordEncoder passwordEncoder) {
-        this.userDetailsManager = userDetailsManager;
+    public UserManagementController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.usernames = new ArrayList<>();
         // Preload existing users (admin, user1, user2)
@@ -38,15 +40,7 @@ public class UserManagementController {
 
     @GetMapping("/users")
     public String listUsers(Model model) {
-        // Fetch all users and their details
-        List<UserDetails> users = new ArrayList<>();
-        for (String username : usernames) {
-            if(!userDetailsManager.userExists(username)) {
-                continue;
-            }
-            UserDetails user = userDetailsManager.loadUserByUsername(username);
-            users.add(user);
-        }
+        List<User> users = userRepository.findAll();
         model.addAttribute("users", users);
         return "admin/users"; // Refers to users.html in the templates directory
     }
@@ -57,79 +51,77 @@ public class UserManagementController {
     }
 
     @PostMapping("/add-user")
-    public String addUser(@RequestParam String username,
+    public String addUser(
+        @RequestParam String username,
         @RequestParam String password,
         @RequestParam String role,
         Model model) {
         // Check if the user already exists
-        if (userDetailsManager.userExists(username)) {
+        if (userRepository.findByUsername(username).isPresent()) {
             model.addAttribute("error", "User already exists!");
-            return "admin/add-user"; // Reload the form with an error message
+            return "admin/add-user";
         }
 
-        // Create and add the new user
-        userDetailsManager.createUser(User.builder()
-            .username(username)
-            .password(passwordEncoder.encode(password))
-            .roles(role)
-            .build());
+        User user = new User(username, passwordEncoder.encode(password), role);
 
-        // Add the username to the list for tracking
-        usernames.add(username);
+        userRepository.save(user);
 
-        // Redirect to the user list
         return "redirect:/admin/users";
     }
 
-    @GetMapping("/edit-user/{username}")
-    public String showEditUserForm(@PathVariable String username, Model model) {
-        // Fetch user details
-        if (!userDetailsManager.userExists(username)) {
+    @GetMapping("/edit-user/{id}")
+    public String showEditUserForm(@PathVariable Long id, Model model) {
+        // Fetch user details by ID
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
             model.addAttribute("error", "User not found!");
             return "redirect:/admin/users";
         }
-        UserDetails user = userDetailsManager.loadUserByUsername(username);
-        model.addAttribute("user", user);
+
+        model.addAttribute("user", userOptional.get());
+
         return "admin/edit-user"; // Refers to edit-user.html
     }
 
-    @PostMapping("/edit-user/{username}")
-    public String editUser(@PathVariable String username,
+    @PostMapping("/edit-user/{id}")
+    public String editUser(
+        @PathVariable Long id,
         @RequestParam String password,
         @RequestParam String role,
-        Model model) {
+        RedirectAttributes redirectAttributes) {
         // Check if the user exists
-        if (!userDetailsManager.userExists(username)) {
-            model.addAttribute("error", "User not found!");
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "User not found!");
             return "redirect:/admin/users";
         }
 
         // Update the user's details
-        userDetailsManager.updateUser(User.builder()
-            .username(username)
-            .password(passwordEncoder.encode(password))
-            .roles(role)
-            .build());
+        User user = userOptional.get();
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role);
 
+        userRepository.save(user);
+
+        redirectAttributes.addFlashAttribute("success", "User updated successfully!");
         return "redirect:/admin/users"; // Redirect back to the user list
     }
 
     @PostMapping("/delete-user")
-    public String deleteUser(@RequestParam String username, RedirectAttributes redirectAttributes) {
+    public String deleteUser(@RequestParam Long id, RedirectAttributes redirectAttributes) {
         // Check if the user exists
-        if (!userDetailsManager.userExists(username)) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "User not found!");
             return "redirect:/admin/users";
         }
 
         // Delete the user
-        userDetailsManager.deleteUser(username);
-        usernames.remove(username);
+        userRepository.deleteById(id);
 
         redirectAttributes.addFlashAttribute("success", "User deleted successfully!");
-        return "redirect:/admin/users";
+        return "redirect:/admin/users"; // Redirect back to the user list
     }
-
 
 }
 

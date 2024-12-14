@@ -11,8 +11,9 @@
     <p style="color:red;" th:text="${error}"></p>
 </div>
 
-<form th:action="@{/admin/edit-user/{username}(username=${user.username})}" method="post">
+<form th:action="@{/admin/edit-user/{id}(id=${user.id})}" method="post">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <input type="hidden" name="id" th:value="${user.id}">
 
     <label for="username">Username:</label>
     <input type="text" id="username" name="username" th:value="${user.username}" readonly>
@@ -24,9 +25,9 @@
 
     <label for="role">Role:</label>
     <select id="role" name="role" required>
-        <option value="ADMIN" th:selected="${#authorization.expression('hasRole(''ADMIN'')')}">Admin</option>
-        <option value="USER1" th:selected="${#authorization.expression('hasRole(''USER1'')')}">User1</option>
-        <option value="USER2" th:selected="${#authorization.expression('hasRole(''USER2'')')}">User2</option>
+        <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Admin</option>
+        <option value="USER1" th:selected="${user.role == 'USER1'}">User1</option>
+        <option value="USER2" th:selected="${user.role == 'USER2'}">User2</option>
     </select>
     <br><br>
 
