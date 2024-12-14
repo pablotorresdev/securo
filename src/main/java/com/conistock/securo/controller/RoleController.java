@@ -8,12 +8,17 @@ public class RoleController {
 
     @GetMapping("/admin")
     public String adminPage() {
-        return "admin";
+        return "admin"; // admin.html
     }
 
-    @GetMapping("/user")
-    public String userPage() {
-        return "user";
+    @GetMapping("/user1")
+    public String user1Page() {
+        return "user1"; // user1.html
+    }
+
+    @GetMapping("/user2")
+    public String user2Page() {
+        return "user2"; // user2.html
     }
 }
 

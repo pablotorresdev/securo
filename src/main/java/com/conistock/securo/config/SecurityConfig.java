@@ -18,8 +18,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/error").permitAll() // Allow access to /error
                 .requestMatchers("/admin/**").hasRole("ADMIN") // Only ADMIN can access /admin/*
-                .requestMatchers("/user/**").hasAnyRole("ADMIN","USER")   // Only USER can access /user/*
+                .requestMatchers("/user1/**").hasAnyRole("ADMIN","USER1") // Only ADMIN and USER1 can access /user1/*
+                .requestMatchers("/user2/**").hasAnyRole("ADMIN","USER2") // Only ADMIN and USER2 can access /user2/*
                 .anyRequest().authenticated() // All other requests require authentication
             )
             .formLogin(form -> form
@@ -43,13 +45,19 @@ public class SecurityConfig {
             .roles("ADMIN")
             .build();
 
-        UserDetails user = User.builder()
+        UserDetails user1 = User.builder()
             .username("user1")
             .password(passwordEncoder.encode("user1"))
-            .roles("USER")
+            .roles("USER1")
             .build();
 
-        return new InMemoryUserDetailsManager(admin, user);
+        UserDetails user2 = User.builder()
+            .username("user2")
+            .password(passwordEncoder.encode("user2"))
+            .roles("USER2")
+            .build();
+
+        return new InMemoryUserDetailsManager(admin, user1, user2);
     }
 
     @Bean
