@@ -1,4 +1,4 @@
-package com.conistock.securo.controller;
+package com.mb.securo.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,5 +1,6 @@
-package com.conistock.securo.config;
+package com.mb.securo.config;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,6 +21,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll() // Allow access to /error
                 .requestMatchers("/admin/**").hasRole("ADMIN") // Only ADMIN can access /admin/*
+                //.requestMatchers("/admin/users").hasRole("ADMIN") // Only ADMIN can access /admin/users
                 .requestMatchers("/user1/**").hasAnyRole("ADMIN","USER1") // Only ADMIN and USER1 can access /user1/*
                 .requestMatchers("/user2/**").hasAnyRole("ADMIN","USER2") // Only ADMIN and USER2 can access /user2/*
                 .anyRequest().authenticated() // All other requests require authentication
@@ -38,22 +40,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+    public InMemoryUserDetailsManager userDetailsManager() {
         UserDetails admin = User.builder()
             .username("admin")
-            .password(passwordEncoder.encode("admin"))
+            .password(passwordEncoder().encode("admin"))
             .roles("ADMIN")
             .build();
 
         UserDetails user1 = User.builder()
             .username("user1")
-            .password(passwordEncoder.encode("user1"))
+            .password(passwordEncoder().encode("user1"))
             .roles("USER1")
             .build();
 
         UserDetails user2 = User.builder()
             .username("user2")
-            .password(passwordEncoder.encode("user2"))
+            .password(passwordEncoder().encode("user2"))
             .roles("USER2")
             .build();
 
@@ -64,4 +66,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

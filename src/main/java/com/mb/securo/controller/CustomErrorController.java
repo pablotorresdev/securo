@@ -1,4 +1,4 @@
-package com.conistock.securo.controller;
+package com.mb.securo.controller;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;

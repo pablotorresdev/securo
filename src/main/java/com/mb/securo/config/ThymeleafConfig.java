@@ -1,4 +1,4 @@
-package com.conistock.securo.config;
+package com.mb.securo.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
