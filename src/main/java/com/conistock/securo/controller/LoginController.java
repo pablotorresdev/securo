@@ -13,7 +13,7 @@ public class LoginController {
 
     @GetMapping("/")
     public String index() {
-        return "index"; // Archivo index.html en templates
+        return "index";
     }
 }
 

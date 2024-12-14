@@ -1,18 +1,37 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Welcome</title>
+    <title>Home</title>
+    <style>
+        .disabled {
+            pointer-events: none;
+            color: gray;
+        }
+    </style>
 </head>
 <body>
 <h1>Welcome, <span th:text="${#authentication.name}">[username]</span>!</h1>
-<p>You have successfully logged in.</p>
-
-<!-- Logout button using POST and including the CSRF token -->
+<p>Select your section:</p>
+<ul>
+    <!-- Admin Section Link -->
+    <li>
+        <a th:href="@{/admin}"
+           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            Admin Section
+        </a>
+    </li>
+    <!-- User1 Section Link -->
+    <li>
+        <a th:href="@{/user}"
+           th:classappend="${#authorization.expression('!hasRole(''USER'') and !hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            User1 Section
+        </a>
+    </li>
+    <!-- User2 Section Link -->
+</ul>
 <form th:action="@{/logout}" method="post">
-    <!-- Hidden field for CSRF token -->
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <button type="submit">Logout</button>
 </form>
-
 </body>
 </html>

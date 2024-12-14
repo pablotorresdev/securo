@@ -6,6 +6,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -15,36 +17,43 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            //            .csrf(csrf -> csrf.disable()) //CSRF protege contra comandos maliciosos enviados desde navegadores autenticados. Deshabilitado para simplificar en desarrollo, debe habilitarse en producción
-            //            .csrf(csrf -> csrf
-            //                .ignoringRequestMatchers("/api/**") // Ignorar rutas que empiezan con /api/
-            //            )
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().authenticated() // Todas las rutas requieren autenticación
+                .requestMatchers("/admin/**").hasRole("ADMIN") // Only ADMIN can access /admin/*
+                .requestMatchers("/user/**").hasAnyRole("ADMIN","USER")   // Only USER can access /user/*
+                .anyRequest().authenticated() // All other requests require authentication
             )
             .formLogin(form -> form
-                .loginPage("/login") // Página de login personalizada
-                .defaultSuccessUrl("/", true) // Redirige siempre a / después del login
-                .permitAll() // Permitir acceso al login sin autenticación
+                .loginPage("/login") // Custom login page
+                .defaultSuccessUrl("/", true) // Redirect to "/" after login
+                .permitAll()
             )
             .logout(logout -> logout
-                .logoutUrl("/logout") // Endpoint para cerrar sesión
-                .logoutSuccessUrl("/login?logout") // Redirige al login después de cerrar sesión
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
                 .permitAll()
             );
         return http.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.withDefaultPasswordEncoder()
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        UserDetails admin = User.builder()
             .username("admin")
-            .password("admin")
+            .password(passwordEncoder.encode("admin"))
+            .roles("ADMIN")
+            .build();
+
+        UserDetails user = User.builder()
+            .username("user1")
+            .password(passwordEncoder.encode("user1"))
             .roles("USER")
             .build();
 
-        return new InMemoryUserDetailsManager(user);
+        return new InMemoryUserDetailsManager(admin, user);
     }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }
-
