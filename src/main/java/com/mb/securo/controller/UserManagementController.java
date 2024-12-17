@@ -7,7 +7,9 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +18,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.securo.entity.User;
 import com.mb.securo.repository.UserRepository;
+
+import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/admin")
@@ -46,24 +50,26 @@ public class UserManagementController {
     }
 
     @GetMapping("/add-user")
-    public String showAddUserForm() {
+    public String showAddUserForm(Model model) {
+        model.addAttribute("user", new User());
         return "admin/add-user"; // Refers to add-user.html
     }
 
     @PostMapping("/add-user")
-    public String addUser(
-        @RequestParam String username,
-        @RequestParam String password,
-        @RequestParam String role,
-        Model model) {
+    public String addUser(@Valid @ModelAttribute User user, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("error", "Validation failed!");
+            return "admin/add-user";
+        }
+
         // Check if the user already exists
-        if (userRepository.findByUsername(username).isPresent()) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             model.addAttribute("error", "User already exists!");
             return "admin/add-user";
         }
 
-        User user = new User(username, passwordEncoder.encode(password), role);
-
+        // Save the user
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
 
         return "redirect:/admin/users";
