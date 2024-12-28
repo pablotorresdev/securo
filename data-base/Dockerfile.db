@@ -1,0 +1,34 @@
+# Use the official PostgreSQL image
+FROM postgres:latest
+
+# Define PostgreSQL environment variables
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=root
+ENV POSTGRES_DB=conitrack
+
+# Create a directory for storing backups
+RUN mkdir -p /backups
+
+# Copy the backup script to the container
+COPY backup.sh /usr/local/bin/backup.sh
+
+# Assign execution permissions to the script
+RUN chmod +x /usr/local/bin/backup.sh
+
+# Install cron
+RUN apt-get update && apt-get install -y cron
+
+# Configure cron to execute the script every 10 minutes
+RUN echo "*/10 * * * * root /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" > /etc/cron.d/backup-cron
+
+# Set proper permissions for the cron job file
+RUN chmod 0644 /etc/cron.d/backup-cron
+
+# Create the log file for backups
+RUN touch /var/log/backup.log
+
+# Expose the PostgreSQL port
+EXPOSE 5432
+
+# Start PostgreSQL and cron in the foreground
+CMD ["bash", "-c", "cron && docker-entrypoint.sh postgres"]

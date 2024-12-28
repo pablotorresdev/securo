@@ -1,0 +1,32 @@
+services:
+  postgres-db:
+    build:
+      context: ./data-base
+      dockerfile: Dockerfile.db
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: conitrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backups:/backups
+
+  spring-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: spring-app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/conitrack
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+
+volumes:
+  db_data:
