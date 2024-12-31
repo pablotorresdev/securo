@@ -1,1 +1,1 @@
-web: java -jar -Dspring.profiles.active=prod target/securo-0.0.1-SNAPSHOT.jar
+web: java -jar -Dspring.profiles.active=prod build/libs/securo-0.0.1-SNAPSHOT.jar app.jar
