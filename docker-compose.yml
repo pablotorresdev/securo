@@ -8,11 +8,18 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: conitrack
+    restart: always      
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d conitrack"]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 10s
 
   spring-app:
     build:
@@ -20,9 +27,11 @@ services:
       dockerfile: Dockerfile.app
     container_name: spring-app
     environment:
+      SPRING_PROFILES_ACTIVE: PROD
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/conitrack
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: root
+    restart: always
     ports:
       - "8080:8080"
     depends_on:

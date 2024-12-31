@@ -1,6 +1,6 @@
 spring:
   application:
-    name: coni-securo
+    name: securo
   thymeleaf:
     cache: true
   datasource:
