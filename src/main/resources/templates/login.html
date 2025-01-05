@@ -1,23 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <title>SECURO</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
-<body>
-<h1>Login</h1>
+<body><section>
 <form th:action="@{/login}" method="post">
+    <h1>CONIFARMA</h1>
+    <h2>Securo</h2>
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required><br>
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required><br>
+    <div class="inputbox">
+        <ion-icon name="person-outline"></ion-icon>
+        <input type="text" id="username" name="username" required>
+        <label for="username">Your Username</label>
+    </div>
+    <div class="inputbox">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <input type="password" id="password" name="password" required>
+        <label for="password">Your Password</label>
+    </div>
+    <br>
+    <br>
+    <br>
     <button type="submit">Login</button>
+    <div th:if="${param.error}">
+        <p style="color:red;">Invalid username or password</p>
+    </div>
+    <div th:if="${param.logout}">
+        <p style="color:green;">You have been logged out successfully.</p>
+    </div>
 </form>
-<div th:if="${param.error}">
-    <p style="color:red;">Invalid username or password</p>
-</div>
-<div th:if="${param.logout}">
-    <p style="color:green;">You have been logged out successfully.</p>
-</div>
+</section>
 </body>
 </html>

@@ -23,6 +23,15 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      additional-paths: src/main/resources
+      additional-exclude: static/**
+  web:
+    resources:
+      static-locations=classpath:/static/,classpath:/public/:
 
 server:
   port: 8080
@@ -35,3 +44,4 @@ logging:
     org.springframework.security: DEBUG
     org.thymeleaf.extras.springsecurity6: DEBUG
     org.springframework.web: DEBUG
+    org.springframework.boot.devtools: DEBUG

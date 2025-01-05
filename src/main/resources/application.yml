@@ -2,26 +2,46 @@ spring:
   application:
     name: securo
   thymeleaf:
-    cache: true
+    cache: false
   datasource:
-    url: jdbc:postgresql://${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}
-    username: ${PROD_DB_USERNAME}
-    password: ${PROD_DB_PASSWORD}
+    # Uncomment this section to use H2 Database
+    # url: jdbc:h2:mem:testdb
+    # driverClassName: org.h2.Driver
+    # username: sa
+    # password:
+    # h2:
+    #   console:
+    #     enabled: true
+    url: jdbc:postgresql://localhost:5432/conitrack
+    username: postgres
+    password: root
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      additional-paths: src/main/resources
+      additional-exclude: static/**
+  web:
+    resources:
+      static-locations: classpath:/static/,classpath:/public/
 
 server:
-  port: ${PORT:8080}
+  port: 8080
   error:
-    include-message: never
-    include-binding-errors: never
+    include-message: always
+    include-binding-errors: always
 
 logging:
   level:
-    org.springframework.security: INFO
-    org.thymeleaf.extras.springsecurity6: INFO
-    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.thymeleaf.extras.springsecurity6: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.boot.devtools: DEBUG
