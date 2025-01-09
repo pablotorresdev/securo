@@ -1,6 +1,8 @@
 package com.mb.securo.service;
 
+import com.mb.securo.entity.Role;
 import com.mb.securo.entity.User;
+import com.mb.securo.repository.RoleRepository;
 import com.mb.securo.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,17 +18,19 @@ import static org.mockito.Mockito.*;
 class CustomUserDetailsServiceTest {
 
     private UserRepository userRepository;
+    private RoleRepository roleRepository;
     private CustomUserDetailsService customUserDetailsService;
 
     @BeforeEach
     void setUp() {
         userRepository = Mockito.mock(UserRepository.class);
-        customUserDetailsService = new CustomUserDetailsService(userRepository);
+        roleRepository = Mockito.mock(RoleRepository.class);
+        customUserDetailsService = new CustomUserDetailsService(userRepository, roleRepository);
     }
 
     @Test
     void testLoadUserByUsername_UserExists() {
-        User user = new User("admin", "encodedPassword", "ADMIN");
+        User user = new User("admin", "encodedPassword", new Role("ADMIN"));
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername("admin");

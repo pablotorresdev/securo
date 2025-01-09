@@ -1,6 +1,8 @@
 package com.mb.securo.controller;
 
+import com.mb.securo.entity.Role;
 import com.mb.securo.entity.User;
+import com.mb.securo.repository.RoleRepository;
 import com.mb.securo.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,9 @@ class UserManagementControllerTest {
     private UserRepository userRepository;
 
     @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -44,7 +49,7 @@ class UserManagementControllerTest {
     @Test
     void listUsers() {
         // Arrange
-        List<User> users = List.of(new User("user1", "password", "ROLE_USER"));
+        List<User> users = List.of(new User("user1", "password", new Role("ROLE_USER")));
         when(userRepository.findAll()).thenReturn(users);
 
         // Act
@@ -68,7 +73,7 @@ class UserManagementControllerTest {
     @Test
     void addUser_UserAlreadyExists() {
         // Arrange
-        User user = new User("user1", "password", "ROLE_USER");
+        User user = new User("user1", "password", new Role("ROLE_USER"));
         BindingResult bindingResult = mock(BindingResult.class);
 
         // Simulate no validation errors
@@ -87,7 +92,7 @@ class UserManagementControllerTest {
     @Test
     void addUser_Success() {
         // Arrange
-        User user = new User("user1", "password", "ROLE_USER");
+        User user = new User("user1", "password", new Role("ROLE_USER"));
         BindingResult bindingResult = mock(BindingResult.class);
 
         // Simulate no validation errors
@@ -108,7 +113,7 @@ class UserManagementControllerTest {
     @Test
     void showEditUserForm_UserExists() {
         // Arrange
-        User user = new User("user1", "password", "ROLE_USER");
+        User user = new User("user1", "password", new Role("ROLE_USER"));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         // Act
@@ -136,8 +141,9 @@ class UserManagementControllerTest {
     @Test
     void editUser_UserExists() {
         // Arrange
-        User user = new User("user1", "oldPassword", "ROLE_USER");
+        User user = new User("user1", "oldPassword", new Role("ROLE_USER"));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(eq("ROLE_ADMIN"))).thenReturn(Optional.of(new Role("ROLE_ADMIN")));
         when(passwordEncoder.encode("newPassword")).thenReturn("encodedPassword");
 
         // Act
@@ -148,7 +154,7 @@ class UserManagementControllerTest {
         assertThat(redirectAttributes.getFlashAttributes().get("success")).isEqualTo("User updated successfully!");
         verify(userRepository, times(1)).save(any(User.class));
         assertThat(user.getPassword()).isEqualTo("encodedPassword");
-        assertThat(user.getRole()).isEqualTo("ROLE_ADMIN");
+        assertThat(user.getRole().getName()).isEqualTo("ROLE_ADMIN");
     }
 
     @Test
@@ -167,7 +173,7 @@ class UserManagementControllerTest {
     @Test
     void deleteUser_UserExists() {
         // Arrange
-        User user = new User("user1", "password", "ROLE_USER");
+        User user = new User("user1", "password", new Role("ROLE_USER"));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         // Act

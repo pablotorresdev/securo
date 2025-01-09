@@ -17,10 +17,9 @@
     <br>
 
     <label for="role">Role:</label>
-    <select id="role" name="role" required th:field="*{role}">
-        <option value="ADMIN">Admin</option>
-        <option value="USER1">User1</option>
-        <option value="USER2">User2</option>
+    <select id="role" th:field="*{role.id}" required>
+        <option value="" disabled selected>Select a role</option>
+        <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
     </select>
     <br>
     <br>
