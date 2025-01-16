@@ -1,13 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Home</title>
-    <style>
-        .disabled {
-            pointer-events: none;
-            color: gray;
-        }
-    </style>
+    <title>HOME</title>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <h1>Welcome, <span th:text="${#authentication.name}">[username]</span>!</h1>
