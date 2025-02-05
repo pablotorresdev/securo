@@ -44,5 +44,6 @@ class RoleControllerTest {
             .andExpect(status().isOk()) // Verify the status is 200 OK
             .andExpect(view().name("user2")); // Verify the view name is "user2"
     }
+
 }
 

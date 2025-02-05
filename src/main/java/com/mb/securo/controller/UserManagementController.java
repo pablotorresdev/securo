@@ -84,11 +84,16 @@ public class UserManagementController {
         }
 
         // Fetch the Role entity from the database
-        Role role = roleRepository.findById(user.getRole().getId())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid role ID"));
+        Optional<Role> maybeRole = roleRepository.findById(user.getRole().getId());
+
+        if (maybeRole.isEmpty()) {
+            model.addAttribute("roles", roleRepository.findAll());
+            model.addAttribute("error", "Role not found!");
+            return "admin/add-user";
+        }
 
         // Set the role and encode the password
-        user.setRole(role);
+        user.setRole(maybeRole.get());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         // Save the user
@@ -96,7 +101,6 @@ public class UserManagementController {
 
         return "redirect:/admin/users";
     }
-
 
     @GetMapping("/edit-user/{id}")
     public String showEditUserForm(@PathVariable Long id, Model model) {

@@ -1,5 +1,7 @@
 package com.mb.securo.controller;
 
+import java.util.Map;
+
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -10,7 +12,6 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Map;
 
 @Controller
 public class CustomErrorController implements ErrorController {
@@ -39,5 +40,6 @@ public class CustomErrorController implements ErrorController {
 
         return "error"; // Refers to error.html in templates
     }
+
 }
 

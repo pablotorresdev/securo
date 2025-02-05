@@ -1,11 +1,5 @@
 package com.mb.securo.service;
 
-import java.util.Set;
-
-import com.mb.securo.entity.Role;
-import com.mb.securo.entity.User;
-import com.mb.securo.repository.RoleRepository;
-import com.mb.securo.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,12 +7,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.mb.securo.entity.Role;
+import com.mb.securo.entity.User;
+import com.mb.securo.repository.RoleRepository;
+import com.mb.securo.repository.UserRepository;
+
 import jakarta.annotation.PostConstruct;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+
     private final RoleRepository roleRepository;
 
     public CustomUserDetailsService(UserRepository userRepository, RoleRepository roleRepository) {
@@ -58,4 +58,5 @@ public class CustomUserDetailsService implements UserDetailsService {
     private PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(); // Use a private static encoder here
     }
+
 }

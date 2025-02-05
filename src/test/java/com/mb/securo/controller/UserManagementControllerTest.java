@@ -1,9 +1,8 @@
 package com.mb.securo.controller;
 
-import com.mb.securo.entity.Role;
-import com.mb.securo.entity.User;
-import com.mb.securo.repository.RoleRepository;
-import com.mb.securo.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -16,11 +15,19 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
-import java.util.List;
-import java.util.Optional;
+import com.mb.securo.entity.Role;
+import com.mb.securo.entity.User;
+import com.mb.securo.repository.RoleRepository;
+import com.mb.securo.repository.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class UserManagementControllerTest {
 
@@ -37,6 +44,7 @@ class UserManagementControllerTest {
     private UserManagementController controller;
 
     private Model model;
+
     private RedirectAttributes redirectAttributes;
 
     @BeforeEach
@@ -71,6 +79,25 @@ class UserManagementControllerTest {
     }
 
     @Test
+    void addUser_resultWithErrors() {
+        BindingResult bindingResult = mock(BindingResult.class);
+
+        // Simulate no validation errors
+        when(bindingResult.hasErrors()).thenReturn(true);
+
+        List<Role> roles = List.of(new Role("ROLE_ADMIN"), new Role("ROLE_USER"));
+        when(roleRepository.findAll()).thenReturn(roles);
+
+        // Act
+        String viewName = controller.addUser(null, bindingResult, model);
+
+        // Assert
+        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(model.getAttribute("roles")).isEqualTo(roles);
+        assertThat(model.getAttribute("error")).isEqualTo("Validation failed!");
+    }
+
+    @Test
     void addUser_UserAlreadyExists() {
         // Arrange
         User user = new User("user1", "password", new Role("ROLE_USER"));
@@ -80,17 +107,42 @@ class UserManagementControllerTest {
         when(bindingResult.hasErrors()).thenReturn(false);
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(user));
 
+        List<Role> roles = List.of(new Role("ROLE_ADMIN"), new Role("ROLE_USER"));
+        when(roleRepository.findAll()).thenReturn(roles);
+
         // Act
         String viewName = controller.addUser(user, bindingResult, model);
 
         // Assert
         assertThat(viewName).isEqualTo("admin/add-user");
         assertThat(model.getAttribute("error")).isEqualTo("User already exists!");
-        verify(userRepository, times(1)).findByUsername("user1");
+        assertThat(model.getAttribute("roles")).isEqualTo(roles);
     }
 
     @Test
-    void addUser_Success() {
+    void addUser_nullRole() {
+        // Arrange
+        User user = new User("user1", "password", null);
+        BindingResult bindingResult = mock(BindingResult.class);
+
+        // Simulate no validation errors
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(userRepository.findByUsername("user1")).thenReturn(Optional.empty());
+
+        List<Role> roles = List.of(new Role("ROLE_ADMIN"), new Role("ROLE_USER"));
+        when(roleRepository.findAll()).thenReturn(roles);
+
+        // Act
+        String viewName = controller.addUser(user, bindingResult, model);
+
+        // Assert
+        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(model.getAttribute("error")).isEqualTo("Role is required!");
+        assertThat(model.getAttribute("roles")).isEqualTo(roles);
+    }
+
+    @Test
+    void addUser_nullRoleId() {
         // Arrange
         User user = new User("user1", "password", new Role("ROLE_USER"));
         BindingResult bindingResult = mock(BindingResult.class);
@@ -98,6 +150,58 @@ class UserManagementControllerTest {
         // Simulate no validation errors
         when(bindingResult.hasErrors()).thenReturn(false);
         when(userRepository.findByUsername("user1")).thenReturn(Optional.empty());
+
+        List<Role> roles = List.of(new Role("ROLE_ADMIN"), new Role("ROLE_USER"));
+        when(roleRepository.findAll()).thenReturn(roles);
+
+        // Act
+        String viewName = controller.addUser(user, bindingResult, model);
+
+        // Assert
+        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(model.getAttribute("error")).isEqualTo("Role is required!");
+        assertThat(model.getAttribute("roles")).isEqualTo(roles);
+    }
+
+    @Test
+    void addUser_roleNotFound() {
+        Role role = mock(Role.class);
+        when(role.getId()).thenReturn(1L);
+
+        // Arrange
+        User user = new User("user1", "password", role);
+        BindingResult bindingResult = mock(BindingResult.class);
+
+        // Simulate no validation errors
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(userRepository.findByUsername("user1")).thenReturn(Optional.empty());
+        when(roleRepository.findById(1L)).thenReturn(Optional.empty());
+
+        List<Role> roles = List.of(new Role("ROLE_ADMIN"), new Role("ROLE_USER"));
+        when(roleRepository.findAll()).thenReturn(roles);
+
+        // Act
+        String viewName = controller.addUser(user, bindingResult, model);
+
+        // Assert
+        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(model.getAttribute("error")).isEqualTo("Role not found!");
+        assertThat(model.getAttribute("roles")).isEqualTo(roles);
+    }
+
+    @Test
+    void addUser_Success() {
+        Role role = mock(Role.class);
+        when(role.getId()).thenReturn(1L);
+
+        // Arrange
+        User user = new User("user1", "password", role);
+        BindingResult bindingResult = mock(BindingResult.class);
+
+        // Simulate no validation errors
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(userRepository.findByUsername("user1")).thenReturn(Optional.empty());
+        when(roleRepository.findById(1L)).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
 
         // Act
@@ -106,9 +210,9 @@ class UserManagementControllerTest {
         // Assert
         assertThat(viewName).isEqualTo("redirect:/admin/users");
         verify(userRepository, times(1)).save(any(User.class));
+        verify(passwordEncoder, times(1)).encode("password");
         assertThat(user.getPassword()).isEqualTo("encodedPassword");
     }
-
 
     @Test
     void showEditUserForm_UserExists() {
@@ -198,4 +302,5 @@ class UserManagementControllerTest {
         assertThat(redirectAttributes.getFlashAttributes().get("error")).isEqualTo("User not found!");
         verify(userRepository, times(0)).deleteById(anyLong());
     }
+
 }

@@ -20,5 +20,6 @@ public class RoleController {
     public String user2Page() {
         return "user2"; // user2.html
     }
+
 }
 

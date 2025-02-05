@@ -1,21 +1,21 @@
 package com.mb.securo.controller;
-import com.mb.securo.controller.CustomErrorController;
+
+import java.util.Map;
+import java.util.Objects;
+
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.WebRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.Map;
-import java.util.Objects;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CustomErrorControllerTest {
 
@@ -50,4 +50,5 @@ class CustomErrorControllerTest {
         assertEquals("Error Message", ((Map<?, ?>)Objects.requireNonNull(model.getAttribute("error"))).get("message"));
         assertEquals("Exception Details", ((Map<?, ?>)Objects.requireNonNull(model.getAttribute("error"))).get("exception"));
     }
+
 }

@@ -1,24 +1,32 @@
 package com.mb.securo.service;
 
-import com.mb.securo.entity.Role;
-import com.mb.securo.entity.User;
-import com.mb.securo.repository.RoleRepository;
-import com.mb.securo.repository.UserRepository;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.Optional;
+import com.mb.securo.entity.Role;
+import com.mb.securo.entity.User;
+import com.mb.securo.repository.RoleRepository;
+import com.mb.securo.repository.UserRepository;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CustomUserDetailsServiceTest {
 
     private UserRepository userRepository;
+
     private RoleRepository roleRepository;
+
     private CustomUserDetailsService customUserDetailsService;
 
     @BeforeEach
@@ -44,7 +52,8 @@ class CustomUserDetailsServiceTest {
     void testLoadUserByUsername_UserNotFound() {
         when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(UsernameNotFoundException.class,
+        Exception exception = assertThrows(
+            UsernameNotFoundException.class,
             () -> customUserDetailsService.loadUserByUsername("nonexistent"));
 
         assertEquals("User not found: nonexistent", exception.getMessage());
@@ -62,4 +71,5 @@ class CustomUserDetailsServiceTest {
         verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user1")));
         verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user2")));
     }
+
 }
