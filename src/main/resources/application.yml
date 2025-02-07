@@ -32,9 +32,9 @@ spring:
   web:
     resources:
       static-locations: classpath:/static/,classpath:/public/
-#  sql:
-#    init:
-#      mode: always
+  sql:
+    init:
+      mode: always
 
 
 server:

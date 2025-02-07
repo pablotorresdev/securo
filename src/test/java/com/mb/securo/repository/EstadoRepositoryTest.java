@@ -10,23 +10,23 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.mb.securo.entity.Status;
+import com.mb.securo.entity.Estado;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
-public class StatusRepositoryTest {
+public class EstadoRepositoryTest {
 
     @Autowired
     private StatusRepository statusRepository;
 
     @Test
     public void testDefaultStatusData() {
-        List<Status> allStatuses = statusRepository.findAll();
-        assertThat(allStatuses).hasSize(2);
-        assertThat(allStatuses).extracting(Status::getDescription).containsExactlyInAnyOrder(
+        List<Estado> allEstados = statusRepository.findAll();
+        assertThat(allEstados).hasSize(2);
+        assertThat(allEstados).extracting(Estado::getDescription).containsExactlyInAnyOrder(
             "Activo", "Inactivo"
         );
     }

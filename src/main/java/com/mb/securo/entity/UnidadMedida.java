@@ -5,12 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@Table(name = "unidad_medida")
 public class UnidadMedida {
 
     @Id
@@ -18,16 +20,16 @@ public class UnidadMedida {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name;
+    private String nombre;
 
     @Column(nullable = false)
-    private String type; // Masa, Volumen, Longitud, Superficie, Genérico
+    private String tipo; // Masa, Volumen, Longitud, Superficie, Genérico
 
     @Column(nullable = false, unique = true)
-    private String symbol; // Símbolo de la unidad (m, kg, L, etc.)
+    private String simbolo; // Símbolo de la unidad (m, kg, L, etc.)
 
     @Column(nullable = false)
-    private Double conversionFactor; // Factor de conversión a la unidad base
+    private Double factorConversion; // Factor de conversión a la unidad base
 
 }
 

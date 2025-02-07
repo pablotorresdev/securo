@@ -24,14 +24,14 @@ public class ClaseRepositoryTest {
     private ClaseRepository claseRepository;
 
     @Test
-    public void testFindByName() {
+    public void testFindByNombre() {
         Clase clase = new Clase();
-        clase.setName("TestClase");
+        clase.setNombre("TestClase");
         claseRepository.save(clase);
 
-        Optional<Clase> foundClase = claseRepository.findByName("TestClase");
+        Optional<Clase> foundClase = claseRepository.findByNombre("TestClase");
         assertThat(foundClase).isPresent();
-        assertThat(foundClase.get().getName()).isEqualTo("TestClase");
+        assertThat(foundClase.get().getNombre()).isEqualTo("TestClase");
 
         claseRepository.delete(clase);
     }
@@ -42,7 +42,7 @@ public class ClaseRepositoryTest {
         final List<Clase> allClases = claseRepository.findAll();
 
         assertThat(allClases).hasSize(7);
-        assertThat(allClases).extracting(Clase::getName).containsExactlyInAnyOrder(
+        assertThat(allClases).extracting(Clase::getNombre).containsExactlyInAnyOrder(
             "API", "EXCIPIENTE", "CAPSULA", "SEMIELABORADO", "ACOND. PRIMARIO", "ACOND. SECUNDARIO", "U. VENTA"
         );
     }

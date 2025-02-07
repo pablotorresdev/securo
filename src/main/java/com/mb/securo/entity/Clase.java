@@ -17,7 +17,8 @@ public class Clase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    // Se usa "nombre" para mapear la columna, tal como está definida en la DDL.
+    @Column(name = "nombre", nullable = false, unique = true)
+    private String nombre;
 
 }

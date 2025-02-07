@@ -1,32 +1,26 @@
-INSERT INTO clase (name)
-VALUES ('API'),
-       ('EXCIPIENTE'),
-       ('CAPSULA'),
-       ('SEMIELABORADO'),
-       ('ACOND. PRIMARIO'),
-       ('ACOND. SECUNDARIO'),
-       ('U. VENTA');
+INSERT INTO tipo_producto (nombre)
+VALUES ('Api'),
+       ('Excipiente'),
+       ('Capsula'),
+       ('Semielaborado'),
+       ('Acond. primario'),
+       ('Acond. secundario'),
+       ('Unidad venta');
 
-INSERT INTO deposito (code, name)
-VALUES ('MP','MATERIA PRIMA'),
-       ('SE','SEMIELABORADO'),
-       ('EP','EMPAQUE PRIMARIO'),
-       ('ES','EMPAQUE SECUNDARIO'),
-       ('PT','PRODUCTO TERMINADO'),
-       ('DM','DEPOMAX');
 
-INSERT INTO dictamen (status)
-VALUES ('RECIBIDO'),
-       ('CUARENTENA'),
-       ('APROBADO'),
-       ('RECHAZADO'),
-       ('VENCIDO'),
-       ('DESTRUIDO'),
-       ('RETIRO MERCADO'),
-       ('CONSUMIDO'),
-       ('DEPOMAX');
+INSERT INTO dictamen (estado)
+VALUES ('Recibido'),
+       ('Cuarentena'),
+       ('Aprobado'),
+       ('Rechazado'),
+       ('Vencido'),
+       ('Destruido'),
+       ('Retiro mercado'),
+       ('Consumido'),
+       ('Depomax');
 
-INSERT INTO motivo (description)
+
+INSERT INTO motivo (descripcion)
 VALUES ('Consumo Producción'),
        ('Vencido'),
        ('Reanalizado'),
@@ -38,17 +32,18 @@ VALUES ('Consumo Producción'),
        ('Saldo Inicial'),
        ('Desarrollo');
 
-INSERT INTO status (description)
+INSERT INTO estado (descripcion)
 VALUES ('Activo'),
        ('Inactivo');
 
-INSERT INTO tipo_movimiento (name)
+INSERT INTO tipo_movimiento (nombre)
 VALUES ('Ingreso'),
-       ('Egreso');
+       ('Egreso'),
+       ('Transformacion');
 
 
 /***************************unidad_medida******************/
-INSERT INTO unidad_medida (name, type, symbol, conversion_factor)
+INSERT INTO unidad_medida (nombre, tipo, simbolo, factor_conversion)
 VALUES ('Unidad', 'Generica', 'U', 1.0),
 
 -- Unidades de Masa
@@ -81,7 +76,15 @@ VALUES ('Unidad', 'Generica', 'U', 1.0),
        ('Milímetro', 'Longitud', 'mm', 0.001),
        ('Centímetro', 'Longitud', 'cm', 0.01),
        ('Metro', 'Longitud', 'm', 1.0),
-       ('Kilómetro', 'Longitud', 'km', 1000.0);
+       ('Kilómetro', 'Longitud', 'km', 1000.0),
+
+-- Unidades porcentuales
+       ('Porcentaje', 'Porcentaje', '%', 0.01),
+       ('Partes por millon', 'Porcentaje', 'ppm', 0.000001)
+;
+
+
+
 
 
 

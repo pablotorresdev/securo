@@ -8,6 +8,6 @@ import com.mb.securo.entity.Clase;
 
 public interface ClaseRepository extends JpaRepository<Clase, Long> {
 
-    Optional<Clase> findByName(String name);
+    Optional<Clase> findByNombre(String name);
 
 }
