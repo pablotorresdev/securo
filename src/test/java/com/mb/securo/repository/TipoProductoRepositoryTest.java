@@ -11,39 +11,45 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.mb.securo.entity.Clase;
+import com.mb.securo.entity.TipoProducto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
-public class ClaseRepositoryTest {
+public class TipoProductoRepositoryTest {
 
     @Autowired
-    private ClaseRepository claseRepository;
+    private TipoProductoRepository tipoProductoRepository;
 
     @Test
     public void testFindByNombre() {
-        Clase clase = new Clase();
+        TipoProducto clase = new TipoProducto();
         clase.setNombre("TestClase");
-        claseRepository.save(clase);
+        tipoProductoRepository.save(clase);
 
-        Optional<Clase> foundClase = claseRepository.findByNombre("TestClase");
+        Optional<TipoProducto> foundClase = tipoProductoRepository.findByNombre("TestClase");
         assertThat(foundClase).isPresent();
         assertThat(foundClase.get().getNombre()).isEqualTo("TestClase");
 
-        claseRepository.delete(clase);
+        tipoProductoRepository.delete(clase);
     }
 
     @Test
     public void testFindAll() {
 
-        final List<Clase> allClases = claseRepository.findAll();
+        final List<TipoProducto> allClases = tipoProductoRepository.findAll();
 
         assertThat(allClases).hasSize(7);
-        assertThat(allClases).extracting(Clase::getNombre).containsExactlyInAnyOrder(
-            "API", "EXCIPIENTE", "CAPSULA", "SEMIELABORADO", "ACOND. PRIMARIO", "ACOND. SECUNDARIO", "U. VENTA"
+        assertThat(allClases).extracting(TipoProducto::getNombre).containsExactlyInAnyOrder(
+            "Api",
+            "Excipiente",
+            "Capsula",
+            "Semielaborado",
+            "Acond. primario",
+            "Acond. secundario",
+            "Unidad venta"
         );
     }
 

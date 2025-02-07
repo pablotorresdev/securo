@@ -25,9 +25,9 @@ public class TipoMovimientoRepositoryTest {
     @Test
     public void testDefaultTipoMovimientoData() {
         List<TipoMovimiento> allTipoMovimientos = tipoMovimientoRepository.findAll();
-        assertThat(allTipoMovimientos).hasSize(2);
-        assertThat(allTipoMovimientos).extracting(TipoMovimiento::getName).containsExactlyInAnyOrder(
-            "Ingreso", "Egreso"
+        assertThat(allTipoMovimientos).hasSize(3);
+        assertThat(allTipoMovimientos).extracting(TipoMovimiento::getNombre).containsExactlyInAnyOrder(
+            "Ingreso", "Egreso", "Transformacion"
         );
     }
 

@@ -10,7 +10,6 @@ DROP TABLE IF EXISTS users CASCADE;  -- Depende de roles
 -- 3. Eliminar las tablas restantes
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS tipo_producto CASCADE;
-DROP TABLE IF EXISTS clase CASCADE;
 DROP TABLE IF EXISTS terceros CASCADE;
 DROP TABLE IF EXISTS dictamen CASCADE;
 DROP TABLE IF EXISTS motivo CASCADE;
@@ -92,12 +91,6 @@ CREATE TABLE terceros
     contacto  VARCHAR(100)
 );
 
-CREATE TABLE IF NOT EXISTS clase
-(
-    id   SERIAL PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL UNIQUE
-);
-
 CREATE TABLE tipo_producto
 (
     id     SERIAL PRIMARY KEY,
@@ -112,11 +105,8 @@ CREATE TABLE productos
     tipo_producto_id INT          NOT NULL,
     descripcion      TEXT,
     coa              TEXT,
-    clase_id         INT          NOT NULL,
     CONSTRAINT fk_tipo_producto
-        FOREIGN KEY (tipo_producto_id) REFERENCES tipo_producto (id),
-    CONSTRAINT fk_clase_producto
-        FOREIGN KEY (clase_id) REFERENCES clase (id)
+        FOREIGN KEY (tipo_producto_id) REFERENCES tipo_producto (id)
 );
 
 CREATE TABLE especificacion_productos
@@ -154,7 +144,6 @@ CREATE TABLE lotes
     id_analisis_qa             VARCHAR(50),
     fecha_reanalisis           DATE,
     dictamen                   TEXT,
-    clase_id                   INT            NOT NULL,
     CONSTRAINT fk_especificacion_producto_lote
         FOREIGN KEY (especificacion_producto_id) REFERENCES especificacion_productos (id),
     CONSTRAINT fk_unidad_medida_lote
@@ -163,8 +152,6 @@ CREATE TABLE lotes
         FOREIGN KEY (proveedor_id) REFERENCES terceros (id),
     CONSTRAINT fk_fabricante_lote
         FOREIGN KEY (fabricante_id) REFERENCES terceros (id),
-    CONSTRAINT fk_clase_lote
-        FOREIGN KEY (clase_id) REFERENCES clase (id),
     CONSTRAINT chk_estado CHECK (estado IN ('activo', 'inactivo'))
 );
 

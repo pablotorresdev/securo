@@ -26,7 +26,7 @@ public class EstadoRepositoryTest {
     public void testDefaultStatusData() {
         List<Estado> allEstados = statusRepository.findAll();
         assertThat(allEstados).hasSize(2);
-        assertThat(allEstados).extracting(Estado::getDescription).containsExactlyInAnyOrder(
+        assertThat(allEstados).extracting(Estado::getDescripcion).containsExactlyInAnyOrder(
             "Activo", "Inactivo"
         );
     }

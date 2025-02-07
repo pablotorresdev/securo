@@ -79,8 +79,4 @@ public class Lote {
     @Column(name = "dictamen", columnDefinition = "TEXT")
     private String dictamen;
 
-    @ManyToOne
-    @JoinColumn(name = "clase_id", nullable = false)
-    private Clase clase;
-
 }

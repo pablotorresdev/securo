@@ -26,8 +26,16 @@ public class DictamenRepositoryTest {
     public void testDefaultDictamenData() {
         List<Dictamen> allDictamenes = dictamenRepository.findAll();
         assertThat(allDictamenes).hasSize(9);
-        assertThat(allDictamenes).extracting(Dictamen::getStatus).containsExactlyInAnyOrder(
-            "RECIBIDO", "CUARENTENA", "APROBADO", "RECHAZADO", "VENCIDO", "DESTRUIDO", "RETIRO MERCADO", "CONSUMIDO", "DEPOMAX"
+        assertThat(allDictamenes).extracting(Dictamen::getEstado).containsExactlyInAnyOrder(
+            "Recibido",
+            "Cuarentena",
+            "Aprobado",
+            "Rechazado",
+            "Vencido",
+            "Destruido",
+            "Retiro mercado",
+            "Consumido",
+            "Depomax"
         );
     }
 

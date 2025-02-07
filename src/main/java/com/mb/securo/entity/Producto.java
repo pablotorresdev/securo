@@ -42,8 +42,4 @@ public class Producto {
     @Column(name = "coa", columnDefinition = "TEXT")
     private String coa;
 
-    @ManyToOne
-    @JoinColumn(name = "clase_id", nullable = false)
-    private Clase clase;
-
 }

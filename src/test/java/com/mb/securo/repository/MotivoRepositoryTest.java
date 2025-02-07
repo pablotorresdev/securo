@@ -26,8 +26,8 @@ public class MotivoRepositoryTest {
     public void testDefaultMotivoData() {
         List<Motivo> allMotivos = motivoRepository.findAll();
         assertThat(allMotivos).hasSize(10);
-        assertThat(allMotivos).extracting(Motivo::getDescription).containsExactlyInAnyOrder(
-            "Consumo Producción", "Vencido", "Reanalizado", "Ajuste", "Rechazado", "Muestreo", "Compra", "Devolución", "Saldo Inicial", "Desarrollo"
+        assertThat(allMotivos).extracting(Motivo::getDescripcion).containsExactlyInAnyOrder(
+            "Consumo Produccion", "Vencido", "Reanalizado", "Ajuste", "Rechazado", "Muestreo", "Compra", "Devolucion", "Saldo Inicial", "Desarrollo"
         );
     }
 

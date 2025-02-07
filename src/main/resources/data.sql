@@ -21,14 +21,14 @@ VALUES ('Recibido'),
 
 
 INSERT INTO motivo (descripcion)
-VALUES ('Consumo Producción'),
+VALUES ('Consumo Produccion'),
        ('Vencido'),
        ('Reanalizado'),
        ('Ajuste'),
        ('Rechazado'),
        ('Muestreo'),
        ('Compra'),
-       ('Devolución'),
+       ('Devolucion'),
        ('Saldo Inicial'),
        ('Desarrollo');
 
@@ -60,23 +60,23 @@ VALUES ('Unidad', 'Generica', 'U', 1.0),
        ('Decilitro', 'Volumen', 'dL', 0.1),              -- 1 dL = 0.1 L
        ('Litro', 'Volumen', 'L', 1.0),                   -- 1 L = 1 L
 
-       ('Milímetro cúbico', 'Volumen', 'mm3', 0.000001), -- 1 mm³ = 0.000001 L
-       ('Centímetro cúbico', 'Volumen', 'cm3', 0.001),   -- 1 cm³ = 0.001 L
-       ('Metro cúbico', 'Volumen', 'm3', 1000.0),        -- 1 m³ = 1000 L
+       ('Milimetro cubico', 'Volumen', 'mm3', 0.000001), -- 1 mm³ = 0.000001 L
+       ('Centimetro cubico', 'Volumen', 'cm3', 0.001),   -- 1 cm³ = 0.001 L
+       ('Metro cubico', 'Volumen', 'm3', 1000.0),        -- 1 m³ = 1000 L
 
 -- Unidades de Superficie
-       ('Milímetro cuadrado', 'Superficie', 'mm2', 0.000001),
-       ('Centímetro cuadrado', 'Superficie', 'cm2', 0.0001),
+       ('Milimetro cuadrado', 'Superficie', 'mm2', 0.000001),
+       ('Centimetro cuadrado', 'Superficie', 'cm2', 0.0001),
        ('Metro cuadrado', 'Superficie', 'm2', 1.0),
-       ('Kilómetro cuadrado', 'Superficie', 'km2', 1000000.0),
-       ('Hectárea', 'Superficie', 'ha', 10000.0),
+       ('Kilometro cuadrado', 'Superficie', 'km2', 1000000.0),
+       ('Hectarea', 'Superficie', 'ha', 10000.0),
 
 -- Unidades de Longitud
        ('Micrometro', 'Longitud', 'µm', 0.000001),
-       ('Milímetro', 'Longitud', 'mm', 0.001),
-       ('Centímetro', 'Longitud', 'cm', 0.01),
+       ('Milimetro', 'Longitud', 'mm', 0.001),
+       ('Centimetro', 'Longitud', 'cm', 0.01),
        ('Metro', 'Longitud', 'm', 1.0),
-       ('Kilómetro', 'Longitud', 'km', 1000.0),
+       ('Kilometro', 'Longitud', 'km', 1000.0),
 
 -- Unidades porcentuales
        ('Porcentaje', 'Porcentaje', '%', 0.01),
