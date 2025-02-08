@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS users CASCADE;  -- Depende de roles
 -- 3. Eliminar las tablas restantes
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS tipo_producto CASCADE;
-DROP TABLE IF EXISTS terceros CASCADE;
+DROP TABLE IF EXISTS contactos CASCADE;
 DROP TABLE IF EXISTS dictamen CASCADE;
 DROP TABLE IF EXISTS motivo CASCADE;
 DROP TABLE IF EXISTS estado CASCADE;
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS unidad_medida
 );
 
 
-CREATE TABLE terceros
+CREATE TABLE contactos
 (
     id        SERIAL PRIMARY KEY,
     direccion VARCHAR(255) NOT NULL,
@@ -88,7 +88,8 @@ CREATE TABLE terceros
     telefono  VARCHAR(50),
     fax       VARCHAR(50),
     email     VARCHAR(100),
-    contacto  VARCHAR(100)
+    referente  VARCHAR(100),
+    activo    BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE tipo_producto
@@ -149,9 +150,9 @@ CREATE TABLE lotes
     CONSTRAINT fk_unidad_medida_lote
         FOREIGN KEY (unidad_medida_id) REFERENCES unidad_medida (id),
     CONSTRAINT fk_proveedor_lote
-        FOREIGN KEY (proveedor_id) REFERENCES terceros (id),
+        FOREIGN KEY (proveedor_id) REFERENCES contactos (id),
     CONSTRAINT fk_fabricante_lote
-        FOREIGN KEY (fabricante_id) REFERENCES terceros (id),
+        FOREIGN KEY (fabricante_id) REFERENCES contactos (id),
     CONSTRAINT chk_estado CHECK (estado IN ('activo', 'inactivo'))
 );
 

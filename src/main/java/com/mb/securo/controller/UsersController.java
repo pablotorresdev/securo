@@ -24,8 +24,8 @@ import com.mb.securo.repository.UserRepository;
 import jakarta.validation.Valid;
 
 @Controller
-@RequestMapping("/admin")
-public class UserManagementController {
+@RequestMapping("/users")
+public class UsersController {
 
     private final UserRepository userRepository;
 
@@ -36,7 +36,7 @@ public class UserManagementController {
 
     private final RoleRepository roleRepository;
 
-    public UserManagementController(UserRepository userRepository, PasswordEncoder passwordEncoder, final RoleRepository roleRepository) {
+    public UsersController(UserRepository userRepository, PasswordEncoder passwordEncoder, final RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.usernames = new ArrayList<>();
@@ -47,18 +47,18 @@ public class UserManagementController {
         this.roleRepository = roleRepository;
     }
 
-    @GetMapping("/users")
+    @GetMapping("/list-users")
     public String listUsers(Model model) {
         List<User> users = userRepository.findAll();
         model.addAttribute("users", users);
-        return "admin/users"; // Refers to users.html in the templates directory
+        return "users/list-users"; // Refers to list-users.html in the templates directory
     }
 
     @GetMapping("/add-user")
     public String showAddUserForm(Model model) {
         model.addAttribute("user", new User());
         model.addAttribute("roles", roleRepository.findAll());
-        return "admin/add-user"; // Refers to add-user.html
+        return "users/add-user"; // Refers to add-user.html
     }
 
     @PostMapping("/add-user")
@@ -66,21 +66,21 @@ public class UserManagementController {
         if (result.hasErrors()) {
             model.addAttribute("roles", roleRepository.findAll()); // Load roles for dropdown
             model.addAttribute("error", "Validation failed!");
-            return "admin/add-user";
+            return "users/add-user";
         }
 
         // Check if the user already exists
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             model.addAttribute("roles", roleRepository.findAll()); // Load roles for dropdown
             model.addAttribute("error", "User already exists!");
-            return "admin/add-user";
+            return "users/add-user";
         }
 
         // Validate role field in the User object
         if (user.getRole() == null || user.getRole().getId() == null) {
             model.addAttribute("roles", roleRepository.findAll());
             model.addAttribute("error", "Role is required!");
-            return "admin/add-user";
+            return "users/add-user";
         }
 
         // Fetch the Role entity from the database
@@ -89,7 +89,7 @@ public class UserManagementController {
         if (maybeRole.isEmpty()) {
             model.addAttribute("roles", roleRepository.findAll());
             model.addAttribute("error", "Role not found!");
-            return "admin/add-user";
+            return "users/add-user";
         }
 
         // Set the role and encode the password
@@ -99,7 +99,7 @@ public class UserManagementController {
         // Save the user
         userRepository.save(user);
 
-        return "redirect:/admin/users";
+        return "redirect:/users/list-users";
     }
 
     @GetMapping("/edit-user/{id}")
@@ -108,13 +108,13 @@ public class UserManagementController {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isEmpty()) {
             model.addAttribute("error", "User not found!");
-            return "redirect:/admin/users";
+            return "redirect:/users/list-users";
         }
 
         model.addAttribute("user", userOptional.get());
         model.addAttribute("roles", roleRepository.findAll());
 
-        return "admin/edit-user"; // Refers to edit-user.html
+        return "users/edit-user"; // Refers to edit-user.html
     }
 
     @PostMapping("/edit-user/{id}")
@@ -127,7 +127,7 @@ public class UserManagementController {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "User not found!");
-            return "redirect:/admin/users";
+            return "redirect:/users/list-users";
         }
 
         // Update the user's details
@@ -135,7 +135,7 @@ public class UserManagementController {
         final Optional<Role> roleByName = roleRepository.findByName(roleName);
         if (roleByName.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Role not found!");
-            return "redirect:/admin/users";
+            return "redirect:/users/list-users";
         }
 
         if (password != null && !password.isEmpty()) {
@@ -147,7 +147,7 @@ public class UserManagementController {
         userRepository.save(user);
 
         redirectAttributes.addFlashAttribute("success", "User updated successfully!");
-        return "redirect:/admin/users"; // Redirect back to the user list
+        return "redirect:/users/list-users"; // Redirect back to the user list
     }
 
     @PostMapping("/delete-user")
@@ -155,12 +155,12 @@ public class UserManagementController {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "User not found!");
-            return "redirect:/admin/users";
+            return "redirect:/users/list-users";
         }
 
         userRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("success", "User deleted successfully!");
-        return "redirect:/admin/users";
+        return "redirect:/users/list-users";
     }
 
 }

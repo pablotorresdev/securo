@@ -52,11 +52,11 @@ public class Lote {
 
     @ManyToOne
     @JoinColumn(name = "proveedor_id", nullable = false)
-    private Tercero proveedor;
+    private Contacto proveedor;
 
     @ManyToOne
     @JoinColumn(name = "fabricante_id", nullable = false)
-    private Tercero fabricante;
+    private Contacto fabricante;
 
     @Column(name = "conservacion", columnDefinition = "TEXT")
     private String conservacion;

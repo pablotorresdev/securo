@@ -4,17 +4,17 @@
     <title>Admin Dashboard</title>
 </head>
 <body>
-<h1>Admin Dashboard</h1>
-<p>Welcome to Admin Dashboard, <span th:text="${#authentication.name}">[username]</span>!</p>
+<h1>Users Dashboard</h1>
+<p>Welcome to Users Dashboard, <span th:text="${#authentication.name}">[username]</span>!</p>
 
 <!-- Button to navigate to the User List -->
-<form th:action="@{/admin/users}" method="get">
+<form th:action="@{/users/list-users}" method="get">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <button type="submit">View Users</button>
 </form>
 
 <!-- Button to navigate to the Add User form -->
-<form th:action="@{/admin/add-user}" method="get">
+<form th:action="@{/users/add-user}" method="get">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <button type="submit">Add User</button>
 </form>
@@ -24,6 +24,8 @@
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <button type="submit">Logout</button>
 </form>
+
+<a th:href="@{/}">Back to Home</a>
 
 </body>
 </html>

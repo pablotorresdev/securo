@@ -19,13 +19,13 @@ class RoleControllerTest {
         viewResolver.setPrefix("/templates/"); // Adjust this if needed
         viewResolver.setSuffix(".html");
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new RoleController())
+        mockMvc = MockMvcBuilders.standaloneSetup(new IndexController())
             .setViewResolvers(viewResolver) // Add the view resolver
             .build();
     }
 
     @Test
-    void testAdminPage() throws Exception {
+    void testUsersPage() throws Exception {
         mockMvc.perform(get("/admin"))
             .andExpect(status().isOk()) // Verify the status is 200 OK
             .andExpect(view().name("admin")); // Verify the view name is "admin"

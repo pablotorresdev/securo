@@ -4,11 +4,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class RoleController {
+public class IndexController {
 
-    @GetMapping("/admin")
-    public String adminPage() {
-        return "admin"; // admin.html
+    @GetMapping("/users")
+    public String usersPage() {
+        return "users"; // users.html
+    }
+
+    @GetMapping("/contactos")
+    public String contactosPage() {
+        return "contactos"; // contactos.html
     }
 
     @GetMapping("/user1")

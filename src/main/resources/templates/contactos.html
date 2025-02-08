@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Contactos Dashboard</title>
+</head>
+<body>
+<h1>Contactos Dashboard</h1>
+<p>Welcome to Contactos Dashboard, <span th:text="${#authentication.name}">[username]</span>!</p>
+
+<!-- Button to navigate to the User List -->
+<form th:action="@{/contactos/list-contactos}" method="get">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <button type="submit">View contactos</button>
+</form>
+
+<!-- Button to navigate to the Add User form -->
+<form th:action="@{/contactos/add-contacto}" method="get">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <button type="submit">Add Contacto</button>
+</form>
+
+<!-- Logout Button -->
+<form th:action="@{/logout}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <button type="submit">Logout</button>
+</form>
+
+<a th:href="@{/}">Back to Home</a>
+
+
+</body>
+</html>

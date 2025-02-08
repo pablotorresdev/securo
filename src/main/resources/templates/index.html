@@ -10,9 +10,15 @@
 <ul>
     <!-- Admin Section Link -->
     <li>
-        <a th:href="@{/admin}"
+        <a th:href="@{/users}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-            Admin Section
+            Users Section
+        </a>
+    </li>
+    <li>
+        <a th:href="@{/contactos}"
+           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            Contactos Section
         </a>
     </li>
     <!-- User1 Section Link -->

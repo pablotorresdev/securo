@@ -12,8 +12,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "terceros")
-public class Tercero {
+@Table(name = "contactos")
+public class Contacto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +37,10 @@ public class Tercero {
     @Column(name = "email", length = 100)
     private String email;
 
-    @Column(name = "contacto", length = 100)
-    private String contacto;
+    @Column(name = "referente", length = 100)
+    private String referente;
+
+    @Column(name = "activo", nullable = false)
+    private Boolean activo = true;
 
 }
