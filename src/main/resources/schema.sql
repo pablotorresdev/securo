@@ -1,21 +1,15 @@
+DROP TABLE IF EXISTS analisis CASCADE;
 DROP TABLE IF EXISTS movimientos CASCADE;
-DROP TABLE IF EXISTS lote_destino CASCADE;
 
 -- 2. Luego las tablas que dependen de otras
 DROP TABLE IF EXISTS lotes CASCADE;
-DROP TABLE IF EXISTS especificacion_productos CASCADE;
-DROP TABLE IF EXISTS productos CASCADE;
-DROP TABLE IF EXISTS users CASCADE;  -- Depende de roles
+DROP TABLE IF EXISTS users CASCADE;
 
 -- 3. Eliminar las tablas restantes
 DROP TABLE IF EXISTS roles CASCADE;
-DROP TABLE IF EXISTS tipo_producto CASCADE;
+DROP TABLE IF EXISTS productos CASCADE;
 DROP TABLE IF EXISTS contactos CASCADE;
-DROP TABLE IF EXISTS dictamen CASCADE;
-DROP TABLE IF EXISTS motivo CASCADE;
-DROP TABLE IF EXISTS estado CASCADE;
-DROP TABLE IF EXISTS tipo_movimiento CASCADE;
-DROP TABLE IF EXISTS unidad_medida CASCADE;
+DROP TABLE IF EXISTS configuracion CASCADE;
 
 DROP EXTENSION IF EXISTS "pgcrypto" CASCADE;
 
@@ -44,146 +38,166 @@ CREATE TABLE IF NOT EXISTS users
     FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS dictamen
+--
+-- --TABLAS DICCIONARIOS--
+-- CREATE TABLE tipo_producto
+-- (
+--     id     SERIAL PRIMARY KEY,
+--     valor VARCHAR(50) NOT NULL UNIQUE,
+--     grupo VARCHAR(2) NOT NULL
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS dictamen
+-- (
+--     id     SERIAL PRIMARY KEY,
+--     valor VARCHAR(255) NOT NULL UNIQUE
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS motivo
+-- (
+--     id          SERIAL PRIMARY KEY,
+--     valor VARCHAR(255) NOT NULL UNIQUE
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS tipo_movimiento
+-- (
+--     id   SERIAL PRIMARY KEY,
+--     valor VARCHAR(255) NOT NULL UNIQUE
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS estado_lote
+-- (
+--     id          SERIAL PRIMARY KEY,
+--     valor VARCHAR(255) NOT NULL UNIQUE
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS unidad_medida
+-- (
+--     id                SERIAL PRIMARY KEY,
+--     nombre              VARCHAR(255)     NOT NULL UNIQUE,
+--     tipo              VARCHAR(50)      NOT NULL,
+--     simbolo            VARCHAR(3)       NOT NULL,
+--     factor_conversion DOUBLE PRECISION NOT NULL
+-- );
+--
+
+--TABLAS DATOS MAESTROS--
+CREATE TABLE productos
 (
-    id     SERIAL PRIMARY KEY,
-    estado VARCHAR(255) NOT NULL UNIQUE
+    id              SERIAL PRIMARY KEY,
+    nombre_generico VARCHAR(255) NOT NULL,
+    codigo_interno  VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
+    tipo_producto   VARCHAR(50)  NOT NULL,
+    unidad_medida   VARCHAR(50)  NOT NULL,
+    descripcion     TEXT,
+    coa             TEXT,
+    observaciones   TEXT,
+    activo          BOOLEAN      NOT NULL DEFAULT TRUE
 );
-
-CREATE TABLE IF NOT EXISTS motivo
-(
-    id          SERIAL PRIMARY KEY,
-    descripcion VARCHAR(255) NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS estado
-(
-    id          SERIAL PRIMARY KEY,
-    descripcion VARCHAR(255) NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS tipo_movimiento
-(
-    id   SERIAL PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL UNIQUE
-);
-
-
-CREATE TABLE IF NOT EXISTS unidad_medida
-(
-    id                SERIAL PRIMARY KEY,
-    nombre              VARCHAR(255)     NOT NULL UNIQUE,
-    tipo              VARCHAR(50)      NOT NULL,
-    simbolo            VARCHAR(3)       NOT NULL,
-    factor_conversion DOUBLE PRECISION NOT NULL
-);
-
 
 CREATE TABLE contactos
 (
-    id        SERIAL PRIMARY KEY,
-    direccion VARCHAR(255) NOT NULL,
-    ciudad    VARCHAR(100) NOT NULL,
-    pais      VARCHAR(100) NOT NULL,
-    telefono  VARCHAR(50),
-    fax       VARCHAR(50),
-    email     VARCHAR(100),
-    referente  VARCHAR(100),
-    activo    BOOLEAN NOT NULL DEFAULT TRUE
+    id              SERIAL PRIMARY KEY,
+    razon_social    VARCHAR(255) NOT NULL,
+    cuit            VARCHAR(255) NOT NULL,
+    direccion       VARCHAR(255) NOT NULL,
+    ciudad          VARCHAR(100) NOT NULL,
+    pais            VARCHAR(100) NOT NULL,
+    telefono        VARCHAR(50),
+    fax             VARCHAR(50),
+    email           VARCHAR(100),
+    persona_contacto VARCHAR(100),
+    observaciones   TEXT,
+    activo          BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE tipo_producto
+CREATE TABLE configuracion
 (
     id     SERIAL PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL UNIQUE
+    clave  VARCHAR(255) NOT NULL,
+    valor  VARCHAR(255) NOT NULL,
+    activo BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE productos
-(
-    id               SERIAL PRIMARY KEY,
-    nombre_generico  VARCHAR(255) NOT NULL,
-    codigo_interno   VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
-    tipo_producto_id INT          NOT NULL,
-    descripcion      TEXT,
-    coa              TEXT,
-    CONSTRAINT fk_tipo_producto
-        FOREIGN KEY (tipo_producto_id) REFERENCES tipo_producto (id)
-);
-
-CREATE TABLE especificacion_productos
-(
-    id               SERIAL PRIMARY KEY,
-    producto_id      INT            NOT NULL,
-    codigo_version   VARCHAR(50)    NOT NULL, -- Ejemplo: '(9-120)/01'
-    unidad_medida_id INT            NOT NULL,
-    cantidad         NUMERIC(12, 2) NOT NULL,
-    detalle          TEXT,
-    CONSTRAINT fk_producto_especificacion
-        FOREIGN KEY (producto_id) REFERENCES productos (id),
-    CONSTRAINT fk_unidad_medida_especificacion
-        FOREIGN KEY (unidad_medida_id) REFERENCES unidad_medida (id),
-    CONSTRAINT uq_producto_version UNIQUE (producto_id, codigo_version)
-);
-
+--TABLAS DATOS OPERATIVOS--
 CREATE TABLE lotes
 (
-    id                         SERIAL PRIMARY KEY,
-    especificacion_producto_id INT            NOT NULL,
-    cantidad                   NUMERIC(12, 2) NOT NULL,
-    id_lote                    VARCHAR(50)    NOT NULL UNIQUE, -- Identificador del lote
-    fecha_elaboracion          DATE           NOT NULL,
-    fecha_caducidad            DATE           NOT NULL,
-    unidad_medida_id           INT            NOT NULL,
-    bultos_totales             INT            NOT NULL,
-    nro_bulto                  INT            NOT NULL,
-    proveedor_id               INT            NOT NULL,
-    fabricante_id              INT            NOT NULL,
-    conservacion               TEXT,
-    pureza                     NUMERIC(5, 2),                  -- Porcentaje o valor numérico
-    estado                     VARCHAR(10)    NOT NULL,        -- 'activo' o 'inactivo'
-    observaciones              TEXT,
-    id_analisis_qa             VARCHAR(50),
-    fecha_reanalisis           DATE,
-    dictamen                   TEXT,
-    CONSTRAINT fk_especificacion_producto_lote
-        FOREIGN KEY (especificacion_producto_id) REFERENCES especificacion_productos (id),
-    CONSTRAINT fk_unidad_medida_lote
-        FOREIGN KEY (unidad_medida_id) REFERENCES unidad_medida (id),
+    id                    SERIAL PRIMARY KEY,
+    id_lote               VARCHAR(50)    NOT NULL,
+    producto_id           INT            NOT NULL,
+    estado_lote           VARCHAR(50)    NOT NULL,
+    dictamen_id           VARCHAR(50)    NOT NULL,
+    lote_origen_id        INT,
+    fecha_ingreso         DATE           NOT NULL,
+    nro_bulto             INT            NOT NULL,
+    bultos_totales        INT            NOT NULL,
+    cantidad_inicial      NUMERIC(12, 2) NOT NULL,
+    cantidad_actual       NUMERIC(12, 2) NOT NULL,
+    unidad_medida         VARCHAR(50)    NOT NULL,
+    nro_remito            TEXT,
+    proveedor_id          INT            NOT NULL,
+    lote_proveedor        TEXT           NOT NULL,
+    analisis_proveedor    TEXT,
+    orden_elaboracion     TEXT,
+    detalle_conservacion  TEXT,
+    fabricante_id         INT            NOT NULL,
+    fecha_vencimiento     DATE,
+    fecha_reanalisis      DATE,
+    nro_analisis_id       INT,
+    valoracion_porcentual NUMERIC(12, 2), -- 'activo' o 'inactivo'
+    pureza                TEXT,
+    observaciones         TEXT,
+    activo                BOOLEAN        NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_producto
+        FOREIGN KEY (producto_id) REFERENCES productos (id),
+    CONSTRAINT fk_lote_origen
+        FOREIGN KEY (lote_origen_id) REFERENCES lotes (id),
     CONSTRAINT fk_proveedor_lote
         FOREIGN KEY (proveedor_id) REFERENCES contactos (id),
     CONSTRAINT fk_fabricante_lote
-        FOREIGN KEY (fabricante_id) REFERENCES contactos (id),
-    CONSTRAINT chk_estado CHECK (estado IN ('activo', 'inactivo'))
-);
-
-CREATE TABLE lote_destino
-(
-    lote_id                    INT NOT NULL,
-    especificacion_producto_id INT NOT NULL,
-    PRIMARY KEY (lote_id, especificacion_producto_id),
-    CONSTRAINT fk_lote_destino_lote
-        FOREIGN KEY (lote_id) REFERENCES lotes (id),
-    CONSTRAINT fk_lote_destino_especificacion
-        FOREIGN KEY (especificacion_producto_id) REFERENCES especificacion_productos (id)
+        FOREIGN KEY (fabricante_id) REFERENCES contactos (id)
+-- ,
+--     CONSTRAINT fk_nro_analisis
+--         FOREIGN KEY (nro_analisis_id) REFERENCES analisis (id)
 );
 
 CREATE TABLE movimientos
 (
-    id               SERIAL PRIMARY KEY,
-    motivo           TEXT           NOT NULL,
-    orden_produccion VARCHAR(50),
-    id_analisis_qa   VARCHAR(50),
-    nro_analisis     VARCHAR(50),
-    ref_lote_origen  INT            NOT NULL,
-    ref_lote_destino INT            NOT NULL,
-    cantidad         NUMERIC(12, 2) NOT NULL,
-    unidad_medida_id INT            NOT NULL,
-    tipo             VARCHAR(20)    NOT NULL, -- 'Ingreso', 'Egreso' o 'Transformacion'
-    CONSTRAINT fk_lote_origen
-        FOREIGN KEY (ref_lote_origen) REFERENCES lotes (id),
-    CONSTRAINT fk_lote_destino
-        FOREIGN KEY (ref_lote_destino) REFERENCES lotes (id),
-    CONSTRAINT fk_unidad_medida_mov
-        FOREIGN KEY (unidad_medida_id) REFERENCES unidad_medida (id),
-    CONSTRAINT chk_tipo_movimiento CHECK (tipo IN ('Ingreso', 'Egreso', 'Transformacion'))
+    id                   SERIAL PRIMARY KEY,
+    fecha                DATE           NOT NULL,
+    tipo                 TEXT           NOT NULL, -- 'Ingreso', 'Egreso' o 'Transformacion'
+    motivo               TEXT           NOT NULL,
+    lote_id              INT            NOT NULL,
+    descripcion          TEXT,
+    cantidad             NUMERIC(12, 2) NOT NULL,
+    unidad_medida        TEXT           NOT NULL,
+    nro_analisis         VARCHAR(50),
+    orden_produccion     VARCHAR(50),
+    dictamen_inicial     TEXT,
+    dictamen_final       TEXT           NOT NULL,
+    movimiento_origen_id INT,
+    activo               BOOLEAN        NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_lote_id
+        FOREIGN KEY (lote_id) REFERENCES lotes (id),
+    CONSTRAINT fk_movimiento_origen
+        FOREIGN KEY (movimiento_origen_id) REFERENCES movimientos (id)
 );
+
+CREATE TABLE analisis
+(
+    id             SERIAL PRIMARY KEY,
+    lote_id        INT         NOT NULL,
+    fecha_analisis DATE        NOT NULL,
+    nro_analisis   VARCHAR(50) NOT NULL,
+    dictamen       TEXT        NOT NULL,
+    observaciones  TEXT,
+    activo         BOOLEAN     NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_lote_analisis
+        FOREIGN KEY (lote_id) REFERENCES lotes (id)
+);
+
+ALTER TABLE lotes
+    ADD CONSTRAINT fk_nro_analisis
+        FOREIGN KEY (nro_analisis_id) REFERENCES analisis (id);
+
+

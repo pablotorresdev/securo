@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.securo.entity.Role;
-import com.mb.securo.entity.User;
-import com.mb.securo.repository.RoleRepository;
-import com.mb.securo.repository.UserRepository;
+import com.mb.securo.entity.maestro.Role;
+import com.mb.securo.entity.maestro.User;
+import com.mb.securo.repository.maestro.RoleRepository;
+import com.mb.securo.repository.maestro.UserRepository;
 
 import jakarta.validation.Valid;
 

@@ -25,10 +25,17 @@ class RoleControllerTest {
     }
 
     @Test
-    void testUsersPage() throws Exception {
-        mockMvc.perform(get("/admin"))
+    void testContactosPage() throws Exception {
+        mockMvc.perform(get("/contactos"))
             .andExpect(status().isOk()) // Verify the status is 200 OK
-            .andExpect(view().name("admin")); // Verify the view name is "admin"
+            .andExpect(view().name("contactos")); // Verify the view name is "admin"
+    }
+
+    @Test
+    void testUsersPage() throws Exception {
+        mockMvc.perform(get("/users"))
+            .andExpect(status().isOk()) // Verify the status is 200 OK
+            .andExpect(view().name("users")); // Verify the view name is "admin"
     }
 
     @Test

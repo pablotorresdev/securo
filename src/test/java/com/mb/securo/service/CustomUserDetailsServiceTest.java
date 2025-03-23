@@ -8,10 +8,10 @@ import org.mockito.Mockito;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import com.mb.securo.entity.Role;
-import com.mb.securo.entity.User;
-import com.mb.securo.repository.RoleRepository;
-import com.mb.securo.repository.UserRepository;
+import com.mb.securo.entity.maestro.Role;
+import com.mb.securo.entity.maestro.User;
+import com.mb.securo.repository.maestro.RoleRepository;
+import com.mb.securo.repository.maestro.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

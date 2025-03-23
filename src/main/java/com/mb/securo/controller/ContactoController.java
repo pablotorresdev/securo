@@ -7,11 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.securo.entity.Contacto;
-import com.mb.securo.repository.ContactoRepository;
+import com.mb.securo.entity.maestro.Contacto;
+import com.mb.securo.repository.maestro.ContactoRepository;
 
 import jakarta.validation.Valid;
 
@@ -25,7 +30,7 @@ public class ContactoController {
     // Listar todos los contactos activos
     @GetMapping("/list-contactos")
     public String listContactos(Model model) {
-        List<Contacto> contactos = contactoRepository.findByActivoTrue();
+        List<Contacto> contactos = contactoRepository.findAll();
         model.addAttribute("contactos", contactos);
         return "contactos/list-contactos";
     }
@@ -41,7 +46,7 @@ public class ContactoController {
     @PostMapping("/add-contacto")
     public String addContacto(@Valid @ModelAttribute Contacto contacto, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("contactos", contactoRepository.findByActivoTrue());// Load roles for dropdown
+            model.addAttribute("contactos", contactoRepository.findAll());// Load roles for dropdown
             model.addAttribute("error", "Validation failed!");
             return "contactos/add-contacto";
         }
@@ -49,8 +54,6 @@ public class ContactoController {
         contactoRepository.save(contacto);
         return "redirect:/contactos/list-contactos";
     }
-
-
 
     // Mostrar el formulario para editar un contacto
     @GetMapping("/edit-contacto/{id}")
@@ -81,12 +84,11 @@ public class ContactoController {
 
         // Aseguramos que el id del objeto coincide con el de la URL
         contacto.setId(id);
-
+        contacto.setActivo(true);  // Aseguramos que se guarde como activo
         contactoRepository.save(contacto);
         redirectAttributes.addFlashAttribute("success", "Contacto updated successfully!");
         return "redirect:/contactos/list-contactos";
     }
-
 
     // Borrado lógico: se marca el registro como inactivo
     @PostMapping("/delete-contacto")
@@ -102,4 +104,5 @@ public class ContactoController {
         contactoRepository.save(contacto);
         return "redirect:/contactos/list-contactos";
     }
+
 }

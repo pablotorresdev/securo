@@ -16,33 +16,34 @@
 <table border="1">
     <thead>
     <tr>
-        <th>ID</th>
+        <th>Razon Social</th>
+        <th>CUIT</th>
         <th>Dirección</th>
         <th>Ciudad</th>
         <th>País</th>
         <th>Teléfono</th>
         <th>Fax</th>
         <th>Email</th>
-        <th>Referente</th>
-
+        <th>Nombre Contacto</th>
+        <th>Acciones</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="contacto : ${contactos}">
-        <td th:text="${contacto.id}"></td>
+        <td th:text="${contacto.razonSocial}"></td>
+        <td th:text="${contacto.cuit}"></td>
         <td th:text="${contacto.direccion}"></td>
         <td th:text="${contacto.ciudad}"></td>
         <td th:text="${contacto.pais}"></td>
         <td th:text="${contacto.telefono}"></td>
         <td th:text="${contacto.fax}"></td>
         <td th:text="${contacto.email}"></td>
-        <td th:text="${contacto.referente}"></td>
+        <td th:text="${contacto.personaContacto}"></td>
         <td>
             <form th:action="@{/contactos/edit-contacto/{id}(id=${contacto.id})}" method="get" style="display:inline;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit">Edit</button>
             </form>
-
             <form th:action="@{/contactos/delete-contacto}" method="post" style="display:inline;" onsubmit="event.preventDefault(); confirmDelete(this);">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="id" th:value="${contacto.id}">

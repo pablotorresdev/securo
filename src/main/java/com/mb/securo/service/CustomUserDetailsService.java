@@ -7,10 +7,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.mb.securo.entity.Role;
-import com.mb.securo.entity.User;
-import com.mb.securo.repository.RoleRepository;
-import com.mb.securo.repository.UserRepository;
+import com.mb.securo.entity.maestro.Role;
+import com.mb.securo.entity.maestro.User;
+import com.mb.securo.repository.maestro.RoleRepository;
+import com.mb.securo.repository.maestro.UserRepository;
 
 import jakarta.annotation.PostConstruct;
 

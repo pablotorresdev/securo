@@ -1,93 +1,19 @@
-INSERT INTO tipo_producto (nombre)
-VALUES ('Api'),
-       ('Excipiente'),
-       ('Capsula'),
-       ('Semielaborado'),
-       ('Acond. primario'),
-       ('Acond. secundario'),
-       ('Unidad venta');
+INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto) VALUES ('Laboratorios BioPharma S.A.', '30-49439948-9', 'Av. Corrientes 1234', 'Buenos Aires', 'Argentina', '(011) 4321-5678', '(011) 4321-5679', 'info@biopharma.com.ar', 'Juan Perez');
+INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto) VALUES ('Quimica del Plata S.R.L.', '33-96275551-3', 'Calle San Martin 987', 'Cordoba', 'Argentina', '(0351) 468-1122', '(0351) 468-1123', 'ventas@quimicadelplata.com.ar', 'Maria Lopez');
+INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto) VALUES ('Distribuidora Medicorp S.A.', '30-51557422-7', 'Av. Pellegrini 752', 'Rosario', 'Argentina', '(0341) 223-3344', NULL, 'contacto@medicorp.com', 'Carlos Gonzalez');
+INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto) VALUES ('Insumos Quimicos Mendoza S.R.L.', '33-38544412-0', 'Av. Las Heras 2300', 'Mendoza', 'Argentina', '(0261) 445-6677', NULL, 'administracion@insumosmendoza.com.ar', 'Lucia Martinez');
+INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto) VALUES ('Pharma Solutions S.A.', '34-05146058-9', 'Calle 12 456', 'La Plata', 'Argentina', '(0221) 412-8999', '(0221) 412-8998', 'info@pharmasolutions.com', 'Pedro Fernandez');
+INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto) VALUES ('Conifarma S.A.', '34-11111111-9', 'Pringles 10', 'CABA', 'Argentina', '(0221) 412-8999', '(0221) 412-8998', 'info@pharmasolutions.com', 'Silvita');
 
-
-INSERT INTO dictamen (estado)
-VALUES ('Recibido'),
-       ('Cuarentena'),
-       ('Aprobado'),
-       ('Rechazado'),
-       ('Vencido'),
-       ('Destruido'),
-       ('Retiro mercado'),
-       ('Consumido'),
-       ('Depomax');
-
-
-INSERT INTO motivo (descripcion)
-VALUES ('Consumo Produccion'),
-       ('Vencido'),
-       ('Reanalizado'),
-       ('Ajuste'),
-       ('Rechazado'),
-       ('Muestreo'),
-       ('Compra'),
-       ('Devolucion'),
-       ('Saldo Inicial'),
-       ('Desarrollo');
-
-INSERT INTO estado (descripcion)
-VALUES ('Activo'),
-       ('Inactivo');
-
-INSERT INTO tipo_movimiento (nombre)
-VALUES ('Ingreso'),
-       ('Egreso'),
-       ('Transformacion');
-
-
-/***************************unidad_medida******************/
-INSERT INTO unidad_medida (nombre, tipo, simbolo, factor_conversion)
-VALUES ('Unidad', 'Generica', 'U', 1.0),
-
--- Unidades de Masa
-       ('Microgramo', 'Masa', 'µg', 0.000001),
-       ('Miligramo', 'Masa', 'mg', 0.001),
-       ('Gramo', 'Masa', 'g', 1.0),
-       ('Kilogramo', 'Masa', 'kg', 1000.0),
-       ('Tonelada', 'Masa', 't', 1000000.0),
-
--- Unidades de Volumen
-       ('Microlitro', 'Volumen', 'µL', 0.000001),        -- 1 µL = 0.000001 L
-       ('Mililitro', 'Volumen', 'mL', 0.001),            -- 1 mL = 0.001 L
-       ('Centilitro', 'Volumen', 'cL', 0.01),            -- 1 cL = 0.01 L
-       ('Decilitro', 'Volumen', 'dL', 0.1),              -- 1 dL = 0.1 L
-       ('Litro', 'Volumen', 'L', 1.0),                   -- 1 L = 1 L
-
-       ('Milimetro cubico', 'Volumen', 'mm3', 0.000001), -- 1 mm³ = 0.000001 L
-       ('Centimetro cubico', 'Volumen', 'cm3', 0.001),   -- 1 cm³ = 0.001 L
-       ('Metro cubico', 'Volumen', 'm3', 1000.0),        -- 1 m³ = 1000 L
-
--- Unidades de Superficie
-       ('Milimetro cuadrado', 'Superficie', 'mm2', 0.000001),
-       ('Centimetro cuadrado', 'Superficie', 'cm2', 0.0001),
-       ('Metro cuadrado', 'Superficie', 'm2', 1.0),
-       ('Kilometro cuadrado', 'Superficie', 'km2', 1000000.0),
-       ('Hectarea', 'Superficie', 'ha', 10000.0),
-
--- Unidades de Longitud
-       ('Micrometro', 'Longitud', 'µm', 0.000001),
-       ('Milimetro', 'Longitud', 'mm', 0.001),
-       ('Centimetro', 'Longitud', 'cm', 0.01),
-       ('Metro', 'Longitud', 'm', 1.0),
-       ('Kilometro', 'Longitud', 'km', 1000.0),
-
--- Unidades porcentuales
-       ('Porcentaje', 'Porcentaje', '%', 0.01),
-       ('Partes por millon', 'Porcentaje', 'ppm', 0.000001)
-;
-
-
-
-
-
-
-
-
-
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones) VALUES
+    ('Paracetamol', 'P-001', 'API', 'GRAMO', 'Analgesico y antipiretico de uso farmaceutico', 'COA Paracetamol', 'Uso en tabletas');
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones) VALUES
+    ('Ibuprofeno', 'P-002', 'API', 'GRAMO', 'Antiinflamatorio no esteroideo para aliviar el dolor', 'COA Ibuprofeno', 'Uso en suspension oral');
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones) VALUES
+    ('Lactosa Monohidrato', 'P-003', 'EXCIPIENTE', 'KILOGRAMO', 'Excipiente para formulaciones farmaceuticas de alta pureza', 'COA Lactosa', 'Adecuado para tabletas');
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones) VALUES
+    ('Capsula Vacio', 'P-004', 'CAPSULA', 'UNIDAD', 'Capsula de gelatina vacia para encapsulamiento de medicamentos', 'COA Capsula', 'Estandar en la industria');
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones) VALUES
+    ('Semielaborado X', 'P-005', 'SEMIELABORADO', 'MILIGRAMO', 'Producto semielaborado destinado a procesos de produccion', 'COA Semielaborado', 'Requiere control adicional');
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones) VALUES
+    ('Acond. primario Y', 'P-006', 'ACOND_PRIMARIO', 'UNIDAD', 'Material para empaque primario en la industria farmaceutica', 'COA AcondPrimario', 'Control de calidad estricto');

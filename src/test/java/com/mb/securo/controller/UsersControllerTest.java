@@ -15,10 +15,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
-import com.mb.securo.entity.Role;
-import com.mb.securo.entity.User;
-import com.mb.securo.repository.RoleRepository;
-import com.mb.securo.repository.UserRepository;
+import com.mb.securo.entity.maestro.Role;
+import com.mb.securo.entity.maestro.User;
+import com.mb.securo.repository.maestro.RoleRepository;
+import com.mb.securo.repository.maestro.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
@@ -64,7 +64,7 @@ class UsersControllerTest {
         String viewName = controller.listUsers(model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/users");
+        assertThat(viewName).isEqualTo("users/list-users");
         assertThat(model.getAttribute("users")).isEqualTo(users);
         verify(userRepository, times(1)).findAll();
     }
@@ -75,7 +75,7 @@ class UsersControllerTest {
         String viewName = controller.showAddUserForm(model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(viewName).isEqualTo("users/add-user");
     }
 
     @Test
@@ -92,7 +92,7 @@ class UsersControllerTest {
         String viewName = controller.addUser(null, bindingResult, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(viewName).isEqualTo("users/add-user");
         assertThat(model.getAttribute("roles")).isEqualTo(roles);
         assertThat(model.getAttribute("error")).isEqualTo("Validation failed!");
     }
@@ -114,7 +114,7 @@ class UsersControllerTest {
         String viewName = controller.addUser(user, bindingResult, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(viewName).isEqualTo("users/add-user");
         assertThat(model.getAttribute("error")).isEqualTo("User already exists!");
         assertThat(model.getAttribute("roles")).isEqualTo(roles);
     }
@@ -136,7 +136,7 @@ class UsersControllerTest {
         String viewName = controller.addUser(user, bindingResult, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(viewName).isEqualTo("users/add-user");
         assertThat(model.getAttribute("error")).isEqualTo("Role is required!");
         assertThat(model.getAttribute("roles")).isEqualTo(roles);
     }
@@ -158,7 +158,7 @@ class UsersControllerTest {
         String viewName = controller.addUser(user, bindingResult, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(viewName).isEqualTo("users/add-user");
         assertThat(model.getAttribute("error")).isEqualTo("Role is required!");
         assertThat(model.getAttribute("roles")).isEqualTo(roles);
     }
@@ -184,7 +184,7 @@ class UsersControllerTest {
         String viewName = controller.addUser(user, bindingResult, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/add-user");
+        assertThat(viewName).isEqualTo("users/add-user");
         assertThat(model.getAttribute("error")).isEqualTo("Role not found!");
         assertThat(model.getAttribute("roles")).isEqualTo(roles);
     }
@@ -208,7 +208,7 @@ class UsersControllerTest {
         String viewName = controller.addUser(user, bindingResult, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("redirect:/admin/users");
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
         verify(userRepository, times(1)).save(any(User.class));
         verify(passwordEncoder, times(1)).encode("password");
         assertThat(user.getPassword()).isEqualTo("encodedPassword");
@@ -224,7 +224,7 @@ class UsersControllerTest {
         String viewName = controller.showEditUserForm(1L, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("admin/edit-user");
+        assertThat(viewName).isEqualTo("users/edit-user");
         assertThat(model.getAttribute("user")).isEqualTo(user);
         verify(userRepository, times(1)).findById(1L);
     }
@@ -238,7 +238,7 @@ class UsersControllerTest {
         String viewName = controller.showEditUserForm(1L, model);
 
         // Assert
-        assertThat(viewName).isEqualTo("redirect:/admin/users");
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
         assertThat(model.getAttribute("error")).isEqualTo("User not found!");
     }
 
@@ -254,7 +254,7 @@ class UsersControllerTest {
         String viewName = controller.editUser(1L, "newPassword", "ROLE_ADMIN", redirectAttributes);
 
         // Assert
-        assertThat(viewName).isEqualTo("redirect:/admin/users");
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
         assertThat(redirectAttributes.getFlashAttributes().get("success")).isEqualTo("User updated successfully!");
         verify(userRepository, times(1)).save(any(User.class));
         assertThat(user.getPassword()).isEqualTo("encodedPassword");
@@ -270,7 +270,7 @@ class UsersControllerTest {
         String viewName = controller.editUser(1L, "password", "ROLE_ADMIN", redirectAttributes);
 
         // Assert
-        assertThat(viewName).isEqualTo("redirect:/admin/users");
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
         assertThat(redirectAttributes.getFlashAttributes().get("error")).isEqualTo("User not found!");
     }
 
@@ -284,7 +284,7 @@ class UsersControllerTest {
         String viewName = controller.deleteUser(1L, redirectAttributes);
 
         // Assert
-        assertThat(viewName).isEqualTo("redirect:/admin/users");
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
         assertThat(redirectAttributes.getFlashAttributes().get("success")).isEqualTo("User deleted successfully!");
         verify(userRepository, times(1)).deleteById(1L);
     }
@@ -298,7 +298,7 @@ class UsersControllerTest {
         String viewName = controller.deleteUser(1L, redirectAttributes);
 
         // Assert
-        assertThat(viewName).isEqualTo("redirect:/admin/users");
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
         assertThat(redirectAttributes.getFlashAttributes().get("error")).isEqualTo("User not found!");
         verify(userRepository, times(0)).deleteById(anyLong());
     }

@@ -1,9 +1,0 @@
-package com.mb.securo.repository;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.mb.securo.entity.Estado;
-
-public interface StatusRepository extends JpaRepository<Estado, Long> {
-
-}

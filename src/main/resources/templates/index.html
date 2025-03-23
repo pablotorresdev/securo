@@ -21,6 +21,12 @@
             Contactos Section
         </a>
     </li>
+    <li>
+        <a th:href="@{/productos}"
+           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            Productos Section
+        </a>
+    </li>
     <!-- User1 Section Link -->
     <li>
         <a th:href="@{/user1}"

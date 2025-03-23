@@ -16,6 +16,11 @@ public class IndexController {
         return "contactos"; // contactos.html
     }
 
+    @GetMapping("/productos")
+    public String productosPage() {
+        return "productos"; // productos.html
+    }
+
     @GetMapping("/user1")
     public String user1Page() {
         return "user1"; // user1.html
