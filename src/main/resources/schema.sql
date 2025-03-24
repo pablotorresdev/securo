@@ -97,18 +97,18 @@ CREATE TABLE productos
 
 CREATE TABLE contactos
 (
-    id              SERIAL PRIMARY KEY,
-    razon_social    VARCHAR(255) NOT NULL,
-    cuit            VARCHAR(255) NOT NULL,
-    direccion       VARCHAR(255) NOT NULL,
-    ciudad          VARCHAR(100) NOT NULL,
-    pais            VARCHAR(100) NOT NULL,
-    telefono        VARCHAR(50),
-    fax             VARCHAR(50),
-    email           VARCHAR(100),
+    id               SERIAL PRIMARY KEY,
+    razon_social     VARCHAR(255) NOT NULL,
+    cuit             VARCHAR(255) NOT NULL,
+    direccion        VARCHAR(255) NOT NULL,
+    ciudad           VARCHAR(100) NOT NULL,
+    pais             VARCHAR(100) NOT NULL,
+    telefono         VARCHAR(50),
+    fax              VARCHAR(50),
+    email            VARCHAR(100),
     persona_contacto VARCHAR(100),
-    observaciones   TEXT,
-    activo          BOOLEAN      NOT NULL DEFAULT TRUE
+    observaciones    TEXT,
+    activo           BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE configuracion
@@ -125,8 +125,8 @@ CREATE TABLE lotes
     id                    SERIAL PRIMARY KEY,
     id_lote               VARCHAR(50)    NOT NULL,
     producto_id           INT            NOT NULL,
-    estado_lote           VARCHAR(50)    NOT NULL,
-    dictamen_id           VARCHAR(50)    NOT NULL,
+    estado_lote           TEXT           NOT NULL,
+    dictamen              TEXT           NOT NULL,
     lote_origen_id        INT,
     fecha_ingreso         DATE           NOT NULL,
     nro_bulto             INT            NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE movimientos
 (
     id                   SERIAL PRIMARY KEY,
     fecha                DATE           NOT NULL,
-    tipo                 TEXT           NOT NULL, -- 'Ingreso', 'Egreso' o 'Transformacion'
+    tipo_movimiento      TEXT           NOT NULL,
     motivo               TEXT           NOT NULL,
     lote_id              INT            NOT NULL,
     descripcion          TEXT,

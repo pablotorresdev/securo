@@ -5,8 +5,11 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mb.securo.dto.LoteRequestDTO;
 import com.mb.securo.entity.Lote;
 import com.mb.securo.entity.Movimiento;
+import com.mb.securo.entity.maestro.Contacto;
+import com.mb.securo.entity.maestro.Producto;
 import com.mb.securo.enums.DictamenEnum;
 import com.mb.securo.enums.EstadoLoteEnum;
 import com.mb.securo.enums.MotivoEnum;
@@ -37,7 +40,6 @@ public class LoteService {
         }
         contactoRepository.findById(lote.getProveedor().getId())
             .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
-
         if (lote.getFabricante() != null && lote.getFabricante().getId() != null) {
             contactoRepository.findById(lote.getFabricante().getId())
                 .orElseThrow(() -> new IllegalArgumentException("El fabricante no existe."));
@@ -65,8 +67,84 @@ public class LoteService {
         movimiento.setActivo(Boolean.TRUE);
 
         movimientoRepository.save(movimiento);
+
+        // (Opcional) Se podría agregar registro de auditoría aquí
+
+        return nuevoLote;
+    }
+
+    @Transactional
+    public Lote ingresarStockPorCompra(LoteRequestDTO dto) {
+        // Validar que la fecha de ingreso no sea posterior a la fecha actual
+        if (dto.getFechaIngreso().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha de ingreso no puede ser posterior al día de hoy.");
+        }
+
+        // Verificar existencia del proveedor
+        Contacto proveedor = contactoRepository.findById(dto.getProveedorId())
+            .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
+
+        // Verificar existencia del fabricante si se envió (distinto a Conifarma)
+        Contacto fabricante = null;
+        if (dto.getFabricanteId() != null) {
+            fabricante = contactoRepository.findById(dto.getFabricanteId())
+                .orElseThrow(() -> new IllegalArgumentException("El fabricante no existe."));
+        }
+
+        // Verificar existencia del producto
+        Producto producto = productoRepository.findById(dto.getProductoId())
+            .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+
+        // Convertir el DTO a entidad Lote y asignar valores fijos
+        Lote lote = new Lote();
+        lote.setFechaIngreso(dto.getFechaIngreso());
+        lote.setProducto(producto);
+        lote.setProveedor(proveedor);
+        if (dto.getFabricanteId() == null) {
+            lote.setFabricante(proveedor);
+        }
+        lote.setFabricante(fabricante);
+        lote.setCantidadInicial(dto.getCantidadInicial());
+        lote.setCantidadActual(dto.getCantidadInicial());
+        lote.setUnidadMedida(dto.getUnidadMedida());
+        lote.setNroBulto(dto.getNroBulto());
+        lote.setBultosTotales(dto.getBultosTotales());
+        lote.setNroRemito(dto.getNroRemito());
+        lote.setLoteProveedor(dto.getLoteProveedor());
+        lote.setOrdenElaboracion(dto.getOrdenElaboracion());
+        lote.setDetalleConservacion(dto.getDetalleConservacion());
+        lote.setAnalisisProveedor(dto.getAnalisisProveedor());
+        lote.setFechaVencimiento(dto.getFechaVencimiento());
+        lote.setFechaReanalisis(dto.getFechaReanalisis());
+        lote.setObservaciones(dto.getObservaciones());
+
+        // Valores fijos del CU1
+        lote.setEstadoLote(EstadoLoteEnum.NUEVO);
+        lote.setDictamen(DictamenEnum.RECIBIDO);
+        lote.setIdLote("L-" + System.currentTimeMillis());
+        lote.setActivo(Boolean.TRUE);
+
+        // Persistir el lote
+        Lote nuevoLote = loteRepository.save(lote);
+
+        // Crear el movimiento de ALTA asociado al ingreso por compra
+        Movimiento movimiento = new Movimiento();
+        movimiento.setFecha(LocalDate.now());
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setMotivo(MotivoEnum.COMPRA);
+        movimiento.setLote(nuevoLote);
+        movimiento.setCantidad(nuevoLote.getCantidadInicial());
+        movimiento.setUnidadMedida(nuevoLote.getUnidadMedida());
+        movimiento.setDescripcion("Ingreso de stock por compra (CU1)");
+        movimiento.setDictamenInicial(nuevoLote.getDictamen());
+        movimiento.setDictamenFinal(nuevoLote.getDictamen());
+        movimiento.setActivo(Boolean.TRUE);
+
+        movimientoRepository.save(movimiento);
+
+        // (Opcional) Se podría registrar la auditoría y notificar a los departamentos correspondientes
+
         return nuevoLote;
     }
 
 }
-
