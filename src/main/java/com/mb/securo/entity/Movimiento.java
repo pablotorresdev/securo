@@ -84,5 +84,5 @@ public class Movimiento {
 
     @Column(nullable = false)
     private Boolean activo;
-}
 
+}

@@ -124,4 +124,3 @@ public class Lote {
     private Boolean activo;
 
 }
-

@@ -10,9 +10,15 @@ import com.mb.securo.entity.Movimiento;
 import com.mb.securo.enums.DictamenEnum;
 import com.mb.securo.enums.EstadoLoteEnum;
 import com.mb.securo.enums.MotivoEnum;
+import com.mb.securo.enums.TipoMovimientoEnum;
 import com.mb.securo.repository.LoteRepository;
 import com.mb.securo.repository.MovimientoRepository;
+import com.mb.securo.repository.maestro.ContactoRepository;
+import com.mb.securo.repository.maestro.ProductoRepository;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 @Service
 public class LoteService {
 
@@ -20,41 +26,45 @@ public class LoteService {
 
     private final MovimientoRepository movimientoRepository;
 
-    public LoteService(final LoteRepository loteRepository, final MovimientoRepository movimientoRepository) {
-        this.loteRepository = loteRepository;
-        this.movimientoRepository = movimientoRepository;
-    }
+    private final ContactoRepository contactoRepository;
+
+    private final ProductoRepository productoRepository;
 
     @Transactional
     public Lote ingresarStockPorCompra(Lote lote) {
-        // Validación de la fecha de ingreso
         if (lote.getFechaIngreso().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de ingreso no puede ser posterior al día de hoy.");
         }
-        // Validaciones adicionales: existencia del producto, proveedor, etc.
+        contactoRepository.findById(lote.getProveedor().getId())
+            .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
 
-        // Configuración de valores fijos para el CU1
+        if (lote.getFabricante() != null && lote.getFabricante().getId() != null) {
+            contactoRepository.findById(lote.getFabricante().getId())
+                .orElseThrow(() -> new IllegalArgumentException("El fabricante no existe."));
+        }
+        productoRepository.findById(lote.getProducto().getId())
+            .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+
+        lote.setEstadoLote(EstadoLoteEnum.NUEVO);
         lote.setDictamen(DictamenEnum.RECIBIDO);
         lote.setIdLote("L-" + System.currentTimeMillis());
         lote.setCantidadActual(lote.getCantidadInicial());
-        lote.setEstadoLote(EstadoLoteEnum.NUEVO);
-
-        // Persistir el lote en el inventario
+        lote.setActivo(Boolean.TRUE);
         Lote nuevoLote = loteRepository.save(lote);
 
-        // Crear y persistir el movimiento de Alta asociado
+        // Crear el movimiento de Alta asociado al ingreso por compra
         Movimiento movimiento = new Movimiento();
-        //        movimiento.setFechaMov(LocalDate.now());
-        //        movimiento.setTipoMov("ALTA");       // Tipo de movimiento
-        movimiento.setMotivo(MotivoEnum.COMPRA);        // Motivo del movimiento
-        //        movimiento.setLote(nuevoLote);
-        //        movimiento.setCantidad(nuevoLote.getCantidadInicial());
-        //        movimiento.setObservaciones("Ingreso de stock por compra (CU1)");
+        movimiento.setFecha(LocalDate.now());
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setMotivo(MotivoEnum.COMPRA);
+        movimiento.setLote(nuevoLote);
+        movimiento.setCantidad(nuevoLote.getCantidadInicial());
+        movimiento.setUnidadMedida(nuevoLote.getUnidadMedida());
+        movimiento.setDescripcion("Ingreso de stock por compra (CU1)");
+        movimiento.setDictamenFinal(nuevoLote.getDictamen());
+        movimiento.setActivo(Boolean.TRUE);
 
         movimientoRepository.save(movimiento);
-
-        // (Opcional) Registrar auditoría de la operación
-
         return nuevoLote;
     }
 
