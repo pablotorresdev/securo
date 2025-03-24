@@ -47,11 +47,16 @@ public class UsersController {
         this.roleRepository = roleRepository;
     }
 
+    @GetMapping("/")
+    public String usersPage() {
+        return "users/index-users"; //.html
+    }
+
     @GetMapping("/list-users")
     public String listUsers(Model model) {
         List<User> users = userRepository.findAll();
         model.addAttribute("users", users);
-        return "users/list-users"; // Refers to list-users.html in the templates directory
+        return "users/list-users"; // Refers to list-index-users.html in the templates directory
     }
 
     @GetMapping("/add-user")

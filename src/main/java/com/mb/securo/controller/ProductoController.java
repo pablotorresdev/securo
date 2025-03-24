@@ -27,6 +27,11 @@ public class ProductoController {
     @Autowired
     private ProductoRepository productoRepository;
 
+    @GetMapping("/")
+    public String productosPage() {
+        return "productos/index-productos"; //.html
+    }
+
     // Listar todos los productos activos
     @GetMapping("/list-productos")
     public String listProductos(Model model) {

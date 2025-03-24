@@ -140,11 +140,11 @@ CREATE TABLE lotes
     analisis_proveedor    TEXT,
     orden_elaboracion     TEXT,
     detalle_conservacion  TEXT,
-    fabricante_id         INT            NOT NULL,
+    fabricante_id         INT,
     fecha_vencimiento     DATE,
     fecha_reanalisis      DATE,
     nro_analisis_id       INT,
-    valoracion_porcentual NUMERIC(12, 2), -- 'activo' o 'inactivo'
+    valoracion_porcentual NUMERIC(12, 2),
     pureza                TEXT,
     observaciones         TEXT,
     activo                BOOLEAN        NOT NULL DEFAULT TRUE,

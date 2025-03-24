@@ -1,6 +1,7 @@
 package com.mb.securo.service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,45 +34,6 @@ public class LoteService {
 
     private final ProductoRepository productoRepository;
 
-    @Transactional
-    public Lote ingresarStockPorCompra(Lote lote) {
-        if (lote.getFechaIngreso().isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("La fecha de ingreso no puede ser posterior al día de hoy.");
-        }
-        contactoRepository.findById(lote.getProveedor().getId())
-            .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
-        if (lote.getFabricante() != null && lote.getFabricante().getId() != null) {
-            contactoRepository.findById(lote.getFabricante().getId())
-                .orElseThrow(() -> new IllegalArgumentException("El fabricante no existe."));
-        }
-        productoRepository.findById(lote.getProducto().getId())
-            .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
-
-        lote.setEstadoLote(EstadoLoteEnum.NUEVO);
-        lote.setDictamen(DictamenEnum.RECIBIDO);
-        lote.setIdLote("L-" + System.currentTimeMillis());
-        lote.setCantidadActual(lote.getCantidadInicial());
-        lote.setActivo(Boolean.TRUE);
-        Lote nuevoLote = loteRepository.save(lote);
-
-        // Crear el movimiento de Alta asociado al ingreso por compra
-        Movimiento movimiento = new Movimiento();
-        movimiento.setFecha(LocalDate.now());
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
-        movimiento.setMotivo(MotivoEnum.COMPRA);
-        movimiento.setLote(nuevoLote);
-        movimiento.setCantidad(nuevoLote.getCantidadInicial());
-        movimiento.setUnidadMedida(nuevoLote.getUnidadMedida());
-        movimiento.setDescripcion("Ingreso de stock por compra (CU1)");
-        movimiento.setDictamenFinal(nuevoLote.getDictamen());
-        movimiento.setActivo(Boolean.TRUE);
-
-        movimientoRepository.save(movimiento);
-
-        // (Opcional) Se podría agregar registro de auditoría aquí
-
-        return nuevoLote;
-    }
 
     @Transactional
     public Lote ingresarStockPorCompra(LoteRequestDTO dto) {
@@ -107,7 +69,11 @@ public class LoteService {
         lote.setCantidadInicial(dto.getCantidadInicial());
         lote.setCantidadActual(dto.getCantidadInicial());
         lote.setUnidadMedida(dto.getUnidadMedida());
-        lote.setNroBulto(dto.getNroBulto());
+        if(dto.getNroBulto()!=null) {
+            lote.setNroBulto(dto.getNroBulto());
+        } else {
+            lote.setNroBulto(dto.getBultosTotales());
+        }
         lote.setBultosTotales(dto.getBultosTotales());
         lote.setNroRemito(dto.getNroRemito());
         lote.setLoteProveedor(dto.getLoteProveedor());
@@ -145,6 +111,15 @@ public class LoteService {
         // (Opcional) Se podría registrar la auditoría y notificar a los departamentos correspondientes
 
         return nuevoLote;
+    }
+
+    public List<Lote> findAll() {
+        return loteRepository.findAll();
+    }
+
+    public Lote findById(final Long loteId) {
+        return loteRepository.findById(loteId)
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
 }

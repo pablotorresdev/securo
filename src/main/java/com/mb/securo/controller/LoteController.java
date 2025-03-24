@@ -1,41 +1,70 @@
 package com.mb.securo.controller;
 
-import java.net.URI;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.securo.dto.LoteRequestDTO;
 import com.mb.securo.entity.Lote;
+import com.mb.securo.service.ContactoService;
 import com.mb.securo.service.LoteService;
+import com.mb.securo.service.ProductoService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(name = "Lote Controller", description = "Endpoints para la gestión de lotes")
-@RestController
-@RequestMapping("/api/lotes")
+@Controller
+@RequestMapping("/lotes")
 public class LoteController {
+
+    @Autowired
+    private ProductoService productoService;
+
+    @Autowired
+    private ContactoService contactoService;
 
     @Autowired
     private LoteService loteService;
 
-//    @Operation(summary = "Ingreso de stock por compra", description = "Registra el ingreso de un nuevo lote proveniente de un proveedor externo (CU1)")
-//    @PostMapping("/ingreso-compra")
-//    public ResponseEntity<Lote> ingresarStockPorCompra(@RequestBody Lote lote) {
-//        Lote nuevoLote = loteService.ingresarStockPorCompra(lote);
-//        return ResponseEntity.created(URI.create("/api/lotes/" + nuevoLote.getIdLote())).body(nuevoLote);
-//    }
-
-    @Operation(summary = "Ingreso de stock por compra", description = "Registra el ingreso de un nuevo lote proveniente de un proveedor externo (CU1)")
-    @PostMapping("/ingreso-compra")
-    public ResponseEntity<Lote> ingresarStockPorCompra(@Valid @RequestBody LoteRequestDTO loteRequestDTO) {
-        Lote nuevoLote = loteService.ingresarStockPorCompra(loteRequestDTO);
-        return ResponseEntity.created(URI.create("/api/lotes/" + nuevoLote.getIdLote())).body(nuevoLote);
+    @GetMapping("/ingreso-compra")
+    public String showIngresoCompraForm(Model model) {
+        model.addAttribute("loteRequestDTO", new LoteRequestDTO());
+        model.addAttribute("productos", productoService.listAllProductosExternos());
+        model.addAttribute("contactos", contactoService.listAllContactosExternos());
+        return "lotes/ingreso-compra"; //.html
     }
+
+    @PostMapping("/ingreso-compra")
+    public String ingresarStockPorCompra(@Valid @ModelAttribute("loteRequestDTO") LoteRequestDTO loteRequestDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            // Re-populate the dropdown lists if validation fails
+            model.addAttribute("productos", productoService.listAllProductosExternos());
+            model.addAttribute("contactos", contactoService.listAllContactosExternos());
+            return "lotes/ingreso-compra";
+        }
+        loteService.ingresarStockPorCompra(loteRequestDTO);
+        redirectAttributes.addFlashAttribute("success", "Ingreso de stock registrado correctamente.");
+        return "index";
+    }
+
+
+    @GetMapping("/list-lotes")
+    public String listLotes(Model model) {
+        List<Lote> lotes = loteService.findAll(); // Método en el servicio que devuelve la lista de lotes con sus movimientos
+        model.addAttribute("lotes", lotes);
+        return "lotes/list-lotes"; // Nombre de la plantilla Thymeleaf, por ejemplo: src/main/resources/templates/lotes/list-lotes.html
+
+    }
+
 }
+

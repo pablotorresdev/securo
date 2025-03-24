@@ -8,25 +8,48 @@
 <h1>Welcome, <span th:text="${#authentication.name}">[username]</span>!</h1>
 <p>Select your section:</p>
 <ul>
+    <li>
+        <a th:href="@{/lotes/ingreso-compra}"
+           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            Ingreso de Lote por Compra
+        </a>
+    </li>
+
+    <li>
+        <a th:href="@{/lotes/list-lotes}"
+           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            Lista de Lotes
+        </a>
+    </li>
+
+    <li>
+        <a th:href="@{/movimientos/list-movimientos}"
+           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            Lista de Movimientos
+        </a>
+    </li>
+
+
     <!-- Admin Section Link -->
     <li>
-        <a th:href="@{/users}"
+        <a th:href="@{/users/}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
             Users Section
         </a>
     </li>
     <li>
-        <a th:href="@{/contactos}"
+        <a th:href="@{/contactos/}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
             Contactos Section
         </a>
     </li>
     <li>
-        <a th:href="@{/productos}"
+        <a th:href="@{/productos/}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
             Productos Section
         </a>
     </li>
+
     <!-- User1 Section Link -->
     <li>
         <a th:href="@{/user1}"

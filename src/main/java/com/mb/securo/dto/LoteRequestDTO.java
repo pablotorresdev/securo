@@ -34,11 +34,9 @@ public class LoteRequestDTO {
     @Positive(message = "La cantidad inicial debe ser mayor a cero")
     private BigDecimal cantidadInicial;
 
-    @NotNull(message = "El número de bulto es obligatorio")
     @Positive(message = "El número de bulto debe ser mayor a cero")
     private Integer nroBulto;
 
-    @NotNull(message = "La cantidad de bultos totales es obligatoria")
     @Positive(message = "La cantidad de bultos totales debe ser mayor a cero")
     private Integer bultosTotales;
 

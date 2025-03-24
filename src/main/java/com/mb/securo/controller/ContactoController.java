@@ -27,6 +27,11 @@ public class ContactoController {
     @Autowired
     private ContactoRepository contactoRepository;
 
+    @GetMapping("/")
+    public String contactosPage() {
+        return "contactos/index-contactos"; //.html
+    }
+
     // Listar todos los contactos activos
     @GetMapping("/list-contactos")
     public String listContactos(Model model) {
