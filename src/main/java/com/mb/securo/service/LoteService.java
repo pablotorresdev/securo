@@ -59,6 +59,9 @@ public class LoteService {
 
         // Convertir el DTO a entidad Lote y asignar valores fijos
         Lote lote = new Lote();
+        Movimiento movimiento = new Movimiento();
+        lote.getMovimientos().add(movimiento);
+
         lote.setFechaIngreso(dto.getFechaIngreso());
         lote.setProducto(producto);
         lote.setProveedor(proveedor);
@@ -90,11 +93,11 @@ public class LoteService {
         lote.setIdLote("L-" + System.currentTimeMillis());
         lote.setActivo(Boolean.TRUE);
 
+
         // Persistir el lote
         Lote nuevoLote = loteRepository.save(lote);
 
         // Crear el movimiento de ALTA asociado al ingreso por compra
-        Movimiento movimiento = new Movimiento();
         movimiento.setFecha(LocalDate.now());
         movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
         movimiento.setMotivo(MotivoEnum.COMPRA);
