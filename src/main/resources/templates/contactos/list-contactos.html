@@ -42,18 +42,18 @@
         <td>
             <form th:action="@{/contactos/edit-contacto/{id}(id=${contacto.id})}" method="get" style="display:inline;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button type="submit">Edit</button>
+                <button type="submit">Editar</button>
             </form>
             <form th:action="@{/contactos/delete-contacto}" method="post" style="display:inline;" onsubmit="event.preventDefault(); confirmDelete(this);">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="id" th:value="${contacto.id}">
-                <button type="submit" style="color:red;">Delete</button>
+                <button type="submit" style="color:red;">Borrar</button>
             </form>
         </td>
     </tr>
     </tbody>
 </table>
-<a th:href="@{/}">Back to Home</a>
+<a th:href="@{/}">Volver al inicio</a>
 
 <div th:if="${success}">
     <p style="color:green;" th:text="${success}"></p>

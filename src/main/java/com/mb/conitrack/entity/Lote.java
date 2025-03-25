@@ -91,13 +91,7 @@ public class Lote {
     @Column(name = "lote_proveedor", nullable = false)
     private String loteProveedor;
 
-    @Column(name = "analisis_proveedor", columnDefinition = "TEXT")
-    private String analisisProveedor;
-
-    @Column(name = "orden_elaboracion")
-    private String ordenElaboracion;
-
-    @Column(name = "detalle_conservacion", columnDefinition = "TEXT")
+    @Column(name = "detalle_conservacion")
     private String detalleConservacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -114,11 +108,8 @@ public class Lote {
     @JoinColumn(name = "nro_analisis_id")
     private Analisis nroAnalisis;
 
-    @Column(name = "valoracion_porcentual", precision = 12, scale = 2)
-    private BigDecimal valoracionPorcentual;
-
-    @Column
-    private String pureza;
+    @Column(name = "titulo", precision = 12, scale = 2)
+    private BigDecimal titulo;
 
     @Column(columnDefinition = "TEXT")
     private String observaciones;

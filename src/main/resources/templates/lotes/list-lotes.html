@@ -23,14 +23,12 @@
             <th>Nro Remito</th>
             <th>Proveedor</th>
             <th>Lote Proveedor</th>
-            <th>Análisis Proveedor</th>
-            <th>Orden Elaboración</th>
             <th>Detalle Conservación</th>
+            <th>Fabricante</th>
             <th>Fecha Vencimiento</th>
             <th>Fecha Reanálisis</th>
             <th>Nro Análisis</th>
-            <th>Valoración (%)</th>
-            <th>Pureza</th>
+            <th>Titulo (%)</th>
             <th>Observaciones</th>
         </tr>
         </thead>
@@ -48,14 +46,12 @@
             <td th:text="${lote.nroRemito}"></td>
             <td th:text="${lote.proveedor.razonSocial}"></td>
             <td th:text="${lote.loteProveedor}"></td>
-            <td th:text="${lote.analisisProveedor}"></td>
-            <td th:text="${lote.ordenElaboracion}"></td>
             <td th:text="${lote.detalleConservacion}"></td>
+            <td th:text="${lote.fabricante.razonSocial}"></td>
             <td th:text="${lote.fechaVencimiento}"></td>
             <td th:text="${lote.fechaReanalisis}"></td>
             <td th:text="${lote.nroAnalisis}"></td>
-            <td th:text="${lote.valoracionPorcentual}"></td>
-            <td th:text="${lote.pureza}"></td>
+            <td th:text="${lote.titulo}"></td>
             <td th:text="${lote.observaciones}"></td>
             <td>
                 <a th:href="@{'/movimientos/lote/' + ${lote.id}}" class="btn btn-primary btn-sm">Ver Movimientos</a>

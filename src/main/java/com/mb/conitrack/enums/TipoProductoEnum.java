@@ -3,7 +3,6 @@ package com.mb.conitrack.enums;
 public enum TipoProductoEnum {
     API("Api", "MP"),
     EXCIPIENTE("Excipiente", "MP"),
-    CAPSULA("Capsula", "MP"),
     SEMIELABORADO("Semielaborado", "UV"),
     ACOND_PRIMARIO("Acond. primario", "MP"),
     ACOND_SECUNDARIO("Acond. secundario", "MP"),

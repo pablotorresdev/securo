@@ -17,19 +17,19 @@
     <input type="hidden" name="id" th:value="${user.id}">
 
     <!-- Username -->
-    <label for="username">Username:</label>
+    <label for="username">Nombre de usuario:</label>
     <input type="text" id="username" name="username" th:value="${user.username}" readonly>
     <br>
 
     <!-- Password -->
-    <label for="password">Password (leave blank to keep current):</label>
+    <label for="password">Contraseña:</label>
     <input type="password" id="password" name="password" value="">
     <br>
 
     <!-- Role -->
-    <label for="role">Role:</label>
+    <label for="role">Rol:</label>
     <select id="role" name="roleName" required>
-        <option value="" disabled>Select a role</option>
+        <option value="" disabled>Seleccione un rol</option>
         <option th:each="role : ${roles}" th:value="${role.name}"
                 th:text="${role.name}"
                 th:selected="${user.role.name == role.name}">
@@ -38,9 +38,9 @@
     <br>
     <br>
 
-    <button type="submit">Save Changes</button>
+    <button type="submit">Guardar cambios</button>
 </form>
 
-<a th:href="@{/users/list-users}">Back to User List</a>
+<a th:href="@{/users/list-users}">Volver a la lista de Usuarios</a>
 </body>
 </html>

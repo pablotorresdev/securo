@@ -42,13 +42,14 @@
         </div>
 
         <div class="mb-3">
-            <label for="descripcion" class="form-label">Descripción:</label>
-            <textarea id="descripcion" th:field="*{descripcion}" class="form-control"></textarea>
-        </div>
-
-        <div class="mb-3">
-            <label for="coa" class="form-label">COA:</label>
-            <textarea id="coa" th:field="*{coa}" class="form-control"></textarea>
+            <label for="productoDestinoId" class="form-label">Producto destino:</label>
+            <select id="productoDestinoId" th:field="*{productoDestinoId}" class="form-select">
+                <option value="">-- Seleccione un producto --</option>
+                <option th:each="productoDestino : ${productosDestino}"
+                        th:value="${productoDestino.id}"
+                        th:text="${productoDestino.nombreGenerico}">Producto destino</option>
+            </select>
+            <div th:if="${#fields.hasErrors('productoId')}" class="error" th:errors="*{productoId}"></div>
         </div>
 
         <div class="mb-3">

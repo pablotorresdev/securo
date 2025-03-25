@@ -104,22 +104,10 @@
             <input type="text" id="loteProveedor" th:field="*{loteProveedor}" class="form-control" required>
         </div>
 
-        <!-- Orden de Elaboración -->
-        <div class="mb-2">
-            <label for="ordenElaboracion" class="form-label">Orden de Elaboración:</label>
-            <input type="text" id="ordenElaboracion" th:field="*{ordenElaboracion}" class="form-control">
-        </div>
-
         <!-- Detalle de Conservación -->
         <div class="mb-2">
             <label for="detalleConservacion" class="form-label">Detalle de Conservación:</label>
             <textarea id="detalleConservacion" th:field="*{detalleConservacion}" class="form-control"></textarea>
-        </div>
-
-        <!-- Análisis Proveedor -->
-        <div class="mb-2">
-            <label for="analisisProveedor" class="form-label">Análisis Proveedor:</label>
-            <textarea id="analisisProveedor" th:field="*{analisisProveedor}" class="form-control"></textarea>
         </div>
 
         <!-- Fecha de Vencimiento -->
@@ -132,6 +120,13 @@
         <div class="mb-2">
             <label for="fechaReanalisis" class="form-label">Fecha de Reanálisis:</label>
             <input type="date" id="fechaReanalisis" th:field="*{fechaReanalisis}" class="form-control">
+        </div>
+
+        <!-- Titulo -->
+        <div class="mb-2">
+            <label for="titulo" class="form-label">Titulo (%):</label>
+            <input type="number" step="0.001" id="titulo" th:field="*{titulo}" class="form-control" >
+            <div th:if="${#fields.hasErrors('titulo')}" class="error" th:errors="*{titulo}"></div>
         </div>
 
         <!-- Observaciones -->

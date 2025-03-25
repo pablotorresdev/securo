@@ -22,8 +22,7 @@
             <th>Codigo Interno</th>
             <th>Tipo Producto</th>
             <th>Unidad Medida</th>
-            <th>Descripción</th>
-            <th>COA</th>
+            <th>Producto de Destino</th>
             <th>Observaciones</th>
             <th>Acciones</th>
         </tr>
@@ -34,25 +33,24 @@
             <td th:text="${producto.codigoInterno}"></td>
             <td th:text="${producto.tipoProducto}"></td>
             <td th:text="${producto.unidadMedida}"></td>
-            <td th:text="${producto.descripcion}"></td>
-            <td th:text="${producto.coa}"></td>
+            <td th:text="${producto.productoDestino}"></td>
             <td th:text="${producto.observaciones}"></td>
             <td>
                 <form th:action="@{/productos/edit-producto/{id}(id=${producto.id})}" method="get" style="display:inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button type="submit" class="btn btn-primary btn-sm">Edit</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Editar</button>
                 </form>
                 <form th:action="@{/productos/delete-producto}" method="post" style="display:inline;" onsubmit="event.preventDefault(); confirmDelete(this);">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <input type="hidden" name="id" th:value="${producto.id}"/>
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Borrar</button>
                 </form>
             </td>
         </tr>
         </tbody>
     </table>
     <a th:href="@{/productos/add-producto}" class="btn btn-success">Agregar Producto</a>
-    <a th:href="@{/}" class="btn btn-secondary">Back to Home</a>
+    <a th:href="@{/}" class="btn btn-secondary">Volver al inicio</a>
     <div th:if="${success}" class="alert alert-success mt-3" th:text="${success}"></div>
     <div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
 </div>

@@ -62,37 +62,39 @@ public class LoteService {
         Movimiento movimiento = new Movimiento();
         lote.getMovimientos().add(movimiento);
 
-        lote.setFechaIngreso(dto.getFechaIngreso());
+        lote.setIdLote("L-" + System.currentTimeMillis());
         lote.setProducto(producto);
         lote.setProveedor(proveedor);
-        if (dto.getFabricanteId() == null) {
-            lote.setFabricante(proveedor);
-        }
-        lote.setFabricante(fabricante);
-        lote.setCantidadInicial(dto.getCantidadInicial());
-        lote.setCantidadActual(dto.getCantidadInicial());
-        lote.setUnidadMedida(dto.getUnidadMedida());
+        lote.setFechaIngreso(dto.getFechaIngreso());
+
+        //Cantidad
         if(dto.getNroBulto()!=null) {
             lote.setNroBulto(dto.getNroBulto());
         } else {
             lote.setNroBulto(dto.getBultosTotales());
         }
         lote.setBultosTotales(dto.getBultosTotales());
-        lote.setNroRemito(dto.getNroRemito());
+        lote.setCantidadInicial(dto.getCantidadInicial());
+        lote.setCantidadActual(dto.getCantidadInicial());
+        lote.setUnidadMedida(dto.getUnidadMedida());
+
+        if (fabricante != null) {
+            lote.setFabricante(fabricante);
+        } else {
+            lote.setFabricante(proveedor);
+        }
         lote.setLoteProveedor(dto.getLoteProveedor());
-        lote.setOrdenElaboracion(dto.getOrdenElaboracion());
+        lote.setNroRemito(dto.getNroRemito());
         lote.setDetalleConservacion(dto.getDetalleConservacion());
-        lote.setAnalisisProveedor(dto.getAnalisisProveedor());
         lote.setFechaVencimiento(dto.getFechaVencimiento());
         lote.setFechaReanalisis(dto.getFechaReanalisis());
+        lote.setTitulo(dto.getTitulo());
         lote.setObservaciones(dto.getObservaciones());
 
         // Valores fijos del CU1
         lote.setEstadoLote(EstadoLoteEnum.NUEVO);
         lote.setDictamen(DictamenEnum.RECIBIDO);
-        lote.setIdLote("L-" + System.currentTimeMillis());
         lote.setActivo(Boolean.TRUE);
-
 
         // Persistir el lote
         Lote nuevoLote = loteRepository.save(lote);
@@ -101,13 +103,14 @@ public class LoteService {
         movimiento.setFecha(LocalDate.now());
         movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
         movimiento.setMotivo(MotivoEnum.COMPRA);
-        movimiento.setLote(nuevoLote);
-        movimiento.setCantidad(nuevoLote.getCantidadInicial());
-        movimiento.setUnidadMedida(nuevoLote.getUnidadMedida());
+        movimiento.setCantidad(lote.getCantidadInicial());
+        movimiento.setUnidadMedida(lote.getUnidadMedida());
         movimiento.setDescripcion("Ingreso de stock por compra (CU1)");
-        movimiento.setDictamenInicial(nuevoLote.getDictamen());
-        movimiento.setDictamenFinal(nuevoLote.getDictamen());
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setActivo(Boolean.TRUE);
+
+        movimiento.setLote(nuevoLote);
 
         movimientoRepository.save(movimiento);
 

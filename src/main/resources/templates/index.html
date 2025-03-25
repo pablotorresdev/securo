@@ -14,56 +14,53 @@
             Ingreso de Lote por Compra
         </a>
     </li>
-
     <li>
         <a th:href="@{/lotes/list-lotes}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
             Lista de Lotes
         </a>
     </li>
-
     <li>
         <a th:href="@{/movimientos/list-movimientos}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
             Lista de Movimientos
         </a>
     </li>
-
-
-    <!-- Admin Section Link -->
-    <li>
-        <a th:href="@{/users/}"
-           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-            Users Section
-        </a>
-    </li>
+</ul>
+<ul>
     <li>
         <a th:href="@{/contactos/}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-            Contactos Section
+            ABM Contactos
         </a>
     </li>
     <li>
         <a th:href="@{/productos/}"
            th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-            Productos Section
+            ABM Productos
         </a>
     </li>
-
-    <!-- User1 Section Link -->
+    <!-- Admin Section Link -->
     <li>
-        <a th:href="@{/user1}"
-           th:classappend="${#authorization.expression('!hasRole(''USER1'') and !hasRole(''ADMIN'')')} ? 'disabled' : ''">
-            User1 Section
+        <a th:href="@{/users/}"
+           th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            ABM Usuarios
         </a>
     </li>
-    <!-- User2 Section Link -->
-    <li>
-        <a th:href="@{/user2}"
-           th:classappend="${#authorization.expression('!hasRole(''USER2'') and !hasRole(''ADMIN'')')} ? 'disabled' : ''">
-            User2 Section
-        </a>
-    </li>
+<!--    &lt;!&ndash; User1 Section Link &ndash;&gt;-->
+<!--    <li>-->
+<!--        <a th:href="@{/user1}"-->
+<!--           th:classappend="${#authorization.expression('!hasRole(''USER1'') and !hasRole(''ADMIN'')')} ? 'disabled' : ''">-->
+<!--            User2 Section-->
+<!--        </a>-->
+<!--    </li>-->
+<!--    &lt;!&ndash; User2 Section Link &ndash;&gt;-->
+<!--    <li>-->
+<!--        <a th:href="@{/user2}"-->
+<!--           th:classappend="${#authorization.expression('!hasRole(''USER2'') and !hasRole(''ADMIN'')')} ? 'disabled' : ''">-->
+<!--            User2 Section-->
+<!--        </a>-->
+<!--    </li>-->
 </ul>
 <form th:action="@{/logout}" method="post">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

@@ -5,15 +5,17 @@ INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fa
 INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto,activo) VALUES ('Pharma Solutions S.A.', '34-05146058-9', 'Calle 12 456', 'La Plata', 'Argentina', '(0221) 412-8999', '(0221) 412-8998', 'info@pharmasolutions.com', 'Pedro Fernandez', true);
 INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, fax, email, persona_contacto,activo) VALUES ('Conifarma S.A.', '34-11111111-9', 'Pringles 10', 'CABA', 'Argentina', '(0221) 412-8999', '(0221) 412-8998', 'info@pharmasolutions.com', 'Silvita', true);
 
-INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones,activo) VALUES
-    ('Paracetamol', 'P-001', 'API', 'GRAMO', 'Analgesico y antipiretico de uso farmaceutico', 'COA Paracetamol', 'Uso en tabletas', true);
-INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones,activo) VALUES
-    ('Ibuprofeno', 'P-002', 'API', 'GRAMO', 'Antiinflamatorio no esteroideo para aliviar el dolor', 'COA Ibuprofeno', 'Uso en suspension oral', true);
-INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones,activo) VALUES
-    ('Lactosa Monohidrato', 'P-003', 'EXCIPIENTE', 'KILOGRAMO', 'Excipiente para formulaciones farmaceuticas de alta pureza', 'COA Lactosa', 'Adecuado para tabletas', true);
-INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones,activo) VALUES
-    ('Capsula Vacio', 'P-004', 'CAPSULA', 'UNIDAD', 'Capsula de gelatina vacia para encapsulamiento de medicamentos', 'COA Capsula', 'Estandar en la industria', true);
-INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones,activo) VALUES
-    ('Semielaborado X', 'P-005', 'SEMIELABORADO', 'MILIGRAMO', 'Producto semielaborado destinado a procesos de produccion', 'COA Semielaborado', 'Requiere control adicional', true);
-INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, unidad_medida, descripcion, coa, observaciones,activo) VALUES
-    ('Acond. primario Y', 'P-006', 'ACOND_PRIMARIO', 'UNIDAD', 'Material para empaque primario en la industria farmaceutica', 'COA AcondPrimario', 'Control de calidad estricto', true);
+
+
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida, observaciones,activo) VALUES
+    ('Paracetamol', 'P-001', 'API', 'Argentina', 'GRAMO', 'Analgesico y antipiretico de uso farmaceutico', true);
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida,  observaciones,activo) VALUES
+    ('Ibuprofeno', 'P-002', 'API', 'China', 'GRAMO', 'Antiinflamatorio no esteroideo para aliviar el dolor', true);
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida,  observaciones,activo) VALUES
+    ('Lactosa Monohidrato', 'P-003', 'EXCIPIENTE', 'Argentina', 'KILOGRAMO', 'Excipiente para formulaciones farmaceuticas de alta pureza', true);
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida,  observaciones,activo) VALUES
+    ('Capsula Vacio', 'P-004', 'UNIDAD_VENTA', 'Brasil', 'UNIDAD', 'Capsula de gelatina vacia para encapsulamiento de medicamentos', true);
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida,  observaciones,activo) VALUES
+    ('Semielaborado X', 'P-005', 'SEMIELABORADO', 'Argentina', 'MILIGRAMO', 'Producto semielaborado destinado a procesos de produccion', true);
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida,  observaciones,activo) VALUES
+    ('Acond. primario Y', 'P-006', 'ACOND_PRIMARIO', 'Argentina', 'UNIDAD', 'Material para empaque primario en la industria farmaceutica', true);

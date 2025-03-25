@@ -10,9 +10,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -48,11 +52,13 @@ public class Producto {
     @Column(name = "unidad_medida", nullable = false)
     private UnidadMedidaEnum unidadMedida;
 
-    @Column(columnDefinition = "TEXT")
-    private String descripcion;
+    @Column(name = "pais_origen", nullable = false)
+    private String paisOrigen;
 
-    @Column(columnDefinition = "TEXT")
-    private String coa;
+    //TODO: Obligatorio para: API, Semielaborado, Acond. secundario
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "producto_destino_id")
+    private Producto productoDestino;
 
     @Column(columnDefinition = "TEXT")
     private String observaciones;

@@ -9,11 +9,10 @@ public class TipoProductoEnumTest {
     @Test
     public void testAllEnumValues() {
         TipoProductoEnum[] values = TipoProductoEnum.values();
-        assertThat(values).hasSize(7);
+        assertThat(values).hasSize(6);
         assertThat(values).extracting(TipoProductoEnum::getValor).containsExactlyInAnyOrder(
             "Api",
             "Excipiente",
-            "Capsula",
             "Semielaborado",
             "Acond. primario",
             "Acond. secundario",
