@@ -1,15 +1,15 @@
-# Securo Project Documentation
+# Conitrack Project Documentation
 
 ## **Overview**
 
-Securo is a Spring Boot application designed for user management with a PostgreSQL database. It includes Dockerized environments for both the application and the database, complete with automated backup capabilities and options for deployment in the cloud.
+Conitrack is a Spring Boot application designed for user management with a PostgreSQL database. It includes Dockerized environments for both the application and the database, complete with automated backup capabilities and options for deployment in the cloud.
 
 ---
 
 ## **Project Structure**
 
 ```
-/securo                  # Root directory of the project
+/conitrack                  # Root directory of the project
    ├── src                 # Source code of the Spring Boot application
    ├── backups             # Directory for database backups
    ├── Dockerfile.app      # Dockerfile for the Spring Boot application
@@ -149,8 +149,8 @@ Logs for the database backups are stored at `/var/log/backup.log` within the dat
 2. **Deploy the Application:**
 
    ```bash
-   heroku container:push web -a securo
-   heroku container:release web -a securo
+   heroku container:push web -a conitrack
+   heroku container:release web -a conitrack
    ```
 
 3. **Add PostgreSQL Add-On:**

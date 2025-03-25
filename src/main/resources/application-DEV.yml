@@ -1,6 +1,6 @@
 spring:
   application:
-    name: securo
+    name: conitrack
   thymeleaf:
     cache: false
   datasource:

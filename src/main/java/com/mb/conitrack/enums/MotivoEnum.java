@@ -1,0 +1,24 @@
+package com.mb.conitrack.enums;
+
+public enum MotivoEnum {
+    COMPRA("Compra"),
+    MUESTREO("Muestreo"),
+    DEVOLUCION_COMPRA("Devolucion compra"),
+    ANALISIS("Analisis"),
+    CONSUMO_PRODUCCION("Consumo produccion"),
+    PRODUCCION_PROPIA("Produccion propia"),
+    VENTA("Venta"),
+    VENCIDO("Vencido"),
+    DEVOLUCION_VENTA("Devolucion venta"),
+    AJUSTE("Ajuste");
+
+    private final String valor;
+
+    MotivoEnum(String valor) {
+        this.valor = valor;
+    }
+
+    public String getValor() {
+        return valor;
+    }
+}

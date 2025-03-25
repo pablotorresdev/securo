@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copia el archivo JAR generado por Spring Boot al contenedor
-COPY build/libs/securo-0.0.1-SNAPSHOT.jar app.jar
+COPY build/libs/conitrack-0.0.1-SNAPSHOT.jar app.jar
 
 # Exponer el puerto donde corre la aplicación Spring Boot
 EXPOSE 8080
