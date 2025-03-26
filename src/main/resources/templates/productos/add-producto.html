@@ -48,7 +48,10 @@
                         th:value="${productoDestino.id}"
                         th:text="${productoDestino.nombreGenerico}">Producto destino</option>
             </select>
+            <!-- Show binding errors if any -->
             <div th:if="${#fields.hasErrors('productoDestino')}" class="error" th:errors="*{productoDestino}"></div>
+            <!-- Also show a custom error from the model if available -->
+            <div th:if="${error != null}" class="error" th:text="${error}"></div>
         </div>
 
         <div class="mb-3">

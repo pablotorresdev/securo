@@ -57,8 +57,8 @@ public class ProductoController {
 
     // Procesar el alta del producto
     @PostMapping("/add-producto")
-    public String addProducto(@Valid @ModelAttribute Producto producto, BindingResult result, Model model) {
-        if (result.hasErrors()) {
+    public String addProducto(@Valid @ModelAttribute Producto producto, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
             model.addAttribute("productos", productoRepository.findAll());// Load roles for dropdown
             model.addAttribute("productosDestino", getProductosDestino());
             model.addAttribute("error", "Validation failed!");
@@ -69,9 +69,9 @@ public class ProductoController {
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
         if(tipoProducto.requiereProductoDestino()) {
             if (producto.getProductoDestino() == null) {
-                model.addAttribute("productos", productoRepository.findAll());// Load roles for dropdown
+                model.addAttribute("productos", productoRepository.findAll());
+                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
                 model.addAttribute("productosDestino", getProductosDestino());
-                model.addAttribute("error", "Indique el producto destino para este tipo de producto.");
                 return "productos/add-producto";
             }
         }
@@ -116,8 +116,9 @@ public class ProductoController {
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
         if(tipoProducto.requiereProductoDestino()) {
             if (producto.getProductoDestino() == null) {
+                model.addAttribute("productos", productoRepository.findAll());
+                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
                 model.addAttribute("productosDestino", getProductosDestino());
-                model.addAttribute("error", "Indique el producto destino para este tipo de producto.");
                 return "productos/edit-producto";
             }
         }
