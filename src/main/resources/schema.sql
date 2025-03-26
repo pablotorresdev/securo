@@ -106,7 +106,6 @@ CREATE TABLE contactos
     ciudad           VARCHAR(100) NOT NULL,
     pais             VARCHAR(100) NOT NULL,
     telefono         VARCHAR(50),
-    fax              VARCHAR(50),
     email            VARCHAR(100),
     persona_contacto VARCHAR(100),
     observaciones    TEXT,

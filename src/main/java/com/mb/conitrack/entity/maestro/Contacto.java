@@ -45,9 +45,6 @@ public class Contacto {
     @Column(length = 50)
     private String telefono;
 
-    @Column(length = 50)
-    private String fax;
-
     @Column(length = 100)
     private String email;
 

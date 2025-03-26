@@ -41,14 +41,14 @@
         </div>
 
         <div class="mb-3">
-            <label for="productoDestinoId" class="form-label">Producto destino:</label>
-            <select id="productoDestinoId" th:field="*{productoDestinoId}" class="form-select">
+            <label for="productoDestino" class="form-label">Producto destino:</label>
+            <select id="productoDestino" th:field="*{productoDestino}" class="form-select">
                 <option value="">-- Seleccione un producto --</option>
                 <option th:each="productoDestino : ${productosDestino}"
                         th:value="${productoDestino.id}"
                         th:text="${productoDestino.nombreGenerico}">Producto destino</option>
             </select>
-            <div th:if="${#fields.hasErrors('productoId')}" class="error" th:errors="*{productoId}"></div>
+            <div th:if="${#fields.hasErrors('productoDestino')}" class="error" th:errors="*{productoDestino}"></div>
         </div>
 
         <div class="mb-3">

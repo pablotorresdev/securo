@@ -32,7 +32,10 @@
                         th:value="${tipo}" th:text="${tipo.valor}">Tipo</option>
             </select>
         </div>
-
+        <div class="mb-3">
+            <label for="paisOrigen" class="form-label">Pais origen:</label>
+            <input type="text" id="paisOrigen" th:field="*{paisOrigen}" class="form-control" required>
+        </div>
         <div class="mb-3">
             <label for="unidadMedida" class="form-label">Unidad Medida:</label>
             <select id="unidadMedida" th:field="*{unidadMedida}" class="form-control" required>
@@ -42,14 +45,14 @@
         </div>
 
         <div class="mb-3">
-            <label for="productoDestinoId" class="form-label">Producto destino:</label>
-            <select id="productoDestinoId" th:field="*{productoDestinoId}" class="form-select">
+            <label for="productoDestino" class="form-label">Producto destino:</label>
+            <select id="productoDestino" th:field="*{productoDestino}" class="form-select">
                 <option value="">-- Seleccione un producto --</option>
                 <option th:each="productoDestino : ${productosDestino}"
                         th:value="${productoDestino.id}"
                         th:text="${productoDestino.nombreGenerico}">Producto destino</option>
             </select>
-            <div th:if="${#fields.hasErrors('productoId')}" class="error" th:errors="*{productoId}"></div>
+            <div th:if="${#fields.hasErrors('productoDestino')}" class="error" th:errors="*{productoDestino}"></div>
         </div>
 
         <div class="mb-3">

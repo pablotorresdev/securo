@@ -1,20 +1,23 @@
 package com.mb.conitrack.enums;
 
 public enum TipoProductoEnum {
-    API("Api", "MP"),
-    EXCIPIENTE("Excipiente", "MP"),
-    SEMIELABORADO("Semielaborado", "UV"),
-    ACOND_PRIMARIO("Acond. primario", "MP"),
-    ACOND_SECUNDARIO("Acond. secundario", "MP"),
-    UNIDAD_VENTA("Unidad venta", "UV");
+    API("Api", "MP", true),
+    EXCIPIENTE("Excipiente", "MP", false),
+    SEMIELABORADO("Semielaborado", "UP", true),
+    ACOND_PRIMARIO("Acond. primario", "MP", false),
+    ACOND_SECUNDARIO("Acond. secundario", "MP", true),
+    UNIDAD_VENTA("Unidad venta", "UV", false);
 
     private final String valor;
 
     private final String grupo;
 
-    TipoProductoEnum(String valor, String grupo) {
+    private final boolean requiereProductoDestino;
+
+    TipoProductoEnum(String valor, String grupo, boolean productoDestino) {
         this.valor = valor;
         this.grupo = grupo;
+        this.requiereProductoDestino = productoDestino;
     }
 
     public String getValor() {
@@ -23,5 +26,9 @@ public enum TipoProductoEnum {
 
     public String getGrupo() {
         return grupo;
+    }
+
+    public boolean requiereProductoDestino() {
+        return requiereProductoDestino;
     }
 }

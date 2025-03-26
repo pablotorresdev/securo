@@ -1,5 +1,6 @@
 package com.mb.conitrack.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.repository.maestro.ProductoRepository;
 
 import jakarta.validation.Valid;
@@ -35,8 +37,7 @@ public class ProductoController {
     // Listar todos los productos activos
     @GetMapping("/list-productos")
     public String listProductos(Model model) {
-        List<Producto> productos = productoRepository.findAll();
-        model.addAttribute("productos", productos);
+        model.addAttribute("productos", productoRepository.findAll());
         return "productos/list-productos";
     }
 
@@ -44,7 +45,14 @@ public class ProductoController {
     @GetMapping("/add-producto")
     public String showAddProductoForm(Model model) {
         model.addAttribute("producto", new Producto());
+        model.addAttribute("productosDestino", getProductosDestino());
         return "productos/add-producto";  // Ubicación: src/main/resources/templates/producto/add-producto.html
+    }
+
+    private List<Producto> getProductosDestino() {
+        return productoRepository.findByTipoProductoIn(
+            Arrays.asList(TipoProductoEnum.SEMIELABORADO, TipoProductoEnum.UNIDAD_VENTA)
+        );
     }
 
     // Procesar el alta del producto
@@ -52,10 +60,25 @@ public class ProductoController {
     public String addProducto(@Valid @ModelAttribute Producto producto, BindingResult result, Model model) {
         if (result.hasErrors()) {
             model.addAttribute("productos", productoRepository.findAll());// Load roles for dropdown
+            model.addAttribute("productosDestino", getProductosDestino());
             model.addAttribute("error", "Validation failed!");
             return "productos/add-producto";
         }
         producto.setActivo(true);  // Aseguramos que se guarde como activo
+
+        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
+        if(tipoProducto.requiereProductoDestino()) {
+            if (producto.getProductoDestino() == null) {
+                model.addAttribute("productos", productoRepository.findAll());// Load roles for dropdown
+                model.addAttribute("productosDestino", getProductosDestino());
+                model.addAttribute("error", "Indique el producto destino para este tipo de producto.");
+                return "productos/add-producto";
+            }
+        }
+        if(!tipoProducto.requiereProductoDestino()) {
+            producto.setProductoDestino(null);
+        }
+
         productoRepository.save(producto);
         return "redirect:/productos/list-productos";
     }
@@ -70,6 +93,7 @@ public class ProductoController {
         }
 
         model.addAttribute("producto", productoOptional.get());
+        model.addAttribute("productosDestino", getProductosDestino());
 
         return "productos/edit-producto"; // Refers to edit-producto.html
     }
@@ -80,11 +104,25 @@ public class ProductoController {
         @PathVariable Long id,
         @Valid @ModelAttribute("producto") Producto producto,
         BindingResult bindingResult,
+        Model model,
         RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            // Si hay errores de validación, se vuelve al formulario
+            // Aqui necesito meter los datos de los productos destino
+            model.addAttribute("productosDestino", getProductosDestino());
             return "productos/edit-producto";
+        }
+
+        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
+        if(tipoProducto.requiereProductoDestino()) {
+            if (producto.getProductoDestino() == null) {
+                model.addAttribute("productosDestino", getProductosDestino());
+                model.addAttribute("error", "Indique el producto destino para este tipo de producto.");
+                return "productos/edit-producto";
+            }
+        }
+        if(!tipoProducto.requiereProductoDestino()) {
+            producto.setProductoDestino(null);
         }
 
         // Aseguramos que el id del objeto coincide con el de la URL

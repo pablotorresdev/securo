@@ -15,22 +15,22 @@
     <div class="inputbox">
         <ion-icon name="person-outline"></ion-icon>
         <input type="text" id="username" name="username" required>
-        <label for="username">Your Username</label>
+        <label for="username">Su nombre de usuario</label>
     </div>
     <div class="inputbox">
         <ion-icon name="lock-closed-outline"></ion-icon>
         <input type="password" id="password" name="password" required>
-        <label for="password">Your Password</label>
+        <label for="password">Su contraseña</label>
     </div>
     <br>
     <br>
     <br>
     <button type="submit">Login</button>
     <div th:if="${param.error}">
-        <p style="color:red;">Invalid username or password</p>
+        <p style="color:red;">Nombre de Usuario o contraseña invalida</p>
     </div>
     <div th:if="${param.logout}">
-        <p style="color:green;">You have been logged out successfully.</p>
+        <p style="color:green;">Ha cerrado su sesion correctamente</p>
     </div>
 </form>
 </section>

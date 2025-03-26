@@ -15,6 +15,7 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoLoteEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
+import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
 import com.mb.conitrack.repository.maestro.ContactoRepository;
