@@ -62,6 +62,8 @@
         <thead class="table-secondary">
         <tr>
             <th>Tipo Movimiento</th>
+            <th>Producto</th>
+            <th>Id Lote</th>
             <th>Motivo</th>
             <th>Fecha</th>
             <th>Descripción</th>
@@ -77,7 +79,7 @@
         <tr th:each="mov : ${movimientos}">
             <td th:text="${mov.tipoMovimiento}"></td>
             <td th:text="${mov.lote.producto.nombreGenerico}"></td>
-            <td th:text="${mov.lote.id}"></td>
+            <td th:text="${mov.lote.idLote}"></td>
             <td th:text="${mov.motivo}"></td>
             <td th:text="${mov.fecha}"></td>
             <td th:text="${mov.descripcion}"></td>
