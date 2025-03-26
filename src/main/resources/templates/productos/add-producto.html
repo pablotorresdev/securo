@@ -1,9 +1,56 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Alta de Producto</title>
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/cyborg/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #1e1e2d;
+            color: #ccc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 20px;
+        }
+        .container {
+            max-width: 600px;
+            background: #2a2a3d;
+            padding: 20px;
+            margin: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        label {
+            color: #ddd;
+        }
+        .form-control, .form-select {
+            background: #3a3a4d;
+            border: 1px solid #555;
+            color: #fff;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0,123,255,0.5);
+            background: #3a3a4d;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        .error {
+            color: #ff6b6b;
+            font-size: 0.875rem;
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
@@ -48,9 +95,7 @@
                         th:value="${productoDestino.id}"
                         th:text="${productoDestino.nombreGenerico}">Producto destino</option>
             </select>
-            <!-- Show binding errors if any -->
             <div th:if="${#fields.hasErrors('productoDestino')}" class="error" th:errors="*{productoDestino}"></div>
-            <!-- Also show a custom error from the model if available -->
             <div th:if="${error != null}" class="error" th:text="${error}"></div>
         </div>
 
