@@ -36,8 +36,8 @@ public class LoteController {
     @GetMapping("/ingreso-compra")
     public String showIngresoCompraForm(Model model) {
         model.addAttribute("loteRequestDTO", new LoteRequestDTO());
-        model.addAttribute("productos", productoService.listAllProductosExternos());
-        model.addAttribute("contactos", contactoService.listAllContactosExternos());
+        model.addAttribute("productos", productoService.listAllProductosExternosActive());
+        model.addAttribute("contactos", contactoService.listAllContactosExternosActive());
         return "lotes/ingreso-compra"; //.html
     }
 
@@ -48,8 +48,8 @@ public class LoteController {
         RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             // Re-populate the dropdown lists if validation fails
-            model.addAttribute("productos", productoService.listAllProductosExternos());
-            model.addAttribute("contactos", contactoService.listAllContactosExternos());
+            model.addAttribute("productos", productoService.listAllProductosExternosActive());
+            model.addAttribute("contactos", contactoService.listAllContactosExternosActive());
             return "lotes/ingreso-compra";
         }
         loteService.ingresarStockPorCompra(loteRequestDTO);

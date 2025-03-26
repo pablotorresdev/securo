@@ -1,7 +1,5 @@
 package com.mb.conitrack.controller;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.TipoProductoEnum;
-import com.mb.conitrack.repository.maestro.ProductoRepository;
+import com.mb.conitrack.service.ProductoService;
 
 import jakarta.validation.Valid;
 
@@ -27,40 +25,30 @@ import jakarta.validation.Valid;
 public class ProductoController {
 
     @Autowired
-    private ProductoRepository productoRepository;
+    private ProductoService productoService;
 
     @GetMapping("/")
     public String productosPage() {
         return "productos/index-productos"; //.html
     }
 
-    // Listar todos los productos activos
     @GetMapping("/list-productos")
     public String listProductos(Model model) {
-        model.addAttribute("productos", productoRepository.findAll());
+        model.addAttribute("productos", productoService.findAll());
         return "productos/list-productos";
     }
 
-    // Mostrar el formulario para dar de alta un nuevo producto
     @GetMapping("/add-producto")
     public String showAddProductoForm(Model model) {
         model.addAttribute("producto", new Producto());
-        model.addAttribute("productosDestino", getProductosDestino());
-        return "productos/add-producto";  // Ubicación: src/main/resources/templates/producto/add-producto.html
+        model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+        return "productos/add-producto";
     }
 
-    private List<Producto> getProductosDestino() {
-        return productoRepository.findByTipoProductoIn(
-            Arrays.asList(TipoProductoEnum.SEMIELABORADO, TipoProductoEnum.UNIDAD_VENTA)
-        );
-    }
-
-    // Procesar el alta del producto
     @PostMapping("/add-producto")
     public String addProducto(@Valid @ModelAttribute Producto producto, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("productos", productoRepository.findAll());// Load roles for dropdown
-            model.addAttribute("productosDestino", getProductosDestino());
+            model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
             model.addAttribute("error", "Validation failed!");
             return "productos/add-producto";
         }
@@ -69,9 +57,8 @@ public class ProductoController {
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
         if(tipoProducto.requiereProductoDestino()) {
             if (producto.getProductoDestino() == null) {
-                model.addAttribute("productos", productoRepository.findAll());
                 bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
-                model.addAttribute("productosDestino", getProductosDestino());
+                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
                 return "productos/add-producto";
             }
         }
@@ -79,21 +66,21 @@ public class ProductoController {
             producto.setProductoDestino(null);
         }
 
-        productoRepository.save(producto);
+        productoService.save(producto);
         return "redirect:/productos/list-productos";
     }
 
     // Mostrar el formulario para editar un producto
     @GetMapping("/edit-producto/{id}")
     public String showEditProductoForm(@PathVariable Long id, Model model) {
-        Optional<Producto> productoOptional = productoRepository.findById(id);
+        Optional<Producto> productoOptional = productoService.findById(id);
         if (productoOptional.isEmpty()) {
-            model.addAttribute("error", "Producto not found!");
+            model.addAttribute("error", "Producto no encontrado");
             return "redirect:/productos/list-productos";
         }
 
         model.addAttribute("producto", productoOptional.get());
-        model.addAttribute("productosDestino", getProductosDestino());
+        model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
 
         return "productos/edit-producto"; // Refers to edit-producto.html
     }
@@ -109,16 +96,15 @@ public class ProductoController {
 
         if (bindingResult.hasErrors()) {
             // Aqui necesito meter los datos de los productos destino
-            model.addAttribute("productosDestino", getProductosDestino());
+            model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
             return "productos/edit-producto";
         }
 
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
         if(tipoProducto.requiereProductoDestino()) {
             if (producto.getProductoDestino() == null) {
-                model.addAttribute("productos", productoRepository.findAll());
                 bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
-                model.addAttribute("productosDestino", getProductosDestino());
+                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
                 return "productos/edit-producto";
             }
         }
@@ -129,23 +115,23 @@ public class ProductoController {
         // Aseguramos que el id del objeto coincide con el de la URL
         producto.setId(id);
         producto.setActivo(true);  // Aseguramos que se guarde como activo
-        productoRepository.save(producto);
-        redirectAttributes.addFlashAttribute("success", "Producto updated successfully!");
+        productoService.save(producto);
+        redirectAttributes.addFlashAttribute("success", "Producto editado correctamente!");
         return "redirect:/productos/list-productos";
     }
 
     // Borrado lógico: se marca el registro como inactivo
     @PostMapping("/delete-producto")
     public String deleteProducto(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
-        Optional<Producto> productoOptional = productoRepository.findById(id);
+        Optional<Producto> productoOptional = productoService.findById(id);
         if (productoOptional.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Producto not found!");
+            redirectAttributes.addFlashAttribute("error", "Producto no encontrado");
             return "redirect:/productos/list-productos";
         }
 
         Producto producto = productoOptional.get();
         producto.setActivo(false);
-        productoRepository.save(producto);
+        productoService.save(producto);
         return "redirect:/productos/list-productos";
     }
 

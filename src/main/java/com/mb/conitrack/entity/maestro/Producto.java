@@ -31,7 +31,6 @@ import lombok.NoArgsConstructor;
     columnNames = { "nombreGenerico", "codigoInterno", "tipo_producto" }
 ))
 @SQLDelete(sql = "UPDATE productos SET activo = false WHERE id = ?")
-@SQLRestriction("activo = true")
 public class Producto {
 
     @Id

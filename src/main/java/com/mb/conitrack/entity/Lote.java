@@ -36,7 +36,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "lotes")
 @SQLDelete(sql = "UPDATE lotes SET activo = false WHERE id = ?")
-@SQLRestriction("activo = true")
 public class Lote {
 
     @Id

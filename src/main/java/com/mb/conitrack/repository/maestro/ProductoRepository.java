@@ -9,6 +9,8 @@ import com.mb.conitrack.enums.TipoProductoEnum;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
-    List<Producto> findByTipoProductoIn(List<TipoProductoEnum> tipos);
+    List<Producto> findByTipoProductoInAndActivoTrue(List<TipoProductoEnum> tipos);
+
+    List<Producto> findByActivoTrue();
 
 }

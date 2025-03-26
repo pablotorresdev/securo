@@ -1,6 +1,5 @@
 package com.mb.conitrack.controller;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.entity.maestro.Contacto;
-import com.mb.conitrack.repository.maestro.ContactoRepository;
+import com.mb.conitrack.service.ContactoService;
 
 import jakarta.validation.Valid;
 
@@ -25,45 +24,41 @@ import jakarta.validation.Valid;
 public class ContactoController {
 
     @Autowired
-    private ContactoRepository contactoRepository;
+    private ContactoService contactoService;
 
     @GetMapping("/")
     public String contactosPage() {
         return "contactos/index-contactos"; //.html
     }
 
-    // Listar todos los contactos activos
     @GetMapping("/list-contactos")
     public String listContactos(Model model) {
-        List<Contacto> contactos = contactoRepository.findAll();
-        model.addAttribute("contactos", contactos);
+        model.addAttribute("contactos", contactoService.findAll());
         return "contactos/list-contactos";
     }
 
-    // Mostrar el formulario para dar de alta un nuevo contacto
     @GetMapping("/add-contacto")
     public String showAddContactoForm(Model model) {
         model.addAttribute("contacto", new Contacto());
-        return "contactos/add-contacto";  // Ubicación: src/main/resources/templates/contacto/add-contacto.html
+        return "contactos/add-contacto";
     }
 
-    // Procesar el alta del contacto
     @PostMapping("/add-contacto")
     public String addContacto(@Valid @ModelAttribute Contacto contacto, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("contactos", contactoRepository.findAll());// Load roles for dropdown
+            model.addAttribute("contactos", contactoService.listAllContactosExternosActive());// Load roles for dropdown
             model.addAttribute("error", "Validation failed!");
             return "contactos/add-contacto";
         }
         contacto.setActivo(true);  // Aseguramos que se guarde como activo
-        contactoRepository.save(contacto);
+        contactoService.save(contacto);
         return "redirect:/contactos/list-contactos";
     }
 
     // Mostrar el formulario para editar un contacto
     @GetMapping("/edit-contacto/{id}")
     public String showEditContactoForm(@PathVariable Long id, Model model) {
-        Optional<Contacto> contactoOptional = contactoRepository.findById(id);
+        Optional<Contacto> contactoOptional = contactoService.findById(id);
         if (contactoOptional.isEmpty()) {
             model.addAttribute("error", "Contacto not found!");
             return "redirect:/contactos/list-contactos";
@@ -90,7 +85,7 @@ public class ContactoController {
         // Aseguramos que el id del objeto coincide con el de la URL
         contacto.setId(id);
         contacto.setActivo(true);  // Aseguramos que se guarde como activo
-        contactoRepository.save(contacto);
+        contactoService.save(contacto);
         redirectAttributes.addFlashAttribute("success", "Contacto updated successfully!");
         return "redirect:/contactos/list-contactos";
     }
@@ -98,7 +93,7 @@ public class ContactoController {
     // Borrado lógico: se marca el registro como inactivo
     @PostMapping("/delete-contacto")
     public String deleteContacto(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
-        Optional<Contacto> contactoOptional = contactoRepository.findById(id);
+        Optional<Contacto> contactoOptional = contactoService.findById(id);
         if (contactoOptional.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Contacto not found!");
             return "redirect:/contactos/list-contactos";
@@ -106,7 +101,7 @@ public class ContactoController {
 
         Contacto contacto = contactoOptional.get();
         contacto.setActivo(false);
-        contactoRepository.save(contacto);
+        contactoService.save(contacto);
         return "redirect:/contactos/list-contactos";
     }
 

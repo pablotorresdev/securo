@@ -38,49 +38,6 @@ CREATE TABLE IF NOT EXISTS users
     FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
 );
 
---
--- --TABLAS DICCIONARIOS--
--- CREATE TABLE tipo_producto
--- (
---     id     SERIAL PRIMARY KEY,
---     valor VARCHAR(50) NOT NULL UNIQUE,
---     grupo VARCHAR(2) NOT NULL
--- );
---
--- CREATE TABLE IF NOT EXISTS dictamen
--- (
---     id     SERIAL PRIMARY KEY,
---     valor VARCHAR(255) NOT NULL UNIQUE
--- );
---
--- CREATE TABLE IF NOT EXISTS motivo
--- (
---     id          SERIAL PRIMARY KEY,
---     valor VARCHAR(255) NOT NULL UNIQUE
--- );
---
--- CREATE TABLE IF NOT EXISTS tipo_movimiento
--- (
---     id   SERIAL PRIMARY KEY,
---     valor VARCHAR(255) NOT NULL UNIQUE
--- );
---
--- CREATE TABLE IF NOT EXISTS estado_lote
--- (
---     id          SERIAL PRIMARY KEY,
---     valor VARCHAR(255) NOT NULL UNIQUE
--- );
---
--- CREATE TABLE IF NOT EXISTS unidad_medida
--- (
---     id                SERIAL PRIMARY KEY,
---     nombre              VARCHAR(255)     NOT NULL UNIQUE,
---     tipo              VARCHAR(50)      NOT NULL,
---     simbolo            VARCHAR(3)       NOT NULL,
---     factor_conversion DOUBLE PRECISION NOT NULL
--- );
---
-
 --TABLAS DATOS MAESTROS--
 CREATE TABLE productos
 (
