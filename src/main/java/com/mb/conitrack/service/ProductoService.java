@@ -17,8 +17,11 @@ public class ProductoService {
     @Autowired
     private ProductoRepository productoRepository;
 
-    //TipoProductoEnum != SEMIELABORADO && TipoProductoEnum != UNIDAD_VENTA
-    public List<Producto> listAllProductosExternosActive() {
+    /**
+     * Devuelve los productos activos que son externos a la empresa (no son semielaborados ni unidades de venta)
+     * @return Lista de productos
+     */
+    public List<Producto> getProductosExternos() {
         return productoRepository.findAll()
             .stream()
             .filter(Producto::getActivo)
@@ -27,8 +30,11 @@ public class ProductoService {
             .collect(Collectors.toList());
     }
 
-    //TipoProductoEnum == SEMIELABORADO || TipoProductoEnum == UNIDAD_VENTA
-    public List<Producto> getProductosDestinoActive() {
+    /**
+     * Devuelve los productos activos que son internos a la empresa (semielaborados y unidades de venta)
+     * @return Lista de productos
+     */
+    public List<Producto> getProductosInternos() {
         return productoRepository.findAll()
             .stream()
             .filter(Producto::getActivo)

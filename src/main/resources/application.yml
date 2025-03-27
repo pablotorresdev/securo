@@ -15,12 +15,12 @@ spring:
 #    url: jdbc:postgresql://localhost:5432/conitrack
 #    username: postgres
 #    password: root
-#    url: jdbc:postgresql://${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}
-#    username: ${PROD_DB_USERNAME}
-#    password: ${PROD_DB_PASSWORD}
-    url: jdbc:postgresql://localhost:5432/conitrack
-    username: postgres
-    password: root
+    url: jdbc:postgresql://${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}
+    username: ${PROD_DB_USERNAME}
+    password: ${PROD_DB_PASSWORD}
+#    url: jdbc:postgresql://localhost:5432/conitrack
+#    username: postgres
+#    password: root
   jpa:
     hibernate:
       ddl-auto: none
@@ -48,8 +48,8 @@ spring:
 
 
 server:
-#  port: ${PORT:8080}
-  port: 8080
+  port: ${PORT:8080}
+#  port: 8080
   error:
     include-message: always
     include-binding-errors: always

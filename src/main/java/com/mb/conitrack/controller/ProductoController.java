@@ -41,14 +41,14 @@ public class ProductoController {
     @GetMapping("/add-producto")
     public String showAddProductoForm(Model model) {
         model.addAttribute("producto", new Producto());
-        model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+        model.addAttribute("productosDestino", productoService.getProductosInternos());
         return "productos/add-producto";
     }
 
     @PostMapping("/add-producto")
     public String addProducto(@Valid @ModelAttribute Producto producto, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+            model.addAttribute("productosDestino", productoService.getProductosInternos());
             model.addAttribute("error", "Validation failed!");
             return "productos/add-producto";
         }
@@ -58,7 +58,7 @@ public class ProductoController {
         if(tipoProducto.requiereProductoDestino()) {
             if (producto.getProductoDestino() == null) {
                 bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
-                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+                model.addAttribute("productosDestino", productoService.getProductosInternos());
                 return "productos/add-producto";
             }
         }
@@ -79,13 +79,18 @@ public class ProductoController {
             return "redirect:/productos/list-productos";
         }
 
-        model.addAttribute("producto", productoOptional.get());
-        model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+        final Producto producto = productoOptional.get();
+        if (!producto.getActivo()) {
+            model.addAttribute("error",  "Producto inactivo");
+            return "redirect:/productos/list-productos";
+        }
 
-        return "productos/edit-producto"; // Refers to edit-producto.html
+        model.addAttribute("producto", producto);
+        model.addAttribute("productosDestino", productoService.getProductosInternos());
+
+        return "productos/edit-producto"; //.html
     }
 
-    // Procesar la actualización de un producto
     @PostMapping("/edit-producto/{id}")
     public String editProducto(
         @PathVariable Long id,
@@ -95,24 +100,23 @@ public class ProductoController {
         RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            // Aqui necesito meter los datos de los productos destino
-            model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+            model.addAttribute("productosDestino", productoService.getProductosInternos());
             return "productos/edit-producto";
         }
 
-        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
-        if(tipoProducto.requiereProductoDestino()) {
-            if (producto.getProductoDestino() == null) {
-                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
-                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
-                return "productos/edit-producto";
-            }
-        }
-        if(!tipoProducto.requiereProductoDestino()) {
-            producto.setProductoDestino(null);
-        }
+        //TODO: validar logica de producto de destino
+//        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
+//        if(tipoProducto.requiereProductoDestino()) {
+//            if (producto.getProductoDestino() == null) {
+//                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
+//                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+//                return "productos/edit-producto";
+//            }
+//        }
+//        if(!tipoProducto.requiereProductoDestino()) {
+//            producto.setProductoDestino(null);
+//        }
 
-        // Aseguramos que el id del objeto coincide con el de la URL
         producto.setId(id);
         producto.setActivo(true);  // Aseguramos que se guarde como activo
         productoService.save(producto);
@@ -120,16 +124,20 @@ public class ProductoController {
         return "redirect:/productos/list-productos";
     }
 
-    // Borrado lógico: se marca el registro como inactivo
     @PostMapping("/delete-producto")
     public String deleteProducto(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         Optional<Producto> productoOptional = productoService.findById(id);
-        if (productoOptional.isEmpty()) {
+        if (productoOptional.isEmpty() ) {
             redirectAttributes.addFlashAttribute("error", "Producto no encontrado");
             return "redirect:/productos/list-productos";
         }
 
         Producto producto = productoOptional.get();
+        if (!producto.getActivo()) {
+            redirectAttributes.addFlashAttribute("error", "Producto ya esta inactivo");
+            return "redirect:/productos/list-productos";
+        }
+
         producto.setActivo(false);
         productoService.save(producto);
         return "redirect:/productos/list-productos";

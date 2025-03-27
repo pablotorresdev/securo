@@ -18,22 +18,29 @@ public class ContactoService {
     @Autowired
     private LoteService loteService;
 
-    public List<Contacto> listAllContactos() {
-        return contactoRepository.findAll();
-    }
-
-    public List<Contacto> listAllContactosExternosActive() {
+    /**
+     * Devuelve los contactos activos que son externos a la empresa (no son Conifarma)
+     * @return Lista de contactos
+     */
+    public List<Contacto> getContactosExternos() {
         return contactoRepository.findByActivoTrueAndRazonSocialNotIgnoreCase("conifarma");
     }
 
-    public List<Contacto> listConifarma() {
+    /**
+     * Devuelve los contactos activos que son Conifarma
+     * @return Lista de contactos
+     */
+    public List<Contacto> getConifarma() {
         return contactoRepository.findByRazonSocialIgnoreCaseContaining("conifarma");
     }
 
-    public List<Contacto> listAllContactosExternos() {
+    /**
+     * Devuelve los contactos activos e inactivos que son externos a la empresa (no son Conifarma)
+     * @return Lista de contactos
+     */
+    public List<Contacto> listContactosExternos() {
         return contactoRepository.findByRazonSocialNotIgnoreCaseContaining("conifarma");
     }
-
 
     public List<Contacto> findAll() {
          return contactoRepository.findAll();

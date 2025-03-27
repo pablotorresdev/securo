@@ -46,7 +46,7 @@ public class ContactoController {
     @PostMapping("/add-contacto")
     public String addContacto(@Valid @ModelAttribute Contacto contacto, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("contactos", contactoService.listAllContactosExternosActive());// Load roles for dropdown
+            model.addAttribute("contactos", contactoService.getContactosExternos());// Load roles for dropdown
             model.addAttribute("error", "Validation failed!");
             return "contactos/add-contacto";
         }

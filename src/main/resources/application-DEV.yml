@@ -12,17 +12,21 @@ spring:
     # h2:
     #   console:
     #     enabled: true
-    url: jdbc:postgresql://localhost:5432/conitrack
-    username: postgres
-    password: root
+      url: jdbc:postgresql://localhost:5432/conitrack
+      username: postgres
+      password: root
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show-sql: true
+        connection:
+          charSet: UTF-8
+          characterEncoding: UTF-8
+          useUnicode: true
+    show-sql: false
   devtools:
     livereload:
       enabled: true
@@ -31,7 +35,10 @@ spring:
       additional-exclude: static/**
   web:
     resources:
-      static-locations=classpath:/static/,classpath:/public/:
+      static-locations: classpath:/static/,classpath:/public/
+#  sql:
+#    init:
+#      mode: always
 
 server:
   port: 8080
@@ -45,3 +52,4 @@ logging:
     org.thymeleaf.extras.springsecurity6: DEBUG
     org.springframework.web: DEBUG
     org.springframework.boot.devtools: DEBUG
+    org.springframework.jdbc.datasource.init: DEBUG
