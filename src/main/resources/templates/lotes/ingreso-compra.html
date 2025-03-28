@@ -14,7 +14,10 @@
         <!-- Fecha de Ingreso -->
         <div class="mb-2">
             <label for="fechaIngreso" class="form-label">Fecha de Ingreso:</label>
-            <input type="date" id="fechaIngreso" th:field="*{fechaIngreso}" class="form-control" required>
+            <input type="date" id="fechaIngreso"
+                   th:field="*{fechaIngreso}"
+                   th:value="${T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd').format(loteRequestDTO.fechaIngreso)}"
+                   class="form-control" required>
             <div th:if="${#fields.hasErrors('fechaIngreso')}" class="error" th:errors="*{fechaIngreso}"></div>
         </div>
 

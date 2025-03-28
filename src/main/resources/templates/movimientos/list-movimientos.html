@@ -14,11 +14,13 @@
             <th>Tipo Movimiento</th>
             <th>Producto</th>
             <th>Id Lote</th>
+            <th>Bulto</th>
+            <th>Bultos totales</th>
+            <th>Cantidad</th>
+            <th>Unidad Medida</th>
             <th>Motivo</th>
             <th>Fecha</th>
             <th>Descripción</th>
-            <th>Cantidad</th>
-            <th>Unidad Medida</th>
             <th>Nro Análisis</th>
             <th>Orden Producción</th>
             <th>Dictamen Inicial</th>
@@ -30,11 +32,13 @@
             <td th:text="${mov.tipoMovimiento}"></td>
             <td th:text="${mov.lote.producto.nombreGenerico}"></td>
             <td th:text="${mov.lote.idLote}"></td>
+            <td th:text="${mov.lote.nroBulto}"></td>
+            <td th:text="${mov.lote.bultosTotales}"></td>
+            <td th:text="${mov.cantidad}"></td>
+            <td th:text="${mov.unidadMedida}"></td>
             <td th:text="${mov.motivo}"></td>
             <td th:text="${mov.fecha}"></td>
             <td th:text="${mov.descripcion}"></td>
-            <td th:text="${mov.cantidad}"></td>
-            <td th:text="${mov.unidadMedida}"></td>
             <td th:text="${mov.nroAnalisis}"></td>
             <td th:text="${mov.ordenProduccion}"></td>
             <td th:text="${mov.dictamenInicial}"></td>

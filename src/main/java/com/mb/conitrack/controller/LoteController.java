@@ -41,7 +41,9 @@ public class LoteController {
     public LoteRequestDTO getLoteRequestDTO() {
         final LoteRequestDTO loteRequestDTO = new LoteRequestDTO();
         //TODO: fix today date
-        loteRequestDTO.setFechaIngreso(LocalDate.now());
+        if(loteRequestDTO.getFechaIngreso() == null) {
+            loteRequestDTO.setFechaIngreso(LocalDate.now());
+        }
         return loteRequestDTO;
     }
 
