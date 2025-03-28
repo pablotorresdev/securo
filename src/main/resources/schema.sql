@@ -56,17 +56,17 @@ CREATE TABLE productos
 
 CREATE TABLE proveedores
 (
-    id               SERIAL PRIMARY KEY,
-    razon_social     VARCHAR(255) NOT NULL,
-    cuit             VARCHAR(255) NOT NULL,
-    direccion        VARCHAR(255) NOT NULL,
-    ciudad           VARCHAR(100) NOT NULL,
-    pais             VARCHAR(100) NOT NULL,
-    telefono         VARCHAR(50),
-    email            VARCHAR(100),
-    persona_proveedor VARCHAR(100),
-    observaciones    TEXT,
-    activo           BOOLEAN      NOT NULL DEFAULT TRUE
+    id            SERIAL PRIMARY KEY,
+    razon_social  VARCHAR(255) NOT NULL,
+    cuit          VARCHAR(255) NOT NULL,
+    direccion     VARCHAR(255) NOT NULL,
+    ciudad        VARCHAR(100) NOT NULL,
+    pais          VARCHAR(100) NOT NULL,
+    telefono      VARCHAR(50),
+    email         VARCHAR(100),
+    contacto      VARCHAR(100),
+    observaciones TEXT,
+    activo        BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE configuracion

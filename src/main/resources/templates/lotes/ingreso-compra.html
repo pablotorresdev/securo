@@ -46,7 +46,7 @@
 
         <!-- Cantidad Inicial -->
         <div class="mb-2">
-            <label for="cantidadInicial" class="form-label">Cantidad Inicial:</label>
+            <label for="cantidadInicial" class="form-label">Cantidad:</label>
             <input type="number" step="0.01" id="cantidadInicial" th:field="*{cantidadInicial}" class="form-control" required>
             <div th:if="${#fields.hasErrors('cantidadInicial')}" class="error" th:errors="*{cantidadInicial}"></div>
         </div>

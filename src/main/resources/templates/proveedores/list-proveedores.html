@@ -26,7 +26,7 @@
             <th>País</th>
             <th>Teléfono</th>
             <th>Email</th>
-            <th>Nombre Proveedor</th>
+            <th>Contacto</th>
             <th>Acciones</th>
         </tr>
         </thead>
@@ -40,7 +40,7 @@
             <td th:text="${proveedor.pais}"></td>
             <td th:text="${proveedor.telefono}"></td>
             <td th:text="${proveedor.email}"></td>
-            <td th:text="${proveedor.personaProveedor}"></td>
+            <td th:text="${proveedor.contacto}"></td>
             <td>
                 <div th:if="${proveedor.activo}">
                     <form th:action="@{/proveedores/edit-proveedor/{id}(id=${proveedor.id})}" method="get" style="display:inline;">

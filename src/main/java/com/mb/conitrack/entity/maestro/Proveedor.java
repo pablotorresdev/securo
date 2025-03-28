@@ -47,8 +47,8 @@ public class Proveedor {
     @Column(length = 100)
     private String email;
 
-    @Column(name = "persona_proveedor", length = 100)
-    private String personaProveedor;
+    @Column(name = "contacto", length = 100)
+    private String contacto;
 
     @Column(length = 300)
     private String observaciones;

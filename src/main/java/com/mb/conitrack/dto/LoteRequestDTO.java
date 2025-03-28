@@ -2,6 +2,8 @@ package com.mb.conitrack.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -37,7 +39,6 @@ public class LoteRequestDTO {
     @NotNull(message = "La unidad de Medida es obligatoria")
     private UnidadMedidaEnum unidadMedida;
 
-
     @Size(max = 30, message = "El número de remito no debe superar 30 caracteres")
     private String nroRemito;
 
@@ -49,6 +50,9 @@ public class LoteRequestDTO {
     private LocalDate fechaReanalisis;
 
     private BigDecimal titulo;
-
     private String observaciones;
+
+    // NUEVO: Lista de cantidades para cada bulto (en el paso 2)
+    private List<BigDecimal> cantidadesBultos = new ArrayList<>();
+    private List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 }
