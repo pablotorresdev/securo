@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS analisis CASCADE;
 DROP TABLE IF EXISTS movimientos CASCADE;
+DROP TABLE IF EXISTS contactos CASCADE;
 
 -- 2. Luego las tablas que dependen de otras
 DROP TABLE IF EXISTS lotes CASCADE;
