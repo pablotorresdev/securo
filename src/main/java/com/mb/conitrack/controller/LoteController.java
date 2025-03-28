@@ -40,6 +40,7 @@ public class LoteController {
     @ModelAttribute("loteRequestDTO")
     public LoteRequestDTO getLoteRequestDTO() {
         final LoteRequestDTO loteRequestDTO = new LoteRequestDTO();
+        //TODO: fix today date
         loteRequestDTO.setFechaIngreso(LocalDate.now());
         return loteRequestDTO;
     }
