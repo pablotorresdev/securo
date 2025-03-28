@@ -1,0 +1,21 @@
+package com.mb.conitrack.repository.maestro;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.mb.conitrack.entity.maestro.Proveedor;
+
+public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
+
+    List<Proveedor> findByRazonSocialIgnoreCaseContaining(String razonSocial);
+
+    List<Proveedor> findByRazonSocialNotIgnoreCaseContaining(String razonSocial);
+
+    @Query("SELECT c FROM Proveedor c WHERE c.activo = true AND LOWER(c.razonSocial) <> LOWER(:razonSocial)")
+    List<Proveedor> findByActivoTrueAndRazonSocialNotIgnoreCase(@Param("razonSocial") String razonSocial);
+
+
+}

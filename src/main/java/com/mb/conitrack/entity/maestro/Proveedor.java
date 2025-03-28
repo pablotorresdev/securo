@@ -18,9 +18,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "contactos")
-@SQLDelete(sql = "UPDATE contactos SET activo = false WHERE id = ?")
-public class Contacto {
+@Table(name = "proveedores")
+@SQLDelete(sql = "UPDATE proveedores SET activo = false WHERE id = ?")
+public class Proveedor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,8 +47,8 @@ public class Contacto {
     @Column(length = 100)
     private String email;
 
-    @Column(name = "persona_contacto", length = 100)
-    private String personaContacto;
+    @Column(name = "persona_proveedor", length = 100)
+    private String personaProveedor;
 
     @Column(length = 300)
     private String observaciones;

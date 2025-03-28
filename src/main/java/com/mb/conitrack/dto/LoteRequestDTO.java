@@ -43,7 +43,6 @@ public class LoteRequestDTO {
 
     private String loteProveedor;
     private String detalleConservacion;
-    private Long fabricanteId;
 
     // Opcionales: fechas, valoraciones, observaciones, etc.
     private LocalDate fechaVencimiento;

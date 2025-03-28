@@ -1,5 +1,6 @@
 package com.mb.conitrack.service;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -16,7 +17,10 @@ public class MovimientoService {
     private final MovimientoRepository movimientoRepository;
 
     public List<Movimiento> findAll() {
-        return movimientoRepository.findAll();
+        final List<Movimiento> movimientos = movimientoRepository.findAll();
+        movimientos.sort(Comparator
+            .comparing(Movimiento::getFecha));
+        return movimientos;
     }
 
 }

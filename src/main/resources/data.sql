@@ -1,15 +1,15 @@
-INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_contacto)
+INSERT INTO proveedores (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_proveedor)
 VALUES ('Laboratorios BioPharma S.A.', '30-49439948-9', 'Av. Corrientes 1234', 'Buenos Aires', 'Argentina', '(011) 4321-5678', 'info@biopharma.com.ar', 'Juan Perez');
-INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_contacto)
+INSERT INTO proveedores (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_proveedor)
 VALUES ('Quimica del Plata S.R.L.', '33-96275551-3', 'Calle San Martin 987', 'Cordoba', 'Argentina', '(0351) 468-1122', 'ventas@quimicadelplata.com.ar', 'Maria Lopez');
-INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_contacto)
-VALUES ('Distribuidora Medicorp S.A.', '30-51557422-7', 'Av. Pellegrini 752', 'Rosario', 'Argentina', '(0341) 223-3344', 'contacto@medicorp.com', 'Carlos Gonzalez');
-INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_contacto)
+INSERT INTO proveedores (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_proveedor)
+VALUES ('Distribuidora Medicorp S.A.', '30-51557422-7', 'Av. Pellegrini 752', 'Rosario', 'Argentina', '(0341) 223-3344', 'proveedor@medicorp.com', 'Carlos Gonzalez');
+INSERT INTO proveedores (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_proveedor)
 VALUES ('Insumos Quimicos Mendoza S.R.L.', '33-38544412-0', 'Av. Las Heras 2300', 'Mendoza', 'Argentina', '(0261) 445-6677', 'administracion@insumosmendoza.com.ar',
         'Lucia Martinez');
-INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_contacto)
+INSERT INTO proveedores (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_proveedor)
 VALUES ('Pharma Solutions S.A.', '34-05146058-9', 'Calle 12 456', 'La Plata', 'Argentina', '(0221) 412-8999', 'info@pharmasolutions.com', 'Pedro Fernandez');
-INSERT INTO contactos (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_contacto)
+INSERT INTO proveedores (razon_social, cuit, direccion, ciudad, pais, telefono, email, persona_proveedor)
 VALUES ('Conifarma S.A.', '34-11111111-9', 'Pringles 10', 'CABA', 'Argentina', '(0221) 412-8999', 'info@pharmasolutions.com', 'Silvita');
 
 

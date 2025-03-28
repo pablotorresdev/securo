@@ -1,6 +1,9 @@
 package com.mb.conitrack.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -9,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mb.conitrack.dto.LoteRequestDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.maestro.Contacto;
+import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoLoteEnum;
@@ -18,7 +21,7 @@ import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
-import com.mb.conitrack.repository.maestro.ContactoRepository;
+import com.mb.conitrack.repository.maestro.ProveedorRepository;
 import com.mb.conitrack.repository.maestro.ProductoRepository;
 
 import lombok.AllArgsConstructor;
@@ -31,7 +34,7 @@ public class LoteService {
 
     private final MovimientoRepository movimientoRepository;
 
-    private final ContactoRepository contactoRepository;
+    private final ProveedorRepository proveedorRepository;
 
     private final ProductoRepository productoRepository;
 
@@ -44,15 +47,8 @@ public class LoteService {
         }
 
         // Verificar existencia del proveedor
-        Contacto proveedor = contactoRepository.findById(dto.getProveedorId())
+        Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
             .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
-
-        // Verificar existencia del fabricante si se envió (distinto a Conifarma)
-        Contacto fabricante = null;
-        if (dto.getFabricanteId() != null) {
-            fabricante = contactoRepository.findById(dto.getFabricanteId())
-                .orElseThrow(() -> new IllegalArgumentException("El fabricante no existe."));
-        }
 
         // Verificar existencia del producto
         Producto producto = productoRepository.findById(dto.getProductoId())
@@ -63,7 +59,10 @@ public class LoteService {
         Movimiento movimiento = new Movimiento();
         lote.getMovimientos().add(movimiento);
 
-        lote.setIdLote("L-" + System.currentTimeMillis());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        String timestamp = LocalDateTime.now().format(formatter);
+        lote.setIdLote("L-" + timestamp);
+
         lote.setProducto(producto);
         lote.setProveedor(proveedor);
         lote.setFechaIngreso(dto.getFechaIngreso());
@@ -78,12 +77,6 @@ public class LoteService {
         lote.setCantidadInicial(dto.getCantidadInicial());
         lote.setCantidadActual(dto.getCantidadInicial());
         lote.setUnidadMedida(dto.getUnidadMedida());
-
-        if (fabricante != null) {
-            lote.setFabricante(fabricante);
-        } else {
-            lote.setFabricante(proveedor);
-        }
         lote.setLoteProveedor(dto.getLoteProveedor());
         lote.setNroRemito(dto.getNroRemito());
         lote.setDetalleConservacion(dto.getDetalleConservacion());
@@ -121,7 +114,10 @@ public class LoteService {
     }
 
     public List<Lote> findAll() {
-        return loteRepository.findAll();
+        final List<Lote> lotes = loteRepository.findAll();
+        lotes.sort(Comparator
+            .comparing(Lote::getIdLote));
+        return lotes;
     }
 
     public Lote findById(final Long loteId) {

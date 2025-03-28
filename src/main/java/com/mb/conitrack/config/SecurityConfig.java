@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/error").permitAll() // Allow access to /error
                 .requestMatchers("/users/**").hasRole("ADMIN") // Only ADMIN can access /users/*
-                .requestMatchers("/contactos/**").hasRole("ADMIN") // Only ADMIN can access /contactos/*
+                .requestMatchers("/proveedores/**").hasRole("ADMIN") // Only ADMIN can access /proveedores/*
                 //.requestMatchers("/admin/users").hasRole("ADMIN") // Only ADMIN can access /admin/users
                 .requestMatchers("/user1/**").hasAnyRole("ADMIN", "USER1") // Only ADMIN and USER1 can access /user1/*
                 .requestMatchers("/user2/**").hasAnyRole("ADMIN", "USER2") // Only ADMIN and USER2 can access /user2/*

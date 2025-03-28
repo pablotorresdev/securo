@@ -1,5 +1,6 @@
 package com.mb.conitrack.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.repository.maestro.ProductoRepository;
 
@@ -24,6 +26,8 @@ public class ProductoService {
     public List<Producto> getProductosExternos() {
         return productoRepository.findAll()
             .stream()
+            .sorted(Comparator
+                .comparing(Producto::getCodigoInterno))
             .filter(Producto::getActivo)
             .filter(p -> p.getTipoProducto() != TipoProductoEnum.SEMIELABORADO &&
                 p.getTipoProducto() != TipoProductoEnum.UNIDAD_VENTA)
@@ -37,6 +41,8 @@ public class ProductoService {
     public List<Producto> getProductosInternos() {
         return productoRepository.findAll()
             .stream()
+            .sorted(Comparator
+                .comparing(Producto::getCodigoInterno))
             .filter(Producto::getActivo)
             .filter(p -> p.getTipoProducto() == TipoProductoEnum.SEMIELABORADO ||
                 p.getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA)
@@ -44,7 +50,10 @@ public class ProductoService {
     }
 
     public List<Producto> findAll() {
-        return productoRepository.findAll();
+        final List<Producto> productos = productoRepository.findAll();
+        productos.sort(Comparator
+            .comparing(Producto::getCodigoInterno));
+        return productos;
     }
 
     public List<Producto> findAllActive() {

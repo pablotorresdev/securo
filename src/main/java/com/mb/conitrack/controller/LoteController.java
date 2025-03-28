@@ -1,5 +1,6 @@
 package com.mb.conitrack.controller;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteRequestDTO;
 import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.service.ContactoService;
+import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.service.ProveedorService;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
 
@@ -28,7 +30,7 @@ public class LoteController {
     private ProductoService productoService;
 
     @Autowired
-    private ContactoService contactoService;
+    private ProveedorService proveedorService;
 
     @Autowired
     private LoteService loteService;
@@ -37,7 +39,7 @@ public class LoteController {
     public String showIngresoCompraForm(Model model) {
         model.addAttribute("loteRequestDTO", new LoteRequestDTO());
         model.addAttribute("productos", productoService.getProductosExternos());
-        model.addAttribute("contactos", contactoService.getContactosExternos());
+        model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
         return "lotes/ingreso-compra"; //.html
     }
 
@@ -49,7 +51,7 @@ public class LoteController {
         if (bindingResult.hasErrors()) {
             // Re-populate the dropdown lists if validation fails
             model.addAttribute("productos", productoService.getProductosExternos());
-            model.addAttribute("contactos", contactoService.getContactosExternos());
+            model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
             return "lotes/ingreso-compra";
         }
         loteService.ingresarStockPorCompra(loteRequestDTO);
@@ -60,9 +62,8 @@ public class LoteController {
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
-        List<Lote> lotes = loteService.findAll(); // Método en el servicio que devuelve la lista de lotes con sus movimientos
-        model.addAttribute("lotes", lotes);
-        return "lotes/list-lotes"; // Nombre de la plantilla Thymeleaf, por ejemplo: src/main/resources/templates/lotes/list-lotes.html
+        model.addAttribute("lotes", loteService.findAll());
+        return "lotes/list-lotes";
 
     }
 

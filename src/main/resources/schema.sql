@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS users CASCADE;
 -- 3. Eliminar las tablas restantes
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS productos CASCADE;
-DROP TABLE IF EXISTS contactos CASCADE;
+DROP TABLE IF EXISTS proveedores CASCADE;
 DROP TABLE IF EXISTS configuracion CASCADE;
 
 DROP EXTENSION IF EXISTS "pgcrypto" CASCADE;
@@ -54,7 +54,7 @@ CREATE TABLE productos
         FOREIGN KEY (producto_destino_id) REFERENCES productos (id)
 );
 
-CREATE TABLE contactos
+CREATE TABLE proveedores
 (
     id               SERIAL PRIMARY KEY,
     razon_social     VARCHAR(255) NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE contactos
     pais             VARCHAR(100) NOT NULL,
     telefono         VARCHAR(50),
     email            VARCHAR(100),
-    persona_contacto VARCHAR(100),
+    persona_proveedor VARCHAR(100),
     observaciones    TEXT,
     activo           BOOLEAN      NOT NULL DEFAULT TRUE
 );
@@ -95,7 +95,6 @@ CREATE TABLE lotes
     unidad_medida        VARCHAR(50)    NOT NULL,
     lote_proveedor       TEXT           NOT NULL,
     nro_remito           TEXT,
-    fabricante_id        INT            NOT NULL,
     detalle_conservacion TEXT,
     fecha_vencimiento    DATE,
     fecha_reanalisis     DATE,
@@ -108,9 +107,7 @@ CREATE TABLE lotes
     CONSTRAINT fk_lote_origen
         FOREIGN KEY (lote_origen_id) REFERENCES lotes (id),
     CONSTRAINT fk_proveedor_lote
-        FOREIGN KEY (proveedor_id) REFERENCES contactos (id),
-    CONSTRAINT fk_fabricante_lote
-        FOREIGN KEY (fabricante_id) REFERENCES contactos (id)
+        FOREIGN KEY (proveedor_id) REFERENCES proveedores (id)
 -- ,
 --     CONSTRAINT fk_nro_analisis
 --         FOREIGN KEY (nro_analisis_id) REFERENCES analisis (id)

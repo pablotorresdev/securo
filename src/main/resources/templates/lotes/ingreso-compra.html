@@ -36,24 +36,12 @@
             <label for="proveedorId" class="form-label">Proveedor:</label>
             <select id="proveedorId" th:field="*{proveedorId}" class="form-select" required>
                 <option value="">-- Seleccione un proveedor --</option>
-                <option th:each="contacto : ${contactos}"
-                        th:value="${contacto.id}"
-                        th:text="${contacto.razonSocial}">Proveedor
+                <option th:each="proveedor : ${proveedores}"
+                        th:value="${proveedor.id}"
+                        th:text="${proveedor.razonSocial}">Proveedor
                 </option>
             </select>
             <div th:if="${#fields.hasErrors('proveedorId')}" class="error" th:errors="*{proveedorId}"></div>
-        </div>
-
-        <!-- Fabricante (opcional) -->
-        <div class="mb-2">
-            <label for="fabricanteId" class="form-label">Fabricante (opcional):</label>
-            <select id="fabricanteId" th:field="*{fabricanteId}" class="form-select">
-                <option value="" selected>Seleccione un fabricante</option>
-                <option th:each="contacto : ${contactos}"
-                        th:value="${contacto.id}"
-                        th:text="${contacto.razonSocial}">Fabricante
-                </option>
-            </select>
         </div>
 
         <!-- Cantidad Inicial -->

@@ -1,5 +1,6 @@
 package com.mb.conitrack.controller;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,16 +26,18 @@ public class MovimientoController {
     private LoteService loteService;
 
     @GetMapping("/list-movimientos")
-    public String listContactos(Model model) {
-        List<Movimiento> movimientos = movimientoService.findAll();
-        model.addAttribute("movimientos", movimientos);
+    public String listProveedores(Model model) {
+        model.addAttribute("movimientos", movimientoService.findAll());
         return "movimientos/list-movimientos"; //.html
     }
 
     @GetMapping("/lote/{loteId}")
     public String listMovimientosPorLote(@PathVariable("loteId") Long loteId, Model model) {
         // Se asume que findById() recupera el lote con sus movimientos (por ejemplo, con fetch join)
-        model.addAttribute("movimientos", loteService.findById(loteId).getMovimientos());
+        final List<Movimiento> movimientos = loteService.findById(loteId).getMovimientos();
+        movimientos.sort(Comparator
+            .comparing(Movimiento::getFecha));
+        model.addAttribute("movimientos", movimientos);
         return "movimientos/list-movimientos"; // Corresponde a movimientos-lote.html
     }
 }

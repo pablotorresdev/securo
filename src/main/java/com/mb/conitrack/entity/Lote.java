@@ -8,7 +8,7 @@ import java.util.List;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import com.mb.conitrack.entity.maestro.Contacto;
+import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoLoteEnum;
@@ -85,17 +85,13 @@ public class Lote {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proveedor_id", nullable = false)
-    private Contacto proveedor;
+    private Proveedor proveedor;
 
     @Column(name = "lote_proveedor", nullable = false)
     private String loteProveedor;
 
     @Column(name = "detalle_conservacion")
     private String detalleConservacion;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fabricante_id", nullable = false)
-    private Contacto fabricante;
 
     @Column(name = "fecha_vencimiento")
     private LocalDate fechaVencimiento;
