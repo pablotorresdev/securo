@@ -26,9 +26,6 @@ public class LoteRequestDTO {
     @PastOrPresent(message = "La fecha de ingreso no puede ser futura")
     private LocalDate fechaIngreso;
 
-    @Positive(message = "El número de bulto debe ser mayor a cero")
-    private Integer nroBulto;
-
     @Positive(message = "La cantidad de bultos totales debe ser mayor a cero")
     private Integer bultosTotales;
 
@@ -39,20 +36,21 @@ public class LoteRequestDTO {
     @NotNull(message = "La unidad de Medida es obligatoria")
     private UnidadMedidaEnum unidadMedida;
 
+    @NotNull(message = "El lote del proveedor es obligatorio")
+    private String loteProveedor;
+
+    //***********Opcionales***********//
     @Size(max = 30, message = "El número de remito no debe superar 30 caracteres")
     private String nroRemito;
 
-    private String loteProveedor;
     private String detalleConservacion;
-
-    // Opcionales: fechas, valoraciones, observaciones, etc.
     private LocalDate fechaVencimiento;
     private LocalDate fechaReanalisis;
-
     private BigDecimal titulo;
     private String observaciones;
 
     // NUEVO: Lista de cantidades para cada bulto (en el paso 2)
+    private Integer nroBulto;
     private List<BigDecimal> cantidadesBultos = new ArrayList<>();
     private List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 }

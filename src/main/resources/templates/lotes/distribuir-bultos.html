@@ -11,20 +11,42 @@
     <p>La suma de las cantidades de cada bulto debe ser igual a la cantidad total ingresada.</p>
     <form th:action="@{/lotes/distribuir-bultos}" th:object="${loteRequestDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <!-- Mostramos la cantidad total como información (readonly) -->
-        <div class="mb-2">
+
+        <!-- Cantidad total (readonly) -->
+        <div class="mb-3">
             <label class="form-label">Cantidad Total:</label>
             <input type="text" th:value="${loteRequestDTO.cantidadInicial}" class="form-control" readonly>
         </div>
-        <!-- Se generan N campos, donde N es el número de bultos totales -->
-        <div th:each="i : ${#numbers.sequence(1, loteRequestDTO.bultosTotales)}" class="mb-2">
-            <label th:for="'cantidadBulto' + ${i}" class="form-label">Cantidad para Bulto <span th:text="${i}"></span>:</label>
-            <input type="number" step="0.01" th:id="'cantidadBulto' + ${i}"
-                   th:field="*{cantidadesBultos[__${i-1}__]}" class="form-control" required/>
+
+        <!-- Campos por bulto -->
+        <div th:each="i : ${#numbers.sequence(1, loteRequestDTO.bultosTotales)}" class="row mb-3 align-items-end">
+            <!-- Cantidad -->
+            <div class="col-md-6">
+                <label th:for="'cantidadBulto' + ${i}" class="form-label">
+                    Cantidad para Bulto <span th:text="${i}"></span>:
+                </label>
+                <input type="number" step="0.01" th:id="'cantidadBulto' + ${i}"
+                       th:field="*{cantidadesBultos[__${i-1}__]}" class="form-control" required/>
+            </div>
+
+            <!-- Unidad de medida -->
+            <div class="col-md-3">
+                <label class="form-label">Unidad:</label>
+                <input type="text" th:value="${loteRequestDTO.unidadMedidaBultos[__${i-1}__]}"
+                       class="form-control" readonly/>
+            </div>
         </div>
-        <div th:if="${#fields.hasErrors('cantidadesBultos')}" class="error" th:errors="*{cantidadesBultos}"></div>
-        <div class="d-flex justify-content-between mt-3">
+
+        <!-- Mensaje de error general -->
+        <div th:if="${#fields.hasErrors('cantidadesBultos')}"
+             style="color: red; font-weight: bold;"
+             th:errors="*{cantidadesBultos}">
+        </div>
+
+        <!-- Botones -->
+        <div class="d-flex justify-content-between mt-4">
             <a th:href="@{/lotes/ingreso-compra}" class="btn btn-secondary">Volver y Editar Datos</a>
+            <a th:href="@{/lotes/cancelar}" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">Guardar Distribución</button>
         </div>
     </form>

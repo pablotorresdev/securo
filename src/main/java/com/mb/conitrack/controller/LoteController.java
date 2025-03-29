@@ -40,15 +40,14 @@ public class LoteController {
     @ModelAttribute("loteRequestDTO")
     public LoteRequestDTO getLoteRequestDTO() {
         final LoteRequestDTO loteRequestDTO = new LoteRequestDTO();
-        //TODO: fix today date
-        if(loteRequestDTO.getFechaIngreso() == null) {
-            loteRequestDTO.setFechaIngreso(LocalDate.now());
-        }
+        loteRequestDTO.setFechaIngreso(LocalDate.now());
         return loteRequestDTO;
     }
 
     @GetMapping("/ingreso-compra")
-    public String showIngresoCompraForm(Model model) {
+    public String showIngresoCompraForm(
+        @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
+        Model model) {
         model.addAttribute("productos", productoService.getProductosExternos());
         model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
         return "lotes/ingreso-compra"; //.html
@@ -59,12 +58,19 @@ public class LoteController {
         @Valid @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
         BindingResult bindingResult,
         Model model,
-        RedirectAttributes redirectAttributes) {
+        RedirectAttributes redirectAttributes,
+        org.springframework.web.bind.support.SessionStatus sessionStatus) {
+
+//        if (dto.getFechaIngreso() != null && dto.getFechaIngreso().isAfter(LocalDate.now())) {
+//            bindingResult.rejectValue("fechaIngreso", "error.fechaIngreso", "La fecha de ingreso no puede ser futura XXX.");
+//        }
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("productos", productoService.getProductosExternos());
             model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
             return "lotes/ingreso-compra";
         }
+
         if (dto.getBultosTotales() > 1) {
             return "redirect:/lotes/distribuir-bultos?bultos=" + dto.getBultosTotales();
         }
@@ -72,18 +78,20 @@ public class LoteController {
         dto.setNroBulto(1);
         loteService.ingresarStockPorCompra(dto);
         redirectAttributes.addFlashAttribute("success", "Ingreso de stock registrado correctamente.");
+        sessionStatus.setComplete();
         return "redirect:/";
     }
 
     @GetMapping("/distribuir-bultos")
-    public String showDistribuirBultos(@RequestParam("bultos") Integer bultos,
+    public String showDistribuirBultos(
+        @RequestParam("bultos") Integer bultos,
         @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
         Model model) {
         if (dto.getCantidadesBultos() == null) {
             dto.setCantidadesBultos(new ArrayList<>());
             dto.setUnidadMedidaBultos(new ArrayList<>());
         }
-        while(dto.getCantidadesBultos().size() < bultos) {
+        while (dto.getCantidadesBultos().size() < bultos) {
             dto.getCantidadesBultos().add(BigDecimal.ZERO);
             dto.getUnidadMedidaBultos().add(dto.getUnidadMedida());
         }
@@ -96,18 +104,19 @@ public class LoteController {
         @Valid @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
         BindingResult bindingResult,
         Model model,
-        RedirectAttributes redirectAttributes) {
+        RedirectAttributes redirectAttributes,
+        org.springframework.web.bind.support.SessionStatus sessionStatus) {
+
         BigDecimal suma = dto.getCantidadesBultos().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         if (suma.compareTo(dto.getCantidadInicial()) != 0) {
-            bindingResult.rejectValue(
-                "cantidadesBultos",
-                "error.cantidadesBultos",
+            bindingResult.rejectValue("cantidadesBultos", "error.cantidadesBultos",
                 "La suma de las cantidades individuales debe ser igual a la cantidad total (" + dto.getCantidadInicial() + ").");
         }
         if (bindingResult.hasErrors()) {
             return "lotes/distribuir-bultos";
         }
         ingresoMultiBultos(dto);
+        sessionStatus.setComplete();
         redirectAttributes.addFlashAttribute("success", "Ingreso de stock distribuido correctamente.");
         return "redirect:/";
     }
@@ -121,7 +130,7 @@ public class LoteController {
             dtoCopia.setBultosTotales(dto.getBultosTotales()); // Cada lote representa un bulto
             dtoCopia.setCantidadInicial(dto.getCantidadesBultos().get(i));
             dtoCopia.setUnidadMedida(dto.getUnidadMedida());
-            dtoCopia.setNroBulto(i+1); // Cada lote es un bulto individual
+            dtoCopia.setNroBulto(i + 1); // Cada lote es un bulto individual
             dtoCopia.setNroRemito(dto.getNroRemito());
             dtoCopia.setLoteProveedor(dto.getLoteProveedor());
             dtoCopia.setDetalleConservacion(dto.getDetalleConservacion());
@@ -139,6 +148,13 @@ public class LoteController {
         model.addAttribute("lotes", loteService.findAll());
         return "lotes/list-lotes";
     }
+
+    @GetMapping("/cancelar")
+    public String cancelarIngreso(org.springframework.web.bind.support.SessionStatus sessionStatus) {
+        sessionStatus.setComplete();
+        return "redirect:/";
+    }
+
 }
 
 
