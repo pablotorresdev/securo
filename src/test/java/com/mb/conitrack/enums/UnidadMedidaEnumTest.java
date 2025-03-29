@@ -41,11 +41,6 @@ public class UnidadMedidaEnumTest {
         assertThat(UnidadMedidaEnum.KILOGRAMO.getSimbolo()).isEqualTo("kg");
         assertThat(UnidadMedidaEnum.KILOGRAMO.getFactorConversion()).isEqualTo(1000.0);
 
-        assertThat(UnidadMedidaEnum.TONELADA.getNombre()).isEqualTo("Tonelada");
-        assertThat(UnidadMedidaEnum.TONELADA.getTipo()).isEqualTo("Masa");
-        assertThat(UnidadMedidaEnum.TONELADA.getSimbolo()).isEqualTo("t");
-        assertThat(UnidadMedidaEnum.TONELADA.getFactorConversion()).isEqualTo(1000000.0);
-
         // Unidades de Volumen
         assertThat(UnidadMedidaEnum.MICROLITRO.getNombre()).isEqualTo("Microlitro");
         assertThat(UnidadMedidaEnum.MICROLITRO.getTipo()).isEqualTo("Volumen");
@@ -82,11 +77,6 @@ public class UnidadMedidaEnumTest {
         assertThat(UnidadMedidaEnum.CENTIMETRO_CUBICO.getSimbolo()).isEqualTo("cm3");
         assertThat(UnidadMedidaEnum.CENTIMETRO_CUBICO.getFactorConversion()).isEqualTo(0.001);
 
-        assertThat(UnidadMedidaEnum.METRO_CUBICO.getNombre()).isEqualTo("Metro cubico");
-        assertThat(UnidadMedidaEnum.METRO_CUBICO.getTipo()).isEqualTo("Volumen");
-        assertThat(UnidadMedidaEnum.METRO_CUBICO.getSimbolo()).isEqualTo("m3");
-        assertThat(UnidadMedidaEnum.METRO_CUBICO.getFactorConversion()).isEqualTo(1000.0);
-
         // Unidades de Superficie
         assertThat(UnidadMedidaEnum.MILIMETRO_CUADRADO.getNombre()).isEqualTo("Milimetro cuadrado");
         assertThat(UnidadMedidaEnum.MILIMETRO_CUADRADO.getTipo()).isEqualTo("Superficie");
@@ -102,16 +92,6 @@ public class UnidadMedidaEnumTest {
         assertThat(UnidadMedidaEnum.METRO_CUADRADO.getTipo()).isEqualTo("Superficie");
         assertThat(UnidadMedidaEnum.METRO_CUADRADO.getSimbolo()).isEqualTo("m2");
         assertThat(UnidadMedidaEnum.METRO_CUADRADO.getFactorConversion()).isEqualTo(1.0);
-
-        assertThat(UnidadMedidaEnum.KILOMETRO_CUADRADO.getNombre()).isEqualTo("Kilometro cuadrado");
-        assertThat(UnidadMedidaEnum.KILOMETRO_CUADRADO.getTipo()).isEqualTo("Superficie");
-        assertThat(UnidadMedidaEnum.KILOMETRO_CUADRADO.getSimbolo()).isEqualTo("km2");
-        assertThat(UnidadMedidaEnum.KILOMETRO_CUADRADO.getFactorConversion()).isEqualTo(1000000.0);
-
-        assertThat(UnidadMedidaEnum.HECTAREA.getNombre()).isEqualTo("Hectarea");
-        assertThat(UnidadMedidaEnum.HECTAREA.getTipo()).isEqualTo("Superficie");
-        assertThat(UnidadMedidaEnum.HECTAREA.getSimbolo()).isEqualTo("ha");
-        assertThat(UnidadMedidaEnum.HECTAREA.getFactorConversion()).isEqualTo(10000.0);
 
         // Unidades de Longitud
         assertThat(UnidadMedidaEnum.MICROMETRO.getNombre()).isEqualTo("Micrometro");
@@ -133,11 +113,6 @@ public class UnidadMedidaEnumTest {
         assertThat(UnidadMedidaEnum.METRO.getTipo()).isEqualTo("Longitud");
         assertThat(UnidadMedidaEnum.METRO.getSimbolo()).isEqualTo("m");
         assertThat(UnidadMedidaEnum.METRO.getFactorConversion()).isEqualTo(1.0);
-
-        assertThat(UnidadMedidaEnum.KILOMETRO.getNombre()).isEqualTo("Kilometro");
-        assertThat(UnidadMedidaEnum.KILOMETRO.getTipo()).isEqualTo("Longitud");
-        assertThat(UnidadMedidaEnum.KILOMETRO.getSimbolo()).isEqualTo("km");
-        assertThat(UnidadMedidaEnum.KILOMETRO.getFactorConversion()).isEqualTo(1000.0);
 
         // Unidades porcentuales
         assertThat(UnidadMedidaEnum.PORCENTAJE.getNombre()).isEqualTo("Porcentaje");

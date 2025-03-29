@@ -19,6 +19,8 @@ VALUES ('Paracetamol', 'P-001', 'API', 'Argentina', 'GRAMO', 'Analgesico y antip
 INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida, observaciones)
 VALUES ('Ibuprofeno', 'P-002', 'API', 'China', 'GRAMO', 'Antiinflamatorio no esteroideo para aliviar el dolor');
 INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida, observaciones)
+VALUES ('H2O', 'P-022', 'EXCIPIENTE', 'China', 'LITRO', 'Esteril y purificada para uso farmaceutico');
+INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida, observaciones)
 VALUES ('Lactosa Monohidrato', 'P-003', 'EXCIPIENTE', 'Argentina', 'KILOGRAMO', 'Excipiente para formulaciones farmaceuticas de alta pureza');
 INSERT INTO productos (nombre_generico, codigo_interno, tipo_producto, pais_origen, unidad_medida, observaciones)
 VALUES ('Capsula Vacio', 'P-004', 'UNIDAD_VENTA', 'Brasil', 'UNIDAD', 'Capsula de gelatina vacia para encapsulamiento de medicamentos');
