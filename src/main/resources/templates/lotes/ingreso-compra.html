@@ -165,7 +165,7 @@
 
         // 🟢 Cargar unidades compatibles al inicio (cuando unidadMedida ya viene del DTO)
         if (unidadActual) {
-            fetch('/lotes/unidades-compatibles?unidad=' + unidadActual)
+            fetch('/enums/unidades-compatibles?unidad=' + unidadActual)
                 .then(response => response.json())
                 .then(data => {
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
@@ -191,7 +191,7 @@
 
             if (!unidadBase) return;
 
-            fetch('/lotes/unidades-compatibles?unidad=' + unidadBase)
+            fetch('/enums/unidades-compatibles?unidad=' + unidadBase)
                 .then(response => response.json())
                 .then(data => {
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';

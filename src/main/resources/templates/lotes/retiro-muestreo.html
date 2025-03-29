@@ -8,7 +8,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Retiro por Muestreo</h2>
-    <form th:action="@{/retiro-muestreo}" th:object="${movimientoDTO}" method="post">
+    <form th:action="@{/muestreos/retiro-muestreo}" th:object="${movimientoDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
         <hr class="my-4">
@@ -37,8 +37,7 @@
                         th:if="${lote.nroBulto==1}"
                         th:value="${lote.id}"
                         th:text="${lote.idLote} + ' - ' + ${lote.producto.nombreGenerico}"
-                        th:attr="data-unit=${lote.unidadMedida}"
-                        th:attr="nro-bultos=${lote.bultosTotales}"
+                        th:attr="data-unit=${lote.unidadMedida}, nro-bultos=${lote.bultosTotales}"
                 ></option>
             </select>
             <div th:if="${#fields.hasErrors('loteId')}" class="error" th:errors="*{loteId}"></div>
@@ -143,20 +142,31 @@
             // Cargar bultos para el lote seleccionado
             const nroBultos = selected.getAttribute('nro-bultos');
             if (nroBultos) {
-                fetch('/lotes/bultos?loteId=' + this.value)
-                    .then(r => r.json())
-                    .then(data => {
-                        bultoSelect.innerHTML = '<option value="">-- Seleccione bulto --</option>';
-                        nroBultos.forEach(b => {
-                            const option = document.createElement('option');
-                            option.value = b;
-                            option.textContent = b;
-                            bultoSelect.appendChild(option);
-                        });
-                    });
+                loteSelect.addEventListener('change', function () {
+                    const selected = this.options[this.selectedIndex];
+                    const unidadBase = selected.getAttribute('data-unit');
+                    const nroBultos = parseInt(selected.getAttribute('nro-bultos') || '1');
+
+                    // Cargar unidades compatibles con el mismo tipo
+                    unidadSelect.innerHTML = '';
+                    if (unidadBase) {
+                        const opt = document.createElement('option');
+                        opt.value = unidadBase;
+                        opt.textContent = unidadBase;
+                        opt.selected = true;
+                        unidadSelect.appendChild(opt);
+                    }
+
+                    // Cargar bultos sin fetch, desde nro-bultos
+                    bultoSelect.innerHTML = '<option value="">-- Seleccione bulto --</option>';
+                    for (let i = 1; i <= nroBultos; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = 'Bulto ' + i;
+                        bultoSelect.appendChild(opt);
+                    }
+                });
             }
-
-
         });
     });
 </script>
