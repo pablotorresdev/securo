@@ -8,15 +8,17 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Ingreso de Stock por Compra</h2>
-    <form th:action="@{/lotes/ingreso-compra}" th:object="${loteRequestDTO}" method="post">
+    <form th:action="@{/lotes/ingreso-compra}" th:object="${loteDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Datos Obligatorios</h4>
+
         <!-- Fecha de Ingreso -->
         <div class="mb-2">
             <label for="fechaIngreso" class="form-label">Fecha de Ingreso:</label>
             <input type="date" id="fechaIngreso" name="fechaIngreso"
-                   th:value="${loteRequestDTO.fechaIngreso}"
+                   th:value="${loteDTO.fechaIngreso}"
                    class="form-control"
                    th:classappend="${#fields.hasErrors('fechaIngreso')} ? ' error-field' : ''"
                    required>
@@ -159,7 +161,7 @@
         const productoSelect = document.getElementById('productoId');
         const unidadSelect = document.getElementById('unidadMedida');
 
-        const unidadActual = /*[[${loteRequestDTO.unidadMedida}]]*/ 'UNIDAD';
+        const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
 
         // 🟢 Cargar unidades compatibles al inicio (cuando unidadMedida ya viene del DTO)
         if (unidadActual) {

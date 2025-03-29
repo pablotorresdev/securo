@@ -38,13 +38,18 @@ public enum UnidadMedidaEnum {
     PORCENTAJE("Porcentaje", "Porcentaje", "%", 0.01),
     PARTES_POR_MILLON("Partes por millon", "Porcentaje", "ppm", 0.000001);
 
-    public static List<UnidadMedidaEnum> getUnidadesCompatibles(UnidadMedidaEnum base) {
-        String tipo = base.getTipo();
 
-        List<UnidadMedidaEnum> delMismoTipo = Arrays.stream(UnidadMedidaEnum.values())
+    public static List<UnidadMedidaEnum> getUnidadesPorTipo(UnidadMedidaEnum base) {
+        String tipo = base.getTipo();
+        return Arrays.stream(UnidadMedidaEnum.values())
             .filter(u -> u.getTipo().equals(tipo))
             .sorted(Comparator.comparingDouble(UnidadMedidaEnum::getFactorConversion)) // ASC
             .collect(Collectors.toList());
+    }
+
+
+        public static List<UnidadMedidaEnum> getUnidadesCompatibles(UnidadMedidaEnum base) {
+        List<UnidadMedidaEnum> delMismoTipo = getUnidadesPorTipo(base);
 
         int index = delMismoTipo.indexOf(base);
         int size = delMismoTipo.size();

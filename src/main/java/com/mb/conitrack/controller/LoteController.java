@@ -19,9 +19,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.LoteRequestDTO;
+import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.MovimientoService;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 
@@ -29,7 +33,7 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/lotes")
-@SessionAttributes("loteRequestDTO")
+@SessionAttributes("loteDTO, movimientoDTO")
 public class LoteController {
 
     @Autowired
@@ -41,16 +45,26 @@ public class LoteController {
     @Autowired
     private LoteService loteService;
 
-    @ModelAttribute("loteRequestDTO")
-    public LoteRequestDTO getLoteRequestDTO() {
-        final LoteRequestDTO loteRequestDTO = new LoteRequestDTO();
-        loteRequestDTO.setFechaIngreso(LocalDate.now());
-        return loteRequestDTO;
+    @Autowired
+    private MovimientoService movimientoService;
+
+    @ModelAttribute("loteDTO")
+    public LoteDTO getLoteDTO() {
+        final LoteDTO dto = new LoteDTO();
+        dto.setFechaIngreso(LocalDate.now());
+        return dto;
+    }
+
+    @ModelAttribute("movimientoDTO")
+    public MovimientoDTO getMovimientoDTO() {
+        final MovimientoDTO dto = new MovimientoDTO();
+        dto.setFechaMovimiento(LocalDate.now());
+        return dto;
     }
 
     @GetMapping("/ingreso-compra")
     public String showIngresoCompraForm(
-        @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
+        @ModelAttribute("loteRequestDTO") LoteDTO dto,
         Model model) {
         model.addAttribute("productos", productoService.getProductosExternos());
         model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
@@ -63,9 +77,17 @@ public class LoteController {
         return UnidadMedidaEnum.getUnidadesCompatibles(unidad);
     }
 
+    @ResponseBody
+    @GetMapping("/subunidades")
+    public List<UnidadMedidaEnum> getSubUnidades(@RequestParam("unidad") UnidadMedidaEnum unidad) {
+        final List<UnidadMedidaEnum> unidadesCompatibles = UnidadMedidaEnum.getUnidadesCompatibles(unidad);
+        unidadesCompatibles.removeIf(u -> u.getFactorConversion() > unidad.getFactorConversion());
+        return unidadesCompatibles;
+    }
+
     @PostMapping("/ingreso-compra")
     public String processIngresoCompra(
-        @Valid @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
+        @Valid @ModelAttribute("loteRequestDTO") LoteDTO dto,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes,
@@ -107,7 +129,7 @@ public class LoteController {
     @GetMapping("/distribuir-bultos")
     public String showDistribuirBultos(
         @RequestParam("bultos") Integer bultos,
-        @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
+        @ModelAttribute("loteRequestDTO") LoteDTO dto,
         Model model) {
         if (dto.getCantidadesBultos() == null) {
             dto.setCantidadesBultos(new ArrayList<>());
@@ -132,7 +154,7 @@ public class LoteController {
 
     @PostMapping("/distribuir-bultos")
     public String processDistribuirBultos(
-        @Valid @ModelAttribute("loteRequestDTO") LoteRequestDTO dto,
+        @Valid @ModelAttribute("loteRequestDTO") LoteDTO dto,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes,
@@ -151,13 +173,13 @@ public class LoteController {
             model.addAttribute("loteRequestDTO", dto);
             return "lotes/distribuir-bultos";
         }
-        ingresoMultiBultos(dto);
+        loteService.ingresarStockPorCompra(dto);
         sessionStatus.setComplete();
         redirectAttributes.addFlashAttribute("success", "Ingreso de stock distribuido correctamente.");
         return "redirect:/";
     }
 
-    private void validarTipoDeDato(final LoteRequestDTO dto, final BindingResult bindingResult) {
+    private void validarTipoDeDato(final LoteDTO dto, final BindingResult bindingResult) {
         List<BigDecimal> cantidades = dto.getCantidadesBultos();
         List<UnidadMedidaEnum> unidades = dto.getUnidadMedidaBultos();
         for (int i = 0; i < cantidades.size(); i++) {
@@ -175,7 +197,7 @@ public class LoteController {
         }
     }
 
-    private void validarSumaBultosConvertida(LoteRequestDTO dto, BindingResult bindingResult) {
+    private void validarSumaBultosConvertida(LoteDTO dto, BindingResult bindingResult) {
         List<BigDecimal> cantidades = dto.getCantidadesBultos();
         List<UnidadMedidaEnum> unidades = dto.getUnidadMedidaBultos();
         UnidadMedidaEnum unidadBase = dto.getUnidadMedida();
@@ -221,25 +243,77 @@ public class LoteController {
         }
     }
 
-    private void ingresoMultiBultos(final LoteRequestDTO dto) {
-        for (int i = 0; i < dto.getBultosTotales(); i++) {
-            LoteRequestDTO dtoCopia = new LoteRequestDTO();
-            dtoCopia.setProductoId(dto.getProductoId());
-            dtoCopia.setProveedorId(dto.getProveedorId());
-            dtoCopia.setFechaIngreso(dto.getFechaIngreso());
-            dtoCopia.setBultosTotales(dto.getBultosTotales()); // Cada lote representa un bulto
-            dtoCopia.setCantidadInicial(dto.getCantidadesBultos().get(i));
-            dtoCopia.setUnidadMedida(dto.getUnidadMedida());
-            dtoCopia.setNroBulto(i + 1); // Cada lote es un bulto individual
-            dtoCopia.setNroRemito(dto.getNroRemito());
-            dtoCopia.setLoteProveedor(dto.getLoteProveedor());
-            dtoCopia.setDetalleConservacion(dto.getDetalleConservacion());
-            dtoCopia.setFechaVencimiento(dto.getFechaVencimiento());
-            dtoCopia.setFechaReanalisis(dto.getFechaReanalisis());
-            dtoCopia.setTitulo(dto.getTitulo());
-            dtoCopia.setObservaciones(dto.getObservaciones());
-            // Procesar cada lote individualmente
-            loteService.ingresarStockPorCompra(dtoCopia);
+    @GetMapping("/retiro-muestreo")
+    public String showRetiroMuestreoForm(
+        @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO,
+        Model model) {
+        // TODO: Listar lotes con estados permitidos
+        List<Lote> lotesValidos = loteService.findAll();
+
+        model.addAttribute("lotes", lotesValidos);
+        return "lotes/retiro-muestreo";
+    }
+
+    @PostMapping("/retiro-muestreo")
+    public String procesarMuestreo(
+        @Valid @ModelAttribute MovimientoDTO dto,
+        BindingResult bindingResult,
+        Model model, RedirectAttributes redirectAttributes) {
+
+        Lote lote = loteService.findById(dto.getLoteId());
+
+        if (!lote.getActivo()) {
+            bindingResult.reject("loteId", "Lote bloqueado.");
+            return "movimientos/retiro-muestreo";
+        }
+
+        validarDictamenActual(bindingResult, lote);
+        validarCantidadesMovimiento(dto, lote, bindingResult);
+        validarDatosObligatorios(dto, bindingResult);
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("lote", lote);
+            return "movimientos/retiro-muestreo";
+        }
+
+        // Realizar baja
+        movimientoService.registrarMuestreo(dto);
+
+        // Cambiar dictamen si corresponde
+        if (DictamenEnum.RECIBIDO.equals(lote.getDictamen())) {
+            //TODO: revisar como implementar esto
+            loteService.actualizarDictamen(lote, DictamenEnum.CUARENTENA);
+        }
+
+        redirectAttributes.addFlashAttribute("success", "Muestreo registrado correctamente.");
+        return "redirect:/";
+    }
+
+    private static void validarDictamenActual(final BindingResult bindingResult, final Lote lote) {
+        if ("VENCIDO".equalsIgnoreCase(lote.getDictamen().name())) {
+            bindingResult.reject("estado", "El lote no está en un estado válido para muestreo: VENCIDO");
+        }
+    }
+
+    private static void validarCantidadesMovimiento(final MovimientoDTO dto, final Lote lote, final BindingResult bindingResult) {
+        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(lote.getUnidadMedida());
+
+        // La unidad de medida tiene que ser de igual o menor factor de conversion a la del lote
+
+        if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
+            bindingResult.rejectValue("unidadMedida", "Unidad no compatible con el producto.");
+        }
+
+        if (dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0 ||
+            dto.getCantidad().compareTo(lote.getCantidadActual()) > 0) {
+            bindingResult.rejectValue("cantidad", "Cantidad inválida.");
+        }
+        ;
+    }
+
+    private static void validarDatosObligatorios(final MovimientoDTO dto, final BindingResult bindingResult) {
+        if (dto.getNroAnalisis() == null && dto.getNroReAnalisis() == null) {
+            bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
         }
     }
 

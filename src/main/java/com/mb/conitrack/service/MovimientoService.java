@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.repository.MovimientoRepository;
 
@@ -21,6 +22,10 @@ public class MovimientoService {
         movimientos.sort(Comparator
             .comparing(Movimiento::getFecha));
         return movimientos;
+    }
+
+    public void registrarMuestreo(final MovimientoDTO dto) {
+
     }
 
 }

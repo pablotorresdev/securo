@@ -14,7 +14,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class LoteRequestDTO {
+public class LoteDTO {
+
+    //TODO: Backup -> https://help.heroku.com/sharing/fda99731-8765-4b5d-b60e-8150fce3ddcf
 
     @NotNull(message = "El ID del producto es obligatorio")
     private Long productoId;

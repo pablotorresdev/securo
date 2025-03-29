@@ -17,6 +17,12 @@
             </a>
         </li>
         <li>
+            <a th:href="@{/lotes/retiro-muestreo}"
+               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+                Retiro por Muestreo
+            </a>
+        </li>
+        <li>
             <a th:href="@{/lotes/list-lotes}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
                 Lista de Lotes
