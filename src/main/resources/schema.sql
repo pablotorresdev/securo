@@ -90,8 +90,8 @@ CREATE TABLE lotes
     fecha_ingreso        DATE           NOT NULL,
     nro_bulto            INT            NOT NULL,
     bultos_totales       INT            NOT NULL,
-    cantidad_inicial     NUMERIC(12, 2) NOT NULL,
-    cantidad_actual      NUMERIC(12, 2) NOT NULL,
+    cantidad_inicial     NUMERIC(12, 4) NOT NULL,
+    cantidad_actual      NUMERIC(12, 4) NOT NULL,
     unidad_medida        VARCHAR(50)    NOT NULL,
     lote_proveedor       TEXT           NOT NULL,
     nro_remito           TEXT,
@@ -99,7 +99,7 @@ CREATE TABLE lotes
     fecha_analisis       DATE,
     fecha_reanalisis     DATE,
     fecha_vencimiento    DATE,
-    titulo               NUMERIC(12, 2),
+    titulo               NUMERIC(12, 4),
     observaciones        TEXT,
     activo               BOOLEAN        NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_producto
@@ -121,7 +121,7 @@ CREATE TABLE movimientos
     motivo               TEXT    NOT NULL,
     lote_id              INT     NOT NULL,
     descripcion          TEXT,
-    cantidad             NUMERIC(12, 2),
+    cantidad             NUMERIC(12, 4),
     unidad_medida        TEXT,
     nro_analisis         VARCHAR(50), -- Post QA
     orden_produccion     VARCHAR(50), -- Para movimientos de consumo prod

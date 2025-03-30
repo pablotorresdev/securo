@@ -48,7 +48,7 @@
                 <label th:for="'cantidadBulto' + ${i}" class="form-label">
                     Cantidad para Bulto <span th:text="${i}"></span>:
                 </label>
-                <input type="number" step="0.01" th:id="'cantidadBulto' + ${i}"
+                <input type="number" step="1" th:id="'cantidadBulto' + ${i}"
                        th:field="*{cantidadesBultos[__${i-1}__]}" class="form-control" required/>
             </div>
 

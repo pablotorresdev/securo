@@ -56,7 +56,7 @@ public class Movimiento {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(precision = 12, scale = 2)
+    @Column(precision = 12, scale = 4)
     private BigDecimal cantidad;
 
     @Enumerated(EnumType.STRING)

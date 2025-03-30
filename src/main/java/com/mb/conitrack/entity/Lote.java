@@ -74,10 +74,10 @@ public class Lote {
     @Column(name = "bultos_totales", nullable = false)
     private Integer bultosTotales;
 
-    @Column(name = "cantidad_inicial", nullable = false, precision = 12, scale = 2)
+    @Column(name = "cantidad_inicial", nullable = false, precision = 12, scale = 4)
     private BigDecimal cantidadInicial;
 
-    @Column(name = "cantidad_actual", nullable = false, precision = 12, scale = 2)
+    @Column(name = "cantidad_actual", nullable = false, precision = 12, scale = 4)
     private BigDecimal cantidadActual;
 
     @Enumerated(EnumType.STRING)
@@ -105,7 +105,7 @@ public class Lote {
     @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
     private List<Analisis> analisis = new ArrayList<>();
 
-    @Column(name = "titulo", precision = 12, scale = 2)
+    @Column(name = "titulo", precision = 12, scale = 4)
     private BigDecimal titulo;
 
     @Column(columnDefinition = "TEXT")

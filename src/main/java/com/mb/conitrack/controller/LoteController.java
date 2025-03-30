@@ -27,6 +27,8 @@ import com.mb.conitrack.service.ProveedorService;
 
 import jakarta.validation.Valid;
 
+import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesConvertibles;
+
 @Controller
 @RequestMapping("/lotes")
 @SessionAttributes("loteDTO")
@@ -41,7 +43,6 @@ public class LoteController {
     @Autowired
     private LoteService loteService;
 
-
     @ModelAttribute("loteDTO")
     public LoteDTO getLoteDTO() {
         final LoteDTO dto = new LoteDTO();
@@ -49,7 +50,6 @@ public class LoteController {
         return dto;
     }
 
-    // paths standard
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
         model.addAttribute("lotes", loteService.findAll());
@@ -97,8 +97,7 @@ public class LoteController {
 
         dto.setNroBulto(1);
         loteService.ingresarStockPorCompra(dto);
-        redirectAttributes.addFlashAttribute("success", "Ingreso de stock registrado correctamente.");
-        sessionStatus.setComplete();
+        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock registrado correctamente.");
         return "redirect:/";
     }
 
@@ -120,6 +119,11 @@ public class LoteController {
         }
     }
 
+    private static void closeSession(final RedirectAttributes redirectAttributes, final SessionStatus sessionStatus, final String attributeValue) {
+        redirectAttributes.addFlashAttribute("success", attributeValue);
+        sessionStatus.setComplete();
+    }
+
     //***************************** CU1 Ingreso por compra MultiBulto
     @GetMapping("/distribuir-bultos")
     public String showDistribuirBultos(
@@ -131,7 +135,6 @@ public class LoteController {
         model.addAttribute("loteDTO", dto);
         if (dto.getProductoId() == null) {
             return "redirect:/lotes/ingreso-compra";
-            //return "lotes/ingreso-compra";
         }
 
         productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
@@ -140,7 +143,7 @@ public class LoteController {
 
     private static void initBultosInLoteDto(final Integer bultos, final LoteDTO dto, final Model model) {
         if (dto.getUnidadMedida() != null) {
-            model.addAttribute("unidadesCompatibles", UnidadMedidaEnum.getUnidadesConvertibles(dto.getUnidadMedida()));
+            model.addAttribute("unidadesCompatibles", getUnidadesConvertibles(dto.getUnidadMedida()));
         }
         dto.setCantidadesBultos(new ArrayList<>());
         dto.setUnidadMedidaBultos(new ArrayList<>());
@@ -162,16 +165,13 @@ public class LoteController {
         validarSumaBultosConvertida(dto, bindingResult);
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute(
-                "unidadesCompatibles",
-                UnidadMedidaEnum.getUnidadesConvertibles(dto.getUnidadMedida()));
+            model.addAttribute("unidadesCompatibles", getUnidadesConvertibles(dto.getUnidadMedida()));
             model.addAttribute("loteDTO", dto);
             productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
             return "lotes/distribuir-bultos";
         }
         loteService.ingresarStockPorCompra(dto);
-        sessionStatus.setComplete();
-        redirectAttributes.addFlashAttribute("success", "Ingreso de stock distribuido correctamente.");
+        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock distribuido correctamente.");
         return "redirect:/";
     }
 
@@ -207,7 +207,7 @@ public class LoteController {
             BigDecimal cantidad = cantidades.get(i);
             UnidadMedidaEnum unidadBulto = unidades.get(i);
             if (cantidad == null || unidadBulto == null) {
-                continue; // ignoramos valores nulos por seguridad
+                continue;
             }
 
             //assert cantidad > 0
@@ -230,8 +230,15 @@ public class LoteController {
             bindingResult.rejectValue(
                 "cantidadesBultos",
                 "error.cantidadesBultos",
-                "La suma de las cantidades individuales (" + sumaRedondeada.stripTrailingZeros().toPlainString() +
-                     " "+ unidadBase.getSimbolo() +") no coincide con la cantidad total (" + totalEsperado.stripTrailingZeros().toPlainString() +  " "+ unidadBase.getSimbolo() +")."
+                "La suma de las cantidades individuales (" +
+                    sumaRedondeada.stripTrailingZeros().toPlainString() +
+                    " " +
+                    unidadBase.getSimbolo() +
+                    ") no coincide con la cantidad total (" +
+                    totalEsperado.stripTrailingZeros().toPlainString() +
+                    " " +
+                    unidadBase.getSimbolo() +
+                    ")."
             );
         }
     }
