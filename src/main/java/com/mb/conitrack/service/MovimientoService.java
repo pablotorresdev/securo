@@ -67,6 +67,7 @@ public class MovimientoService {
         movimiento.setMotivo(MotivoEnum.MUESTREO);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(DictamenEnum.CUARENTENA);
+        lote.setDictamen(DictamenEnum.CUARENTENA);
         lote.getMovimientos().add(movimiento);
 
         loteService.save(lote);
