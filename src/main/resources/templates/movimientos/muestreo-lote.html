@@ -8,7 +8,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Retiro por Muestreo</h2>
-    <form th:action="@{/muestreos/retiro-muestreo}" th:object="${movimientoDTO}" method="post">
+    <form th:action="@{/muestreos/muestreo-lote}" th:object="${movimientoDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
         <hr class="my-4">
@@ -29,24 +29,26 @@
             </div>
         </div>
 
+
         <div class="mb-2">
             <label for="loteId" class="form-label">Lote:</label>
             <select id="loteId" th:field="*{loteId}" class="form-select" required>
                 <option value="">-- Seleccione un lote --</option>
                 <option th:each="lote : ${lotes}"
-                        th:if="${lote.nroBulto==1}"
+                        th:if="${lote.nroBulto} == 1"
                         th:value="${lote.id}"
-                        th:text="${lote.idLote} + ' - ' + ${lote.producto.nombreGenerico}"
-                        th:attr="data-unit=${lote.unidadMedida}, nro-bultos=${lote.bultosTotales}"
-                ></option>
+                        th:text="${lote.producto.nombreGenerico}+ ' - ' +${lote.loteProveedor} + ' - ' + ${lote.dictamen}"
+                        th:attr="data-unit=${lote.unidadMedida}"
+                        th:attrappend="data-nro-bultos=${lote.bultosTotales}">
+                </option>
             </select>
             <div th:if="${#fields.hasErrors('loteId')}" class="error" th:errors="*{loteId}"></div>
         </div>
 
         <!-- Selector de Bultos por lote -->
         <div class="col-md-2">
-            <label for="identificacionBulto" class="form-label">Identificación del Bulto:</label>
-            <select id="identificacionBulto" th:field="*{identificacionBulto}" class="form-select" required>
+            <label for="nroBulto" class="form-label">Número del Bulto:</label>
+            <select id="nroBulto" th:field="*{nroBulto}" class="form-select" required>
                 <option value="">-- Seleccione el bulto a muestrear --</option>
             </select>
         </div>
@@ -64,6 +66,21 @@
                 <select id="unidadMedida" th:field="*{unidadMedida}" class="form-select" required>
                     <option value="">-- Seleccione unidad --</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- Fecha del Analisis -->
+        <div class="mb-2">
+            <label for="fechaAnalisis" class="form-label">Fecha del Analisis:</label>
+            <input type="date" id="fechaAnalisis" name="fechaAnalisis"
+                   th:value="${movimientoDTO.fechaAnalisis}"
+                   class="form-control"
+                   th:classappend="${#fields.hasErrors('fechaAnalisis')} ? ' error-field' : ''"
+                   required>
+
+            <div th:if="${#fields.hasErrors('fechaAnalisis')}"
+                 style="color: red; font-weight: bold;"
+                 th:errors="*{fechaMovimiento}">
             </div>
         </div>
 
@@ -96,78 +113,58 @@
 </footer>
 
 <script th:inline="javascript">
-
-    window.addEventListener('DOMContentLoaded', function () {
-        const errorField = document.querySelector('.error-field');
-        if (errorField) {
-            errorField.focus();
-        }
-    });
-
-    /*<![CDATA[*/
-    var loteSelect = document.getElementById('loteId');
-    loteSelect.addEventListener('change', function () {
-        var selectedOption = loteSelect.options[loteSelect.selectedIndex];
-        var unit = selectedOption.getAttribute('nro-bultos') || "1";
-        document.getElementById('identificacionBulto').value = unit;
-    });
-    /*]]>*/
-
-
     document.addEventListener('DOMContentLoaded', function () {
         const loteSelect = document.getElementById('loteId');
         const unidadSelect = document.getElementById('unidadMedida');
-        const bultoSelect = document.getElementById('identificacionBulto');
+        const bultoSelect = document.getElementById('nroBulto');
 
-        loteSelect.addEventListener('change', function () {
-            const selected = this.options[this.selectedIndex];
 
-            // Cargar unidades compatibles
-            const unidadBase = selected.getAttribute('data-unit');
-            if (unidadBase) {
-                fetch('/lotes/subunidades?unidad=' + unidadBase)
-                    .then(r => r.json())
-                    .then(data => {
-                        unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
-                        data.forEach(unidad => {
-                            const option = document.createElement('option');
-                            option.value = unidad;
-                            option.textContent = unidad;
-                            if (unidad === unidadBase) option.selected = true;
-                            unidadSelect.appendChild(option);
-                        });
+        //todo cargar unidades del bulto
+        function cargarUnidadesCompatibles(unidadBase) {
+            if (!unidadBase) return;
+            fetch('/enums/subunidades?unidad=' + unidadBase)
+                .then(response => response.json())
+                .then(data => {
+                    unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
+                    data.forEach(unidad => {
+                        const option = document.createElement('option');
+                        option.value = unidad;
+                        option.textContent = unidad;
+                        if (unidad === unidadBase) option.selected = true;
+                        unidadSelect.appendChild(option);
                     });
-            }
-
-            // Cargar bultos para el lote seleccionado
-            const nroBultos = selected.getAttribute('nro-bultos');
-            if (nroBultos) {
-                loteSelect.addEventListener('change', function () {
-                    const selected = this.options[this.selectedIndex];
-                    const unidadBase = selected.getAttribute('data-unit');
-                    const nroBultos = parseInt(selected.getAttribute('nro-bultos') || '1');
-
-                    // Cargar unidades compatibles con el mismo tipo
-                    unidadSelect.innerHTML = '';
-                    if (unidadBase) {
-                        const opt = document.createElement('option');
-                        opt.value = unidadBase;
-                        opt.textContent = unidadBase;
-                        opt.selected = true;
-                        unidadSelect.appendChild(opt);
-                    }
-
-                    // Cargar bultos sin fetch, desde nro-bultos
-                    bultoSelect.innerHTML = '<option value="">-- Seleccione bulto --</option>';
-                    for (let i = 1; i <= nroBultos; i++) {
-                        const opt = document.createElement('option');
-                        opt.value = i;
-                        opt.textContent = 'Bulto ' + i;
-                        bultoSelect.appendChild(opt);
-                    }
+                })
+                .catch(error => {
+                    console.error("Error al cargar unidades:", error);
                 });
+        }
+
+        function actualizarCamposDesdeLoteSeleccionado() {
+            const selected = loteSelect.options[loteSelect.selectedIndex];
+            const unidadBase = selected.getAttribute('data-unit');
+            const nroBultos = parseInt(selected.getAttribute('data-nro-bultos') || '1');
+
+            cargarUnidadesCompatibles(unidadBase);
+
+            bultoSelect.innerHTML = '<option value="">-- Seleccione bulto --</option>';
+            for (let i = 1; i <= nroBultos; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = 'Bulto ' + i;
+                bultoSelect.appendChild(opt);
             }
-        });
+        }
+
+        // Al cambiar el lote
+        loteSelect.addEventListener('change', actualizarCamposDesdeLoteSeleccionado);
+
+        // Ejecutar al cargar si ya hay un lote seleccionado
+        if (loteSelect.selectedIndex > 0) {
+            actualizarCamposDesdeLoteSeleccionado();
+        }
+
+        const errorField = document.querySelector('.error-field');
+        if (errorField) errorField.focus();
     });
 </script>
 </body>

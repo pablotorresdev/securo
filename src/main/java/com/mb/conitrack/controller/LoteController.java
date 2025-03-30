@@ -20,10 +20,8 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.MovimientoService;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 
@@ -131,7 +129,6 @@ public class LoteController {
 
         initBultosInLoteDto(bultos, dto, model);
         model.addAttribute("loteDTO", dto);
-
         if (dto.getProductoId() == null) {
             return "redirect:/lotes/ingreso-compra";
             //return "lotes/ingreso-compra";
@@ -143,7 +140,7 @@ public class LoteController {
 
     private static void initBultosInLoteDto(final Integer bultos, final LoteDTO dto, final Model model) {
         if (dto.getUnidadMedida() != null) {
-            model.addAttribute("unidadesCompatibles", UnidadMedidaEnum.getUnidadesCompatibles(dto.getUnidadMedida()));
+            model.addAttribute("unidadesCompatibles", UnidadMedidaEnum.getUnidadesConvertibles(dto.getUnidadMedida()));
         }
         dto.setCantidadesBultos(new ArrayList<>());
         dto.setUnidadMedidaBultos(new ArrayList<>());
@@ -167,11 +164,9 @@ public class LoteController {
         if (bindingResult.hasErrors()) {
             model.addAttribute(
                 "unidadesCompatibles",
-                UnidadMedidaEnum.getUnidadesCompatibles(dto.getUnidadMedida()));
+                UnidadMedidaEnum.getUnidadesConvertibles(dto.getUnidadMedida()));
             model.addAttribute("loteDTO", dto);
-        }
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("loteDTO", dto);
+            productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
             return "lotes/distribuir-bultos";
         }
         loteService.ingresarStockPorCompra(dto);
@@ -228,15 +223,15 @@ public class LoteController {
 
         //TODO: ver tema suma de cantidades
         // Redondear la suma a 3 decimales para comparar y mostrar
-        BigDecimal sumaRedondeada = sumaConvertida.setScale(3, RoundingMode.HALF_UP);
-        BigDecimal totalEsperado = dto.getCantidadInicial().setScale(3, RoundingMode.HALF_UP);
+        BigDecimal sumaRedondeada = sumaConvertida.setScale(6, RoundingMode.HALF_UP);
+        BigDecimal totalEsperado = dto.getCantidadInicial().setScale(6, RoundingMode.HALF_UP);
 
         if (sumaRedondeada.compareTo(totalEsperado) != 0) {
             bindingResult.rejectValue(
                 "cantidadesBultos",
                 "error.cantidadesBultos",
                 "La suma de las cantidades individuales (" + sumaRedondeada.stripTrailingZeros().toPlainString() +
-                    ") no coincide con la cantidad total (" + totalEsperado.stripTrailingZeros().toPlainString() + ")."
+                     " "+ unidadBase.getSimbolo() +") no coincide con la cantidad total (" + totalEsperado.stripTrailingZeros().toPlainString() +  " "+ unidadBase.getSimbolo() +")."
             );
         }
     }

@@ -49,6 +49,10 @@ public class Lote {
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proveedor_id", nullable = false)
+    private Proveedor proveedor;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_lote", nullable = false)
     private EstadoLoteEnum estadoLote;
@@ -80,28 +84,26 @@ public class Lote {
     @Column(name = "unidad_medida", nullable = false)
     private UnidadMedidaEnum unidadMedida;
 
-    @Column(name = "nro_remito")
-    private String nroRemito;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "proveedor_id", nullable = false)
-    private Proveedor proveedor;
-
     @Column(name = "lote_proveedor", nullable = false)
     private String loteProveedor;
+
+    @Column(name = "nro_remito")
+    private String nroRemito;
 
     @Column(name = "detalle_conservacion")
     private String detalleConservacion;
 
-    @Column(name = "fecha_vencimiento")
-    private LocalDate fechaVencimiento;
+    @Column(name = "fecha_analisis")
+    private LocalDate fechaAnalisis;
 
     @Column(name = "fecha_reanalisis")
     private LocalDate fechaReanalisis;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nro_analisis_id")
-    private Analisis nroAnalisis;
+    @Column(name = "fecha_vencimiento")
+    private LocalDate fechaVencimiento;
+
+    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
+    private List<Analisis> analisis = new ArrayList<>();
 
     @Column(name = "titulo", precision = 12, scale = 2)
     private BigDecimal titulo;

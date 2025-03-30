@@ -48,7 +48,7 @@ public enum UnidadMedidaEnum {
     }
 
 
-        public static List<UnidadMedidaEnum> getUnidadesCompatibles(UnidadMedidaEnum base) {
+        public static List<UnidadMedidaEnum> getUnidadesConvertibles(UnidadMedidaEnum base) {
         List<UnidadMedidaEnum> delMismoTipo = getUnidadesPorTipo(base);
 
         int index = delMismoTipo.indexOf(base);

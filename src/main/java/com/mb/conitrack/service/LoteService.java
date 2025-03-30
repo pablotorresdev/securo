@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -47,8 +48,20 @@ public class LoteService {
         return loteRepository.findById(loteId).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
+    public List<Lote> findAllMuestreable() {
+        return loteRepository.findAll().stream()
+            .filter(l -> EnumSet.of(
+                DictamenEnum.RECIBIDO,
+                DictamenEnum.CUARENTENA,
+                DictamenEnum.DEVOLUCION_CLIENTES,
+                DictamenEnum.RETIRO_MERCADO
+            ).contains(l.getDictamen()))
+            .sorted(Comparator.comparing(Lote::getIdLote))
+            .toList();
+    }
+
     @Transactional
-    public void actualizarDictamen(final Lote lote, final DictamenEnum dictamen) {
+    public void actualizarDictamenLoteCompleto(final Lote lote, final DictamenEnum dictamen) {
         final List<Lote> allByIdLoteAndActivoTrue = loteRepository.findAllByIdLoteAndActivoTrue(lote.getIdLote());
         for (Lote l : allByIdLoteAndActivoTrue) {
             l.setDictamen(dictamen);
@@ -68,11 +81,24 @@ public class LoteService {
         int bultosTotales = Math.max(dto.getBultosTotales(), 1);
         for (int i = 0; i < bultosTotales; i++) {
 
-            Lote lote = new Lote();
+            Lote lote = createLoteFromDto(dto);
+            lote.setProducto(producto);
+            lote.setProveedor(proveedor);
+
             Movimiento movimiento = new Movimiento();
             lote.getMovimientos().add(movimiento);
 
-            populateLote(dto, lote, producto, proveedor, i);
+            if (bultosTotales == 1) {
+                lote.setCantidadInicial(dto.getCantidadInicial());
+                lote.setCantidadActual(dto.getCantidadInicial());
+                lote.setUnidadMedida(dto.getUnidadMedida());
+            } else {
+                lote.setCantidadInicial(dto.getCantidadesBultos().get(i));
+                lote.setCantidadActual(dto.getCantidadesBultos().get(i));
+                lote.setUnidadMedida(dto.getUnidadMedidaBultos().get(i));
+            }
+            lote.setNroBulto(i + 1);
+
             Lote nuevoLote = loteRepository.save(lote);
 
             populateMovimiento(movimiento, lote, nuevoLote);
@@ -80,15 +106,15 @@ public class LoteService {
         }
     }
 
-    private static void populateLote(final LoteDTO dto, final Lote lote, final Producto producto, final Proveedor proveedor, final int i) {
+    private static Lote createLoteFromDto(final LoteDTO dto) {
+        Lote lote = new Lote();
         //Datos CU1
         lote.setEstadoLote(EstadoLoteEnum.NUEVO);
         lote.setDictamen(DictamenEnum.RECIBIDO);
         lote.setActivo(Boolean.TRUE);
 
         //Datos obligatorios comunes
-        lote.setProducto(producto);
-        lote.setProveedor(proveedor);
+        lote.setBultosTotales(dto.getBultosTotales());
         lote.setFechaIngreso(dto.getFechaIngreso());
         lote.setLoteProveedor(dto.getLoteProveedor());
 
@@ -103,12 +129,7 @@ public class LoteService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
         lote.setIdLote("L-" + timestamp);
-
-        lote.setNroBulto(i + 1);
-        lote.setBultosTotales(dto.getBultosTotales());
-        lote.setCantidadInicial(dto.getCantidadInicial());
-        lote.setCantidadActual(dto.getCantidadInicial());
-        lote.setUnidadMedida(dto.getUnidadMedida());
+        return lote;
     }
 
     private static void populateMovimiento(final Movimiento movimiento, final Lote lote, final Lote nuevoLote) {
@@ -123,6 +144,10 @@ public class LoteService {
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setActivo(Boolean.TRUE);
         movimiento.setLote(nuevoLote);
+    }
+
+    public void save(final Lote lote) {
+        loteRepository.save(lote);
     }
 
 }

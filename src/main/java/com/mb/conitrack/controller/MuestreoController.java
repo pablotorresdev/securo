@@ -1,9 +1,7 @@
 package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -33,7 +30,7 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/muestreos")
-@SessionAttributes("loteDTO, movimientoDTO")
+@SessionAttributes("loteDTO,movimientoDTO")
 public class MuestreoController {
 
     @Autowired
@@ -59,14 +56,14 @@ public class MuestreoController {
     public MovimientoDTO getMovimientoDTO() {
         final MovimientoDTO dto = new MovimientoDTO();
         dto.setFechaMovimiento(LocalDate.now());
+        dto.setFechaAnalisis(LocalDate.now());
         return dto;
     }
 
-    // paths standard
-    @GetMapping("/list-lotes")
-    public String listLotes(Model model) {
-        model.addAttribute("lotes", loteService.findAll());
-        return "lotes/list-lotes";
+    @GetMapping("/list-muestreos")
+    public String listMuestreos(Model model) {
+        model.addAttribute("movimientos", movimientoService.findAllMuestreos());
+        return "movimientos/list-movimientos"; //
     }
 
     //Salida del CU
@@ -78,18 +75,18 @@ public class MuestreoController {
 
     //***************************** CU2 Ingreso por compra MultiBulto
 
-    @GetMapping("/retiro-muestreo")
+    @GetMapping("/muestreo-lote")
     public String showRetiroMuestreoForm(
         @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO,
         Model model) {
         // TODO: Listar lotes con estados permitidos
-        List<Lote> lotesValidos = loteService.findAll();
+        List<Lote> lotesMuestreables = loteService.findAllMuestreable();
 
-        model.addAttribute("lotes", lotesValidos);
-        return "lotes/retiro-muestreo";
+        model.addAttribute("lotes", lotesMuestreables);
+        return "movimientos/muestreo-lote";
     }
 
-    @PostMapping("/retiro-muestreo")
+    @PostMapping("/muestreo-lote")
     public String procesarMuestreo(
         @Valid @ModelAttribute MovimientoDTO dto,
         BindingResult bindingResult,
@@ -99,33 +96,40 @@ public class MuestreoController {
 
         if (!lote.getActivo()) {
             bindingResult.reject("loteId", "Lote bloqueado.");
-            return "movimientos/retiro-muestreo";
+            return "movimientos/muestreo-lote";
         }
 
         validarDictamenActual(bindingResult, lote);
         validarCantidadesMovimiento(dto, lote, bindingResult);
         validarDatosObligatorios(dto, bindingResult);
+        validarValidarNroAnalisis(dto, bindingResult);
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("lote", lote);
-            return "movimientos/retiro-muestreo";
+            return "movimientos/muestreo-lote";
         }
 
         // Realizar baja
-        movimientoService.registrarMuestreo(dto);
+        movimientoService.persistirMuestreo(dto, lote);
 
         // Cambiar dictamen si corresponde
         if (DictamenEnum.RECIBIDO.equals(lote.getDictamen())) {
             //TODO: revisar como implementar esto
-            loteService.actualizarDictamen(lote, DictamenEnum.CUARENTENA);
+            loteService.actualizarDictamenLoteCompleto(lote, DictamenEnum.CUARENTENA);
         }
 
         redirectAttributes.addFlashAttribute("success", "Muestreo registrado correctamente.");
         return "redirect:/";
     }
 
+    private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
+        if(dto.getNroReAnalisis() == null && dto.getNroAnalisis()==null){
+            bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
+        }
+    }
+
     private static void validarDictamenActual(final BindingResult bindingResult, final Lote lote) {
-        if ("VENCIDO".equalsIgnoreCase(lote.getDictamen().name())) {
+        if (DictamenEnum.VENCIDO.equals(lote.getDictamen())) {
             bindingResult.reject("estado", "El lote no está en un estado válido para muestreo: VENCIDO");
         }
     }
@@ -133,17 +137,24 @@ public class MuestreoController {
     private static void validarCantidadesMovimiento(final MovimientoDTO dto, final Lote lote, final BindingResult bindingResult) {
         final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(lote.getUnidadMedida());
 
-        // La unidad de medida tiene que ser de igual o menor factor de conversion a la del lote
-
         if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
             bindingResult.rejectValue("unidadMedida", "Unidad no compatible con el producto.");
+            return;
         }
 
-        if (dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0 ||
-            dto.getCantidad().compareTo(lote.getCantidadActual()) > 0) {
-            bindingResult.rejectValue("cantidad", "Cantidad inválida.");
+        if (dto.getCantidad() == null || dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
+            bindingResult.rejectValue("cantidad", "La cantidad debe ser mayor a 0.");
+            return;
         }
-        ;
+
+        double factorDto = dto.getUnidadMedida().getFactorConversion();
+        double factorLote = lote.getUnidadMedida().getFactorConversion();
+
+        BigDecimal cantidadConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
+
+        if (cantidadConvertida.compareTo(lote.getCantidadActual()) > 0) {
+            bindingResult.rejectValue("cantidad", "La cantidad excede el stock disponible del lote.");
+        }
     }
 
     private static void validarDatosObligatorios(final MovimientoDTO dto, final BindingResult bindingResult) {

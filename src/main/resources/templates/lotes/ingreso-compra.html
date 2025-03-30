@@ -17,7 +17,7 @@
         <!-- Fecha de Ingreso -->
         <div class="mb-2">
             <label for="fechaIngreso" class="form-label">Fecha de Ingreso:</label>
-            <input type="date" id="fechaIngreso" name="fechaIngreso"
+            <input type="date" id="fechaIngreso"
                    th:value="${loteDTO.fechaIngreso}"
                    class="form-control"
                    th:classappend="${#fields.hasErrors('fechaIngreso')} ? ' error-field' : ''"
@@ -50,7 +50,7 @@
                 <option value="">-- Seleccione un proveedor --</option>
                 <option th:each="proveedor : ${proveedores}"
                         th:value="${proveedor.id}"
-                        th:text="${proveedor.razonSocial}">Proveedor
+                        th:text="${proveedor.razonSocial}">
                 </option>
             </select>
             <div th:if="${#fields.hasErrors('proveedorId')}" class="error" th:errors="*{proveedorId}"></div>
@@ -141,74 +141,43 @@
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
 <script th:inline="javascript">
-    /*<![CDATA[*/
-    var productoSelect = document.getElementById('productoId');
-    productoSelect.addEventListener('change', function () {
-        var selectedOption = productoSelect.options[productoSelect.selectedIndex];
-        var unit = selectedOption.getAttribute('data-unit') || "UNIDAD";
-        document.getElementById('unidadMedida').value = unit;
-    });
-    /*]]>*/
-
-    window.addEventListener('DOMContentLoaded', function () {
-        const errorField = document.querySelector('.error-field');
-        if (errorField) {
-            errorField.focus();
-        }
-    });
-
     document.addEventListener('DOMContentLoaded', function () {
-        const productoSelect = document.getElementById('productoId');
-        const unidadSelect = document.getElementById('unidadMedida');
+       const unidadSelect = document.getElementById('unidadMedida');
 
-        const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
-
-        // 🟢 Cargar unidades compatibles al inicio (cuando unidadMedida ya viene del DTO)
-        if (unidadActual) {
-            fetch('/enums/unidades-compatibles?unidad=' + unidadActual)
-                .then(response => response.json())
-                .then(data => {
-                    unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
-
-                    data.forEach(unidad => {
-                        const option = document.createElement('option');
-                        option.value = unidad;
-                        option.textContent = unidad;
-
-                        if (unidad === unidadActual) {
-                            option.selected = true;
-                        }
-
-                        unidadSelect.appendChild(option);
-                    });
-                });
-        }
-
-        // 🟠 También recargar cuando se cambia el producto
-        productoSelect.addEventListener('change', function () {
-            const selectedOption = this.options[this.selectedIndex];
-            const unidadBase = selectedOption.getAttribute('data-unit');
-
+        function cargarUnidadesCompatibles(unidadBase) {
             if (!unidadBase) return;
-
             fetch('/enums/unidades-compatibles?unidad=' + unidadBase)
                 .then(response => response.json())
                 .then(data => {
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
-
                     data.forEach(unidad => {
                         const option = document.createElement('option');
                         option.value = unidad;
                         option.textContent = unidad;
-
-                        if (unidad === unidadBase) {
-                            option.selected = true;
-                        }
-
+                        if (unidad === unidadBase) option.selected = true;
                         unidadSelect.appendChild(option);
                     });
+                })
+                .catch(error => {
+                    console.error("Error al cargar unidades:", error);
                 });
+        }
+
+        // Al cargar la página
+        const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
+        cargarUnidadesCompatibles(unidadActual);
+
+        // Al cambiar el producto
+        const productoSelect = document.getElementById('productoId');
+        productoSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const unidadBase = selectedOption.getAttribute('data-unit');
+            cargarUnidadesCompatibles(unidadBase);
         });
+
+        // Enfocar en primer error si hay
+        const errorField = document.querySelector('.error-field');
+        if (errorField) errorField.focus();
     });
 </script>
 </body>

@@ -96,9 +96,9 @@ CREATE TABLE lotes
     lote_proveedor       TEXT           NOT NULL,
     nro_remito           TEXT,
     detalle_conservacion TEXT,
-    fecha_vencimiento    DATE,
+    fecha_analisis       DATE,
     fecha_reanalisis     DATE,
-    nro_analisis_id      INT,
+    fecha_vencimiento    DATE,
     titulo               NUMERIC(12, 2),
     observaciones        TEXT,
     activo               BOOLEAN        NOT NULL DEFAULT TRUE,
@@ -126,7 +126,7 @@ CREATE TABLE movimientos
     nro_analisis         VARCHAR(50), -- Post QA
     orden_produccion     VARCHAR(50), -- Para movimientos de consumo prod
     dictamen_inicial     TEXT,
-    dictamen_final       TEXT           NOT NULL,
+    dictamen_final       TEXT,
     movimiento_origen_id INT,
     activo               BOOLEAN        NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_lote_id
@@ -141,15 +141,9 @@ CREATE TABLE analisis
     lote_id        INT         NOT NULL,
     fecha_analisis DATE        NOT NULL,
     nro_analisis   VARCHAR(50) NOT NULL,
-    dictamen       TEXT        NOT NULL,
+    dictamen       TEXT,
     observaciones  TEXT,
     activo         BOOLEAN     NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_lote_analisis
         FOREIGN KEY (lote_id) REFERENCES lotes (id)
 );
-
-ALTER TABLE lotes
-    ADD CONSTRAINT fk_nro_analisis
-        FOREIGN KEY (nro_analisis_id) REFERENCES analisis (id);
-
-

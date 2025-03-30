@@ -38,6 +38,10 @@ public class Movimiento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lote_id", nullable = false)
+    private Lote lote;
+
     @Column(nullable = false)
     private LocalDate fecha;
 
@@ -49,9 +53,6 @@ public class Movimiento {
     @Column(name = "motivo", nullable = false)
     private MotivoEnum motivo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lote_id", nullable = false)
-    private Lote lote;
 
     @Column(columnDefinition = "TEXT")
     private String descripcion;

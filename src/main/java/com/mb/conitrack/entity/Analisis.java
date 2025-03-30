@@ -45,7 +45,6 @@ public class Analisis {
     private String nroAnalisis;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private DictamenEnum dictamen;
 
     @Column(columnDefinition = "TEXT")

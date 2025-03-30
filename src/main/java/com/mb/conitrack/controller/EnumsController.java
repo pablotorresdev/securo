@@ -17,15 +17,15 @@ public class EnumsController {
     @ResponseBody
     @GetMapping("/unidades-compatibles")
     public List<UnidadMedidaEnum> getUnidadesCompatibles(@RequestParam("unidad") UnidadMedidaEnum unidad) {
-        return UnidadMedidaEnum.getUnidadesCompatibles(unidad);
+        return UnidadMedidaEnum.getUnidadesConvertibles(unidad);
     }
 
     @ResponseBody
     @GetMapping("/subunidades")
     public List<UnidadMedidaEnum> getSubUnidades(@RequestParam("unidad") UnidadMedidaEnum unidad) {
-        final List<UnidadMedidaEnum> unidadesCompatibles = UnidadMedidaEnum.getUnidadesCompatibles(unidad);
-        unidadesCompatibles.removeIf(u -> u.getFactorConversion() > unidad.getFactorConversion());
-        return unidadesCompatibles;
+        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(unidad);
+        unidadesPorTipo.removeIf(u -> u.getFactorConversion() > unidad.getFactorConversion());
+        return unidadesPorTipo;
     }
 
 }
