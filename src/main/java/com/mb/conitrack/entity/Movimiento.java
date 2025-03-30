@@ -53,15 +53,14 @@ public class Movimiento {
     @Column(name = "motivo", nullable = false)
     private MotivoEnum motivo;
 
-
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+    @Column(precision = 12, scale = 2)
     private BigDecimal cantidad;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "unidad_medida", nullable = false)
+    @Column(name = "unidad_medida")
     private UnidadMedidaEnum unidadMedida;
 
     @Column(name = "nro_analisis", length = 50)

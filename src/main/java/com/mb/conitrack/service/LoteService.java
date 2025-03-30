@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.Producto;
@@ -44,8 +45,31 @@ public class LoteService {
         return lotes;
     }
 
-    public Lote findById(final Long loteId) {
-        return loteRepository.findById(loteId).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+    public Lote findById(final Long id) {
+        return loteRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+    }
+
+    public List<Lote> findAllByIdLoteAndActivoTrue(final String idLote) {
+        return loteRepository.findAllByIdLoteAndActivoTrue(idLote);
+    }
+
+
+    public List<Lote> findNroAnalisis(final Analisis analisis) {
+        return loteRepository.findAllByAnalisisAndActivoTrue(analisis);
+    }
+
+    public List<Lote> findByLoteProveedor(final String loteProveedor) {
+        return loteRepository.findAllByLoteProveedorAndActivoTrue(loteProveedor);
+    }
+
+
+    public List<Lote> findAllRecoibido() {
+        return loteRepository.findAll().stream()
+            .filter(l -> EnumSet.of(
+                DictamenEnum.RECIBIDO
+            ).contains(l.getDictamen()))
+            .sorted(Comparator.comparing(Lote::getIdLote))
+            .toList();
     }
 
     public List<Lote> findAllMuestreable() {

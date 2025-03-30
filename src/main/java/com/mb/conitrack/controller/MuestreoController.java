@@ -26,6 +26,7 @@ import com.mb.conitrack.service.MovimientoService;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @Controller
@@ -77,8 +78,7 @@ public class MuestreoController {
 
     @GetMapping("/muestreo-lote")
     public String showRetiroMuestreoForm(
-        @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO,
-        Model model) {
+        @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
         // TODO: Listar lotes con estados permitidos
         List<Lote> lotesMuestreables = loteService.findAllMuestreable();
 
@@ -88,9 +88,7 @@ public class MuestreoController {
 
     @PostMapping("/muestreo-lote")
     public String procesarMuestreo(
-        @Valid @ModelAttribute MovimientoDTO dto,
-        BindingResult bindingResult,
-        Model model, RedirectAttributes redirectAttributes) {
+        @Valid @ModelAttribute MovimientoDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, SessionStatus sessionStatus) {
 
         Lote lote = loteService.findById(dto.getLoteId());
 
@@ -114,18 +112,13 @@ public class MuestreoController {
 
         // Cambiar dictamen si corresponde
         if (DictamenEnum.RECIBIDO.equals(lote.getDictamen())) {
-            //TODO: revisar como implementar esto
-            loteService.actualizarDictamenLoteCompleto(lote, DictamenEnum.CUARENTENA);
+            final List<Lote> allBultosById = loteService.findAllByIdLoteAndActivoTrue(lote.getIdLote());
+            persistirCuarentena(dto, allBultosById);
         }
 
         redirectAttributes.addFlashAttribute("success", "Muestreo registrado correctamente.");
+        sessionStatus.setComplete();
         return "redirect:/";
-    }
-
-    private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
-        if(dto.getNroReAnalisis() == null && dto.getNroAnalisis()==null){
-            bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
-        }
     }
 
     private static void validarDictamenActual(final BindingResult bindingResult, final Lote lote) {
@@ -147,10 +140,7 @@ public class MuestreoController {
             return;
         }
 
-        double factorDto = dto.getUnidadMedida().getFactorConversion();
-        double factorLote = lote.getUnidadMedida().getFactorConversion();
-
-        BigDecimal cantidadConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
+        BigDecimal cantidadConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(dto.getUnidadMedida().getFactorConversion() / lote.getUnidadMedida().getFactorConversion()));
 
         if (cantidadConvertida.compareTo(lote.getCantidadActual()) > 0) {
             bindingResult.rejectValue("cantidad", "La cantidad excede el stock disponible del lote.");
@@ -160,6 +150,19 @@ public class MuestreoController {
     private static void validarDatosObligatorios(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (dto.getNroAnalisis() == null && dto.getNroReAnalisis() == null) {
             bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
+        }
+    }
+
+    private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
+        if (dto.getNroReAnalisis() == null && dto.getNroAnalisis() == null) {
+            bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
+        }
+    }
+
+    @Transactional
+    void persistirCuarentena(final MovimientoDTO dto, final List<Lote> allBultosById) {
+        for (Lote lote : allBultosById) {
+            movimientoService.persistirCmbioDictamenMuestreo(dto, lote);
         }
     }
 

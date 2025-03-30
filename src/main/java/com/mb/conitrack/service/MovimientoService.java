@@ -11,6 +11,7 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.repository.MovimientoRepository;
@@ -47,7 +48,7 @@ public class MovimientoService {
 
     @Transactional
     public void persistirMuestreo(final MovimientoDTO dto, Lote lote) {
-        Movimiento movimiento = createMovimiento(dto, lote);
+        Movimiento movimiento = createMovimientoMuestreo(dto, lote);
         lote.getMovimientos().add(movimiento);
 
         Analisis analisis = createAnalisis(dto, lote);
@@ -60,7 +61,29 @@ public class MovimientoService {
         movimientoRepository.save(movimiento);
     }
 
-    private static Movimiento createMovimiento(final MovimientoDTO dto, final Lote lote) {
+    @Transactional
+    public void persistirCmbioDictamenMuestreo(final MovimientoDTO dto, Lote lote) {
+        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
+        movimiento.setMotivo(MotivoEnum.MUESTREO);
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setDictamenFinal(DictamenEnum.CUARENTENA);
+        lote.getMovimientos().add(movimiento);
+
+        loteService.save(lote);
+        movimientoRepository.save(movimiento);
+    }
+
+    private static Movimiento createMovimientoCambioDictamen(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
+        movimiento.setLote(lote);
+        movimiento.setDescripcion(dto.getObservaciones());
+        movimiento.setActivo(true);
+        return movimiento;
+    }
+
+    private static Movimiento createMovimientoMuestreo(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);

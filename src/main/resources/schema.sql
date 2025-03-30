@@ -116,19 +116,19 @@ CREATE TABLE lotes
 CREATE TABLE movimientos
 (
     id                   SERIAL PRIMARY KEY,
-    fecha                DATE           NOT NULL,
-    tipo_movimiento      TEXT           NOT NULL,
-    motivo               TEXT           NOT NULL,
-    lote_id              INT            NOT NULL,
+    fecha                DATE    NOT NULL,
+    tipo_movimiento      TEXT    NOT NULL,
+    motivo               TEXT    NOT NULL,
+    lote_id              INT     NOT NULL,
     descripcion          TEXT,
-    cantidad             NUMERIC(12, 2) NOT NULL,
-    unidad_medida        TEXT           NOT NULL,
+    cantidad             NUMERIC(12, 2),
+    unidad_medida        TEXT,
     nro_analisis         VARCHAR(50), -- Post QA
     orden_produccion     VARCHAR(50), -- Para movimientos de consumo prod
     dictamen_inicial     TEXT,
     dictamen_final       TEXT,
     movimiento_origen_id INT,
-    activo               BOOLEAN        NOT NULL DEFAULT TRUE,
+    activo               BOOLEAN NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_lote_id
         FOREIGN KEY (lote_id) REFERENCES lotes (id),
     CONSTRAINT fk_movimiento_origen
