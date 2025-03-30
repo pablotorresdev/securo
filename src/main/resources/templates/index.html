@@ -10,18 +10,22 @@
     <h2>Home - Conitrack</h2>
     <p>Seleccione la sección</p>
     <ul>
+        <hr class="my-4">
+        <h4 class="mb-3 text-primary">Casos de uso</h4>
         <li>
             <a th:href="@{/lotes/ingreso-compra}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-                Ingreso de Lote por Compra
+                CU1 - Ingreso de Lote por Compra
             </a>
         </li>
         <li>
             <a th:href="@{/muestreos/muestreo-lote}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-                Retiro por Muestreo - EN DESARROLLO !!!
+                CU2 - Retiro por Muestreo - EN DESARROLLO !!!
             </a>
         </li>
+        <hr class="my-4">
+        <h4 class="mb-3 text-primary">Consultas</h4>
         <li>
             <a th:href="@{/lotes/list-lotes}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
@@ -34,6 +38,8 @@
                 Lista de Movimientos
             </a>
         </li>
+        <hr class="my-4">
+        <h4 class="mb-3 text-primary">ABM Maestro</h4>
         <li>
             <a th:href="@{/proveedores/}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
