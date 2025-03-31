@@ -52,7 +52,7 @@ public class LoteController {
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
-        model.addAttribute("lotes", loteService.findAll());
+        model.addAttribute("lotes", loteService.findAllSortByIdLote());
         return "lotes/list-lotes";
     }
 

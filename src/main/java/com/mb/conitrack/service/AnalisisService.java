@@ -12,8 +12,8 @@ public class AnalisisService {
     @Autowired
     private AnalisisRepository analisisRepository;
 
-    public void save(Analisis analisis) {
-        analisisRepository.save(analisis);
+    public Analisis save(Analisis analisis) {
+        return analisisRepository.save(analisis);
     }
 
 }

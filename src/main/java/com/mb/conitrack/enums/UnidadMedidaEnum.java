@@ -43,7 +43,7 @@ public enum UnidadMedidaEnum {
         String tipo = base.getTipo();
         return Arrays.stream(UnidadMedidaEnum.values())
             .filter(u -> u.getTipo().equals(tipo))
-            .sorted(Comparator.comparingDouble(UnidadMedidaEnum::getFactorConversion)) // ASC
+            .sorted(Comparator.comparingDouble(UnidadMedidaEnum::getFactorConversion).reversed()) // ASC
             .collect(Collectors.toList());
     }
 

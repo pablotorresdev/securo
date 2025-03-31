@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +40,8 @@ public class LoteService {
 
     private final ProductoRepository productoRepository;
 
-    public List<Lote> findAll() {
+    //Getters
+    public List<Lote> findAllSortByIdLote() {
         final List<Lote> lotes = loteRepository.findAll();
         lotes.sort(Comparator.comparing(Lote::getIdLote));
         return lotes;
@@ -53,7 +55,6 @@ public class LoteService {
         return loteRepository.findAllByIdLoteAndActivoTrue(idLote);
     }
 
-
     public List<Lote> findNroAnalisis(final Analisis analisis) {
         return loteRepository.findAllByAnalisisAndActivoTrue(analisis);
     }
@@ -62,8 +63,7 @@ public class LoteService {
         return loteRepository.findAllByLoteProveedorAndActivoTrue(loteProveedor);
     }
 
-
-    public List<Lote> findAllRecoibido() {
+    public List<Lote> findAllByDictamenReciibido() {
         return loteRepository.findAll().stream()
             .filter(l -> EnumSet.of(
                 DictamenEnum.RECIBIDO
@@ -84,15 +84,8 @@ public class LoteService {
             .toList();
     }
 
-    @Transactional
-    public void actualizarDictamenLoteCompleto(final Lote lote, final DictamenEnum dictamen) {
-        final List<Lote> allByIdLoteAndActivoTrue = loteRepository.findAllByIdLoteAndActivoTrue(lote.getIdLote());
-        for (Lote l : allByIdLoteAndActivoTrue) {
-            l.setDictamen(dictamen);
-            loteRepository.save(l);
-        }
-    }
-
+    //Setters
+    //CU1
     @Transactional
     public void ingresarStockPorCompra(LoteDTO dto) {
         if (dto.getFechaIngreso().isAfter(LocalDate.now())) {
@@ -124,7 +117,6 @@ public class LoteService {
             lote.setNroBulto(i + 1);
 
             Lote nuevoLote = loteRepository.save(lote);
-
             populateMovimiento(movimiento, lote, nuevoLote);
             movimientoRepository.save(movimiento);
         }
@@ -170,8 +162,21 @@ public class LoteService {
         movimiento.setLote(nuevoLote);
     }
 
-    public void save(final Lote lote) {
-        loteRepository.save(lote);
+    @Transactional
+    public void actualizarDictamenLoteCompleto(final Lote lote, final DictamenEnum dictamen) {
+        final List<Lote> allByIdLoteAndActivoTrue = loteRepository.findAllByIdLoteAndActivoTrue(lote.getIdLote());
+        for (Lote l : allByIdLoteAndActivoTrue) {
+            l.setDictamen(dictamen);
+            loteRepository.save(l);
+        }
+    }
+
+    public Optional<Lote> save(final Lote lote) {
+
+
+
+        final Lote nuevoLote = loteRepository.save(lote);
+        return Optional.of(nuevoLote);
     }
 
 }

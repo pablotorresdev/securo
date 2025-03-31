@@ -162,7 +162,7 @@ public class MuestreoController {
     @Transactional
     void persistirCuarentena(final MovimientoDTO dto, final List<Lote> allBultosById) {
         for (Lote lote : allBultosById) {
-            movimientoService.persistirCmbioDictamenMuestreo(dto, lote);
+            movimientoService.persistirCambioDictamenPorMuestreo(dto, lote);
         }
     }
 
