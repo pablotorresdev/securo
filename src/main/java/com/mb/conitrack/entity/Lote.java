@@ -8,6 +8,7 @@ import java.util.List;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -42,14 +43,14 @@ public class Lote {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "id_lote", length = 50, nullable = false)
-    private String idLote;
+    @Column(name = "codigo_interno", length = 50, nullable = false)
+    private String codigoInterno;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
 
@@ -61,7 +62,7 @@ public class Lote {
     @Column(nullable = false)
     private DictamenEnum dictamen;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_origen_id")
     private Lote loteOrigen;
 
@@ -102,7 +103,8 @@ public class Lote {
     @Column(name = "fecha_vencimiento")
     private LocalDate fechaVencimiento;
 
-    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
+    @JsonManagedReference
     private List<Analisis> analisis = new ArrayList<>();
 
     @Column(name = "titulo", precision = 12, scale = 4)
@@ -111,7 +113,8 @@ public class Lote {
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
-    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
+    @JsonManagedReference
     private List<Movimiento> movimientos = new ArrayList<>();
 
     @Column(nullable = false)

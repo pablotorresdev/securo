@@ -55,7 +55,7 @@ public class Producto {
     private String paisOrigen;
 
     //TODO: Obligatorio para: API, Semielaborado, Acond. secundario
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "producto_destino_id")
     private Producto productoDestino;
 

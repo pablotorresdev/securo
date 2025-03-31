@@ -12,7 +12,7 @@
         <thead>
         <tr>
             <th>Producto</th>
-            <th>ID lote</th>
+            <th>Codigo interno</th>
             <th>Dictamen</th>
             <th>Fecha Ingreso</th>
             <th>Nro Bulto</th>
@@ -34,7 +34,7 @@
         <tbody>
         <tr th:each="lote : ${lotes}">
             <td th:text="${lote.producto.nombreGenerico}"></td>
-            <td th:text="${lote.idLote}"></td>
+            <td th:text="${lote.codigoInterno}"></td>
             <td th:text="${lote.dictamen}"></td>
             <td th:text="${lote.fechaIngreso}"></td>
             <td th:text="${lote.nroBulto}"></td>

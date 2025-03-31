@@ -2,6 +2,7 @@ package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,10 +80,8 @@ public class MuestreoController {
     @GetMapping("/muestreo-lote")
     public String showRetiroMuestreoForm(
         @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
-        // TODO: Listar lotes con estados permitidos
         List<Lote> lotesMuestreables = loteService.findAllMuestreable();
-
-        model.addAttribute("lotes", lotesMuestreables);
+        model.addAttribute("lotesMuestreables", lotesMuestreables);
         return "movimientos/muestreo-lote";
     }
 
@@ -112,7 +111,7 @@ public class MuestreoController {
 
         // Cambiar dictamen si corresponde
         if (DictamenEnum.RECIBIDO.equals(lote.getDictamen())) {
-            final List<Lote> allBultosById = loteService.findAllByIdLoteAndActivoTrue(lote.getIdLote());
+            final List<Lote> allBultosById = loteService.findAllByCodigoInternoAndActivoTrue(lote.getCodigoInterno());
             persistirCuarentena(dto, allBultosById);
         }
 

@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,9 +42,11 @@ public class LoteService {
     private final ProductoRepository productoRepository;
 
     //Getters
-    public List<Lote> findAllSortByIdLote() {
+    public List<Lote> findAllSortByDateAndNroBulto() {
         final List<Lote> lotes = loteRepository.findAll();
-        lotes.sort(Comparator.comparing(Lote::getIdLote));
+        lotes.sort(Comparator
+            .comparing(Lote::getFechaIngreso)
+            .thenComparing(Lote::getNroBulto));
         return lotes;
     }
 
@@ -51,8 +54,8 @@ public class LoteService {
         return loteRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
-    public List<Lote> findAllByIdLoteAndActivoTrue(final String idLote) {
-        return loteRepository.findAllByIdLoteAndActivoTrue(idLote);
+    public List<Lote> findAllByCodigoInternoAndActivoTrue(final String codigoInterno) {
+        return loteRepository.findAllByCodigoInternoAndActivoTrue(codigoInterno);
     }
 
     public List<Lote> findNroAnalisis(final Analisis analisis) {
@@ -63,24 +66,24 @@ public class LoteService {
         return loteRepository.findAllByLoteProveedorAndActivoTrue(loteProveedor);
     }
 
-    public List<Lote> findAllByDictamenReciibido() {
-        return loteRepository.findAll().stream()
+    public List<Lote> findAllByDictamenRecibido() {
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        return allSortByDateAndNroBulto.stream()
             .filter(l -> EnumSet.of(
                 DictamenEnum.RECIBIDO
             ).contains(l.getDictamen()))
-            .sorted(Comparator.comparing(Lote::getIdLote))
             .toList();
     }
 
     public List<Lote> findAllMuestreable() {
-        return loteRepository.findAll().stream()
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        return allSortByDateAndNroBulto.stream()
             .filter(l -> EnumSet.of(
                 DictamenEnum.RECIBIDO,
                 DictamenEnum.CUARENTENA,
                 DictamenEnum.DEVOLUCION_CLIENTES,
                 DictamenEnum.RETIRO_MERCADO
             ).contains(l.getDictamen()))
-            .sorted(Comparator.comparing(Lote::getIdLote))
             .toList();
     }
 
@@ -144,7 +147,7 @@ public class LoteService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
-        lote.setIdLote("L-" + timestamp);
+        lote.setCodigoInterno("L-" + timestamp);
         return lote;
     }
 
@@ -164,17 +167,14 @@ public class LoteService {
 
     @Transactional
     public void actualizarDictamenLoteCompleto(final Lote lote, final DictamenEnum dictamen) {
-        final List<Lote> allByIdLoteAndActivoTrue = loteRepository.findAllByIdLoteAndActivoTrue(lote.getIdLote());
-        for (Lote l : allByIdLoteAndActivoTrue) {
+        final List<Lote> allByCodigoInternoAndActivoTrue = loteRepository.findAllByCodigoInternoAndActivoTrue(lote.getCodigoInterno());
+        for (Lote l : allByCodigoInternoAndActivoTrue) {
             l.setDictamen(dictamen);
             loteRepository.save(l);
         }
     }
 
     public Optional<Lote> save(final Lote lote) {
-
-
-
         final Lote nuevoLote = loteRepository.save(lote);
         return Optional.of(nuevoLote);
     }

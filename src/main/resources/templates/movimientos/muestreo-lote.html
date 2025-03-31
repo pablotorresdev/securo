@@ -16,7 +16,7 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Datos Obligatorios</h4>
 
-        <!-- Fecha del Retiro -->
+        <!-- Fecha del Muestreo -->
         <div class="mb-2">
             <label for="fechaMovimiento" class="form-label">Fecha del Retiro:</label>
             <input type="date" id="fechaMovimiento" name="fechaMovimiento"
@@ -26,56 +26,65 @@
                    required>
 
             <div th:if="${#fields.hasErrors('fechaMovimiento')}"
-                 style="color: red; font-weight: bold;"
+                 class="text-danger fw-bold"
                  th:errors="*{fechaMovimiento}">
             </div>
         </div>
 
-
+        <!-- 1er Selector: Lote a muestrear  (representante) -->
         <div class="mb-2">
-            <label for="loteId" class="form-label">Lote:</label>
-            <select id="loteId" th:field="*{loteId}" class="form-select" required>
-                <option value="">-- Seleccione un lote --</option>
-                <option th:each="lote : ${lotes}"
-                        th:if="${lote.nroBulto} == 1"
-                        th:value="${lote.id}"
-                        th:text="${lote.producto.nombreGenerico}+ ' - ' +${lote.loteProveedor} + ' - ' + ${lote.dictamen}"
-                        th:attr="data-unit=${lote.unidadMedida}"
-                        th:attrappend="data-nro-bultos=${lote.bultosTotales},data-cantidades=${lote.bultosTotales}">
+            <label for="loteMuestreo" class="form-label">Lote:</label>
+            <select id="loteMuestreo" class="form-select" required>
+                <option value="">-- Seleccione el lote a muestrear --</option>
+                <!-- Iteramos sobre todos los lotes “muestreables”
+                     Pero solo mostramos en el combo aquellos con nroBulto = 1
+                     (los “representantes”). -->
+                <option th:each="loteMuestra : ${lotesMuestreables}"
+                        th:if="${loteMuestra.nroBulto} == 1"
+                        th:value="${loteMuestra.id}"
+                        th:text="'Nombre: ' + ${loteMuestra.producto.nombreGenerico}
+                        + ' ID Lote: ' +${loteMuestra.loteProveedor}
+                        + ' Dictamen: ' + ${loteMuestra.dictamen}"
+                        th:attr="data-codigo-interno=${loteMuestra.codigoInterno}">
                 </option>
             </select>
-            <div th:if="${#fields.hasErrors('loteId')}" class="error" th:errors="*{loteId}"></div>
+
         </div>
 
-        <!-- Selector de Bultos por lote -->
+        <!-- 2do Selector: Bultos por lote (segundo combo) -->
         <div class="row mb-3 align-items-end">
             <div class="col-md-4">
-                <label for="nroBulto" class="form-label">Número del Bulto:</label>
-                <select id="nroBulto" th:field="*{nroBulto}" class="form-select" required>
+                <label for="nroBultoMuestreo" class="form-label">Número del Bulto:</label>
+                <select id="nroBultoMuestreo" th:field="*{loteId}"  class="form-select" required>
                     <option value="">-- Seleccione el bulto a muestrear --</option>
                 </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Cantidad del Bulto:</label>
-                <input type="text" id="cantidadReferencia" class="form-control" disabled>
+                <!-- Campo deshabilitado para mostrar la cantidad -->
+                <input type="text" id="refCantBulto" class="form-control" disabled>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Unidad:</label>
-                <input type="text" id="unidadReferencia" class="form-control" disabled>
+                <!-- Campo deshabilitado para mostrar la unidad -->
+                <input type="text" id="refUniMedBulto" class="form-control" disabled>
             </div>
+            <div th:if="${#fields.hasErrors('loteId')}" class="error" th:errors="*{loteId}"></div>
         </div>
 
-        <!-- Cantidad + Unidad -->
+        <!-- Cantidad + Unidad que se usarán para el muestreo real -->
         <div class="row mb-3 align-items-end">
             <div class="col-md-6">
-                <label for="cantidad" class="form-label">Cantidad:</label>
-                <input type="number" step="0.0001" id="cantidad" th:field="*{cantidad}" class="form-control" required>
-                <div th:if="${#fields.hasErrors('cantidad')}" class="text-danger fw-bold"
-                     th:errors="*{cantidad}"></div>
+                <label for="cantidadBultoElegido" class="form-label">Cantidad:</label>
+                <input type="number" step="0.0001" id="cantidadBultoElegido" th:field="*{cantidad}" class="form-control" required>
+                <div th:if="${#fields.hasErrors('cantidad')}"
+                     class="text-danger fw-bold"
+                     th:errors="*{cantidad}">
+                </div>
             </div>
             <div class="col-md-3">
-                <label for="unidadMedida" class="form-label">Unidad de Medida:</label>
-                <select id="unidadMedida" th:field="*{unidadMedida}" class="form-select" required>
+                <label for="uniMedBultoElegido" class="form-label">Unidad de Medida:</label>
+                <select id="uniMedBultoElegido" th:field="*{unidadMedida}" class="form-select" required>
                     <option value="">-- Seleccione unidad --</option>
                 </select>
             </div>
@@ -89,10 +98,9 @@
                    class="form-control"
                    th:classappend="${#fields.hasErrors('fechaAnalisis')} ? ' error-field' : ''"
                    required>
-
             <div th:if="${#fields.hasErrors('fechaAnalisis')}"
-                 style="color: red; font-weight: bold;"
-                 th:errors="*{fechaMovimiento}">
+                 class="text-danger fw-bold"
+                 th:errors="*{fechaAnalisis}">
             </div>
         </div>
 
@@ -126,16 +134,89 @@
 
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        const loteSelect = document.getElementById('loteId');
-        const unidadSelect = document.getElementById('unidadMedida');
-        const bultoSelect = document.getElementById('nroBulto');
-        const cantidadRef = document.getElementById('cantidadReferencia');
-        const unidadRef = document.getElementById('unidadReferencia');
-        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
-        function cargarUnidadesCompatibles(unidadBase) {
+        // Primer combo (representante)
+        const loteMuestreoSelect     = document.getElementById('loteMuestreo');
+        // Segundo combo (bultos concretos)
+        const nroBultoMuestreoSelect = document.getElementById('nroBultoMuestreo');
+
+        // Campos sólo lectura (mostrar cantidad/unidad del bulto)
+        const cantidadRef = document.getElementById('refCantBulto');
+        const unidadRef   = document.getElementById('refUniMedBulto');
+
+        // Campos de “Unidad de Medida” para el muestreo
+        const unidadSelect = document.getElementById('uniMedBultoElegido');
+
+        // 1) Tomamos TODOS los lotes muestreables en una variable JS
+        let lotesMuestreablesAll = /*[[${lotesMuestreables}]]*/ [];
+
+        // 2) Al cambiar el “Lote representativo” (primer combo)
+        loteMuestreoSelect.addEventListener('change', function () {
+            // Limpiamos el segundo combo y los campos
+            nroBultoMuestreoSelect.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
+            cantidadRef.value = '';
+            unidadRef.value = '';
+
+            // Verificamos si se seleccionó algo
+            const selectedRep = loteMuestreoSelect.options[loteMuestreoSelect.selectedIndex];
+            if (!selectedRep || !selectedRep.value) {
+                return;
+            }
+
+            // Obtenemos el codigoInterno para filtrar
+            const codigoInterno = selectedRep.getAttribute('data-codigo-interno');
+
+            // Filtramos de la lista total todos los bultos con ese codigoInterno
+            const bultosDelConjunto = lotesMuestreablesAll.filter(
+                l => l.codigoInterno === codigoInterno
+            );
+
+            // Llenamos el segundo combo
+            bultosDelConjunto.forEach(b => {
+                const opt = document.createElement('option');
+                // Usamos b.id como value (para post), o b.nroBulto si prefieres
+                opt.value = b.id;
+
+                // Mostramos “Bulto X - Cantidad Y Unidad”
+                opt.textContent = `Bulto: ${b.nroBulto} - Disponible: ${b.cantidadActual} ${b.unidadMedida}`;
+
+                // Guardamos info en data-attributes
+                opt.setAttribute('data-cantidad-bulto', b.cantidadActual);
+                opt.setAttribute('data-unidad-bulto', b.unidadMedida);
+
+                nroBultoMuestreoSelect.appendChild(opt);
+            });
+        });
+
+        // 3) Al cambiar el bulto específico (segundo combo)
+        nroBultoMuestreoSelect.addEventListener('change', function () {
+            // Obtenemos la opción seleccionada
+            const selectedBulto = nroBultoMuestreoSelect.options[nroBultoMuestreoSelect.selectedIndex];
+            if (!selectedBulto || !selectedBulto.value) {
+                cantidadRef.value = '';
+                unidadRef.value = '';
+                return;
+            }
+
+            // Tomamos los data-attributes
+            const cantBultoEspecifico = selectedBulto.getAttribute('data-cantidad-bulto') || '';
+            const unidadBaseBultoEspecifico = selectedBulto.getAttribute('data-unidad-bulto') || '';
+
+            // Mostramos en los inputs deshabilitados
+            cantidadRef.value = cantBultoEspecifico;
+            unidadRef.value = unidadBaseBultoEspecifico;
+
+            // Cargar subunidades en el combo “uniMedBultoElegido”
+            cargarSubunidades(unidadBaseBultoEspecifico);
+        });
+
+
+        // 4) Función para cargar subunidades por fetch
+        function cargarSubunidades(unidadBase) {
             if (!unidadBase) return;
+
             fetch('/enums/subunidades?unidad=' + unidadBase, {
                 method: 'GET',
                 headers: {
@@ -144,58 +225,30 @@
             })
                 .then(response => response.json())
                 .then(data => {
+                    // Reiniciamos las opciones
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
-                    data.forEach(unidad => {
+
+                    // Insertamos cada subunidad
+                    data.forEach(u => {
                         const option = document.createElement('option');
-                        option.value = unidad;
-                        option.textContent = unidad;
-                        if (unidad === unidadBase) option.selected = true;
+                        option.value = u;
+                        option.textContent = u;
+                        // Si coincide con la unidad base, lo dejamos seleccionado
+                        if (u === unidadBase) option.selected = true;
                         unidadSelect.appendChild(option);
                     });
                 })
                 .catch(error => {
-                    console.error("Error al cargar unidades:", error);
+                    console.error("Error al cargar subunidades:", error);
                 });
         }
 
-        function actualizarCamposDesdeLoteSeleccionado() {
-            const selected = loteSelect.options[loteSelect.selectedIndex];
-            const unidadBase = selected.getAttribute('data-unit');
-            const cantidadesStr = selected.getAttribute('data-cantidades') || '';
-            const cantidades = cantidadesStr.split(',').map(s => s.trim());
-
-            cargarUnidadesCompatibles(unidadBase);
-
-            const bultosTotales = parseInt(selected.getAttribute('data-nro-bultos') || '1');
-            bultoSelect.innerHTML = '<option value="">-- Seleccione bulto --</option>';
-            for (let i = 1; i <= bultosTotales; i++) {
-                const cantidad = cantidades[i - 1] || '0';
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = `Bulto ${i} - ${cantidad} ${unidadBase}`;
-                opt.setAttribute('data-cantidad', cantidad);
-                opt.setAttribute('data-unidad', unidadBase);
-                bultoSelect.appendChild(opt);
-            }
+        // 5) Si la página carga con un Lote ya seleccionado, forzamos el “change”
+        if (loteMuestreoSelect.selectedIndex > 0) {
+            loteMuestreoSelect.dispatchEvent(new Event('change'));
         }
 
-        // Al cambiar el lote
-        loteSelect.addEventListener('change', actualizarCamposDesdeLoteSeleccionado);
-
-        // Al cambiar el bulto seleccionado
-        bultoSelect.addEventListener('change', function () {
-            const selected = this.options[this.selectedIndex];
-            const cantidad = selected.getAttribute('data-cantidad') || '';
-            const unidad = selected.getAttribute('data-unidad') || '';
-            cantidadRef.value = cantidad;
-            unidadRef.value = unidad;
-        });
-
-        // Ejecutar al cargar si ya hay un lote seleccionado
-        if (loteSelect.selectedIndex > 0) {
-            actualizarCamposDesdeLoteSeleccionado();
-        }
-
+        // 6) Si hubo un campo con error de validación, ponemos el foco
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });

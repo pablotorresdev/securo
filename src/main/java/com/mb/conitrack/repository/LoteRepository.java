@@ -9,7 +9,7 @@ import com.mb.conitrack.entity.Lote;
 
 public interface LoteRepository extends JpaRepository<Lote, Long> {
 
-    List<Lote> findAllByIdLoteAndActivoTrue(String idLote);
+    List<Lote> findAllByCodigoInternoAndActivoTrue(String codigoInterno);
 
     List<Lote> findAllByAnalisisAndActivoTrue(Analisis analisis);
 

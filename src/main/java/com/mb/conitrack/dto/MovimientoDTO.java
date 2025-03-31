@@ -19,10 +19,11 @@ public class MovimientoDTO {
     private LocalDate fechaMovimiento;
 
     @NotNull(message = "El ID del lote es obligatorio")
-    private Long loteId; // o loteProveedor + nroBulto
+    private Long loteId; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
 
     //Cantidades
     private String nroBulto;
+
     @Positive(message = "La cantidad inicial debe ser mayor a cero")
     private BigDecimal cantidad;
     private UnidadMedidaEnum unidadMedida;

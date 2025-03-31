@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mb.conitrack.enums.DictamenEnum;
 
 import jakarta.persistence.Column;
@@ -21,6 +22,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -28,14 +30,16 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "analisis")
 @SQLDelete(sql = "UPDATE analisis SET activo = false WHERE id = ?")
+@ToString(exclude = {"lote"})
 public class Analisis {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
+    @JsonBackReference
     private Lote lote;
 
     @Column(name = "fecha_analisis", nullable = false)

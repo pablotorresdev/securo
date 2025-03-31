@@ -81,7 +81,7 @@ CREATE TABLE configuracion
 CREATE TABLE lotes
 (
     id                   SERIAL PRIMARY KEY,
-    id_lote              VARCHAR(50)    NOT NULL,
+    codigo_interno       VARCHAR(50)    NOT NULL,
     producto_id          INT            NOT NULL,
     proveedor_id         INT            NOT NULL,
     estado_lote          TEXT           NOT NULL,

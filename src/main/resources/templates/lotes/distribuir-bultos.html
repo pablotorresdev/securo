@@ -36,7 +36,8 @@
             </div>
             <div class="col-md-3">
                 <label for="unidadMedida" class="form-label">Unidad de Medida:</label>
-                <input type="text" id="unidadMedida" th:value="${#strings.concat(#strings.toUpperCase(loteDTO.unidadMedida.nombre), ' (', loteDTO.unidadMedida.simbolo, ')')}" class="form-control" readonly>
+                <input type="text" id="unidadMedida" th:value="${#strings.concat(#strings.toUpperCase(loteDTO.unidadMedida.nombre), ' (', loteDTO.unidadMedida.simbolo, ')')}"
+                       class="form-control" readonly>
             </div>
         </div>
         <hr class="my-4">

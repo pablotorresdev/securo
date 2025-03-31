@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
@@ -25,6 +26,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
@@ -35,14 +37,16 @@ import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
 @Entity
 @Table(name = "movimientos")
 @SQLDelete(sql = "UPDATE movimientos SET activo = false WHERE id = ?")
+@ToString(exclude = {"lote"})
 public class Movimiento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
+    @JsonBackReference
     private Lote lote;
 
     @Column(nullable = false)
@@ -80,7 +84,7 @@ public class Movimiento {
     @JoinColumn(name = "dictamen_final", nullable = false)
     private DictamenEnum dictamenFinal;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "movimiento_origen_id")
     private Movimiento movimientoOrigen;
 

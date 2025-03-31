@@ -110,7 +110,7 @@ public class MovimientoService {
     }
 
     private boolean conciliateLote(final Lote lote) {
-        System.out.println(lote);
+        System.out.println(lote.toString());
         return true;
     }
 
