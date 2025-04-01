@@ -3,6 +3,7 @@ package com.mb.conitrack.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -46,6 +47,7 @@ public class LoteService {
         final List<Lote> lotes = loteRepository.findAll();
         lotes.sort(Comparator
             .comparing(Lote::getFechaIngreso)
+            .thenComparing(Lote::getCodigoInterno)
             .thenComparing(Lote::getNroBulto));
         return lotes;
     }
@@ -90,14 +92,14 @@ public class LoteService {
     //Setters
     //CU1
     @Transactional
-    public void ingresarStockPorCompra(LoteDTO dto) {
+    public List<Lote> ingresarStockPorCompra(LoteDTO dto) {
+
         if (dto.getFechaIngreso().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de ingreso no puede ser posterior al día de hoy.");
         }
-
+        List<Lote> result = new ArrayList<>();
         Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId()).orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
         Producto producto = productoRepository.findById(dto.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
-
         int bultosTotales = Math.max(dto.getBultosTotales(), 1);
         for (int i = 0; i < bultosTotales; i++) {
 
@@ -119,10 +121,12 @@ public class LoteService {
             }
             lote.setNroBulto(i + 1);
 
-            Lote nuevoLote = loteRepository.save(lote);
+            final Lote nuevoLote = loteRepository.save(lote);
             populateMovimiento(movimiento, lote, nuevoLote);
             movimientoRepository.save(movimiento);
+            result.add(nuevoLote);
         }
+        return result;
     }
 
     private static Lote createLoteFromDto(final LoteDTO dto) {

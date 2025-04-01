@@ -20,6 +20,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
@@ -96,10 +97,28 @@ public class LoteController {
         }
 
         dto.setNroBulto(1);
-        loteService.ingresarStockPorCompra(dto);
+        final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
+        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.toLoteDTO(lotes));
         closeSession(redirectAttributes, sessionStatus, "Ingreso de stock registrado correctamente.");
-        return "redirect:/";
+        return "redirect:/lotes/exito-ingreso-compra";
     }
+
+    @GetMapping("/exito-ingreso-compra")
+    public String exitoIngresoCompra(
+        @ModelAttribute("newLoteDTO") LoteDTO loteDTO,  // Recibe el Lote desde Flash Attribute
+        Model model
+    ) {
+        if(loteDTO.getNombreProducto()==null){
+            return "redirect:/lotes/cancelar";
+        }
+
+        model.addAttribute("loteDTO", loteDTO);
+        model.addAttribute("movimientos", loteDTO.getMovimientoDTOs());
+
+        return "lotes/exito-ingreso-compra"; // Template Thymeleaf
+    }
+
+
 
     private static void validateCantidadIngreso(final LoteDTO dto, final BindingResult bindingResult) {
         BigDecimal cantidad = dto.getCantidadInicial();
@@ -170,9 +189,11 @@ public class LoteController {
             productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
             return "lotes/distribuir-bultos";
         }
-        loteService.ingresarStockPorCompra(dto);
+
+        final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
+        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.toLoteDTO(lotes));
         closeSession(redirectAttributes, sessionStatus, "Ingreso de stock distribuido correctamente.");
-        return "redirect:/";
+        return "redirect:/lotes/exito-ingreso-compra";
     }
 
     private void validarTipoDeDato(final LoteDTO dto, final BindingResult bindingResult) {

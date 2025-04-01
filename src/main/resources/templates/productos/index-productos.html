@@ -25,6 +25,10 @@
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <button type="submit">Logout</button>
 </form>
-<a th:href="@{/}">Volver al inicio</a>
+<form th:action="@{/}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <button type="submit">Volver al inicio</button>
+</form>
+
 </body>
 </html>

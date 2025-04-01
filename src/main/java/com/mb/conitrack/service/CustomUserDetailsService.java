@@ -47,6 +47,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (userRepository.findByUsername("admin").isEmpty()) {
             userRepository.save(new User("admin", passwordEncoder().encode("admin"), adminRole));
         }
+        if (userRepository.findByUsername("pablo").isEmpty()) {
+            userRepository.save(new User("pablo", passwordEncoder().encode("pablo"), adminRole));
+        }
         if (userRepository.findByUsername("user1").isEmpty()) {
             userRepository.save(new User("user1", passwordEncoder().encode("user1"), userRole1));
         }

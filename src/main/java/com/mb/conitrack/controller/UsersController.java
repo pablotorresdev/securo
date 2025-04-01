@@ -41,6 +41,7 @@ public class UsersController {
         this.passwordEncoder = passwordEncoder;
         this.usernames = new ArrayList<>();
         // Preload existing users (admin, user1, user2)
+        usernames.add("pablo");
         usernames.add("admin");
         usernames.add("user1");
         usernames.add("user2");
