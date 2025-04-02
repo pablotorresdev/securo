@@ -9,7 +9,7 @@ public class UnidadMedidaEnumTest {
     @Test
     public void testDefaultUnidadMedidaDataSize() {
         UnidadMedidaEnum[] unidades = UnidadMedidaEnum.values();
-        assertThat(unidades).hasSize(26);
+        assertThat(unidades).hasSize(21);
     }
 
     @Test
