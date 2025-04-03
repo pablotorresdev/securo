@@ -55,7 +55,7 @@
         <div class="row mb-3 align-items-end">
             <div class="col-md-4">
                 <label for="nroBultoMuestreo" class="form-label">Número del Bulto:</label>
-                <select id="nroBultoMuestreo" th:field="*{loteId}"  class="form-select" required>
+                <select id="nroBultoMuestreo" th:field="*{loteId}" class="form-select" required>
                     <option value="">-- Seleccione el bulto a muestrear --</option>
                 </select>
             </div>
@@ -123,23 +123,31 @@
 </footer>
 
 <script th:inline="javascript">
+    // Ejecutar el script una vez que el DOM esté completamente cargado
     document.addEventListener('DOMContentLoaded', function () {
+
+        // === CSRF ===
+        // Recuperamos el token CSRF necesario para hacer peticiones seguras vía fetch
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
-        const loteMuestreoSelect     = document.getElementById('loteMuestreo');
-        const nroBultoMuestreoSelect = document.getElementById('nroBultoMuestreo');
-        const cantidadRef            = document.getElementById('refCantBulto');
-        const unidadRef              = document.getElementById('refUniMedBulto');
-        const unidadSelect           = document.getElementById('uniMedBultoElegido');
+        // === Referencias a elementos del formulario ===
+        const loteMuestreoSelect = document.getElementById('loteMuestreo');        // combo de lote representativo
+        const nroBultoMuestreoSelect = document.getElementById('nroBultoMuestreo');    // combo de bultos específicos
+        const cantidadRef = document.getElementById('refCantBulto');        // campo deshabilitado con la cantidad
+        const unidadRef = document.getElementById('refUniMedBulto');      // campo deshabilitado con la unidad
+        const unidadSelect = document.getElementById('uniMedBultoElegido');  // combo editable de unidad de medida
 
-        // Nuevos campos: nroAnalisis y nroReAnalisis
-        const nroAnalisisInput       = document.getElementById('nroAnalisis');
-        const nroReAnalisisGroup     = document.getElementById('reAnalisisGroup');
+        // === Campos relacionados con análisis ===
+        const nroAnalisisInput = document.getElementById('nroAnalisis');      // input para nro de análisis
+        const nroReAnalisisGroup = document.getElementById('reAnalisisGroup');  // contenedor del campo de reanálisis
 
+        // === Lotes disponibles (inyectados desde Thymeleaf como JSON) ===
         let lotesMuestreablesAll = /*[[${lotesMuestreables}]]*/ [];
 
+        // === Cambio en el combo de lote representativo ===
         loteMuestreoSelect.addEventListener('change', function () {
+            // Reiniciamos el segundo combo y limpiamos campos
             nroBultoMuestreoSelect.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
             cantidadRef.value = '';
             unidadRef.value = '';
@@ -147,20 +155,23 @@
             nroAnalisisInput.readOnly = false;
             nroReAnalisisGroup.style.display = 'none';
 
+            // Validamos selección
             const selectedRep = loteMuestreoSelect.options[loteMuestreoSelect.selectedIndex];
-            if (!selectedRep || !selectedRep.value) {
-                return;
-            }
+            if (!selectedRep || !selectedRep.value) return;
 
+            // === Filtramos todos los bultos que comparten el mismo código interno ===
             const codigoInterno = selectedRep.getAttribute('data-codigo-interno');
             const bultosDelConjunto = lotesMuestreablesAll.filter(
                 l => l.codigoInterno === codigoInterno
             );
 
+            // === Llenamos el combo de bultos específicos ===
             bultosDelConjunto.forEach(b => {
                 const opt = document.createElement('option');
                 opt.value = b.id;
                 opt.textContent = `Bulto: ${b.nroBulto} - Disponible: ${b.cantidadActual} ${b.unidadMedida}`;
+
+                // Guardamos info útil en atributos del <option>
                 opt.setAttribute('data-cantidad-bulto', b.cantidadActual);
                 opt.setAttribute('data-unidad-bulto', b.unidadMedida);
                 opt.setAttribute('data-nro-analisis', b.currentAnalisis?.nroAnalisis || '');
@@ -169,8 +180,11 @@
             });
         });
 
+        // === Cambio en el combo de bulto específico ===
         nroBultoMuestreoSelect.addEventListener('change', function () {
             const selectedBulto = nroBultoMuestreoSelect.options[nroBultoMuestreoSelect.selectedIndex];
+
+            // Si no se seleccionó nada, limpiamos todo
             if (!selectedBulto || !selectedBulto.value) {
                 cantidadRef.value = '';
                 unidadRef.value = '';
@@ -180,24 +194,27 @@
                 return;
             }
 
+            // === Mostramos cantidad y unidad en campos deshabilitados ===
             cantidadRef.value = selectedBulto.getAttribute('data-cantidad-bulto') || '';
             unidadRef.value = selectedBulto.getAttribute('data-unidad-bulto') || '';
 
-            // Nuevo: completar nroAnalisis
+            // === Completamos automáticamente el N° de Análisis si lo hay ===
             const nroAnalisis = selectedBulto.getAttribute('data-nro-analisis');
             if (nroAnalisis) {
                 nroAnalisisInput.value = nroAnalisis;
                 nroAnalisisInput.readOnly = true;
-                nroReAnalisisGroup.style.display = 'block';
+                nroReAnalisisGroup.style.display = 'block'; // habilitamos reanálisis si ya hay uno
             } else {
                 nroAnalisisInput.value = '';
                 nroAnalisisInput.readOnly = false;
                 nroReAnalisisGroup.style.display = 'none';
             }
 
+            // === Cargamos subunidades compatibles con la unidad base ===
             cargarSubunidades(unidadRef.value);
         });
 
+        // === Carga dinámica de subunidades según unidad base ===
         function cargarSubunidades(unidadBase) {
             if (!unidadBase) return;
 
@@ -209,6 +226,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
+                    // Reiniciamos el combo y lo llenamos con las subunidades
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
                     data.forEach(u => {
                         const option = document.createElement('option');
@@ -223,10 +241,12 @@
                 });
         }
 
+        // === Si ya hay un lote seleccionado al cargar la página, forzamos el cambio ===
         if (loteMuestreoSelect.selectedIndex > 0) {
             loteMuestreoSelect.dispatchEvent(new Event('change'));
         }
 
+        // === Si hay un campo con error de validación, enfocamos automáticamente ===
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });

@@ -2,6 +2,7 @@ package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -99,6 +100,7 @@ public class MuestreoController {
             return "movimientos/muestreo-lote";
         }
 
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
         final Optional<Lote> newLote = loteService.persistirMuestreo(dto, lote);
 
         if (newLote.isEmpty()) {

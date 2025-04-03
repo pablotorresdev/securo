@@ -2,6 +2,7 @@ package com.mb.conitrack.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -47,6 +48,8 @@ public class MovimientoDTO {
         dto.setDictamenFinal(entity.getDictamenFinal());
         return dto;
     }
+
+    private LocalDateTime fechaYHoraCreacion;
 
     @NotNull(message = "La fecha del movimiento es obligatoria")
     private LocalDate fechaMovimiento;

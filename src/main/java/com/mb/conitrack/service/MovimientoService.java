@@ -3,6 +3,7 @@ package com.mb.conitrack.service;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,9 +53,17 @@ public class MovimientoService {
     }
 
     //***********CU1 ALTA: COMPRA***********
-    public static Movimiento createMovimientoAltaIngresoCompra(final Lote lote) {
+    @Transactional
+    public Movimiento persistirMovimientoAltaIngresoCompra(Lote lote) {
+        final Movimiento movimientoAltaIngresoCompra = createMovimientoAltaIngresoCompra(lote);
+        movimientoAltaIngresoCompra.setLote(lote);
+        return movimientoRepository.save(movimientoAltaIngresoCompra);
+    }
+
+    private Movimiento createMovimientoAltaIngresoCompra(final Lote lote) {
         Movimiento movimiento = new Movimiento();
         movimiento.setFecha(LocalDate.now());
+        movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
         movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
         movimiento.setMotivo(MotivoEnum.COMPRA);
         movimiento.setCantidad(lote.getCantidadInicial());
@@ -83,6 +92,7 @@ public class MovimientoService {
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(MUESTREO);
 
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setLote(lote);
         movimiento.setCantidad(dto.getCantidad());
@@ -95,20 +105,42 @@ public class MovimientoService {
 
     @Transactional
     public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Lote lote) {
+
         final List<Analisis> analisisList = lote.getAnalisisList();
-        if(analisisList.isEmpty()){
+        if (analisisList.isEmpty()) {
             final Analisis analisis = Analisis.createAnalisis(dto, lote);
             final Analisis newAnalisis = analisisService.save(analisis);
             final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
             movimientoPorMuestreo.setNroAnalisis(newAnalisis.getNroAnalisis());
             return movimientoRepository.save(movimientoPorMuestreo);
-        } else if(analisisList.size()==1) {
-            final Analisis analisis = analisisList.get(0);
-            final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
-            movimientoPorMuestreo.setNroAnalisis(analisis.getNroAnalisis());
-            return movimientoRepository.save(movimientoPorMuestreo);
         } else {
-            throw new IllegalArgumentException("El lote tiene más de un análisis");
+            final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
+            if (analisisEnCurso.isPresent()) {
+                final Analisis analisis = analisisEnCurso.get();
+                if(dto.getNroAnalisis().equals(analisis.getNroAnalisis())) {
+                    final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
+                    movimientoPorMuestreo.setNroAnalisis(analisis.getNroAnalisis());
+                    return movimientoRepository.save(movimientoPorMuestreo);
+                } else {
+                    throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
+                }
+            } else {
+                throw new IllegalArgumentException("El lote tiene más de un análisis");
+            }
+        }
+    }
+
+    private Optional<Analisis> getAnalisisEnCurso(final List<Analisis> analisisList) {
+        List<Analisis> enCurso = analisisList.stream()
+            .filter(analisis -> analisis.getDictamen() == null)
+            .filter(analisis -> analisis.getFechaAnalisis() == null)
+            .toList();
+        if (enCurso.isEmpty()) {
+            return Optional.empty();
+        } else if (enCurso.size() == 1) {
+            return Optional.of(enCurso.get(0));
+        } else {
+            throw new IllegalArgumentException("El lote tiene más de un análisis en curso");
         }
     }
 
@@ -123,26 +155,28 @@ public class MovimientoService {
         return movimientoRepository.save(movimiento);
     }
 
-    @Transactional
-    public Movimiento persistirMovimientoCuarentenaPorAnalisis(final MovimientoDTO dto, Lote lote) {
-        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
-
-        movimiento.setDictamenInicial(lote.getDictamen());
-        movimiento.setMotivo(ANALISIS);
-        movimiento.setDictamenFinal(CUARENTENA);
-
-        return movimientoRepository.save(movimiento);
-    }
-
     private static Movimiento createMovimientoCambioDictamen(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
 
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setLote(lote);
         movimiento.setDescripcion(dto.getObservaciones());
         movimiento.setActivo(true);
         return movimiento;
+    }
+
+    @Transactional
+    public Movimiento persistirMovimientoCuarentenaPorAnalisis(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
+        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
+
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setNroAnalisis(nroAnalisis);
+        movimiento.setMotivo(ANALISIS);
+        movimiento.setDictamenFinal(CUARENTENA);
+
+        return movimientoRepository.save(movimiento);
     }
 
     //***********CU4 BAJA: DEVOLUCION COMPRA***********
@@ -157,10 +191,12 @@ public class MovimientoService {
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(DEVOLUCION_COMPRA);
 
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setLote(lote);
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         movimiento.setCantidad(lote.getCantidadActual());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
+
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setLote(lote);
         movimiento.setDescripcion(dto.getObservaciones());
         movimiento.setActivo(true);
         return movimiento;

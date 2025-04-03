@@ -38,30 +38,33 @@
                 <option th:each="lote : ${lotesForCuarentena}"
                         th:if="${lote.nroBulto} == 1"
                         th:value="${lote.id}"
-                        th:text="'Codigo Interno: ' + ${lote.codigoInterno}
-                                 + ' | Proveedor: ' + ${lote.proveedor.razonSocial}
-                                 + ' | Producto: ' + ${lote.producto.nombreGenerico}
-                                 + ' | Dictamen: ' + ${lote.dictamen}">
+                        th:text="'Producto: ' + ${lote.producto.nombreGenerico}
+                         + ' | Dictamen: ' + ${lote.dictamen.valor}
+                         + ' | Codigo Interno: ' + ${lote.codigoInterno}
+                         + ' | Proveedor: ' + ${lote.proveedor.razonSocial}"
+                        th:data-dictamen="${lote.dictamen.valor}"
+                        th:data-nroanalisis="${lote.getCurrentAnalisis()?.nroAnalisis}">
                 </option>
             </select>
-            <div th:if="${#fields.hasErrors('loteId')}" class="text-danger"
-                 th:errors="*{loteId}"></div>
         </div>
 
-        <!-- Ingreso de N° de Análisis o ReAnálisis (requerido) -->
-        <div class="mb-3">
-            <label for="nroAnalisis" class="form-label">Número de Análisis / Reanálisis:</label>
+        <!-- Campo editable solo si dictamen = Recibido -->
+        <div class="mb-3" id="grupoNroAnalisisEditable">
+            <label for="nroAnalisis" class="form-label">Número de Análisis:</label>
             <input type="text" id="nroAnalisis"
                    th:field="*{nroAnalisis}"
                    class="form-control"
-                   placeholder="Ejem: 1234" required>
-            <div th:if="${#fields.hasErrors('nroAnalisis')}" class="text-danger fw-bold"
-                 th:errors="*{nroAnalisis}"></div>
+                   placeholder="Ej: 1234">
         </div>
 
-        <!-- (Opcional) nroReAnalisis -->
-        <div class="mb-3">
-            <label for="nroReAnalisis" class="form-label">Número de ReAnálisis (opcional):</label>
+        <!-- Campo de solo lectura + campo de ReAnálisis -->
+        <div class="mb-3" id="grupoNroAnalisisSoloLectura" style="display: none;">
+            <label class="form-label">Número de Análisis Actual:</label>
+            <input type="text" id="nroAnalisisReadonly" class="form-control" readonly>
+        </div>
+
+        <div class="mb-3" id="grupoNroReAnalisis" style="display: none;">
+            <label for="nroReAnalisis" class="form-label">Número de ReAnálisis:</label>
             <input type="text" id="nroReAnalisis"
                    th:field="*{nroReAnalisis}"
                    class="form-control"
@@ -88,5 +91,50 @@
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const loteSelect = document.getElementById('loteId');
+        const grupoEditable = document.getElementById('grupoNroAnalisisEditable');
+        const grupoReadonly = document.getElementById('grupoNroAnalisisSoloLectura');
+        const grupoReAnalisis = document.getElementById('grupoNroReAnalisis');
+        const nroAnalisisReadonlyInput = document.getElementById('nroAnalisisReadonly');
+        const nroAnalisisInput = document.getElementById('nroAnalisis');
+        const nroReAnalisisInput = document.getElementById('nroReAnalisis');
+
+        function actualizarVisibilidadCampos() {
+            const selectedOption = loteSelect.options[loteSelect.selectedIndex];
+            const dictamen = selectedOption.getAttribute('data-dictamen');
+            const nroAnalisis = selectedOption.getAttribute('data-nroanalisis');
+
+            if (!dictamen) {
+                grupoEditable.style.display = 'none';
+                grupoReadonly.style.display = 'none';
+                grupoReAnalisis.style.display = 'none';
+                nroAnalisisInput.required = false;
+                nroReAnalisisInput.required = false;
+                return;
+            }
+
+            if (dictamen.trim().toLowerCase() === 'recibido') {
+                grupoEditable.style.display = 'block';
+                grupoReadonly.style.display = 'none';
+                grupoReAnalisis.style.display = 'none';
+                nroAnalisisInput.required = true;
+                nroReAnalisisInput.required = false;
+            } else {
+                grupoEditable.style.display = 'none';
+                grupoReadonly.style.display = 'block';
+                grupoReAnalisis.style.display = 'block';
+                nroAnalisisReadonlyInput.value = nroAnalisis || '';
+                nroAnalisisInput.required = false;
+                nroReAnalisisInput.required = true;
+            }
+        }
+
+        loteSelect.addEventListener('change', actualizarVisibilidadCampos);
+        actualizarVisibilidadCampos(); // Ejecutar al cargar
+    });
+</script>
+
 </body>
 </html>

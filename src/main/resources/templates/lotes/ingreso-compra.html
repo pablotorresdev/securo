@@ -131,40 +131,54 @@
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
 <script th:inline="javascript">
+    // Ejecutar cuando el DOM esté completamente cargado
     document.addEventListener('DOMContentLoaded', function () {
-       const unidadSelect = document.getElementById('unidadMedida');
+
+        // === Elementos clave del formulario ===
+        const unidadSelect = document.getElementById('unidadMedida'); // Combo de unidad de medida
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
 
+        // === Función que carga las unidades compatibles desde el backend ===
+        // Se invoca al cargar la página y al cambiar el producto
         function cargarUnidadesCompatibles(unidadBase) {
-            if (!unidadBase) return;
+            if (!unidadBase) return; // Si no hay unidad base, no hacemos nada
+
+            // Llamada fetch al backend para obtener las unidades compatibles con la base
             fetch('/enums/unidades-compatibles?unidad=' + unidadBase, {
                 method: 'GET',
                 headers: {
                     [csrfHeader]: csrfToken
                 }
             })
-                .then(response => response.json())
+                .then(response => response.json()) // Parseamos la respuesta JSON
                 .then(data => {
+                    // Reiniciamos el combo
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
+
+                    // Insertamos cada unidad como opción
                     data.forEach(unidad => {
                         const option = document.createElement('option');
                         option.value = unidad;
                         option.textContent = unidad;
+
+                        // Seleccionamos por defecto la unidad base
                         if (unidad === unidadBase) option.selected = true;
                         unidadSelect.appendChild(option);
                     });
                 })
                 .catch(error => {
-                    console.error("Error al cargar unidades:", error);
+                    console.error("Error al cargar unidades:", error); // Manejamos errores en consola
                 });
         }
 
-        // Al cargar la página
+        // === Carga inicial de unidades ===
+        // Usamos la unidad actual del lote como base (inyectada desde el backend)
         const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
         cargarUnidadesCompatibles(unidadActual);
 
-        // Al cambiar el producto
+        // === Al cambiar el producto seleccionado ===
+        // Se extrae la unidad base del <option> seleccionado y se recarga el combo de unidades
         const productoSelect = document.getElementById('productoId');
         productoSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
@@ -172,7 +186,7 @@
             cargarUnidadesCompatibles(unidadBase);
         });
 
-        // Enfocar en primer error si hay
+        // === Enfocar automáticamente en el primer campo con error si lo hay ===
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });

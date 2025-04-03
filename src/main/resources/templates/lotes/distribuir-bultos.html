@@ -82,28 +82,38 @@
 </div>
 
 <script th:inline="javascript">
+    // Ejecutar el script solo cuando el DOM esté completamente cargado
     document.addEventListener('DOMContentLoaded', function () {
+
+        // === Obtenemos la cantidad total de bultos (inyectado desde Thymeleaf) ===
         const totalBultos = /*[[${loteDTO.bultosTotales}]]*/ 0;
 
+        // === Recorremos todos los bultos dinámicos para aplicar lógica individual ===
         for (let i = 1; i <= totalBultos; i++) {
+            // Input de cantidad y select de unidad para el bulto i
             const inputCantidad = document.getElementById('cantidadBulto' + i);
             const selectUnidad = document.getElementById('unidadSelect' + i);
 
+            // === Función que ajusta el paso (step) y mínimo del input según unidad ===
             function ajustarStepParaUnidad(select, input) {
                 const unidadSeleccionada = select.value;
+
+                // Si la unidad es "UNIDAD" → solo se permiten cantidades enteras
                 if (unidadSeleccionada === 'UNIDAD') {
                     input.setAttribute('step', '1');
                     input.setAttribute('min', '1');
-                } else {
+                }
+                // Para unidades de peso o volumen → se permiten decimales
+                else {
                     input.setAttribute('step', '0.01');
                     input.setAttribute('min', '0.01');
                 }
             }
 
-            // Ajustar en carga inicial
+            // === Aplicamos la lógica apenas se carga la página para cada bulto ===
             ajustarStepParaUnidad(selectUnidad, inputCantidad);
 
-            // Ajustar cuando cambia el select
+            // === Reaplicamos la lógica cada vez que cambia la unidad del bulto ===
             selectUnidad.addEventListener('change', function () {
                 ajustarStepParaUnidad(selectUnidad, inputCantidad);
             });

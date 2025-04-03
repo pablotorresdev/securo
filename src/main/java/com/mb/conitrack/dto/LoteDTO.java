@@ -2,6 +2,7 @@ package com.mb.conitrack.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class LoteDTO {
                 dto.setProveedorId(entity.getProveedor() != null ? entity.getProveedor().getId() : null);
                 dto.setNombreProveedor(entity.getProveedor() != null ? entity.getProveedor().getRazonSocial() : null);
                 dto.setFechaIngreso(entity.getFechaIngreso());
+                dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
                 dto.setBultosTotales(entity.getBultosTotales());
 
                 //Del 1ero solo para que no falle por null validation
@@ -93,6 +95,8 @@ public class LoteDTO {
 
     @NotNull(message = "El ID del producto es obligatorio")
     private Long productoId;
+
+    private LocalDateTime fechaYHoraCreacion;
 
     private String nombreProducto;
 

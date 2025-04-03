@@ -2,7 +2,9 @@ package com.mb.conitrack.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
@@ -45,6 +47,9 @@ public class Lote {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaYHoraCreacion;
 
     @Column(name = "codigo_interno", length = 50, nullable = false)
     private String codigoInterno;
@@ -136,7 +141,7 @@ public class Lote {
             return this.analisisList.get(0);
         } else {
             return this.analisisList.stream()
-                .filter(Analisis::getActivo).max((a1, a2) -> a2.getFechaAnalisis().compareTo(a1.getFechaAnalisis()))
+                .filter(Analisis::getActivo).max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
                 .orElse(null);
         }
     }

@@ -1,9 +1,9 @@
 package com.mb.conitrack.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.mb.conitrack.entity.Analisis;
-import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
 
 import jakarta.validation.constraints.NotNull;
@@ -16,21 +16,21 @@ public class AnalisisDTO {
         if (entity == null) {
             return null;
         }
-
         AnalisisDTO dto = new AnalisisDTO();
-
-        // 1) Fechas
         dto.setFechaAnalisis(entity.getFechaAnalisis());
+        dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
         dto.setNroAnalisis(entity.getNroAnalisis());
         dto.setDictamen(entity.getDictamen());
         return dto;
     }
 
-    private LocalDate fechaAnalisis;
-
     @NotNull
     private String nroAnalisis;
 
+    private LocalDate fechaAnalisis;
+
     private DictamenEnum dictamen;
+
+    private LocalDateTime fechaYHoraCreacion;
 
 }

@@ -1,6 +1,7 @@
 package com.mb.conitrack.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,8 @@ public class DictamenController {
     @GetMapping("/cuarentena")
     public String showCuarentenaForm(
         @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
+
+        //TODO: implementar el filtro correcto en base a Dictamen y Analisis (Fecha, Dictamen)
         List<Lote> lotesForCuarentena = loteService.findAllForCuarentena();
         model.addAttribute("lotesForCuarentena", lotesForCuarentena);
         return "dictamen/cuarentena";
@@ -80,6 +83,7 @@ public class DictamenController {
             return "dictamen/cuarentena";
         }
 
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.persistirDictamenCuarentena(lotesList, dto);
 
         redirectAttributes.addFlashAttribute("loteDTO", LoteDTO.fromEntities(lotes));

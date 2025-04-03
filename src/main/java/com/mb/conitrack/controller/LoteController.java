@@ -3,6 +3,7 @@ package com.mb.conitrack.controller;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,6 +102,7 @@ public class LoteController {
         }
 
         dto.setNroBulto(1);
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
         redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.fromEntities(lotes));
         closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de 1 bulto exitoso.");
@@ -190,6 +192,7 @@ public class LoteController {
             return "lotes/distribuir-bultos";
         }
 
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
         redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.fromEntities(lotes));
         closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de " + lotes.size() + " bultos exitoso.");

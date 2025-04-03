@@ -79,11 +79,11 @@ CREATE TABLE configuracion
 );
 
 
-
 --TABLAS DATOS OPERATIVOS--
 CREATE TABLE lotes
 (
     id                   SERIAL PRIMARY KEY,
+    fecha_creacion       TIMESTAMP      NOT NULL,
     codigo_interno       VARCHAR(50)    NOT NULL,
     producto_id          INT            NOT NULL,
     proveedor_id         INT            NOT NULL,
@@ -120,10 +120,11 @@ CREATE TABLE lotes
 CREATE TABLE movimientos
 (
     id                   SERIAL PRIMARY KEY,
-    fecha                DATE    NOT NULL,
-    tipo_movimiento      TEXT    NOT NULL,
-    motivo               TEXT    NOT NULL,
-    lote_id              INT     NOT NULL,
+    fecha_creacion       TIMESTAMP NOT NULL,
+    fecha                DATE      NOT NULL,
+    tipo_movimiento      TEXT      NOT NULL,
+    motivo               TEXT      NOT NULL,
+    lote_id              INT       NOT NULL,
     descripcion          TEXT,
     cantidad             NUMERIC(12, 4),
     unidad_medida        TEXT,
@@ -132,7 +133,7 @@ CREATE TABLE movimientos
     dictamen_inicial     TEXT,
     dictamen_final       TEXT,
     movimiento_origen_id INT,
-    activo               BOOLEAN NOT NULL DEFAULT TRUE,
+    activo               BOOLEAN   NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_lote_id
         FOREIGN KEY (lote_id) REFERENCES lotes (id),
     CONSTRAINT fk_movimiento_origen
@@ -143,6 +144,7 @@ CREATE TABLE movimientos
 CREATE TABLE analisis
 (
     id             SERIAL PRIMARY KEY,
+    fecha_creacion TIMESTAMP   NOT NULL,
     fecha_analisis DATE,
     nro_analisis   VARCHAR(50) NOT NULL,
     dictamen       TEXT,

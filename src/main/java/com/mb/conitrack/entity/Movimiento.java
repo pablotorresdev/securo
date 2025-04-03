@@ -2,6 +2,7 @@ package com.mb.conitrack.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
@@ -48,6 +49,10 @@ public class Movimiento {
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
     private Lote lote;
+
+    //TODO: unificar con fecha de movimiento
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaYHoraCreacion;
 
     @Column(nullable = false)
     private LocalDate fecha;

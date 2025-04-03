@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
@@ -82,6 +83,7 @@ public class LoteService {
             .filter(l -> EnumSet.of(
                 DictamenEnum.RECIBIDO,
                 DictamenEnum.APROBADO,
+                DictamenEnum.CUARENTENA,
                 DictamenEnum.LIBERADO,
                 DictamenEnum.DEVOLUCION_CLIENTES,
                 DictamenEnum.RETIRO_MERCADO
@@ -125,8 +127,9 @@ public class LoteService {
         Producto producto = productoRepository.findById(dto.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
         int bultosTotales = Math.max(dto.getBultosTotales(), 1);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm");
-        String timestamp = LocalDateTime.now().format(formatter);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH");
+        String timestamp = dto.getFechaYHoraCreacion().format(formatter);
 
         for (int i = 0; i < bultosTotales; i++) {
             Lote lote = createLoteIngreso(dto);
@@ -147,12 +150,8 @@ public class LoteService {
             lote.setNroBulto(i + 1);
 
             Lote loteGuardado = loteRepository.save(lote);
-
-            final Movimiento movimientoAltaIngresoCompra = movimientoService.createMovimientoAltaIngresoCompra(loteGuardado);
-            movimientoAltaIngresoCompra.setLote(loteGuardado);
-            movimientoService.save(movimientoAltaIngresoCompra);
-            loteGuardado.getMovimientos().add(movimientoAltaIngresoCompra);
-
+            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(loteGuardado);
+            loteGuardado.getMovimientos().add(movimiento);
             result.add(loteGuardado);
         }
         return result;
@@ -170,6 +169,7 @@ public class LoteService {
         lote.setBultosTotales(dto.getBultosTotales());
         lote.setFechaIngreso(dto.getFechaIngreso());
         lote.setLoteProveedor(dto.getLoteProveedor());
+        lote.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
 
         //Datos opcionales comunes
         lote.setNroRemito(dto.getNroRemito());
@@ -188,7 +188,7 @@ public class LoteService {
         final Analisis analisis = Analisis.createAnalisis(dto);
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : lotes) {
-            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(dto, loteBulto);
+            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(dto, loteBulto, analisis.getNroAnalisis());
 
             loteBulto.setDictamen(movimiento.getDictamenFinal());
             loteBulto.getMovimientos().add(movimiento);
@@ -208,7 +208,7 @@ public class LoteService {
 
         //Si el producto esta en estado Recibido debo crear un Analisis y persistir Analisis, Movimiento y Lote
         //Si tengo un numero de reanalisis, es que necesito crear un nuevo analisis para el producto
-        if (DictamenEnum.RECIBIDO.equals(lote.getDictamen()) || dto.getNroReAnalisis() != null) {
+        if (DictamenEnum.RECIBIDO.equals(lote.getDictamen()) || !StringUtils.isEmpty(dto.getNroReAnalisis())) {
 
             final boolean esNuevoAnalisis = lote.getAnalisisList().stream()
                 .noneMatch(a -> a.getNroAnalisis().equalsIgnoreCase(dto.getNroAnalisis()));
@@ -221,10 +221,6 @@ public class LoteService {
 
             final List<Lote> allBultosById = loteRepository.findAllByCodigoInternoAndActivoTrue(lote.getCodigoInterno());
             for (Lote loteBulto : allBultosById) {
-
-                if (!loteBulto.getAnalisisList().isEmpty()) {
-                    throw new IllegalStateException("El lote " + loteBulto.getId() + "  ya tiene un análisis asociado.");
-                }
 
                 final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorMuestreo(dto, loteBulto);
                 loteBulto.setDictamen(movimiento.getDictamenFinal());

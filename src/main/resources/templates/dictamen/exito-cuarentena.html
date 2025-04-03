@@ -65,17 +65,16 @@
                 <th>Observaciones:</th>
                 <td th:text="${loteDTO.observaciones}"></td>
             </tr>
+            <tr>
+                <th>Cantidades por Bulto:</th>
+                <td>
+                    <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
+                          th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
+                    </span>
+                </td>
+            </tr>
             </tbody>
         </table>
-
-        <!-- Si hay más de 1 bulto, se podrían mostrar en 'cantidadesBultos' -->
-        <div class="mb-3" th:if="${loteDTO.cantidadesBultos.size() > 1}">
-            <h5>Distribución de bultos:</h5>
-            <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                  th:text="'Bulto ' + (iterStat.index+1) + ': ' + cant
-                           + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ') '">
-            </span>
-        </div>
 
         <!-- Movimientos del LoteDTO tras la cuarentena -->
         <div th:if="${loteDTO.movimientoDTOs != null
@@ -85,7 +84,7 @@
                 <thead>
                 <tr>
                     <th>Fecha</th>
-                    <th>Lote ID</th>
+                    <th>Nro de Bulto</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
                     <th>Tipo Movimiento</th>
@@ -99,7 +98,7 @@
                 <tbody>
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.loteId}"></td>
+                    <td th:text="${mov.nroBulto}"></td>
                     <td th:text="${mov.cantidad}"></td>
                     <td th:text="${mov.unidadMedida}"></td>
                     <td th:text="${mov.tipoMovimiento}"></td>

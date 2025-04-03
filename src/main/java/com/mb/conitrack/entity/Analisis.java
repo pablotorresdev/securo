@@ -1,10 +1,12 @@
 package com.mb.conitrack.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
+import org.thymeleaf.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mb.conitrack.dto.MovimientoDTO;
@@ -30,12 +32,33 @@ import lombok.ToString;
 @Entity
 @Table(name = "analisis")
 @SQLDelete(sql = "UPDATE analisis SET activo = false WHERE id = ?")
-@ToString(exclude = {"lotes"})
+@ToString(exclude = { "lotes" })
 public class Analisis {
+
+    public static Analisis createAnalisis(final MovimientoDTO dto, final Lote lote) {
+        return createAnalisis(dto);
+    }
+
+    public static Analisis createAnalisis(final MovimientoDTO dto) {
+        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReAnalisis()) ? dto.getNroAnalisis() : dto.getNroReAnalisis();
+        if (nroAnalisis != null) {
+            Analisis analisis = new Analisis();
+            analisis.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+            analisis.setFechaAnalisis(dto.getFechaAnalisis());
+            analisis.setNroAnalisis(nroAnalisis);
+            analisis.setObservaciones(dto.getObservaciones());
+            analisis.setActivo(true);
+            return analisis;
+        }
+        throw new IllegalArgumentException("El número de análisis es requerido");
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaYHoraCreacion;
 
     @ManyToMany(mappedBy = "analisisList")
     @JsonBackReference
@@ -55,21 +78,4 @@ public class Analisis {
     @Column(nullable = false)
     private Boolean activo;
 
-
-    public static Analisis createAnalisis(final MovimientoDTO dto) {
-        final String nroAnalisis = dto.getNroReAnalisis() != null ? dto.getNroReAnalisis() : dto.getNroAnalisis();
-        if (nroAnalisis != null) {
-            Analisis analisis = new Analisis();
-            analisis.setFechaAnalisis(dto.getFechaAnalisis());
-            analisis.setNroAnalisis(nroAnalisis);
-            analisis.setObservaciones(dto.getObservaciones());
-            analisis.setActivo(true);
-            return analisis;
-        }
-        throw new IllegalArgumentException("El número de análisis es requerido");
-    }
-
-    public static Analisis createAnalisis(final MovimientoDTO dto, final Lote lote) {
-        return createAnalisis(dto);
-    }
 }
