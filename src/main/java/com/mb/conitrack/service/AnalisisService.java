@@ -1,5 +1,8 @@
 package com.mb.conitrack.service;
 
+import java.util.Comparator;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +17,14 @@ public class AnalisisService {
 
     public Analisis save(Analisis analisis) {
         return analisisRepository.save(analisis);
+    }
+
+    public List<Analisis> findAll() {
+        List<Analisis> analisis = analisisRepository.findAll();
+        analisis.sort(Comparator
+            .comparing(Analisis::getFechaAnalisis,
+                Comparator.nullsLast(Comparator.reverseOrder())));
+        return analisis;
     }
 
 }

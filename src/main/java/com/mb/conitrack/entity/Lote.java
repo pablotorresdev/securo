@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoLoteEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
@@ -24,9 +24,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -103,11 +106,8 @@ public class Lote {
     @Column(name = "fecha_vencimiento")
     private LocalDate fechaVencimiento;
 
-    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
-    @JsonManagedReference
-    private List<Analisis> analisis = new ArrayList<>();
-
     @Column(name = "titulo", precision = 12, scale = 4)
+    @Max(value = 100, message = "El título no puede superar el 100%")
     private BigDecimal titulo;
 
     @Column(columnDefinition = "TEXT")
@@ -117,7 +117,28 @@ public class Lote {
     @JsonManagedReference
     private List<Movimiento> movimientos = new ArrayList<>();
 
+    @ManyToMany
+    @JoinTable(
+        name = "lote_analisis",
+        joinColumns = @JoinColumn(name = "lote_id"),
+        inverseJoinColumns = @JoinColumn(name = "analisis_id")
+    )
+    @JsonBackReference
+    private List<Analisis> analisisList = new ArrayList<>();
+
     @Column(nullable = false)
     private Boolean activo;
+
+    public Analisis getCurrentAnalisis() {
+        if (this.analisisList.isEmpty()) {
+            return null;
+        } else if (this.analisisList.size() == 1) {
+            return this.analisisList.get(0);
+        } else {
+            return this.analisisList.stream()
+                .filter(Analisis::getActivo).max((a1, a2) -> a2.getFechaAnalisis().compareTo(a1.getFechaAnalisis()))
+                .orElse(null);
+        }
+    }
 
 }

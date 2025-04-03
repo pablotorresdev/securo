@@ -2,48 +2,42 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Ingreso por Compra - Éxito</title>
+    <title>Devolución de Compra - Confirmación</title>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="mb-4">Ingreso por Compra - Confirmación</h2>
+    <h2 class="mb-4">Devolución de Compra - Confirmación</h2>
 
-    <!-- Mensaje de éxito (si se pasó como Flash Attribute 'success') -->
+    <!-- Mensaje de éxito (flash attribute 'success') -->
     <div th:if="${success}"
          class="alert alert-success fw-bold mb-4"
          th:text="${success}">
     </div>
 
-    <!-- Si hay un loteDTO en el modelo, mostramos sus datos -->
+    <!-- Bloque que muestra 'loteDTO' si está en el modelo -->
     <div th:if="${loteDTO != null}">
-        <h4>Detalles del Lote ingresado</h4>
+        <h4>Detalles del Lote Devuelto</h4>
+
         <table class="table table-bordered table-sm">
             <tbody>
-            <!-- 1) Datos de Producto/Proveedor -->
+            <tr>
+                <th>Producto ID:</th>
+                <td th:text="${loteDTO.productoId}"></td>
+            </tr>
             <tr>
                 <th>Nombre Producto:</th>
                 <td th:text="${loteDTO.nombreProducto}"></td>
             </tr>
             <tr>
-                <th>Código Producto:</th>
-                <td th:text="${loteDTO.codigoProducto}"></td>
-            </tr>
-            <tr>
-                <th>Tipo Producto:</th>
-                <td th:text="${loteDTO.tipoProducto}"></td>
-            </tr>
-            <tr>
-                <th>Producto Destino:</th>
-                <td th:text="${loteDTO.productoDestino}"></td>
+                <th>Proveedor ID:</th>
+                <td th:text="${loteDTO.proveedorId}"></td>
             </tr>
             <tr>
                 <th>Nombre Proveedor:</th>
                 <td th:text="${loteDTO.nombreProveedor}"></td>
             </tr>
-
-            <!-- 2) Datos básicos del Lote -->
             <tr>
                 <th>Fecha Ingreso:</th>
                 <td th:text="${loteDTO.fechaIngreso}"></td>
@@ -53,11 +47,17 @@
                 <td th:text="${loteDTO.bultosTotales}"></td>
             </tr>
             <tr>
+                <th>Cantidad Inicial:</th>
+                <td th:text="${loteDTO.cantidadInicial}"></td>
+            </tr>
+            <tr>
+                <th>Unidad Medida:</th>
+                <td th:text="${loteDTO.unidadMedida}"></td>
+            </tr>
+            <tr>
                 <th>Lote Proveedor:</th>
                 <td th:text="${loteDTO.loteProveedor}"></td>
             </tr>
-
-            <!-- 3) Datos opcionales -->
             <tr>
                 <th>Nro Remito:</th>
                 <td th:text="${loteDTO.nroRemito}"></td>
@@ -67,6 +67,14 @@
                 <td th:text="${loteDTO.detalleConservacion}"></td>
             </tr>
             <tr>
+                <th>Fecha Vencimiento:</th>
+                <td th:text="${loteDTO.fechaVencimiento}"></td>
+            </tr>
+            <tr>
+                <th>Fecha Reanálisis:</th>
+                <td th:text="${loteDTO.fechaReanalisis}"></td>
+            </tr>
+            <tr>
                 <th>Título:</th>
                 <td th:text="${loteDTO.titulo}"></td>
             </tr>
@@ -74,44 +82,44 @@
                 <th>Observaciones:</th>
                 <td th:text="${loteDTO.observaciones}"></td>
             </tr>
-            <tr>
-                <th>Cantidades por Bulto:</th>
-                <td>
-                    <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                          th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
-                    </span>
-                </td>
-            </tr>
             </tbody>
         </table>
 
-        <!-- 5) Movimientos asociados (movimientoDTOs) -->
-        <div th:if="${loteDTO.movimientoDTOs != null
-                    and #lists.size(loteDTO.movimientoDTOs) > 0}">
-            <h4>Movimientos Asociados</h4>
+        <!-- Si hay más de 1 bulto, se pueden mostrar en 'cantidadesBultos' -->
+        <div class="mb-3" th:if="${loteDTO.cantidadesBultos.size() > 1}">
+            <h5>Distribución de bultos:</h5>
+            <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
+                  th:text="'Bulto ' + (iterStat.index+1) + ' = ' + cant
+                           + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ')  '">
+            </span>
+        </div>
+
+        <!-- Movimientos del LoteDTO tras la devolución -->
+        <div th:if="${loteDTO.movimientoDTOs != null and #lists.size(loteDTO.movimientoDTOs) > 0}">
+            <h4>Movimientos Registrados</h4>
             <table class="table table-striped table-sm">
                 <thead>
                 <tr>
-                    <th>Fecha Movimiento</th>
-                    <th>Nro Bulto</th>
+                    <th>Fecha Mov.</th>
+                    <th>LoteID</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
-                    <th>Descripción</th>
                     <th>Tipo Mov.</th>
                     <th>Motivo</th>
-                    <th>Dictamen</th>
+                    <th>Descripción</th>
+                    <th>Nro Análisis</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.nroBulto}"></td>
+                    <td th:text="${mov.loteId}"></td>
                     <td th:text="${mov.cantidad}"></td>
                     <td th:text="${mov.unidadMedida}"></td>
-                    <td th:text="${mov.descripcion}"></td>
                     <td th:text="${mov.tipoMovimiento}"></td>
                     <td th:text="${mov.motivo}"></td>
-                    <td th:text="${mov.dictamenFinal}"></td>
+                    <td th:text="${mov.descripcion}"></td>
+                    <td th:text="${mov.nroAnalisis}"></td>
                 </tr>
                 </tbody>
             </table>

@@ -90,28 +90,18 @@
             </div>
         </div>
 
-        <!-- Fecha del Analisis -->
-        <div class="mb-2">
-            <label for="fechaAnalisis" class="form-label">Fecha del Analisis:</label>
-            <input type="date" id="fechaAnalisis" name="fechaAnalisis"
-                   th:value="${movimientoDTO.fechaAnalisis}"
-                   class="form-control"
-                   th:classappend="${#fields.hasErrors('fechaAnalisis')} ? ' error-field' : ''"
-                   required>
-            <div th:if="${#fields.hasErrors('fechaAnalisis')}"
-                 class="text-danger fw-bold"
-                 th:errors="*{fechaAnalisis}">
-            </div>
-        </div>
-
         <!-- N° de Análisis -->
         <div class="mb-2">
             <label for="nroAnalisis" class="form-label">N° de Análisis:</label>
-            <input type="text" id="nroAnalisis" th:field="*{nroAnalisis}" maxlength="9" class="form-control">
+            <input type="text"
+                   id="nroAnalisis"
+                   th:field="*{nroAnalisis}"
+                   maxlength="9"
+                   class="form-control">
         </div>
 
-        <!-- N° de Análisis -->
-        <div class="mb-2">
+        <!-- N° de ReAnálisis: solo se muestra si nroAnalisis tiene valor -->
+        <div class="mb-2" id="reAnalisisGroup" style="display: none;">
             <label for="nroReAnalisis" class="form-label">N° de ReAnálisis:</label>
             <input type="text" id="nroReAnalisis" th:field="*{nroReAnalisis}" maxlength="9" class="form-control">
         </div>
@@ -137,83 +127,77 @@
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
-        // Primer combo (representante)
         const loteMuestreoSelect     = document.getElementById('loteMuestreo');
-        // Segundo combo (bultos concretos)
         const nroBultoMuestreoSelect = document.getElementById('nroBultoMuestreo');
+        const cantidadRef            = document.getElementById('refCantBulto');
+        const unidadRef              = document.getElementById('refUniMedBulto');
+        const unidadSelect           = document.getElementById('uniMedBultoElegido');
 
-        // Campos sólo lectura (mostrar cantidad/unidad del bulto)
-        const cantidadRef = document.getElementById('refCantBulto');
-        const unidadRef   = document.getElementById('refUniMedBulto');
+        // Nuevos campos: nroAnalisis y nroReAnalisis
+        const nroAnalisisInput       = document.getElementById('nroAnalisis');
+        const nroReAnalisisGroup     = document.getElementById('reAnalisisGroup');
 
-        // Campos de “Unidad de Medida” para el muestreo
-        const unidadSelect = document.getElementById('uniMedBultoElegido');
-
-        // 1) Tomamos TODOS los lotes muestreables en una variable JS
         let lotesMuestreablesAll = /*[[${lotesMuestreables}]]*/ [];
 
-        // 2) Al cambiar el “Lote representativo” (primer combo)
         loteMuestreoSelect.addEventListener('change', function () {
-            // Limpiamos el segundo combo y los campos
             nroBultoMuestreoSelect.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
             cantidadRef.value = '';
             unidadRef.value = '';
+            nroAnalisisInput.value = '';
+            nroAnalisisInput.readOnly = false;
+            nroReAnalisisGroup.style.display = 'none';
 
-            // Verificamos si se seleccionó algo
             const selectedRep = loteMuestreoSelect.options[loteMuestreoSelect.selectedIndex];
             if (!selectedRep || !selectedRep.value) {
                 return;
             }
 
-            // Obtenemos el codigoInterno para filtrar
             const codigoInterno = selectedRep.getAttribute('data-codigo-interno');
-
-            // Filtramos de la lista total todos los bultos con ese codigoInterno
             const bultosDelConjunto = lotesMuestreablesAll.filter(
                 l => l.codigoInterno === codigoInterno
             );
 
-            // Llenamos el segundo combo
             bultosDelConjunto.forEach(b => {
                 const opt = document.createElement('option');
-                // Usamos b.id como value (para post), o b.nroBulto si prefieres
                 opt.value = b.id;
-
-                // Mostramos “Bulto X - Cantidad Y Unidad”
                 opt.textContent = `Bulto: ${b.nroBulto} - Disponible: ${b.cantidadActual} ${b.unidadMedida}`;
-
-                // Guardamos info en data-attributes
                 opt.setAttribute('data-cantidad-bulto', b.cantidadActual);
                 opt.setAttribute('data-unidad-bulto', b.unidadMedida);
+                opt.setAttribute('data-nro-analisis', b.currentAnalisis?.nroAnalisis || '');
 
                 nroBultoMuestreoSelect.appendChild(opt);
             });
         });
 
-        // 3) Al cambiar el bulto específico (segundo combo)
         nroBultoMuestreoSelect.addEventListener('change', function () {
-            // Obtenemos la opción seleccionada
             const selectedBulto = nroBultoMuestreoSelect.options[nroBultoMuestreoSelect.selectedIndex];
             if (!selectedBulto || !selectedBulto.value) {
                 cantidadRef.value = '';
                 unidadRef.value = '';
+                nroAnalisisInput.value = '';
+                nroAnalisisInput.readOnly = false;
+                nroReAnalisisGroup.style.display = 'none';
                 return;
             }
 
-            // Tomamos los data-attributes
-            const cantBultoEspecifico = selectedBulto.getAttribute('data-cantidad-bulto') || '';
-            const unidadBaseBultoEspecifico = selectedBulto.getAttribute('data-unidad-bulto') || '';
+            cantidadRef.value = selectedBulto.getAttribute('data-cantidad-bulto') || '';
+            unidadRef.value = selectedBulto.getAttribute('data-unidad-bulto') || '';
 
-            // Mostramos en los inputs deshabilitados
-            cantidadRef.value = cantBultoEspecifico;
-            unidadRef.value = unidadBaseBultoEspecifico;
+            // Nuevo: completar nroAnalisis
+            const nroAnalisis = selectedBulto.getAttribute('data-nro-analisis');
+            if (nroAnalisis) {
+                nroAnalisisInput.value = nroAnalisis;
+                nroAnalisisInput.readOnly = true;
+                nroReAnalisisGroup.style.display = 'block';
+            } else {
+                nroAnalisisInput.value = '';
+                nroAnalisisInput.readOnly = false;
+                nroReAnalisisGroup.style.display = 'none';
+            }
 
-            // Cargar subunidades en el combo “uniMedBultoElegido”
-            cargarSubunidades(unidadBaseBultoEspecifico);
+            cargarSubunidades(unidadRef.value);
         });
 
-
-        // 4) Función para cargar subunidades por fetch
         function cargarSubunidades(unidadBase) {
             if (!unidadBase) return;
 
@@ -225,15 +209,11 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    // Reiniciamos las opciones
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
-
-                    // Insertamos cada subunidad
                     data.forEach(u => {
                         const option = document.createElement('option');
                         option.value = u;
                         option.textContent = u;
-                        // Si coincide con la unidad base, lo dejamos seleccionado
                         if (u === unidadBase) option.selected = true;
                         unidadSelect.appendChild(option);
                     });
@@ -243,15 +223,14 @@
                 });
         }
 
-        // 5) Si la página carga con un Lote ya seleccionado, forzamos el “change”
         if (loteMuestreoSelect.selectedIndex > 0) {
             loteMuestreoSelect.dispatchEvent(new Event('change'));
         }
 
-        // 6) Si hubo un campo con error de validación, ponemos el foco
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });
 </script>
+
 </body>
 </html>

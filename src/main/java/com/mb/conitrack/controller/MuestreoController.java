@@ -2,8 +2,8 @@ package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,22 +24,16 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.MovimientoService;
-import com.mb.conitrack.service.ProductoService;
-import com.mb.conitrack.service.ProveedorService;
 
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
+/**
+ * CU3
+ */
 @Controller
 @RequestMapping("/muestreos")
 @SessionAttributes("loteDTO,movimientoDTO")
 public class MuestreoController {
-
-    @Autowired
-    private ProductoService productoService;
-
-    @Autowired
-    private ProveedorService proveedorService;
 
     @Autowired
     private LoteService loteService;
@@ -70,17 +64,17 @@ public class MuestreoController {
 
     //Salida del CU
     @GetMapping("/cancelar")
-    public String cancelarIngreso(SessionStatus sessionStatus) {
+    public String cancelar(SessionStatus sessionStatus) {
         sessionStatus.setComplete();
         return "redirect:/";
     }
 
-    //***************************** CU2 Ingreso por compra MultiBulto
+    //***************************** CU3 Muestreo
 
     @GetMapping("/muestreo-lote")
-    public String showRetiroMuestreoForm(
+    public String showMuestreoForm(
         @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
-        List<Lote> lotesMuestreables = loteService.findAllMuestreable();
+        List<Lote> lotesMuestreables = loteService.findAllForMuestreo();
         model.addAttribute("lotesMuestreables", lotesMuestreables);
         return "movimientos/muestreo-lote";
     }
@@ -89,7 +83,7 @@ public class MuestreoController {
     public String procesarMuestreo(
         @Valid @ModelAttribute MovimientoDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, SessionStatus sessionStatus) {
 
-        Lote lote = loteService.findById(dto.getLoteId());
+        Lote lote = loteService.findLoteBultoById(dto.getLoteId());
 
         if (!lote.getActivo()) {
             bindingResult.reject("loteId", "Lote bloqueado.");
@@ -98,7 +92,6 @@ public class MuestreoController {
 
         validarDictamenActual(bindingResult, lote);
         validarCantidadesMovimiento(dto, lote, bindingResult);
-        validarDatosObligatorios(dto, bindingResult);
         validarValidarNroAnalisis(dto, bindingResult);
 
         if (bindingResult.hasErrors()) {
@@ -106,18 +99,18 @@ public class MuestreoController {
             return "movimientos/muestreo-lote";
         }
 
-        // Realizar baja
-        movimientoService.persistirMuestreo(dto, lote);
+        final Optional<Lote> newLote = loteService.persistirMuestreo(dto, lote);
 
-        // Cambiar dictamen si corresponde
-        if (DictamenEnum.RECIBIDO.equals(lote.getDictamen())) {
-            final List<Lote> allBultosById = loteService.findAllByCodigoInternoAndActivoTrue(lote.getCodigoInterno());
-            persistirCuarentena(dto, allBultosById);
+        if (newLote.isEmpty()) {
+            bindingResult.reject("error", "Error al persistir el muestreo.");
+            return "movimientos/muestreo-lote";
         }
 
+        LoteDTO loteDTO = LoteDTO.fromEntities(List.of(newLote.get()));
+        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("success", "Muestreo registrado correctamente.");
         sessionStatus.setComplete();
-        return "redirect:/";
+        return "redirect:/muestreos/exito-muestreo";
     }
 
     private static void validarDictamenActual(final BindingResult bindingResult, final Lote lote) {
@@ -146,23 +139,18 @@ public class MuestreoController {
         }
     }
 
-    private static void validarDatosObligatorios(final MovimientoDTO dto, final BindingResult bindingResult) {
-        if (dto.getNroAnalisis() == null && dto.getNroReAnalisis() == null) {
-            bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
-        }
-    }
-
     private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (dto.getNroReAnalisis() == null && dto.getNroAnalisis() == null) {
             bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
         }
     }
 
-    @Transactional
-    void persistirCuarentena(final MovimientoDTO dto, final List<Lote> allBultosById) {
-        for (Lote lote : allBultosById) {
-            movimientoService.persistirCambioDictamenPorMuestreo(dto, lote);
-        }
+
+    @GetMapping("/exito-muestreo")
+    public String exitoMuestreo(
+        @ModelAttribute("loteDTO") LoteDTO loteDTO,
+        Model model) {
+        return "movimientos/exito-muestreo-lote";
     }
 
 }

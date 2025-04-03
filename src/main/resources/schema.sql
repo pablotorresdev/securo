@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS lote_analisis CASCADE;
 DROP TABLE IF EXISTS analisis CASCADE;
 DROP TABLE IF EXISTS movimientos CASCADE;
 
@@ -77,6 +78,8 @@ CREATE TABLE configuracion
     activo BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
+
+
 --TABLAS DATOS OPERATIVOS--
 CREATE TABLE lotes
 (
@@ -113,6 +116,7 @@ CREATE TABLE lotes
 --         FOREIGN KEY (nro_analisis_id) REFERENCES analisis (id)
 );
 
+
 CREATE TABLE movimientos
 (
     id                   SERIAL PRIMARY KEY,
@@ -135,15 +139,25 @@ CREATE TABLE movimientos
         FOREIGN KEY (movimiento_origen_id) REFERENCES movimientos (id)
 );
 
+
 CREATE TABLE analisis
 (
     id             SERIAL PRIMARY KEY,
-    lote_id        INT         NOT NULL,
-    fecha_analisis DATE        NOT NULL,
+    fecha_analisis DATE,
     nro_analisis   VARCHAR(50) NOT NULL,
     dictamen       TEXT,
     observaciones  TEXT,
-    activo         BOOLEAN     NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_lote_analisis
-        FOREIGN KEY (lote_id) REFERENCES lotes (id)
+    activo         BOOLEAN     NOT NULL DEFAULT TRUE
+);
+
+
+CREATE TABLE lote_analisis
+(
+    lote_id     INT NOT NULL,
+    analisis_id INT NOT NULL,
+    PRIMARY KEY (lote_id, analisis_id),
+    CONSTRAINT fk_lote
+        FOREIGN KEY (lote_id) REFERENCES lotes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_analisis
+        FOREIGN KEY (analisis_id) REFERENCES analisis (id) ON DELETE CASCADE
 );

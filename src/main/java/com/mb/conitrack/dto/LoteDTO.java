@@ -5,12 +5,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
@@ -22,7 +24,7 @@ public class LoteDTO {
 
     //TODO: Backup -> https://help.heroku.com/sharing/fda99731-8765-4b5d-b60e-8150fce3ddcf
 
-    public static LoteDTO toLoteDTO(List<Lote> entities) {
+    public static LoteDTO fromEntities(List<Lote> entities) {
         if (entities == null || entities.isEmpty()) {
             return null;
         }
@@ -60,21 +62,33 @@ public class LoteDTO {
                 dto.getCantidadesBultos().add(entity.getCantidadInicial());
                 dto.getUnidadMedidaBultos().add(entity.getUnidadMedida());
 
-                for (Movimiento movimiento : entity.getMovimientos()) {
-                    dto.getMovimientoDTOs().add(MovimientoDTO.fromEntity(movimiento));
-                }
+                addMovimientosDTO(dto, entity);
+                addAnalisisDTO(dto, entity);
 
                 firstCase = false;
             } else {
-                dto.getCantidadesBultos().add(entity.getNroBulto()-1, entity.getCantidadInicial());
-                dto.getUnidadMedidaBultos().add(entity.getNroBulto()-1, entity.getUnidadMedida());
+                dto.getCantidadesBultos().add(entity.getNroBulto() - 1, entity.getCantidadInicial());
+                dto.getUnidadMedidaBultos().add(entity.getNroBulto() - 1, entity.getUnidadMedida());
 
-                for (Movimiento movimiento : entity.getMovimientos()) {
-                    dto.getMovimientoDTOs().add(MovimientoDTO.fromEntity(movimiento));
-                }
+                addMovimientosDTO(dto, entity);
+                addAnalisisDTO(dto, entity);
             }
         }
         return dto;
+    }
+
+    private static void addMovimientosDTO(final LoteDTO dto, final Lote entity) {
+        for (Movimiento movimiento : entity.getMovimientos()) {
+            final MovimientoDTO movimientoDTO = MovimientoDTO.fromEntity(movimiento);
+            movimientoDTO.setNroBulto(String.valueOf(entity.getNroBulto()));
+            dto.getMovimientoDTOs().add(movimientoDTO);
+        }
+    }
+
+    private static void addAnalisisDTO(final LoteDTO dto, final Lote entity) {
+        for (Analisis analisis : entity.getAnalisisList()) {
+            dto.getAnalisisDTOs().add(AnalisisDTO.fromEntity(analisis));
+        }
     }
 
     @NotNull(message = "El ID del producto es obligatorio")
@@ -120,6 +134,7 @@ public class LoteDTO {
 
     private LocalDate fechaReanalisis;
 
+    @Max(value = 100, message = "El título no puede superar el 100%")
     private BigDecimal titulo;
 
     private String observaciones;
@@ -132,5 +147,7 @@ public class LoteDTO {
     private List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 
     private List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
+
+    private List<AnalisisDTO> analisisDTOs = new ArrayList<>();
 
 }

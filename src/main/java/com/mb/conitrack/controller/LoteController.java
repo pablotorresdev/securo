@@ -20,6 +20,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
@@ -30,6 +31,9 @@ import jakarta.validation.Valid;
 
 import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesConvertibles;
 
+/**
+ * CU1, CU4
+ */
 @Controller
 @RequestMapping("/lotes")
 @SessionAttributes("loteDTO")
@@ -59,12 +63,12 @@ public class LoteController {
 
     //Salida del CU
     @GetMapping("/cancelar")
-    public String cancelarIngreso(SessionStatus sessionStatus) {
+    public String cancelar(SessionStatus sessionStatus) {
         sessionStatus.setComplete();
         return "redirect:/";
     }
 
-    //***************************** CU1 Ingreso por compra
+    //********************** CU1 Ingreso por compra
     @GetMapping("/ingreso-compra")
     public String showIngresoCompraForm(
         @ModelAttribute("loteDTO") LoteDTO dto,
@@ -98,27 +102,10 @@ public class LoteController {
 
         dto.setNroBulto(1);
         final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
-        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.toLoteDTO(lotes));
-        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock registrado correctamente.");
+        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.fromEntities(lotes));
+        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de 1 bulto exitoso.");
         return "redirect:/lotes/exito-ingreso-compra";
     }
-
-    @GetMapping("/exito-ingreso-compra")
-    public String exitoIngresoCompra(
-        @ModelAttribute("newLoteDTO") LoteDTO loteDTO,  // Recibe el Lote desde Flash Attribute
-        Model model
-    ) {
-        if(loteDTO.getNombreProducto()==null){
-            return "redirect:/lotes/cancelar";
-        }
-
-        model.addAttribute("loteDTO", loteDTO);
-        model.addAttribute("movimientos", loteDTO.getMovimientoDTOs());
-
-        return "lotes/exito-ingreso-compra"; // Template Thymeleaf
-    }
-
-
 
     private static void validateCantidadIngreso(final LoteDTO dto, final BindingResult bindingResult) {
         BigDecimal cantidad = dto.getCantidadInicial();
@@ -141,6 +128,19 @@ public class LoteController {
     private static void closeSession(final RedirectAttributes redirectAttributes, final SessionStatus sessionStatus, final String attributeValue) {
         redirectAttributes.addFlashAttribute("success", attributeValue);
         sessionStatus.setComplete();
+    }
+
+    @GetMapping("/exito-ingreso-compra")
+    public String exitoIngresoCompra(
+        @ModelAttribute("newLoteDTO") LoteDTO loteDTO, Model model) {
+        if (loteDTO.getNombreProducto() == null) {
+            return "redirect:/lotes/cancelar";
+        }
+
+        model.addAttribute("loteDTO", loteDTO);
+        model.addAttribute("movimientos", loteDTO.getMovimientoDTOs());
+
+        return "lotes/exito-ingreso-compra"; // Template Thymeleaf
     }
 
     //***************************** CU1 Ingreso por compra MultiBulto
@@ -178,7 +178,7 @@ public class LoteController {
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes,
-        org.springframework.web.bind.support.SessionStatus sessionStatus) {
+        SessionStatus sessionStatus) {
 
         validarTipoDeDato(dto, bindingResult);
         validarSumaBultosConvertida(dto, bindingResult);
@@ -191,8 +191,8 @@ public class LoteController {
         }
 
         final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
-        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.toLoteDTO(lotes));
-        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock distribuido correctamente.");
+        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.fromEntities(lotes));
+        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de " + lotes.size() + " bultos exitoso.");
         return "redirect:/lotes/exito-ingreso-compra";
     }
 
@@ -262,6 +262,44 @@ public class LoteController {
                     ")."
             );
         }
+    }
+
+    //*******************  CU4 Devolucion Compra
+    @GetMapping("/devolucion-compra")
+    public String showDevolucionCompraForm(
+        @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
+        List<Lote> lotesParaDevolver = loteService.findAllForDevolucionCompra();
+        model.addAttribute("lotesDevolvibles", lotesParaDevolver);
+        return "lotes/devolucion-compra";
+    }
+
+    @PostMapping("/devolucion-compra")
+    public String procesarDevolucionCompra(
+        @Valid @ModelAttribute MovimientoDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, SessionStatus sessionStatus) {
+        Lote lote = loteService.findLoteBultoById(dto.getLoteId());
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("lote", lote);
+            return "lotes/devolucion-compra";
+        }
+
+        final List<Lote> lotes = loteService.persistirDevolucionCompra(dto, lote);
+
+        if (lotes.isEmpty()) {
+            model.addAttribute("lote", lote);
+            bindingResult.reject("error", "Error al persistir la devoluciono.");
+            return "lotes/devolucion-compra";
+        }
+
+        redirectAttributes.addFlashAttribute("loteDTO", LoteDTO.fromEntities(lotes));
+        closeSession(redirectAttributes, sessionStatus, "Devolucion realizada correctamente.");
+        return "redirect:/lotes/exito-devolucion-compra";
+    }
+
+    @GetMapping("/exito-devolucion-compra")
+    public String exitoMuestreo(
+        @ModelAttribute("loteDTO") LoteDTO loteDTO,
+        Model model) {
+        return "lotes/exito-devolucion-compra";
     }
 
 }

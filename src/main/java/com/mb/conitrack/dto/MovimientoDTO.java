@@ -21,39 +21,19 @@ public class MovimientoDTO {
         }
 
         MovimientoDTO dto = new MovimientoDTO();
-
-        // 1) Fechas
         dto.setFechaMovimiento(entity.getFecha());
-        // dto.setFechaAnalisis(...) // El Entity Movimiento no tiene estos campos,
-        // dto.setFechaReAnalisis(...) // así que podrías dejarlos en null o derivarlos
-        // dto.setFechaVencimiento(...)
-
-        // 2) Lote asociado
-        //    Si el Movimiento guarda un Lote, podemos mapear su ID:
         if (entity.getLote() != null) {
             dto.setLoteId(entity.getLote().getId());
-            // Si quisieras, dto.setNroBulto(String.valueOf(entity.getLote().getNroBulto()))
-            //   o algo similar, dependiendo de la lógica que manejes.
         } else {
-            // Si el Movimiento no tiene un Lote asociado, puedes dejarlo en null
-            // o derivar un valor según tu lógica de negocio.
             dto.setLoteId(-1l);
         }
 
-        // 3) Cantidad y unidad
         dto.setCantidad(entity.getCantidad());
         dto.setUnidadMedida(entity.getUnidadMedida());
 
-        // 4) Campos textuales
-        // 'descripcion' en el Entity es distinto de 'observaciones' en el DTO,
-        // o al revés. Ajusta según tu modelo.
         dto.setDescripcion(entity.getDescripcion());
-        // Podrías mapear 'observaciones' si el Entity tuviera un campo así:
-
         dto.setNroAnalisis(entity.getNroAnalisis());
-        // El Entity no tiene "nroReAnalisis", a menos que lo guardes en otra columna
-        // dto.setNroReAnalisis(...);
-
+        dto.setNroReAnalisis(entity.getNroAnalisis());
         dto.setOrdenProduccion(entity.getOrdenProduccion());
 
         if (entity.getTipoMovimiento() != null) {
@@ -68,7 +48,7 @@ public class MovimientoDTO {
         return dto;
     }
 
-    @NotNull(message = "La fecha de ingreso es obligatoria")
+    @NotNull(message = "La fecha del movimiento es obligatoria")
     private LocalDate fechaMovimiento;
 
     @NotNull(message = "El ID del lote es obligatorio")
@@ -82,10 +62,8 @@ public class MovimientoDTO {
 
     private UnidadMedidaEnum unidadMedida;
 
-    @FutureOrPresent(message = "La fecha de análisis debe ser presente o futura")
     private LocalDate fechaAnalisis;
 
-    @FutureOrPresent(message = "La fecha de re-análisis debe ser presente o futura")
     private LocalDate fechaReAnalisis;
 
     @FutureOrPresent(message = "La fecha de vencimiento debe ser presente o futura")

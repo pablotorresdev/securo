@@ -17,9 +17,6 @@ public class ProveedorService {
     @Autowired
     private ProveedorRepository proveedorRepository;
 
-    @Autowired
-    private LoteService loteService;
-
     /**
      * Devuelve los proveedores activos que son externos a la empresa (no son Conifarma)
      * @return Lista de proveedores

@@ -47,13 +47,9 @@ public class ProductoService {
     }
 
     public List<Producto> findAll() {
-        final List<Producto> productos = productoRepository.findAll();
+        final List<Producto> productos = productoRepository.findByActivoTrue();
         productos.sort(Comparator.comparing(Producto::getCodigoInterno));
         return productos;
-    }
-
-    public List<Producto> findAllActive() {
-        return productoRepository.findByActivoTrue();
     }
 
     public Producto save(Producto producto) {
