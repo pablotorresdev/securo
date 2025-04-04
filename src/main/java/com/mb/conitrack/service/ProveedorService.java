@@ -22,9 +22,9 @@ public class ProveedorService {
      * @return Lista de proveedores
      */
     public List<Proveedor> getProveedoresExternos() {
-        final List<Proveedor> proveedoresExternos = proveedorRepository.findByActivoTrueAndRazonSocialNotIgnoreCase("conifarma");
-        proveedoresExternos.sort(Comparator
-            .comparing(Proveedor::getRazonSocial));
+        final List<Proveedor> proveedoresExternos = proveedorRepository
+            .findByActivoTrueAndRazonSocialNotContainingIgnoreCase("conifarma");
+        proveedoresExternos.sort(Comparator.comparing(Proveedor::getRazonSocial));
         return proveedoresExternos;
     }
 

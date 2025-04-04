@@ -125,7 +125,7 @@ CREATE TABLE movimientos
     tipo_movimiento      TEXT      NOT NULL,
     motivo               TEXT      NOT NULL,
     lote_id              INT       NOT NULL,
-    descripcion          TEXT,
+    observaciones          TEXT,
     cantidad             NUMERIC(12, 4),
     unidad_medida        TEXT,
     nro_analisis         VARCHAR(50), -- Post QA

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
@@ -108,7 +109,7 @@ public class MuestreoController {
             return "movimientos/muestreo-lote";
         }
 
-        LoteDTO loteDTO = LoteDTO.fromEntities(List.of(newLote.get()));
+        LoteDTO loteDTO = DTOUtils.fromEntities(List.of(newLote.get()));
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("success", "Muestreo registrado correctamente.");
         sessionStatus.setComplete();

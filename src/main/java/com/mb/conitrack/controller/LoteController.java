@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
@@ -104,7 +105,7 @@ public class LoteController {
         dto.setNroBulto(1);
         dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
-        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.fromEntities(lotes));
+        redirectAttributes.addFlashAttribute("newLoteDTO", DTOUtils.fromEntities(lotes));
         closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de 1 bulto exitoso.");
         return "redirect:/lotes/exito-ingreso-compra";
     }
@@ -194,7 +195,7 @@ public class LoteController {
 
         dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
-        redirectAttributes.addFlashAttribute("newLoteDTO", LoteDTO.fromEntities(lotes));
+        redirectAttributes.addFlashAttribute("newLoteDTO", DTOUtils.fromEntities(lotes));
         closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de " + lotes.size() + " bultos exitoso.");
         return "redirect:/lotes/exito-ingreso-compra";
     }
@@ -293,7 +294,7 @@ public class LoteController {
             return "lotes/devolucion-compra";
         }
 
-        redirectAttributes.addFlashAttribute("loteDTO", LoteDTO.fromEntities(lotes));
+        redirectAttributes.addFlashAttribute("loteDTO", DTOUtils.fromEntities(lotes));
         closeSession(redirectAttributes, sessionStatus, "Devolucion realizada correctamente.");
         return "redirect:/lotes/exito-devolucion-compra";
     }

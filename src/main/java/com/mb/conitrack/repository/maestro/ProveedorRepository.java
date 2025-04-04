@@ -14,8 +14,8 @@ public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
 
     List<Proveedor> findByRazonSocialNotIgnoreCaseContaining(String razonSocial);
 
-    @Query("SELECT c FROM Proveedor c WHERE c.activo = true AND LOWER(c.razonSocial) <> LOWER(:razonSocial)")
-    List<Proveedor> findByActivoTrueAndRazonSocialNotIgnoreCase(@Param("razonSocial") String razonSocial);
+    @Query("SELECT c FROM Proveedor c WHERE c.activo = true AND LOWER(c.razonSocial) NOT LIKE %:razonSocial%")
+    List<Proveedor> findByActivoTrueAndRazonSocialNotContainingIgnoreCase(@Param("razonSocial") String razonSocial);
 
 
 }

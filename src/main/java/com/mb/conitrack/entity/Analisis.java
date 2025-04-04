@@ -35,23 +35,6 @@ import lombok.ToString;
 @ToString(exclude = { "lotes" })
 public class Analisis {
 
-    public static Analisis createAnalisis(final MovimientoDTO dto, final Lote lote) {
-        return createAnalisis(dto);
-    }
-
-    public static Analisis createAnalisis(final MovimientoDTO dto) {
-        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReAnalisis()) ? dto.getNroAnalisis() : dto.getNroReAnalisis();
-        if (nroAnalisis != null) {
-            Analisis analisis = new Analisis();
-            analisis.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-            analisis.setFechaAnalisis(dto.getFechaAnalisis());
-            analisis.setNroAnalisis(nroAnalisis);
-            analisis.setObservaciones(dto.getObservaciones());
-            analisis.setActivo(true);
-            return analisis;
-        }
-        throw new IllegalArgumentException("El número de análisis es requerido");
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
@@ -68,7 +69,7 @@ public class MovimientoService {
         movimiento.setMotivo(MotivoEnum.COMPRA);
         movimiento.setCantidad(lote.getCantidadInicial());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
-        movimiento.setDescripcion("Ingreso de stock por compra (CU1)");
+        movimiento.setObservaciones("Ingreso de stock por compra (CU1)");
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setActivo(Boolean.TRUE);
         movimiento.setLote(lote);
@@ -78,7 +79,7 @@ public class MovimientoService {
     //***********CU2 MODIFICACION: CUARENTENA***********
     @Transactional
     public Movimiento persistirCambioDictamenCuarentena(final MovimientoDTO dto, Lote lote) {
-        final Analisis analisis = Analisis.createAnalisis(dto, lote);
+        final Analisis analisis = DTOUtils.createAnalisis(dto);
         final Analisis newAnalisis = analisisService.save(analisis);
         final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
         movimientoPorMuestreo.setNroAnalisis(newAnalisis.getNroAnalisis());
@@ -98,7 +99,7 @@ public class MovimientoService {
         movimiento.setCantidad(dto.getCantidad());
         movimiento.setUnidadMedida(dto.getUnidadMedida());
         movimiento.setNroAnalisis(dto.getNroAnalisis());
-        movimiento.setDescripcion(dto.getObservaciones());
+        movimiento.setObservaciones(dto.getObservaciones());
         movimiento.setActivo(true);
         return movimiento;
     }
@@ -108,7 +109,7 @@ public class MovimientoService {
 
         final List<Analisis> analisisList = lote.getAnalisisList();
         if (analisisList.isEmpty()) {
-            final Analisis analisis = Analisis.createAnalisis(dto, lote);
+            final Analisis analisis = DTOUtils.createAnalisis(dto);
             final Analisis newAnalisis = analisisService.save(analisis);
             final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
             movimientoPorMuestreo.setNroAnalisis(newAnalisis.getNroAnalisis());
@@ -162,7 +163,7 @@ public class MovimientoService {
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setLote(lote);
-        movimiento.setDescripcion(dto.getObservaciones());
+        movimiento.setObservaciones(dto.getObservaciones());
         movimiento.setActivo(true);
         return movimiento;
     }
@@ -197,9 +198,21 @@ public class MovimientoService {
 
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setLote(lote);
-        movimiento.setDescripcion(dto.getObservaciones());
+        movimiento.setObservaciones(dto.getObservaciones());
         movimiento.setActivo(true);
         return movimiento;
     }
 
+    public Movimiento persistirMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote loteBulto) {
+        return movimientoRepository.save(createMovimientoResultadoAnalisis(dto, loteBulto));
+    }
+
+    private static Movimiento createMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
+        movimiento.setMotivo(ANALISIS);
+        movimiento.setNroAnalisis(dto.getNroAnalisis());
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setDictamenFinal(dto.getDictamenFinal());
+        return movimiento;
+    }
 }

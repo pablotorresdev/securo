@@ -1,8 +1,8 @@
 package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -12,8 +12,11 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.thymeleaf.util.StringUtils;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
@@ -24,12 +27,15 @@ import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoLoteEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.enums.UnidadMedidaUtils;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.repository.maestro.ProductoRepository;
 import com.mb.conitrack.repository.maestro.ProveedorRepository;
 
 import lombok.AllArgsConstructor;
+
+import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesConvertibles;
 
 @AllArgsConstructor
 @Service
@@ -114,6 +120,14 @@ public class LoteService {
         return Optional.of(nuevoLote);
     }
 
+    public List<Lote> findAllForResultadoAnalisis() {
+        final List<Lote> lotes = loteRepository.findAll();
+        return lotes.stream()
+            .filter(l -> EnumSet.of(DictamenEnum.CUARENTENA).contains(l.getDictamen()))
+            .filter(l -> l.getAnalisisList().stream().filter(analisis -> analisis.getDictamen() != null).filter(analisis -> analisis.getFechaAnalisis() != null).toList().isEmpty())
+            .toList();
+    }
+
     //*****************************************************************
 
     //***********CU1 ALTA: COMPRA***********
@@ -126,7 +140,6 @@ public class LoteService {
         Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId()).orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
         Producto producto = productoRepository.findById(dto.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
         int bultosTotales = Math.max(dto.getBultosTotales(), 1);
-
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH");
         String timestamp = dto.getFechaYHoraCreacion().format(formatter);
@@ -185,7 +198,7 @@ public class LoteService {
     //***********CU2 MODIFICACION: CUARENTENA***********
     @Transactional
     public List<Lote> persistirDictamenCuarentena(final List<Lote> lotes, final MovimientoDTO dto) {
-        final Analisis analisis = Analisis.createAnalisis(dto);
+        final Analisis analisis = DTOUtils.createAnalisis(dto);
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : lotes) {
             final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(dto, loteBulto, analisis.getNroAnalisis());
@@ -215,7 +228,7 @@ public class LoteService {
 
             Analisis analisis = null;
             if (esNuevoAnalisis) {
-                analisis = Analisis.createAnalisis(dto, lote);
+                analisis = DTOUtils.createAnalisis(dto);
                 analisisService.save(analisis);
             }
 
@@ -254,6 +267,118 @@ public class LoteService {
             result.add(newLote);
         }
         return result;
+    }
+
+    @Transactional
+    public List<Lote> persistirDictamenResultado(final List<Lote> lotes, final MovimientoDTO dto) {
+        analisisService.addDictamenResultado(dto);
+        List<Lote> result = new ArrayList<>();
+        for (Lote loteBulto : lotes) {
+            final Movimiento movimiento = movimientoService.persistirMovimientoResultadoAnalisis(dto, loteBulto);
+            loteBulto.setDictamen(movimiento.getDictamenFinal());
+            loteBulto.getMovimientos().add(movimiento);
+            result.add(loteRepository.save(loteBulto));
+        }
+        return result;
+    }
+
+    public static void validateCantidadIngreso(final LoteDTO dto, final BindingResult bindingResult) {
+        BigDecimal cantidad = dto.getCantidadInicial();
+        if (cantidad == null) {
+            bindingResult.rejectValue("cantidadInicial", "error.cantidadInicial", "La cantidad no puede ser nula.");
+        } else {
+            if (UnidadMedidaEnum.UNIDAD.equals(dto.getUnidadMedida())) {
+                if (cantidad.stripTrailingZeros().scale() > 0) {
+                    bindingResult.rejectValue("cantidadInicial", "error.cantidadInicial",
+                        "La cantidad debe ser un número entero positivo cuando la unidad es UNIDAD.");
+                }
+                if (cantidad.compareTo(new BigDecimal(dto.getBultosTotales())) < 0) {
+                    bindingResult.rejectValue("bultosTotales", "error.bultosTotales",
+                        "La cantidad de Unidades (" + cantidad + ") no puede ser menor a la cantidad de  Bultos totales: " + dto.getBultosTotales());
+                }
+            }
+        }
+    }
+
+    public static void initBultosInLoteDto(final Integer bultos, final LoteDTO dto, final Model model) {
+        if (dto.getUnidadMedida() != null) {
+            model.addAttribute("unidadesCompatibles", getUnidadesConvertibles(dto.getUnidadMedida()));
+        }
+        dto.setCantidadesBultos(new ArrayList<>());
+        dto.setUnidadMedidaBultos(new ArrayList<>());
+        while (dto.getCantidadesBultos().size() < bultos) {
+            dto.getCantidadesBultos().add(BigDecimal.ZERO);
+            dto.getUnidadMedidaBultos().add(dto.getUnidadMedida());
+        }
+    }
+
+
+    public static void validarTipoDeDato(final LoteDTO dto, final BindingResult bindingResult) {
+        List<BigDecimal> cantidades = dto.getCantidadesBultos();
+        List<UnidadMedidaEnum> unidades = dto.getUnidadMedidaBultos();
+        for (int i = 0; i < cantidades.size(); i++) {
+            BigDecimal cantidad = cantidades.get(i);
+            if (cantidad == null) {
+                bindingResult.rejectValue("cantidadInicial", "error.cantidadInicial", "La cantidad del Bulto " + (i + 1) + " no puede ser nula.");
+            } else {
+                if (UnidadMedidaEnum.UNIDAD.equals(unidades.get(i))) {
+                    if (cantidad.stripTrailingZeros().scale() > 0) {
+                        bindingResult.rejectValue("cantidadInicial", "error.cantidadInicial",
+                            "La cantidad del Bulto " + (i + 1) + "  debe ser un número entero positivo cuando la unidad es UNIDAD.");
+                    }
+                }
+            }
+        }
+    }
+
+    public static void validarSumaBultosConvertida(LoteDTO dto, BindingResult bindingResult) {
+        List<BigDecimal> cantidades = dto.getCantidadesBultos();
+        List<UnidadMedidaEnum> unidades = dto.getUnidadMedidaBultos();
+        UnidadMedidaEnum unidadBase = dto.getUnidadMedida();
+
+        if (cantidades == null || unidades == null || cantidades.size() != unidades.size()) {
+            bindingResult.rejectValue("cantidadesBultos", "error.cantidadesBultos", "Datos incompletos o inconsistentes.");
+            return;
+        }
+        BigDecimal sumaConvertida = BigDecimal.ZERO;
+        for (int i = 0; i < cantidades.size(); i++) {
+            BigDecimal cantidad = cantidades.get(i);
+            UnidadMedidaEnum unidadBulto = unidades.get(i);
+            if (cantidad == null || unidadBulto == null) {
+                continue;
+            }
+
+            //assert cantidad > 0
+            if (cantidad.compareTo(BigDecimal.ZERO) <= 0) {
+                bindingResult.rejectValue("cantidadesBultos", "error.cantidadesBultos", "La cantidad del Bulto " + (i + 1) + " debe ser mayor a 0.");
+                return;
+            }
+
+            double factor = unidadBulto.getFactorConversion() / unidadBase.getFactorConversion();
+            BigDecimal cantidadConvertida = cantidad.multiply(BigDecimal.valueOf(factor));
+            sumaConvertida = sumaConvertida.add(cantidadConvertida);
+        }
+
+        //TODO: ver tema suma de cantidades
+        // Redondear la suma a 3 decimales para comparar y mostrar
+        BigDecimal sumaRedondeada = sumaConvertida.setScale(6, RoundingMode.HALF_UP);
+        BigDecimal totalEsperado = dto.getCantidadInicial().setScale(6, RoundingMode.HALF_UP);
+
+        if (sumaRedondeada.compareTo(totalEsperado) != 0) {
+            bindingResult.rejectValue(
+                "cantidadesBultos",
+                "error.cantidadesBultos",
+                "La suma de las cantidades individuales (" +
+                    sumaRedondeada.stripTrailingZeros().toPlainString() +
+                    " " +
+                    unidadBase.getSimbolo() +
+                    ") no coincide con la cantidad total (" +
+                    totalEsperado.stripTrailingZeros().toPlainString() +
+                    " " +
+                    unidadBase.getSimbolo() +
+                    ")."
+            );
+        }
     }
 
 }

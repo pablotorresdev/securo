@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
@@ -34,12 +35,6 @@ public class DictamenController {
     @Autowired
     private LoteService loteService;
 
-    //Salida del CU
-    @GetMapping("/cancelar")
-    public String cancelar(SessionStatus sessionStatus) {
-        sessionStatus.setComplete();
-        return "redirect:/";
-    }
 
     @ModelAttribute("loteDTO")
     public LoteDTO getLoteDTO() {
@@ -55,13 +50,20 @@ public class DictamenController {
         return dto;
     }
 
+    //Salida del CU
+    @GetMapping("/cancelar")
+    public String cancelar(SessionStatus sessionStatus) {
+        sessionStatus.setComplete();
+        return "redirect:/";
+    }
+
     @GetMapping("/cuarentena")
     public String showCuarentenaForm(
         @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
 
         //TODO: implementar el filtro correcto en base a Dictamen y Analisis (Fecha, Dictamen)
-        List<Lote> lotesForCuarentena = loteService.findAllForCuarentena();
-        model.addAttribute("lotesForCuarentena", lotesForCuarentena);
+        model.addAttribute("lotesForCuarentena", loteService.findAllForCuarentena());
+
         return "dictamen/cuarentena";
     }
 
@@ -86,7 +88,7 @@ public class DictamenController {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.persistirDictamenCuarentena(lotesList, dto);
 
-        redirectAttributes.addFlashAttribute("loteDTO", LoteDTO.fromEntities(lotes));
+        redirectAttributes.addFlashAttribute("loteDTO", DTOUtils.fromEntities(lotes));
         redirectAttributes.addFlashAttribute("success", "Cambio de dictamen a Cuarentena exitoso");
         sessionStatus.setComplete();
         return "redirect:/dictamen/exito-cuarentena";

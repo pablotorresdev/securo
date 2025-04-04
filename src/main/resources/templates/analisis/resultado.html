@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado de Análisis en Curso - Dictamen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <script>
+        // JavaScript para mostrar/ocultar secciones según el método de selección
+        function toggleSelectionMethod() {
+            const method = document.querySelector('input[name="selectionMethod"]:checked').value;
+            document.getElementById('porLote').style.display = method === 'lote' ? 'block' : 'none';
+            document.getElementById('porAnalisis').style.display = method === 'analisis' ? 'block' : 'none';
+        }
+
+        // Al seleccionar un análisis, se actualiza el campo oculto con el lote asociado
+        function updateLoteIdFromAnalisis(selectObj) {
+            const selectedOption = selectObj.options[selectObj.selectedIndex];
+            const loteId = selectedOption.getAttribute('data-lote-id');
+            document.getElementById('loteIdHidden').value = loteId;
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            toggleSelectionMethod(); // para inicializar
+            // Agregar listener si es necesario
+            const radios = document.querySelectorAll('input[name="selectionMethod"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', toggleSelectionMethod);
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Resultado de Análisis en Curso</h2>
+
+    <!-- Mensaje de éxito (si existe) -->
+    <div th:if="${success}" class="alert alert-success fw-bold mb-4" th:text="${success}"></div>
+
+    <!-- Formulario: se vincula al MovimientoDTO -->
+    <form th:action="@{/analisis/resultado}" th:object="${movimientoDTO}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <hr class="my-4">
+        <h5 class="mb-3 text-primary">Selección del Registro a Actualizar</h5>
+        <!-- Grupo de radio para seleccionar el método -->
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="selectionMethod" id="selectLote" value="lote" checked>
+            <label class="form-check-label" for="selectLote">Por Lote</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="selectionMethod" id="selectAnalisis" value="analisis">
+            <label class="form-check-label" for="selectAnalisis">Por Análisis</label>
+        </div>
+
+        <!-- Sección para selección por Lote -->
+        <div id="porLote" class="mt-3">
+            <label for="loteSelector" class="form-label">Seleccione el Lote:</label>
+            <select id="loteSelector" th:field="*{loteId}" class="form-select">
+                <option value="">-- Seleccione un Lote --</option>
+                <option th:each="lote : ${lotesForResultado}"
+                        th:value="${lote.id}"
+                        th:text="'Codigo: ' + ${lote.codigoInterno} + ' | Proveedor: ' + ${lote.proveedor.razonSocial} + ' | Dictamen: ' + ${lote.dictamen}">
+                </option>
+            </select>
+            <div th:if="${#fields.hasErrors('loteId')}" class="text-danger" th:errors="*{loteId}"></div>
+        </div>
+
+        <!-- Sección para selección por Análisis -->
+        <div id="porAnalisis" class="mt-3" style="display:none;">
+            <label for="analisisSelector" class="form-label">Seleccione el Análisis en Curso:</label>
+            <select id="analisisSelector" class="form-select" onchange="updateLoteIdFromAnalisis(this);">
+                <option value="">-- Seleccione un Análisis --</option>
+                <option th:each="anal : ${analisisEnCurso}"
+                        th:value="${anal.id}"
+                        th:attr="data-lote-id=${anal.lote.id}"
+                        th:text="'Código: ' + ${anal.codigoInterno} + ' | Nro Analisis: ' + ${anal.nroAnalisis}">
+                </option>
+            </select>
+            <!-- Campo oculto para almacenar el loteId derivado del análisis seleccionado -->
+            <input type="hidden" id="loteIdHidden" th:field="*{loteId}" />
+        </div>
+
+        <hr class="my-4">
+        <h5 class="mb-3 text-primary">Datos del Resultado</h5>
+
+        <!-- Dictamen Final (Resultado) -->
+        <div class="mb-3">
+            <label for="dictamenFinal" class="form-label">Resultado (Dictamen Final):</label>
+            <select id="dictamenFinal" th:field="*{dictamenFinal}" class="form-select" required>
+                <option value="">-- Seleccione un resultado --</option>
+                <option th:each="res : ${resultados}" th:value="${res}" th:text="${res}"></option>
+            </select>
+            <div th:if="${#fields.hasErrors('dictamenFinal')}" class="text-danger" th:errors="*{dictamenFinal}"></div>
+        </div>
+
+        <!-- Fecha de Análisis -->
+        <div class="mb-3">
+            <label for="fechaAnalisis" class="form-label">Fecha de Análisis:</label>
+            <input type="date" id="fechaAnalisis" th:field="*{fechaAnalisis}" class="form-control">
+            <div th:if="${#fields.hasErrors('fechaAnalisis')}" class="text-danger" th:errors="*{fechaAnalisis}"></div>
+        </div>
+
+        <!-- Fecha de Reanálisis o Fecha de Vencimiento (mutuamente excluyentes) -->
+        <div class="mb-3">
+            <label class="form-label">Seleccione una de las siguientes:</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="opcionFecha" id="opcionReanalisis" value="reanalisis" checked>
+                <label class="form-check-label" for="opcionReanalisis">Fecha de Reanálisis</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="opcionFecha" id="opcionVencimiento" value="vencimiento">
+                <label class="form-check-label" for="opcionVencimiento">Fecha de Vencimiento</label>
+            </div>
+            <!-- Campos de fecha, se mostrarán según la opción (puedes usar JavaScript para alternar la visibilidad) -->
+            <div id="fechaReanalisisDiv" class="mt-2">
+                <label for="fechaReanalisis" class="form-label">Fecha de Reanálisis:</label>
+                <input type="date" id="fechaReanalisis" th:field="*{fechaReanalisis}" class="form-control">
+                <div th:if="${#fields.hasErrors('fechaReanalisis')}" class="text-danger" th:errors="*{fechaReanalisis}"></div>
+            </div>
+            <div id="fechaVencimientoDiv" class="mt-2" style="display:none;">
+                <label for="fechaVencimiento" class="form-label">Fecha de Vencimiento:</label>
+                <input type="date" id="fechaVencimiento" th:field="*{fechaVencimiento}" class="form-control">
+                <div th:if="${#fields.hasErrors('fechaVencimiento')}" class="text-danger" th:errors="*{fechaVencimiento}"></div>
+            </div>
+        </div>
+
+        <!-- Observaciones/Detalles -->
+        <div class="mb-3">
+            <label for="observaciones" class="form-label">Observaciones / Detalles:</label>
+            <textarea id="observaciones" th:field="*{observaciones}" class="form-control" rows="3"></textarea>
+        </div>
+
+        <!-- Botones -->
+        <div class="d-flex justify-content-between mt-4">
+            <a th:href="@{/analisis/cancelar}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Enviar Resultado</button>
+        </div>
+    </form>
+</div>
+
+<footer class="text-center mt-4 text-muted">
+    <p>&copy; 2025 Conitrack. All rights reserved.</p>
+</footer>
+
+<!-- Script para alternar entre fechas de reanálisis y vencimiento -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const reanalisisRadio = document.getElementById('opcionReanalisis');
+        const vencimientoRadio = document.getElementById('opcionVencimiento');
+        const reanalisisDiv = document.getElementById('fechaReanalisisDiv');
+        const vencimientoDiv = document.getElementById('fechaVencimientoDiv');
+
+        function toggleFecha() {
+            if (reanalisisRadio.checked) {
+                reanalisisDiv.style.display = 'block';
+                vencimientoDiv.style.display = 'none';
+            } else {
+                reanalisisDiv.style.display = 'none';
+                vencimientoDiv.style.display = 'block';
+            }
+        }
+
+        reanalisisRadio.addEventListener('change', toggleFecha);
+        vencimientoRadio.addEventListener('change', toggleFecha);
+        toggleFecha();
+    });
+</script>
+</body>
+</html>

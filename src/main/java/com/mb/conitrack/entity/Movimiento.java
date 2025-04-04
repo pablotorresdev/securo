@@ -3,7 +3,6 @@ package com.mb.conitrack.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -29,16 +28,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
-import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "movimientos")
 @SQLDelete(sql = "UPDATE movimientos SET activo = false WHERE id = ?")
-@ToString(exclude = {"lote"})
+@ToString(exclude = { "lote" })
 public class Movimiento {
 
     @Id
@@ -66,7 +62,7 @@ public class Movimiento {
     private MotivoEnum motivo;
 
     @Column(columnDefinition = "TEXT")
-    private String descripcion;
+    private String observaciones;
 
     @Column(precision = 12, scale = 4)
     private BigDecimal cantidad;
@@ -95,7 +91,5 @@ public class Movimiento {
 
     @Column(nullable = false)
     private Boolean activo;
-
-
 
 }
