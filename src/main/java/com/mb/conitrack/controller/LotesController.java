@@ -39,7 +39,7 @@ import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesConvertibles;
 @Controller
 @RequestMapping("/lotes")
 @SessionAttributes("loteDTO")
-public class LoteController {
+public class LotesController {
 
     @Autowired
     private ProductoService productoService;

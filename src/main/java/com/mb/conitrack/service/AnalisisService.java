@@ -24,7 +24,7 @@ public class AnalisisService {
         return analisisRepository.findAll().stream()
             .filter(Analisis::getActivo)
             .sorted(Comparator.comparing(
-                Analisis::getFechaAnalisis,
+                Analisis::getFechaRealizado,
                 Comparator.nullsLast(Comparator.reverseOrder())))
             .toList();
     }
@@ -33,7 +33,7 @@ public class AnalisisService {
         return analisisRepository.findAll().stream()
             .filter(Analisis::getActivo)
             .filter(analisis -> analisis.getDictamen() == null)
-            .filter(analisis -> analisis.getFechaAnalisis() == null)
+            .filter(analisis -> analisis.getFechaRealizado() == null)
             .sorted(Comparator.comparing(
                 Analisis::getFechaYHoraCreacion,
                 Comparator.nullsLast(Comparator.reverseOrder())))
@@ -44,8 +44,11 @@ public class AnalisisService {
         Analisis analisis = analisisRepository.findByNroAnalisis(dto.getNroAnalisis()).orElseThrow(
             () -> new IllegalArgumentException("No se encontró el análisis con el número: " + dto.getNroAnalisis()));
 
+        analisis.setFechaRealizado(dto.getFechaRealizadoAnalisis());
+        analisis.setFechaReanalisis(dto.getFechaReanalisis());
+        analisis.setFechaVencimiento(dto.getFechaVencimiento());
         analisis.setDictamen(dto.getDictamenFinal());
-        analisis.setFechaAnalisis(dto.getFechaAnalisis());
+        analisis.setTitulo(dto.getTitulo());
         analisis.setObservaciones(dto.getObservaciones());
         return analisisRepository.save(analisis);
     }

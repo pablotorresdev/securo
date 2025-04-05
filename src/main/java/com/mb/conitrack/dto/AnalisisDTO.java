@@ -1,9 +1,9 @@
 package com.mb.conitrack.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.enums.DictamenEnum;
 
 import jakarta.validation.constraints.NotNull;
@@ -12,10 +12,13 @@ import lombok.Data;
 @Data
 public class AnalisisDTO {
 
+
     @NotNull
     private String nroAnalisis;
 
-    private LocalDate fechaAnalisis;
+    private LocalDateTime fechaYHoraCreacion;
+
+    private LocalDate fechaRealizado;
 
     private LocalDate fechaReanalisis;
 
@@ -23,6 +26,8 @@ public class AnalisisDTO {
 
     private DictamenEnum dictamen;
 
-    private LocalDateTime fechaYHoraCreacion;
+    private BigDecimal titulo;
+
+    private String observaciones;
 
 }

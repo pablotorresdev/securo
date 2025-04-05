@@ -87,22 +87,24 @@ CREATE TABLE lotes
     codigo_interno       VARCHAR(50)    NOT NULL,
     producto_id          INT            NOT NULL,
     proveedor_id         INT            NOT NULL,
-    estado_lote          TEXT           NOT NULL,
-    dictamen             TEXT           NOT NULL,
-    lote_origen_id       INT,
+    fabricante_id        INT,
+    pais_origen          TEXT           NOT NULL,
+
     fecha_ingreso        DATE           NOT NULL,
     nro_bulto            INT            NOT NULL,
     bultos_totales       INT            NOT NULL,
     cantidad_inicial     NUMERIC(12, 4) NOT NULL,
     cantidad_actual      NUMERIC(12, 4) NOT NULL,
     unidad_medida        VARCHAR(50)    NOT NULL,
+
     lote_proveedor       TEXT           NOT NULL,
+    fecha_reanal_prov    DATE,
+    fecha_vto_prov       DATE,
+    estado_lote          TEXT           NOT NULL,
+    dictamen             TEXT           NOT NULL,
+    lote_origen_id       INT,
     nro_remito           TEXT,
     detalle_conservacion TEXT,
-    fecha_analisis       DATE,
-    fecha_reanalisis     DATE,
-    fecha_vencimiento    DATE,
-    titulo               NUMERIC(12, 4),
     observaciones        TEXT,
     activo               BOOLEAN        NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_producto
@@ -110,10 +112,9 @@ CREATE TABLE lotes
     CONSTRAINT fk_lote_origen
         FOREIGN KEY (lote_origen_id) REFERENCES lotes (id),
     CONSTRAINT fk_proveedor_lote
-        FOREIGN KEY (proveedor_id) REFERENCES proveedores (id)
--- ,
---     CONSTRAINT fk_nro_analisis
---         FOREIGN KEY (nro_analisis_id) REFERENCES analisis (id)
+        FOREIGN KEY (proveedor_id) REFERENCES proveedores (id),
+    CONSTRAINT fk_fabricante_lote
+        FOREIGN KEY (fabricante_id) REFERENCES proveedores (id)
 );
 
 
@@ -125,7 +126,7 @@ CREATE TABLE movimientos
     tipo_movimiento      TEXT      NOT NULL,
     motivo               TEXT      NOT NULL,
     lote_id              INT       NOT NULL,
-    observaciones          TEXT,
+    observaciones        TEXT,
     cantidad             NUMERIC(12, 4),
     unidad_medida        TEXT,
     nro_analisis         VARCHAR(50), -- Post QA
@@ -143,13 +144,16 @@ CREATE TABLE movimientos
 
 CREATE TABLE analisis
 (
-    id             SERIAL PRIMARY KEY,
-    fecha_creacion TIMESTAMP   NOT NULL,
-    fecha_analisis DATE,
-    nro_analisis   VARCHAR(50) NOT NULL,
-    dictamen       TEXT,
-    observaciones  TEXT,
-    activo         BOOLEAN     NOT NULL DEFAULT TRUE
+    id                SERIAL PRIMARY KEY,
+    fecha_creacion    TIMESTAMP   NOT NULL,
+    nro_analisis      VARCHAR(50) NOT NULL,
+    fecha_realizado   DATE,
+    fecha_reanalisis  DATE,
+    fecha_vencimiento DATE,
+    dictamen          TEXT,
+    titulo            NUMERIC(12, 4),
+    observaciones     TEXT,
+    activo            BOOLEAN     NOT NULL DEFAULT TRUE
 );
 
 

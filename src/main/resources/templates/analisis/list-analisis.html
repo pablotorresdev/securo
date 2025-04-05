@@ -9,8 +9,8 @@
 <div class="container mt-5">
     <h1 class="mb-4">Listado de Análisis</h1>
 
-    <!-- Tabla para listar Análisis -->
-    <table class="table table-bordered">
+    <!-- Tabla para listar los análisis -->
+    <table class="table table-bordered table-sm">
         <thead>
         <tr>
             <th>ID</th>
@@ -22,19 +22,22 @@
         </tr>
         </thead>
         <tbody>
-        <!-- Iteramos sobre la lista de analisis -->
         <tr th:each="analis : ${analisis}">
-            <td th:text="${analis.id}">1</td>
-            <td th:text="${analis.lotes}">COD-XXXX</td>
-            <td th:text="${analis.nroAnalisis}">Nro-Análisis</td>
-            <td th:text="${analis.fechaAnalisis}">2025-01-01</td>
-            <td th:text="${analis.dictamen}">APROBADO / RECHAZADO etc.</td>
-            <td th:text="${analis.observaciones}">Observaciones</td>
+            <td th:text="${analis.id}"></td>
+            <td>
+                <!-- Se itera sobre la lista de lotes para mostrar, por ejemplo, el código interno de cada lote -->
+                <span th:each="lote, iterStat : ${analis.lotes}"
+                      th:text="${lote.codigoInterno} + ' (' + lote.producto.nombreGenerico + ')' + (iterStat.hasNext ? ', ' : '')"></span>
+            </td>
+            <td th:text="${analis.nroAnalisis}"></td>
+            <td th:text="${analis.fechaRealizado}"></td>
+            <td th:text="${analis.dictamen}"></td>
+            <td th:text="${analis.observaciones}"></td>
         </tr>
         </tbody>
     </table>
 
-    <!-- Botón para volver al home o a otra sección -->
+    <!-- Botón para volver al home u otra sección -->
     <div class="mt-3">
         <a th:href="@{/}" class="btn btn-secondary">Volver a la página principal</a>
     </div>

@@ -134,7 +134,7 @@ public class MovimientoService {
     private Optional<Analisis> getAnalisisEnCurso(final List<Analisis> analisisList) {
         List<Analisis> enCurso = analisisList.stream()
             .filter(analisis -> analisis.getDictamen() == null)
-            .filter(analisis -> analisis.getFechaAnalisis() == null)
+            .filter(analisis -> analisis.getFechaRealizado() == null)
             .toList();
         if (enCurso.isEmpty()) {
             return Optional.empty();

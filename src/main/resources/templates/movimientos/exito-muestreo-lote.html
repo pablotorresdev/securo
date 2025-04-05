@@ -77,18 +77,6 @@
                 <td th:text="${loteDTO.detalleConservacion}"></td>
             </tr>
             <tr>
-                <th>Fecha Vencimiento:</th>
-                <td th:text="${loteDTO.fechaVencimiento}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Reanálisis:</th>
-                <td th:text="${loteDTO.fechaReanalisis}"></td>
-            </tr>
-            <tr>
-                <th>Título:</th>
-                <td th:text="${loteDTO.titulo}"></td>
-            </tr>
-            <tr>
                 <th>Observaciones:</th>
                 <td th:text="${loteDTO.observaciones}"></td>
             </tr>
@@ -123,6 +111,7 @@
                     <th>Cantidad</th>
                     <th>Unidad</th>
                     <th>Fecha Análisis</th>
+                    <th>Fecha Realizado Análisis</th>
                     <th>Fecha ReAnálisis</th>
                     <th>Fecha Venc.</th>
                     <th>Observaciones</th>
@@ -144,13 +133,14 @@
                     <td th:text="${mov.unidadMedida}"></td>
 
                     <td th:text="${mov.fechaAnalisis}"></td>
-                    <td th:text="${mov.fechaReAnalisis}"></td>
+                    <td th:text="${mov.fechaRealizadoAnalisis}"></td>
+                    <td th:text="${mov.fechaReanalisis}"></td>
                     <td th:text="${mov.fechaVencimiento}"></td>
 
                     <td th:text="${mov.observaciones}"></td>
                     <td th:text="${mov.ordenProduccion}"></td>
                     <td th:text="${mov.nroAnalisis}"></td>
-                    <td th:text="${mov.nroReAnalisis}"></td>
+                    <td th:text="${mov.nroReanalisis}"></td>
 
                     <td th:text="${mov.tipoMovimiento}"></td>
                     <td th:text="${mov.motivo}"></td>
@@ -164,7 +154,7 @@
 
     <!-- Botón para finalizar y volver al menú principal -->
     <div class="mt-4">
-        <a th:href="@{/muestreos/cancelar}" class="btn btn-primary">Continuar</a>
+        <a th:href="@{/movimientos/cancelar}" class="btn btn-primary">Continuar</a>
     </div>
 </div>
 </body>

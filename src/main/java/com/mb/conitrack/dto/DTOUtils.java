@@ -16,10 +16,14 @@ public class DTOUtils {
             return null;
         }
         AnalisisDTO dto = new AnalisisDTO();
-        dto.setFechaAnalisis(entity.getFechaAnalisis());
         dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
         dto.setNroAnalisis(entity.getNroAnalisis());
+        dto.setFechaRealizado(entity.getFechaRealizado());
+        dto.setFechaReanalisis(entity.getFechaReanalisis());
+        dto.setFechaVencimiento(entity.getFechaVencimiento());
         dto.setDictamen(entity.getDictamen());
+        dto.setTitulo(entity.getTitulo());
+        dto.setObservaciones(entity.getObservaciones());
         return dto;
     }
 
@@ -41,7 +45,6 @@ public class DTOUtils {
 
         dto.setObservaciones(entity.getObservaciones());
         dto.setNroAnalisis(entity.getNroAnalisis());
-        dto.setNroReAnalisis(entity.getNroAnalisis());
         dto.setOrdenProduccion(entity.getOrdenProduccion());
 
         if (entity.getTipoMovimiento() != null) {
@@ -58,11 +61,10 @@ public class DTOUtils {
 
 
     public static Analisis createAnalisis(final MovimientoDTO dto) {
-        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReAnalisis()) ? dto.getNroAnalisis() : dto.getNroReAnalisis();
+        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis()) ? dto.getNroAnalisis() : dto.getNroReanalisis();
         if (nroAnalisis != null) {
             Analisis analisis = new Analisis();
             analisis.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-            analisis.setFechaAnalisis(dto.getFechaAnalisis());
             analisis.setNroAnalisis(nroAnalisis);
             analisis.setObservaciones(dto.getObservaciones());
             analisis.setActivo(true);
@@ -81,6 +83,8 @@ public class DTOUtils {
         boolean firstCase = true;
         for (Lote entity : entities) {
             if (firstCase) {
+                dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
+
                 if (entity.getProducto() != null) {
                     final Producto producto = entity.getProducto();
                     dto.setProductoId(producto.getId());
@@ -89,23 +93,32 @@ public class DTOUtils {
                     dto.setTipoProducto(producto.getTipoProducto());
                     dto.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino().getNombreGenerico() : null);
                 }
+
                 dto.setProveedorId(entity.getProveedor() != null ? entity.getProveedor().getId() : null);
                 dto.setNombreProveedor(entity.getProveedor() != null ? entity.getProveedor().getRazonSocial() : null);
+
+                dto.setFabricanteId(entity.getFabricante() != null ? entity.getFabricante().getId() : null);
+                dto.setNombreFabricante(entity.getFabricante() != null ? entity.getFabricante().getRazonSocial() : null);
+
+                dto.setPaisOrigen(entity.getPaisOrigen());
+
                 dto.setFechaIngreso(entity.getFechaIngreso());
-                dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
+
                 dto.setBultosTotales(entity.getBultosTotales());
 
-                //Del 1ero solo para que no falle por null validation
                 dto.setCantidadInicial(entity.getCantidadInicial());
                 dto.setUnidadMedida(entity.getUnidadMedida());
 
                 dto.setLoteProveedor(entity.getLoteProveedor());
 
+                dto.setFechaReanalisisProveedor(entity.getFechaReanalisisProveedor());
+                dto.setFechaVencimientoProveedor(entity.getFechaVencimientoProveedor());
+                dto.setEstadoLote(entity.getEstadoLote().getValor());
+                dto.setDictamen(entity.getDictamen());
+                dto.setLoteOrigenId(entity.getLoteOrigen()!=null ? entity.getLoteOrigen().getId() : null);
+
                 dto.setNroRemito(entity.getNroRemito());
                 dto.setDetalleConservacion(entity.getDetalleConservacion());
-                dto.setFechaVencimiento(entity.getFechaVencimiento());
-                dto.setFechaReanalisis(entity.getFechaReanalisis());
-                dto.setTitulo(entity.getTitulo());
                 dto.setObservaciones(entity.getObservaciones());
 
                 dto.getCantidadesBultos().add(entity.getCantidadInicial());
@@ -116,6 +129,9 @@ public class DTOUtils {
 
                 firstCase = false;
             } else {
+                //TODO: Hacer suma por bulto
+                //dto.getCantidadInicial().add(entity.getCantidadInicial().from(entity.getUnidadMedida()).to(dto.getUnidadMedida()))
+
                 dto.getCantidadesBultos().add(entity.getNroBulto() - 1, entity.getCantidadInicial());
                 dto.getUnidadMedidaBultos().add(entity.getNroBulto() - 1, entity.getUnidadMedida());
 

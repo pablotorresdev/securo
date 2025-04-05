@@ -102,17 +102,64 @@
             <input type="text" id="nroRemito" th:field="*{nroRemito}" class="form-control" maxlength="30">
         </div>
 
+        <!-- Fabricante -->
+        <div class="mb-2">
+            <label for="fabricanteId" class="form-label">Fabricante:</label>
+            <select id="fabricanteId" th:field="*{fabricanteId}" class="form-select">
+                <option value="">-- Seleccione un fabricante --</option>
+                <option th:each="fabricante : ${proveedores}"
+                        th:value="${fabricante.id}"
+                        th:text="${fabricante.razonSocial}">
+                </option>
+            </select>
+            <div th:if="${#fields.hasErrors('fabricanteId')}" class="error" th:errors="*{fabricanteId}"></div>
+        </div>
+
+        <!-- Pais Origen -->
+        <div class="mb-2">
+            <label for="paisOrigen" class="form-label">Pais Origen</label>
+            <select id="paisOrigen" th:field="*{paisOrigen}" class="form-select">
+                <option value="">-- Seleccione el pais de origen --</option>
+                <option th:each="pais : ${paises}"
+                        th:value="${pais}"
+                        th:text="${pais}">
+                </option>
+            </select>
+            <div th:if="${#fields.hasErrors('paisOrigen')}" class="error" th:errors="*{paisOrigen}"></div>
+        </div>
+
+        <!-- Fecha Re Analisis Proveedor -->
+        <div class="mb-2">
+            <label for="fechaReanalisisProveedor" class="form-label">Fecha Re Analisis Proveedor:</label>
+            <input type="date" id="fechaReanalisisProveedor"
+                   th:value="${loteDTO.fechaReanalisisProveedor}"
+                   class="form-control"
+                   th:classappend="${#fields.hasErrors('fechaReanalisisProveedor')} ? ' error-field' : ''">
+
+            <div th:if="${#fields.hasErrors('fechaReanalisisProveedor')}"
+                 style="color: red; font-weight: bold;"
+                 th:errors="*{fechaReanalisisProveedor}">
+            </div>
+        </div>
+
+        <!-- Fecha Vencimiento Proveedor -->
+        <div class="mb-2">
+            <label for="fechaVencimientoProveedor" class="form-label">Fecha Vencimiento Proveedor:</label>
+            <input type="date" id="fechaVencimientoProveedor"
+                   th:value="${loteDTO.fechaVencimientoProveedor}"
+                   class="form-control"
+                   th:classappend="${#fields.hasErrors('fechaVencimientoProveedor')} ? ' error-field' : ''">
+
+            <div th:if="${#fields.hasErrors('fechaVencimientoProveedor')}"
+                 style="color: red; font-weight: bold;"
+                 th:errors="*{fechaVencimientoProveedor}">
+            </div>
+        </div>
+
         <!-- Detalle de Conservación -->
         <div class="mb-2">
             <label for="detalleConservacion" class="form-label">Detalle de Conservación:</label>
             <textarea id="detalleConservacion" th:field="*{detalleConservacion}" class="form-control"></textarea>
-        </div>
-
-        <!-- Titulo -->
-        <div class="mb-2">
-            <label for="titulo" class="form-label">Titulo (%):</label>
-            <input type="number" step="0.01" id="titulo" th:field="*{titulo}" class="form-control">
-            <div th:if="${#fields.hasErrors('titulo')}" class="error" th:errors="*{titulo}"></div>
         </div>
 
         <!-- Observaciones -->

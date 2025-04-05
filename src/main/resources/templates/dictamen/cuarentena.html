@@ -63,10 +63,10 @@
             <input type="text" id="nroAnalisisReadonly" class="form-control" readonly>
         </div>
 
-        <div class="mb-3" id="grupoNroReAnalisis" style="display: none;">
-            <label for="nroReAnalisis" class="form-label">Número de ReAnálisis:</label>
-            <input type="text" id="nroReAnalisis"
-                   th:field="*{nroReAnalisis}"
+        <div class="mb-3" id="grupoNroReanalisis" style="display: none;">
+            <label for="nroReanalisis" class="form-label">Número de ReAnálisis:</label>
+            <input type="text" id="nroReanalisis"
+                   th:field="*{nroReanalisis}"
                    class="form-control"
                    placeholder="Si aplica">
         </div>
@@ -96,10 +96,10 @@
         const loteSelect = document.getElementById('loteId');
         const grupoEditable = document.getElementById('grupoNroAnalisisEditable');
         const grupoReadonly = document.getElementById('grupoNroAnalisisSoloLectura');
-        const grupoReAnalisis = document.getElementById('grupoNroReAnalisis');
+        const grupoReanalisis = document.getElementById('grupoNroReanalisis');
         const nroAnalisisReadonlyInput = document.getElementById('nroAnalisisReadonly');
         const nroAnalisisInput = document.getElementById('nroAnalisis');
-        const nroReAnalisisInput = document.getElementById('nroReAnalisis');
+        const nroReanalisisInput = document.getElementById('nroReanalisis');
 
         function actualizarVisibilidadCampos() {
             const selectedOption = loteSelect.options[loteSelect.selectedIndex];
@@ -109,25 +109,25 @@
             if (!dictamen) {
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'none';
-                grupoReAnalisis.style.display = 'none';
+                grupoReanalisis.style.display = 'none';
                 nroAnalisisInput.required = false;
-                nroReAnalisisInput.required = false;
+                nroReanalisisInput.required = false;
                 return;
             }
 
             if (dictamen.trim().toLowerCase() === 'recibido') {
                 grupoEditable.style.display = 'block';
                 grupoReadonly.style.display = 'none';
-                grupoReAnalisis.style.display = 'none';
+                grupoReanalisis.style.display = 'none';
                 nroAnalisisInput.required = true;
-                nroReAnalisisInput.required = false;
+                nroReanalisisInput.required = false;
             } else {
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'block';
-                grupoReAnalisis.style.display = 'block';
+                grupoReanalisis.style.display = 'block';
                 nroAnalisisReadonlyInput.value = nroAnalisis || '';
                 nroAnalisisInput.required = false;
-                nroReAnalisisInput.required = true;
+                nroReanalisisInput.required = true;
             }
         }
 

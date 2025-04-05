@@ -3,6 +3,7 @@ package com.mb.conitrack.controller;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
@@ -22,6 +24,7 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
@@ -33,9 +36,9 @@ import jakarta.validation.Valid;
  * CU3
  */
 @Controller
-@RequestMapping("/muestreos")
+@RequestMapping("/movimientos")
 @SessionAttributes("loteDTO,movimientoDTO")
-public class MuestreoController {
+public class MovimientosController {
 
     @Autowired
     private LoteService loteService;
@@ -69,6 +72,22 @@ public class MuestreoController {
     public String cancelar(SessionStatus sessionStatus) {
         sessionStatus.setComplete();
         return "redirect:/";
+    }
+
+    @GetMapping("/list-movimientos")
+    public String listMovimientos(Model model) {
+        model.addAttribute("movimientos", movimientoService.findAll());
+        return "movimientos/list-movimientos"; //.html
+    }
+
+    @GetMapping("/lote/{loteId}")
+    public String listMovimientosPorLote(@PathVariable("loteId") Long loteId, Model model) {
+        // Se asume que findById() recupera el lote con sus movimientos (por ejemplo, con fetch join)
+        final List<Movimiento> movimientos = loteService.findLoteBultoById(loteId).getMovimientos();
+        movimientos.sort(Comparator
+            .comparing(Movimiento::getFecha));
+        model.addAttribute("movimientos", movimientos);
+        return "movimientos/list-movimientos"; // Corresponde a movimientos-lote.html
     }
 
     //***************************** CU3 Muestreo
@@ -113,7 +132,7 @@ public class MuestreoController {
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("success", "Muestreo registrado correctamente.");
         sessionStatus.setComplete();
-        return "redirect:/muestreos/exito-muestreo";
+        return "redirect:/movimientos/exito-muestreo-lote";
     }
 
     private static void validarDictamenActual(final BindingResult bindingResult, final Lote lote) {
@@ -143,13 +162,12 @@ public class MuestreoController {
     }
 
     private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
-        if (dto.getNroReAnalisis() == null && dto.getNroAnalisis() == null) {
+        if (dto.getNroReanalisis() == null && dto.getNroAnalisis() == null) {
             bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
         }
     }
 
-
-    @GetMapping("/exito-muestreo")
+    @GetMapping("/exito-muestreo-lote")
     public String exitoMuestreo(
         @ModelAttribute("loteDTO") LoteDTO loteDTO,
         Model model) {

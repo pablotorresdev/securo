@@ -95,7 +95,7 @@ public class DictamenController {
     }
 
     private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
-        if (dto.getNroReAnalisis() == null && dto.getNroAnalisis() == null) {
+        if (dto.getNroReanalisis() == null && dto.getNroAnalisis() == null) {
             bindingResult.rejectValue("nroAnalisis", "Debe ingresar un nro de Analisis o Re Analisis");
         }
     }

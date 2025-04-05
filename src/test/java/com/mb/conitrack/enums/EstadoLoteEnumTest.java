@@ -9,9 +9,9 @@ public class EstadoLoteEnumTest {
     @Test
     public void testDefaultStatusData() {
         EstadoLoteEnum[] estados = EstadoLoteEnum.values();
-        assertThat(estados).hasSize(5);
+        assertThat(estados).hasSize(6);
         assertThat(estados).extracting(EstadoLoteEnum::getValor)
-            .containsExactlyInAnyOrder("Nuevo", "Disponible", "Consumido", "Inhabilitado", "Descartado");
+            .containsExactlyInAnyOrder("Nuevo", "En uso", "Consumido", "Vendido", "Devuelto", "Descartado");
     }
 
 }

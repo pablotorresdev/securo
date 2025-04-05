@@ -31,10 +31,12 @@ public class MovimientoDTO {
     private UnidadMedidaEnum unidadMedida;
 
     // CAMPOS ANALISIS
+    private LocalDate fechaRealizadoAnalisis;
     private LocalDate fechaAnalisis;
     private LocalDate fechaReanalisis;
     private String nroAnalisis;
-    private String nroReAnalisis;
+    private String nroReanalisis;
+    private BigDecimal titulo;
     @FutureOrPresent(message = "La fecha de vencimiento debe ser presente o futura")
     private LocalDate fechaVencimiento;
 

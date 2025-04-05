@@ -8,11 +8,11 @@
 <body>
 <div class="container mt-5">
     <h1 class="mb-4">Listado de Lotes</h1>
-    <table class="table table-bordered">
+    <table class="table table-bordered table-sm">
         <thead>
         <tr>
             <th>Producto</th>
-            <th>Codigo interno</th>
+            <th>Código Interno</th>
             <th>Dictamen</th>
             <th>Fecha Ingreso</th>
             <th>Nro Bulto</th>
@@ -20,15 +20,14 @@
             <th>Cant. Inicial</th>
             <th>Cant. Actual</th>
             <th>Unidad Medida</th>
-            <th>Nro Remito</th>
             <th>Proveedor</th>
+            <th>País Origen</th>
             <th>Lote Proveedor</th>
-            <th>Detalle Conservación</th>
-            <th>Fecha Vencimiento</th>
-            <th>Fecha Reanálisis</th>
-<!--            <th>Análisis</th>-->
-            <th>Titulo (%)</th>
+            <th>Fecha Vto Prov</th>
+            <th>Fecha Reanalisis Prov</th>
+            <th>Estado Lote</th>
             <th>Observaciones</th>
+            <th>Acciones</th>
         </tr>
         </thead>
         <tbody>
@@ -42,14 +41,12 @@
             <td th:text="${lote.cantidadInicial}"></td>
             <td th:text="${lote.cantidadActual}"></td>
             <td th:text="${lote.unidadMedida}"></td>
-            <td th:text="${lote.nroRemito}"></td>
             <td th:text="${lote.proveedor.razonSocial}"></td>
+            <td th:text="${lote.paisOrigen}"></td>
             <td th:text="${lote.loteProveedor}"></td>
-            <td th:text="${lote.detalleConservacion}"></td>
-            <td th:text="${lote.fechaVencimiento}"></td>
-            <td th:text="${lote.fechaReanalisis}"></td>
-<!--            <td th:text="${lote.analisisList}"></td>-->
-            <td th:text="${lote.titulo}"></td>
+            <td th:text="${lote.fechaVencimientoProveedor}"></td>
+            <td th:text="${lote.fechaReanalisisProveedor}"></td>
+            <td th:text="${lote.estadoLote}"></td>
             <td th:text="${lote.observaciones}"></td>
             <td>
                 <a th:href="@{'/movimientos/lote/' + ${lote.id}}" class="btn btn-primary btn-sm">Ver Movimientos</a>

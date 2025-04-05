@@ -62,17 +62,12 @@ public class Lote {
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado_lote", nullable = false)
-    private EstadoLoteEnum estadoLote;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DictamenEnum dictamen;
-
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "lote_origen_id")
-    private Lote loteOrigen;
+    @JoinColumn(name = "fabricante_id")
+    private Proveedor fabricante;
+
+    @Column(name = "pais_origen")
+    private String paisOrigen;
 
     @Column(name = "fecha_ingreso", nullable = false)
     private LocalDate fechaIngreso;
@@ -96,24 +91,29 @@ public class Lote {
     @Column(name = "lote_proveedor", nullable = false)
     private String loteProveedor;
 
+    @Column(name = "fecha_reanal_prov", nullable = false)
+    private LocalDate fechaReanalisisProveedor;
+
+    @Column(name = "fecha_vto_prov", nullable = false)
+    private LocalDate fechaVencimientoProveedor;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_lote", nullable = false)
+    private EstadoLoteEnum estadoLote;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DictamenEnum dictamen;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "lote_origen_id")
+    private Lote loteOrigen;
+
     @Column(name = "nro_remito")
     private String nroRemito;
 
     @Column(name = "detalle_conservacion")
     private String detalleConservacion;
-
-    @Column(name = "fecha_analisis")
-    private LocalDate fechaAnalisis;
-
-    @Column(name = "fecha_reanalisis")
-    private LocalDate fechaReanalisis;
-
-    @Column(name = "fecha_vencimiento")
-    private LocalDate fechaVencimiento;
-
-    @Column(name = "titulo", precision = 12, scale = 4)
-    @Max(value = 100, message = "El título no puede superar el 100%")
-    private BigDecimal titulo;
 
     @Column(columnDefinition = "TEXT")
     private String observaciones;
