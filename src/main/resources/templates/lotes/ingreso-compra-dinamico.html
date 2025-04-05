@@ -24,11 +24,10 @@
             <div th:if="${#fields.hasErrors('fechaIngreso')}" class="text-danger" th:errors="*{fechaIngreso}"></div>
         </div>
 
-        <div class="mb-2">ouir
+        <div class="mb-2">
             <label for="productoId" class="form-label">Producto:</label>
             <select id="productoId" th:field="*{productoId}" class="form-select" required>
                 <option value="">-- Seleccione un producto --</option>
-                <!-- Se asigna la unidad base en el atributo data-unit -->
                 <option th:each="producto : ${productos}"
                         th:value="${producto.id}"
                         th:text="${producto.nombreGenerico}"
@@ -72,8 +71,6 @@
             <input type="text" id="loteProveedor" th:field="*{loteProveedor}" class="form-control" required>
         </div>
 
-
-
         <!-- ========================================================= -->
         <!-- Bloque: Distribución de Bultos -->
         <!-- Se muestra solo si bultosTotales > 1 -->
@@ -82,9 +79,7 @@
             <hr class="my-4">
             <h4 class="mb-3 text-primary">Distribución de Cantidades para los Bultos</h4>
             <p>La suma de las cantidades de cada bulto debe ser igual a la cantidad total ingresada.</p>
-            <!-- Contenedor dinámico para los campos de cada bulto -->
             <div id="bultosContainer"></div>
-            <!-- Error general de distribución -->
             <div th:if="${#fields.hasErrors('cantidadesBultos')}" class="text-danger" th:errors="*{cantidadesBultos}"></div>
         </div>
 
@@ -159,6 +154,7 @@
 
 <!-- ========================================================= -->
 <!-- JavaScript: Carga de subunidades y generación dinámica de campos de bultos -->
+<!-- Se asegura de que al cargar la página se repoblen los valores del DTO -->
 <!-- ========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
@@ -169,8 +165,14 @@
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
 
         /**
+         * Variables para obtener datos de distribución del DTO (si existen)
+         * Se espera que 'cantidadesBultos' y 'unidadMedidaBultos' sean listas
+         */
+        var cantidadesBultosDTO = /*[[${loteDTO.cantidadesBultos != null ? loteDTO.cantidadesBultos : '[]'}]]*/ [];
+        var unidadMedidaBultosDTO = /*[[${loteDTO.unidadMedidaBultos != null ? loteDTO.unidadMedidaBultos : '[]'}]]*/ [];
+
+        /**
          * Función para cargar las unidades compatibles del select principal
-         * (Se mantiene sin cambios, ya que para el principal se sigue usando el endpoint original)
          */
         function cargarUnidadesCompatibles(unidadBase) {
             if (!unidadBase) return;
@@ -200,13 +202,20 @@
         document.getElementById('productoId').addEventListener('change', function () {
             const unidadBase = this.options[this.selectedIndex].getAttribute('data-unit');
             cargarUnidadesCompatibles(unidadBase);
+            // También actualiza los selects de los bultos si existen
+            const selectsBultos = bultosContainer.querySelectorAll('select');
+            selectsBultos.forEach(select => {
+                cargarSubunidades(unidadBase, select);
+            });
         });
 
-        // =========================================================
-        // Nueva función: Cargar las subunidades para los selects de cada bulto
-        // Ahora se usa el endpoint '/enums/subunidades?unidad='
-        // =========================================================
-        function cargarSubunidades(unidadBase, selectElement) {
+        /**
+         * Función para cargar las subunidades para un select dado
+         * @param {string} unidadBase - Unidad base para obtener subunidades
+         * @param {HTMLElement} selectElement - Elemento select a poblar
+         * @param {string} [preselected] - Valor preseleccionado (opcional)
+         */
+        function cargarSubunidades(unidadBase, selectElement, preselected) {
             if (!unidadBase) return;
             fetch('/enums/subunidades?unidad=' + unidadBase, {
                 method: 'GET',
@@ -214,14 +223,17 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    // Reiniciamos el select y lo llenamos con las subunidades
                     selectElement.innerHTML = '<option value="">-- Seleccione unidad --</option>';
                     data.forEach(u => {
                         const option = document.createElement('option');
                         option.value = u;
                         option.textContent = u;
-                        // Se selecciona la subunidad que coincida con la unidad base
-                        if (u === unidadBase) option.selected = true;
+                        // Si se pasó un valor preseleccionado, se lo marca; de lo contrario, usa la unidad base
+                        if (preselected) {
+                            if (u === preselected) option.selected = true;
+                        } else {
+                            if (u === unidadBase) option.selected = true;
+                        }
                         selectElement.appendChild(option);
                     });
                 })
@@ -230,10 +242,11 @@
 
         // =========================================================
         // Función para generar dinámicamente los campos de distribución de bultos
+        // Se pre-cargan valores del DTO si existen
         // =========================================================
         const bultosTotalesInput = document.getElementById('bultosTotales'); // Input de cantidad de bultos
         const distribucionDiv = document.getElementById('distribucionBultos'); // Contenedor de la distribución
-        const bultosContainer = document.getElementById('bultosContainer'); // Contenedor donde se crean los campos
+        const bultosContainer = document.getElementById('bultosContainer'); // Contenedor donde se crearán los campos
 
         function generarCamposBultos(cantidad) {
             bultosContainer.innerHTML = ''; // Limpiar campos previos
@@ -253,12 +266,16 @@
                 labelCantidad.textContent = 'Cantidad para Bulto ' + i + ':';
                 const inputCantidad = document.createElement('input');
                 inputCantidad.type = 'number';
-                inputCantidad.step = '1'; // Solo enteros
+                inputCantidad.step = '1'; // Se espera número entero
                 inputCantidad.id = 'cantidadBulto' + i;
                 // Nombre para el binding en el DTO (lista)
                 inputCantidad.name = 'cantidadesBultos[' + (i - 1) + ']';
                 inputCantidad.className = 'form-control';
                 inputCantidad.required = true;
+                // Si en el DTO ya hay una cantidad para este bulto, se asigna su valor
+                if (cantidadesBultosDTO && cantidadesBultosDTO[i - 1] != null) {
+                    inputCantidad.value = cantidadesBultosDTO[i - 1];
+                }
                 divCantidad.appendChild(labelCantidad);
                 divCantidad.appendChild(inputCantidad);
 
@@ -273,8 +290,10 @@
                 selectUnidad.name = 'unidadMedidaBultos[' + (i - 1) + ']';
                 selectUnidad.className = 'form-select';
                 selectUnidad.required = true;
-                // Se carga el select con las subunidades basadas en la unidad del select principal
-                cargarSubunidades(unidadBaseBultos, selectUnidad);
+                // Se determina si en el DTO existe un valor preseleccionado para este bulto
+                let preselected = (unidadMedidaBultosDTO && unidadMedidaBultosDTO[i - 1]) ? unidadMedidaBultosDTO[i - 1] : null;
+                // Se carga el select con las subunidades usando la unidad base y el valor preseleccionado
+                cargarSubunidades(unidadBaseBultos, selectUnidad, preselected);
 
                 divUnidad.appendChild(labelUnidad);
                 divUnidad.appendChild(selectUnidad);
@@ -315,28 +334,20 @@
         // Cuando la unidad de medida principal cambia, se actualizan todos los selects de bultos
         // =========================================================
         unidadSelect.addEventListener('change', function () {
-            // Obtener el nuevo valor de la unidad principal
             const nuevaUnidad = this.value;
-            // Seleccionar todos los selects dentro de bultosContainer
             const selectsBultos = bultosContainer.querySelectorAll('select');
             selectsBultos.forEach(select => {
-                // Actualizar cada select con las nuevas subunidades
                 cargarSubunidades(nuevaUnidad, select);
             });
         });
 
-        document.getElementById('productoId').addEventListener('change', function () {
-            const unidadBase = this.options[this.selectedIndex].getAttribute('data-unit');
-            cargarUnidadesCompatibles(unidadBase);
-            const selectsBultos = bultosContainer.querySelectorAll('select');
-            selectsBultos.forEach(select => {
-                // Actualizar cada select con las nuevas subunidades
-                cargarSubunidades(unidadBase, select);
-            });
-        });
-
-        generarCamposBultos(bultosTotalesInput);
-
+        // Si la página se recarga y el DTO trae un valor mayor a 1 en bultosTotales,
+        // se muestra automáticamente el bloque de distribución y se generan los campos con los datos del DTO.
+        var bultosValue = parseInt(bultosTotalesInput.value);
+        if (bultosValue && bultosValue > 1) {
+            distribucionDiv.classList.remove('hidden');
+            generarCamposBultos(bultosValue);
+        }
     });
 </script>
 </body>

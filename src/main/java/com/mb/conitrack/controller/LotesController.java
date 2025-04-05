@@ -120,6 +120,7 @@ public class LotesController {
 
         if (bindingResult.hasErrors()) {
             addInitDataToModel(model);
+            model.addAttribute("loteDTO", dto);
             return "lotes/ingreso-compra-dinamico";
         }
 
