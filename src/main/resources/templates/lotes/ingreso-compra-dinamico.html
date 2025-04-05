@@ -158,22 +158,27 @@
 <!-- ========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        // Referencia al select de unidad de medida principal
-        const unidadSelect = document.getElementById('unidadMedida');
+
         // Tokens CSRF para las peticiones
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
 
-        /**
-         * Variables para obtener datos de distribución del DTO (si existen)
-         * Se espera que 'cantidadesBultos' y 'unidadMedidaBultos' sean listas
-         */
-        var cantidadesBultosDTO = /*[[${loteDTO.cantidadesBultos != null ? loteDTO.cantidadesBultos : '[]'}]]*/ [];
-        var unidadMedidaBultosDTO = /*[[${loteDTO.unidadMedidaBultos != null ? loteDTO.unidadMedidaBultos : '[]'}]]*/ [];
+        var fechaIngresoDTO = /*[[${loteDTO.fechaIngreso}]]*/ [];
+        if (fechaIngresoDTO && fechaIngresoDTO !== "null") {
+            document.getElementById("fechaIngreso").value = fechaIngresoDTO;
+        }
+        var fechaReanalisisProveedorDTO = /*[[${loteDTO.fechaReanalisisProveedor != null ? loteDTO.fechaReanalisisProveedor : '[]'}]]*/ [];
+        if (fechaReanalisisProveedorDTO && fechaReanalisisProveedorDTO !== "null") {
+            document.getElementById("fechaReanalisisProveedor").value = fechaReanalisisProveedorDTO;
+        }
+        var fechaVencimientoProveedorDTO = /*[[${loteDTO.fechaVencimientoProveedor != null ? loteDTO.fechaVencimientoProveedor : '[]'}]]*/ [];
+        if (fechaVencimientoProveedorDTO && fechaVencimientoProveedorDTO !== "null") {
+            document.getElementById("fechaVencimientoProveedor").value = fechaVencimientoProveedorDTO;
+        }
 
-        /**
-         * Función para cargar las unidades compatibles del select principal
-         */
+        // Referencia al select de unidad de medida principal
+        const unidadSelect = document.getElementById('unidadMedida');
+
         function cargarUnidadesCompatibles(unidadBase) {
             if (!unidadBase) return;
             fetch('/enums/unidades-compatibles?unidad=' + unidadBase, {
@@ -193,11 +198,11 @@
                 })
                 .catch(error => console.error("Error al cargar unidades:", error));
         }
-
-        // Se obtiene la unidad actual del DTO o se asigna 'UNIDAD' por defecto
         const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
         cargarUnidadesCompatibles(unidadActual);
 
+
+        const bultosContainer = document.getElementById('bultosContainer'); // Contenedor donde se crearán los campos
         // Actualiza el select principal cuando el producto cambia
         document.getElementById('productoId').addEventListener('change', function () {
             const unidadBase = this.options[this.selectedIndex].getAttribute('data-unit');
@@ -209,12 +214,6 @@
             });
         });
 
-        /**
-         * Función para cargar las subunidades para un select dado
-         * @param {string} unidadBase - Unidad base para obtener subunidades
-         * @param {HTMLElement} selectElement - Elemento select a poblar
-         * @param {string} [preselected] - Valor preseleccionado (opcional)
-         */
         function cargarSubunidades(unidadBase, selectElement, preselected) {
             if (!unidadBase) return;
             fetch('/enums/subunidades?unidad=' + unidadBase, {
@@ -240,18 +239,14 @@
                 .catch(error => console.error("Error al cargar subunidades:", error));
         }
 
-        // =========================================================
-        // Función para generar dinámicamente los campos de distribución de bultos
-        // Se pre-cargan valores del DTO si existen
-        // =========================================================
-        const bultosTotalesInput = document.getElementById('bultosTotales'); // Input de cantidad de bultos
-        const distribucionDiv = document.getElementById('distribucionBultos'); // Contenedor de la distribución
-        const bultosContainer = document.getElementById('bultosContainer'); // Contenedor donde se crearán los campos
+
+        var unidadMedidaBultosDTO = /*[[${loteDTO.unidadMedidaBultos != null ? loteDTO.unidadMedidaBultos : '[]'}]]*/ [];
+        var cantidadesBultosDTO = /*[[${loteDTO.cantidadesBultos != null ? loteDTO.cantidadesBultos : '[]'}]]*/ [];
 
         function generarCamposBultos(cantidad) {
             bultosContainer.innerHTML = ''; // Limpiar campos previos
             // Se obtiene la unidad actual del select principal para usarla al cargar subunidades
-            const unidadBaseBultos = unidadSelect.value || 'UNIDAD';
+            const unidadBaseBultos = unidadSelect.value || unidadActual;
             for (let i = 1; i <= cantidad; i++) {
                 // --- Creación de la fila para el bulto ---
                 const divRow = document.createElement('div');
@@ -266,7 +261,7 @@
                 labelCantidad.textContent = 'Cantidad para Bulto ' + i + ':';
                 const inputCantidad = document.createElement('input');
                 inputCantidad.type = 'number';
-                inputCantidad.step = '1'; // Se espera número entero
+                inputCantidad.step = '0.01';
                 inputCantidad.id = 'cantidadBulto' + i;
                 // Nombre para el binding en el DTO (lista)
                 inputCantidad.name = 'cantidadesBultos[' + (i - 1) + ']';
@@ -308,14 +303,13 @@
         // =========================================================
         // Listener para cambios en el input de bultosTotales
         // =========================================================
+        const bultosTotalesInput = document.getElementById('bultosTotales'); // Input de cantidad de bultos
+        const distribucionDiv = document.getElementById('distribucionBultos'); // Contenedor de la distribución
+
         bultosTotalesInput.addEventListener('change', function () {
             const valor = parseInt(this.value);
             if (valor) {
-                if (valor > 15) {
-                    this.value = 15; // Limitar a 15 bultos
-                    distribucionDiv.classList.remove('hidden');
-                    generarCamposBultos(15);
-                } else if (valor < 1) {
+                if (valor > 15 || valor < 1) {
                     this.value = 1; // Limitar a mínimo 1 bulto
                     distribucionDiv.classList.add('hidden');
                     bultosContainer.innerHTML = '';
@@ -341,9 +335,25 @@
             });
         });
 
+        function generarUnidadesBultos(unidadActual) {
+            const selectsBultos = bultosContainer.querySelectorAll('select');
+            selectsBultos.forEach(select => {
+                cargarSubunidades(unidadActual, select);
+            });
+        }
+
+        generarUnidadesBultos(unidadActual);
         // Si la página se recarga y el DTO trae un valor mayor a 1 en bultosTotales,
         // se muestra automáticamente el bloque de distribución y se generan los campos con los datos del DTO.
-        var bultosValue = parseInt(bultosTotalesInput.value);
+
+
+        var bultosValue;
+        var bultosTotalesDTO = /*[[${loteDTO.bultosTotales}]]*/ [];
+        if (bultosTotalesDTO && bultosTotalesDTO !== "null") {
+            bultosValue =  parseInt(bultosTotalesDTO);
+        } else {
+            bultosValue = parseInt(bultosTotalesInput.value);
+        }
         if (bultosValue && bultosValue > 1) {
             distribucionDiv.classList.remove('hidden');
             generarCamposBultos(bultosValue);

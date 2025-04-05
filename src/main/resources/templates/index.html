@@ -14,16 +14,16 @@
         <h4 class="mb-3 text-primary">Casos de uso</h4>
 
         <!-- CU1 Ingreso de Lote por Compra -->
-        <li>
-            <a th:href="@{/lotes/ingreso-compra}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-                CU1 - Ingreso de Lote por Compra
-            </a>
-        </li>
+<!--        <li>-->
+<!--            <a th:href="@{/lotes/ingreso-compra}"-->
+<!--               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">-->
+<!--                CU1 - Ingreso de Lote por Compra-->
+<!--            </a>-->
+<!--        </li>-->
         <li>
             <a th:href="@{/lotes/ingreso-compra-dinamico}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-                CU1' - Ingreso de Lote por Compra dinamico
+                CU1 - Ingreso de Lote por Compra dinamico
             </a>
         </li>
 
