@@ -2,7 +2,6 @@ package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,12 +69,13 @@ public class LotesController {
     }
 
     //********************** CU1 Ingreso por compra
-    @GetMapping("/ingreso-compra")
-    public String showIngresoCompraForm(
-        @ModelAttribute("loteDTO") LoteDTO dto,
-        Model model) {
+
+    @GetMapping("/ingreso-compra-dinamico")
+    public String showIngresoCompraDinamico(@ModelAttribute("loteDTO") LoteDTO dto, Model model) {
+        dto.setCantidadesBultos(new ArrayList<>());
+        dto.setUnidadMedidaBultos(new ArrayList<>());
         addInitDataToModel(model);
-        return "lotes/ingreso-compra"; //.html
+        return "lotes/ingreso-compra-dinamico"; // el template unificado
     }
 
     private void addInitDataToModel(final Model model) {
@@ -92,25 +92,38 @@ public class LotesController {
         model.addAttribute("paises", countries);
     }
 
-    @PostMapping("/ingreso-compra")
-    public String processIngresoCompra(
+    @PostMapping("/ingreso-compra-dinamico")
+    public String processIngresoCompraDinamico(
         @Valid @ModelAttribute("loteDTO") LoteDTO dto,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes,
         SessionStatus sessionStatus) {
 
+        // Validar datos generales (como fecha, producto, proveedor, cantidadInicial, etc.)
         validateCantidadIngreso(dto, bindingResult);
+
+        if(dto.getFechaReanalisisProveedor()!=null && dto.getFechaVencimientoProveedor()!=null){
+            if(dto.getFechaReanalisisProveedor().isAfter(dto.getFechaVencimientoProveedor())){
+                bindingResult.rejectValue("fechaReanalisisProveedor", "error.fechaReanalisisProveedor",
+                    "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.");
+            }
+        }
+
+        // Si se ingresan más de 1 bulto, se valida la distribución
+        if (dto.getBultosTotales() > 1) {
+            validarTipoDeDato(dto, bindingResult);
+            validarSumaBultosConvertida(dto, bindingResult);
+        } else {
+            dto.setNroBulto(1);
+        }
+
         if (bindingResult.hasErrors()) {
             addInitDataToModel(model);
-            return "lotes/ingreso-compra";
+            return "lotes/ingreso-compra-dinamico";
         }
 
-        if (dto.getBultosTotales() > 1) {
-            return "redirect:/lotes/distribuir-bultos?bultos=" + dto.getBultosTotales();
-        }
-
-        dto.setNroBulto(1);
+        // Procesa según cantidad de bultos
         dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
         redirectAttributes.addFlashAttribute("newLoteDTO", DTOUtils.fromEntities(lotes));
@@ -134,78 +147,6 @@ public class LotesController {
                 }
             }
         }
-    }
-
-    private static void closeSession(final RedirectAttributes redirectAttributes, final SessionStatus sessionStatus, final String attributeValue) {
-        redirectAttributes.addFlashAttribute("success", attributeValue);
-        sessionStatus.setComplete();
-    }
-
-    @GetMapping("/exito-ingreso-compra")
-    public String exitoIngresoCompra(
-        @ModelAttribute("newLoteDTO") LoteDTO loteDTO, Model model) {
-        if (loteDTO.getNombreProducto() == null) {
-            return "redirect:/lotes/cancelar";
-        }
-
-        model.addAttribute("loteDTO", loteDTO);
-        model.addAttribute("movimientos", loteDTO.getMovimientoDTOs());
-
-        return "lotes/exito-ingreso-compra"; // Template Thymeleaf
-    }
-
-    //***************************** CU1 Ingreso por compra MultiBulto
-    @GetMapping("/distribuir-bultos")
-    public String showDistribuirBultos(
-        @RequestParam("bultos") Integer bultos,
-        @ModelAttribute("loteDTO") LoteDTO dto,
-        Model model) {
-
-        initBultosInLoteDto(bultos, dto, model);
-        model.addAttribute("loteDTO", dto);
-        if (dto.getProductoId() == null) {
-            return "redirect:/lotes/ingreso-compra";
-        }
-
-        productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
-        return "lotes/distribuir-bultos";
-    }
-
-    private static void initBultosInLoteDto(final Integer bultos, final LoteDTO dto, final Model model) {
-        if (dto.getUnidadMedida() != null) {
-            model.addAttribute("unidadesCompatibles", getUnidadesConvertibles(dto.getUnidadMedida()));
-        }
-        dto.setCantidadesBultos(new ArrayList<>());
-        dto.setUnidadMedidaBultos(new ArrayList<>());
-        while (dto.getCantidadesBultos().size() < bultos) {
-            dto.getCantidadesBultos().add(BigDecimal.ZERO);
-            dto.getUnidadMedidaBultos().add(dto.getUnidadMedida());
-        }
-    }
-
-    @PostMapping("/distribuir-bultos")
-    public String processDistribuirBultos(
-        @Valid @ModelAttribute("loteDTO") LoteDTO dto,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes,
-        SessionStatus sessionStatus) {
-
-        validarTipoDeDato(dto, bindingResult);
-        validarSumaBultosConvertida(dto, bindingResult);
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("unidadesCompatibles", getUnidadesConvertibles(dto.getUnidadMedida()));
-            model.addAttribute("loteDTO", dto);
-            productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
-            return "lotes/distribuir-bultos";
-        }
-
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
-        redirectAttributes.addFlashAttribute("newLoteDTO", DTOUtils.fromEntities(lotes));
-        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de " + lotes.size() + " bultos exitoso.");
-        return "redirect:/lotes/exito-ingreso-compra";
     }
 
     private void validarTipoDeDato(final LoteDTO dto, final BindingResult bindingResult) {
@@ -274,6 +215,112 @@ public class LotesController {
                     ")."
             );
         }
+    }
+
+    private static void closeSession(final RedirectAttributes redirectAttributes, final SessionStatus sessionStatus, final String attributeValue) {
+        redirectAttributes.addFlashAttribute("success", attributeValue);
+        sessionStatus.setComplete();
+    }
+
+    @GetMapping("/ingreso-compra")
+    public String showIngresoCompraForm(
+        @ModelAttribute("loteDTO") LoteDTO dto,
+        Model model) {
+        addInitDataToModel(model);
+        return "lotes/ingreso-compra"; //.html
+    }
+
+    @PostMapping("/ingreso-compra")
+    public String processIngresoCompra(
+        @Valid @ModelAttribute("loteDTO") LoteDTO dto,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes,
+        SessionStatus sessionStatus) {
+
+        validateCantidadIngreso(dto, bindingResult);
+        if (bindingResult.hasErrors()) {
+            addInitDataToModel(model);
+            return "lotes/ingreso-compra";
+        }
+
+        if (dto.getBultosTotales() > 1) {
+            return "redirect:/lotes/distribuir-bultos?bultos=" + dto.getBultosTotales();
+        }
+
+        dto.setNroBulto(1);
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
+        redirectAttributes.addFlashAttribute("newLoteDTO", DTOUtils.fromEntities(lotes));
+        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de 1 bulto exitoso.");
+        return "redirect:/lotes/exito-ingreso-compra";
+    }
+
+    @GetMapping("/exito-ingreso-compra")
+    public String exitoIngresoCompra(
+        @ModelAttribute("newLoteDTO") LoteDTO loteDTO, Model model) {
+        if (loteDTO.getNombreProducto() == null) {
+            return "redirect:/lotes/cancelar";
+        }
+
+        model.addAttribute("loteDTO", loteDTO);
+        model.addAttribute("movimientos", loteDTO.getMovimientoDTOs());
+
+        return "lotes/exito-ingreso-compra"; // Template Thymeleaf
+    }
+
+    //***************************** CU1 Ingreso por compra MultiBulto
+    @GetMapping("/distribuir-bultos")
+    public String showDistribuirBultos(
+        @RequestParam("bultos") Integer bultos,
+        @ModelAttribute("loteDTO") LoteDTO dto,
+        Model model) {
+
+        initBultosInLoteDto(bultos, dto, model);
+        model.addAttribute("loteDTO", dto);
+        if (dto.getProductoId() == null) {
+            return "redirect:/lotes/ingreso-compra";
+        }
+
+        productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
+        return "lotes/distribuir-bultos";
+    }
+
+    private static void initBultosInLoteDto(final Integer bultos, final LoteDTO dto, final Model model) {
+        if (dto.getUnidadMedida() != null) {
+            model.addAttribute("unidadesCompatibles", getUnidadesConvertibles(dto.getUnidadMedida()));
+        }
+        dto.setCantidadesBultos(new ArrayList<>());
+        dto.setUnidadMedidaBultos(new ArrayList<>());
+        while (dto.getCantidadesBultos().size() < bultos) {
+            dto.getCantidadesBultos().add(BigDecimal.ZERO);
+            dto.getUnidadMedidaBultos().add(dto.getUnidadMedida());
+        }
+    }
+
+    @PostMapping("/distribuir-bultos")
+    public String processDistribuirBultos(
+        @Valid @ModelAttribute("loteDTO") LoteDTO dto,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes,
+        SessionStatus sessionStatus) {
+
+        validarTipoDeDato(dto, bindingResult);
+        validarSumaBultosConvertida(dto, bindingResult);
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("unidadesCompatibles", getUnidadesConvertibles(dto.getUnidadMedida()));
+            model.addAttribute("loteDTO", dto);
+            productoService.findById(dto.getProductoId()).ifPresent(p -> model.addAttribute("producto", p));
+            return "lotes/distribuir-bultos";
+        }
+
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
+        redirectAttributes.addFlashAttribute("newLoteDTO", DTOUtils.fromEntities(lotes));
+        closeSession(redirectAttributes, sessionStatus, "Ingreso de stock por compra de " + lotes.size() + " bultos exitoso.");
+        return "redirect:/lotes/exito-ingreso-compra";
     }
 
     //*******************  CU4 Devolucion Compra

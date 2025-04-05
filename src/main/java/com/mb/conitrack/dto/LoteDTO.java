@@ -49,6 +49,7 @@ public class LoteDTO {
     // NUEVO: Lista de cantidades para cada bulto (en el paso 2)
     private Integer nroBulto;
 
+    @NotNull(message = "La cantidad de bultos totales es obligatoria")
     @Positive(message = "La cantidad de bultos totales debe ser mayor a cero")
     private Integer bultosTotales;
 

@@ -20,6 +20,12 @@
                 CU1 - Ingreso de Lote por Compra
             </a>
         </li>
+        <li>
+            <a th:href="@{/lotes/ingreso-compra-dinamico}"
+               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+                CU1' - Ingreso de Lote por Compra dinamico
+            </a>
+        </li>
 
         <li>
             <a th:href="@{/dictamen/cuarentena}"
