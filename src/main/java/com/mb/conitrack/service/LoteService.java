@@ -140,7 +140,7 @@ public class LoteService {
         Producto producto = productoRepository.findById(dto.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
         int bultosTotales = Math.max(dto.getBultosTotales(), 1);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
         String timestamp = dto.getFechaYHoraCreacion().format(formatter);
 
         for (int i = 0; i < bultosTotales; i++) {

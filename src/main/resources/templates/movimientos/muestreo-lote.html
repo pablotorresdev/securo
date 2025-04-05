@@ -20,7 +20,7 @@
         <div class="mb-2">
             <label for="fechaMovimiento" class="form-label">Fecha del Retiro:</label>
             <input type="date" id="fechaMovimiento" name="fechaMovimiento"
-                   th:value="${movimientoDTO.fechaMovimiento}"
+                   th:field="*{fechaMovimiento}"
                    class="form-control"
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
                    required>

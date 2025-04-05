@@ -100,6 +100,7 @@ public class DTOUtils {
                 dto.setFabricanteId(entity.getFabricante() != null ? entity.getFabricante().getId() : null);
                 dto.setNombreFabricante(entity.getFabricante() != null ? entity.getFabricante().getRazonSocial() : null);
 
+                dto.setCodigoInterno(entity.getCodigoInterno());
                 dto.setPaisOrigen(entity.getPaisOrigen());
 
                 dto.setFechaIngreso(entity.getFechaIngreso());

@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -52,9 +53,7 @@ public class LotesController {
 
     @ModelAttribute("loteDTO")
     public LoteDTO getLoteDTO() {
-        final LoteDTO dto = new LoteDTO();
-        dto.setFechaIngreso(LocalDate.now());
-        return dto;
+        return new LoteDTO();
     }
 
     @GetMapping("/list-lotes")
@@ -82,6 +81,15 @@ public class LotesController {
     private void addInitDataToModel(final Model model) {
         model.addAttribute("productos", productoService.getProductosExternos());
         model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
+
+        String[] countryCodes = Locale.getISOCountries();
+        List<String> countries = new ArrayList<>();
+        for (String code : countryCodes) {
+            Locale locale = new Locale("", code);
+            countries.add(locale.getDisplayCountry());
+        }
+        countries.sort(String::compareTo);
+        model.addAttribute("paises", countries);
     }
 
     @PostMapping("/ingreso-compra")
@@ -286,6 +294,7 @@ public class LotesController {
             return "lotes/devolucion-compra";
         }
 
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.persistirDevolucionCompra(dto, lote);
 
         if (lotes.isEmpty()) {

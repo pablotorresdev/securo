@@ -20,7 +20,7 @@
         <div class="mb-2">
             <label for="fechaIngreso" class="form-label">Fecha de Ingreso:</label>
             <input type="date" id="fechaIngreso"
-                   th:value="${loteDTO.fechaIngreso}"
+                   th:field="*{fechaIngreso}"
                    class="form-control"
                    th:classappend="${#fields.hasErrors('fechaIngreso')} ? ' error-field' : ''"
                    required>
@@ -132,10 +132,9 @@
         <div class="mb-2">
             <label for="fechaReanalisisProveedor" class="form-label">Fecha Re Analisis Proveedor:</label>
             <input type="date" id="fechaReanalisisProveedor"
-                   th:value="${loteDTO.fechaReanalisisProveedor}"
+                   th:field="*{fechaReanalisisProveedor}"
                    class="form-control"
                    th:classappend="${#fields.hasErrors('fechaReanalisisProveedor')} ? ' error-field' : ''">
-
             <div th:if="${#fields.hasErrors('fechaReanalisisProveedor')}"
                  style="color: red; font-weight: bold;"
                  th:errors="*{fechaReanalisisProveedor}">
@@ -146,7 +145,7 @@
         <div class="mb-2">
             <label for="fechaVencimientoProveedor" class="form-label">Fecha Vencimiento Proveedor:</label>
             <input type="date" id="fechaVencimientoProveedor"
-                   th:value="${loteDTO.fechaVencimientoProveedor}"
+                   th:field="*{fechaVencimientoProveedor}"
                    class="form-control"
                    th:classappend="${#fields.hasErrors('fechaVencimientoProveedor')} ? ' error-field' : ''">
 
