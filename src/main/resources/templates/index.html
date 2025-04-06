@@ -20,23 +20,15 @@
     <ul>
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Casos de uso</h4>
-
-        <!-- CU1 Ingreso de Lote por Compra -->
-        <!--        <li>-->
-        <!--            <a th:href="@{/lotes/ingreso-compra}"-->
-        <!--               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">-->
-        <!--                CU1 - Ingreso de Lote por Compra-->
-        <!--            </a>-->
-        <!--        </li>-->
         <li>
-            <a th:href="@{/lotes/ingreso-compra-dinamico}"
+            <a th:href="@{/compras/ingreso-compra}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
-                CU1 - Ingreso de Lote por Compra dinamico
+                CU1 - Ingreso de Lote por Compra
             </a>
         </li>
 
         <li>
-            <a th:href="@{/dictamen/cuarentena}"
+            <a th:href="@{/calidad/cuarentena}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
                 CU2 - Dictamen: Cuarentena
             </a>
@@ -45,7 +37,7 @@
 
         <!-- CU3 Retiro por Muestreo -->
         <li>
-            <a th:href="@{/movimientos/muestreo-lote}"
+            <a th:href="@{/calidad/muestreo-bulto}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
                 CU3 - Retiro por Muestreo
             </a>
@@ -53,20 +45,16 @@
 
         <!-- NUEVO: CU4 Devolución de Compra -->
         <li>
-            <a th:href="@{/lotes/devolucion-compra}"
+            <a th:href="@{/compras/devolucion-compra}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
                 CU4 - Devolución de Compra
             </a>
         </li>
 
         <li>
-            <a href="javascript:void(0);" class="disabled">
-                CU5. Resultado QA: Aprobado
-            </a>
-        </li>
-        <li>
-            <a href="javascript:void(0);" class="disabled">
-                CU6. Resultado QA: Rechazado
+            <a th:href="@{/calidad/resultado-analisis}"
+               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+                CU5/CU6. Resultado QA: Aprobado/Rechazado
             </a>
         </li>
         <li>

@@ -47,10 +47,16 @@ public class LoteService {
 
     //Getters
     public Lote findLoteBultoById(final Long id) {
+        if(id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo.");
+        }
         return loteRepository.findById(id).filter(Lote::getActivo).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
     public List<Lote> findLoteListById(final Long id) {
+        if(id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo.");
+        }
         Lote lote = loteRepository.findById(id).filter(Lote::getActivo).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
         return loteRepository.findAllByCodigoInternoAndActivoTrue(lote.getCodigoInterno());
     }
@@ -116,6 +122,12 @@ public class LoteService {
         return Optional.of(nuevoLote);
     }
 
+    /**
+     * Devuelve una lista de lotes que están en estado de cuarentena y no tienen
+     * análisis dictaminados.
+     *
+     * @return Lista de lotes en estado de cuarentena sin análisis realizados.
+     */
     public List<Lote> findAllForResultadoAnalisis() {
         final List<Lote> lotes = loteRepository.findAll();
         return lotes.stream()
@@ -170,31 +182,6 @@ public class LoteService {
             result.add(loteGuardado);
         }
         return result;
-    }
-
-    private static Lote createLoteIngreso(final LoteDTO dto) {
-        Lote lote = new Lote();
-
-        //Datos CU1
-        lote.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        lote.setEstadoLote(EstadoLoteEnum.NUEVO);
-        lote.setDictamen(DictamenEnum.RECIBIDO);
-        lote.setActivo(Boolean.TRUE);
-
-        //Datos obligatorios comunes
-        lote.setPaisOrigen(dto.getPaisOrigen());
-        lote.setFechaIngreso(dto.getFechaIngreso());
-        lote.setBultosTotales(dto.getBultosTotales());
-        lote.setLoteProveedor(dto.getLoteProveedor());
-
-        //Datos opcionales comunes
-        lote.setFechaReanalisisProveedor(dto.getFechaReanalisisProveedor());
-        lote.setFechaVencimientoProveedor(dto.getFechaVencimientoProveedor());
-        lote.setNroRemito(dto.getNroRemito());
-        lote.setDetalleConservacion(dto.getDetalleConservacion());
-        lote.setObservaciones(dto.getObservaciones());
-
-        return lote;
     }
 
     //***********CU2 MODIFICACION: CUARENTENA***********
@@ -275,16 +262,41 @@ public class LoteService {
     }
 
     @Transactional
-    public List<Lote> persistirDictamenResultado(final List<Lote> lotes, final MovimientoDTO dto) {
-        analisisService.addDictamenResultado(dto);
+    public List<Lote> persistirResultadoAnalisis(final MovimientoDTO dto) {
+        final Analisis analisis = analisisService.addResultadoAnalisis(dto);
         List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : lotes) {
+        for (Lote loteBulto : analisis.getLotes()) {
             final Movimiento movimiento = movimientoService.persistirMovimientoResultadoAnalisis(dto, loteBulto);
             loteBulto.setDictamen(movimiento.getDictamenFinal());
             loteBulto.getMovimientos().add(movimiento);
             result.add(loteRepository.save(loteBulto));
         }
         return result;
+    }
+
+    private Lote createLoteIngreso(final LoteDTO dto) {
+        Lote lote = new Lote();
+
+        //Datos CU1
+        lote.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        lote.setEstadoLote(EstadoLoteEnum.NUEVO);
+        lote.setDictamen(DictamenEnum.RECIBIDO);
+        lote.setActivo(Boolean.TRUE);
+
+        //Datos obligatorios comunes
+        lote.setPaisOrigen(dto.getPaisOrigen());
+        lote.setFechaIngreso(dto.getFechaIngreso());
+        lote.setBultosTotales(dto.getBultosTotales());
+        lote.setLoteProveedor(dto.getLoteProveedor());
+
+        //Datos opcionales comunes
+        lote.setFechaReanalisisProveedor(dto.getFechaReanalisisProveedor());
+        lote.setFechaVencimientoProveedor(dto.getFechaVencimientoProveedor());
+        lote.setNroRemito(dto.getNroRemito());
+        lote.setDetalleConservacion(dto.getDetalleConservacion());
+        lote.setObservaciones(dto.getObservaciones());
+
+        return lote;
     }
 
 }

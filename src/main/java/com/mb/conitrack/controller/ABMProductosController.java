@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/productos")
-public class ProductoController {
+public class ABMProductosController {
 
     @Autowired
     private ProductoService productoService;

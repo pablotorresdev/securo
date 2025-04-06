@@ -36,8 +36,6 @@ public class DTOUtils {
         dto.setFechaMovimiento(entity.getFecha());
         if (entity.getLote() != null) {
             dto.setLoteId(entity.getLote().getId());
-        } else {
-            dto.setLoteId(-1l);
         }
 
         dto.setCantidad(entity.getCantidad());
@@ -137,7 +135,6 @@ public class DTOUtils {
                 dto.getUnidadMedidaBultos().add(entity.getNroBulto() - 1, entity.getUnidadMedida());
 
                 addMovimientosDTO(dto, entity);
-                addAnalisisDTO(dto, entity);
             }
         }
         return dto;

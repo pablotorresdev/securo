@@ -25,7 +25,7 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/users")
-public class UsersController {
+public class ABMUsersController {
 
     private final UserRepository userRepository;
 
@@ -36,7 +36,7 @@ public class UsersController {
 
     private final RoleRepository roleRepository;
 
-    public UsersController(UserRepository userRepository, PasswordEncoder passwordEncoder, final RoleRepository roleRepository) {
+    public ABMUsersController(UserRepository userRepository, PasswordEncoder passwordEncoder, final RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.usernames = new ArrayList<>();

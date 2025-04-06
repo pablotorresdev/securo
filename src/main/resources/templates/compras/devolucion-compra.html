@@ -12,7 +12,7 @@
     <h2 class="mb-4">Devolución de Compra</h2>
 
     <!-- Formulario para devolver un Lote -->
-    <form th:action="@{/lotes/devolucion-compra}" th:object="${movimientoDTO}" method="post">
+    <form th:action="@{/compras/devolucion-compra}" th:object="${movimientoDTO}" method="post">
         <!-- Token CSRF -->
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
@@ -62,7 +62,7 @@
 
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
-            <a th:href="@{/lotes/cancelar}" class="btn btn-secondary">Cancelar</a>
+            <a th:href="@{/compras/cancelar}" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">Devolver</button>
         </div>
     </form>

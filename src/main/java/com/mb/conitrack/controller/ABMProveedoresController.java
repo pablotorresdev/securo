@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/proveedores")
-public class ProveedorController {
+public class ABMProveedoresController {
 
     @Autowired
     private ProveedorService proveedorService;

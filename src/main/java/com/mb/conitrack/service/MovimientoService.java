@@ -61,49 +61,6 @@ public class MovimientoService {
         return movimientoRepository.save(movimientoAltaIngresoCompra);
     }
 
-    private Movimiento createMovimientoAltaIngresoCompra(final Lote lote) {
-        Movimiento movimiento = new Movimiento();
-        movimiento.setFecha(LocalDate.now());
-        movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
-        movimiento.setMotivo(MotivoEnum.COMPRA);
-        movimiento.setCantidad(lote.getCantidadInicial());
-        movimiento.setUnidadMedida(lote.getUnidadMedida());
-        movimiento.setObservaciones("Ingreso de stock por compra (CU1)");
-        movimiento.setDictamenFinal(lote.getDictamen());
-        movimiento.setActivo(Boolean.TRUE);
-        movimiento.setLote(lote);
-        return movimiento;
-    }
-
-    //***********CU2 MODIFICACION: CUARENTENA***********
-    @Transactional
-    public Movimiento persistirCambioDictamenCuarentena(final MovimientoDTO dto, Lote lote) {
-        final Analisis analisis = DTOUtils.createAnalisis(dto);
-        final Analisis newAnalisis = analisisService.save(analisis);
-        final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
-        movimientoPorMuestreo.setNroAnalisis(newAnalisis.getNroAnalisis());
-        return movimientoRepository.save(movimientoPorMuestreo);
-    }
-
-    //***********CU3 BAJA: MUESTREO***********
-    private static Movimiento createMovimientoPorMuestreo(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = new Movimiento();
-
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        movimiento.setMotivo(MUESTREO);
-
-        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setLote(lote);
-        movimiento.setCantidad(dto.getCantidad());
-        movimiento.setUnidadMedida(dto.getUnidadMedida());
-        movimiento.setNroAnalisis(dto.getNroAnalisis());
-        movimiento.setObservaciones(dto.getObservaciones());
-        movimiento.setActivo(true);
-        return movimiento;
-    }
-
     @Transactional
     public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Lote lote) {
 
@@ -118,7 +75,7 @@ public class MovimientoService {
             final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
             if (analisisEnCurso.isPresent()) {
                 final Analisis analisis = analisisEnCurso.get();
-                if(dto.getNroAnalisis().equals(analisis.getNroAnalisis())) {
+                if (dto.getNroAnalisis().equals(analisis.getNroAnalisis())) {
                     final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
                     movimientoPorMuestreo.setNroAnalisis(analisis.getNroAnalisis());
                     return movimientoRepository.save(movimientoPorMuestreo);
@@ -129,6 +86,109 @@ public class MovimientoService {
                 throw new IllegalArgumentException("El lote tiene más de un análisis");
             }
         }
+    }
+
+    @Transactional
+    public Movimiento persistirMovimientoCuarentenaPorMuestreo(final MovimientoDTO dto, Lote lote) {
+        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
+
+        movimiento.setObservaciones("Movimiento Cuarentena por Muestreo (CU2/3):\n" + lote.getObservaciones());
+
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setMotivo(MUESTREO);
+        movimiento.setDictamenFinal(CUARENTENA);
+
+        return movimientoRepository.save(movimiento);
+    }
+
+    @Transactional
+    public Movimiento persistirMovimientoCuarentenaPorAnalisis(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
+        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
+
+        movimiento.setObservaciones("Movimiento Cuarentena Analisis (CU2):\n" + lote.getObservaciones());
+
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setNroAnalisis(nroAnalisis);
+        movimiento.setMotivo(ANALISIS);
+        movimiento.setDictamenFinal(CUARENTENA);
+
+        return movimientoRepository.save(movimiento);
+    }
+
+    //***********CU4 BAJA: DEVOLUCION COMPRA***********
+    @Transactional
+    public Movimiento persistirMovimientoDevolucionCompra(final MovimientoDTO dto, Lote lote) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(DEVOLUCION_COMPRA);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        movimiento.setCantidad(lote.getCantidadActual());
+        movimiento.setUnidadMedida(lote.getUnidadMedida());
+
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setLote(lote);
+        movimiento.setObservaciones("Movimiento Devolucion Compra (CU4):\n" + lote.getObservaciones());
+        movimiento.setActivo(true);
+        return movimientoRepository.save(movimiento);
+    }
+
+    public Movimiento persistirMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
+
+        movimiento.setObservaciones("Movimiento Resultado de Analisis (CU5/6):\n" + lote.getObservaciones());
+
+        movimiento.setMotivo(ANALISIS);
+        movimiento.setNroAnalisis(dto.getNroAnalisis());
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setDictamenFinal(dto.getDictamenFinal());
+        return movimientoRepository.save(movimiento);
+    }
+
+    private Movimiento createMovimientoCambioDictamen(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setLote(lote);
+        movimiento.setObservaciones(dto.getObservaciones());
+        movimiento.setActivo(true);
+        return movimiento;
+    }
+
+    //***********CU3 BAJA: MUESTREO***********
+    private Movimiento createMovimientoPorMuestreo(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(MUESTREO);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setLote(lote);
+        movimiento.setCantidad(dto.getCantidad());
+        movimiento.setUnidadMedida(dto.getUnidadMedida());
+        movimiento.setNroAnalisis(dto.getNroAnalisis());
+        movimiento.setObservaciones("Baja de stock por muestreo (CU2):\n" + lote.getObservaciones());
+        movimiento.setActivo(true);
+        return movimiento;
+    }
+
+    private Movimiento createMovimientoAltaIngresoCompra(final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+        movimiento.setFecha(LocalDate.now());
+        movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setMotivo(MotivoEnum.COMPRA);
+        movimiento.setCantidad(lote.getCantidadInicial());
+        movimiento.setUnidadMedida(lote.getUnidadMedida());
+        movimiento.setObservaciones("Ingreso de stock por compra (CU1):\n" + lote.getObservaciones());
+        movimiento.setDictamenFinal(lote.getDictamen());
+        movimiento.setActivo(Boolean.TRUE);
+        movimiento.setLote(lote);
+        return movimiento;
     }
 
     private Optional<Analisis> getAnalisisEnCurso(final List<Analisis> analisisList) {
@@ -145,74 +205,4 @@ public class MovimientoService {
         }
     }
 
-    @Transactional
-    public Movimiento persistirMovimientoCuarentenaPorMuestreo(final MovimientoDTO dto, Lote lote) {
-        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
-
-        movimiento.setDictamenInicial(lote.getDictamen());
-        movimiento.setMotivo(MUESTREO);
-        movimiento.setDictamenFinal(CUARENTENA);
-
-        return movimientoRepository.save(movimiento);
-    }
-
-    private static Movimiento createMovimientoCambioDictamen(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = new Movimiento();
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
-
-        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setLote(lote);
-        movimiento.setObservaciones(dto.getObservaciones());
-        movimiento.setActivo(true);
-        return movimiento;
-    }
-
-    @Transactional
-    public Movimiento persistirMovimientoCuarentenaPorAnalisis(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
-        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
-
-        movimiento.setDictamenInicial(lote.getDictamen());
-        movimiento.setNroAnalisis(nroAnalisis);
-        movimiento.setMotivo(ANALISIS);
-        movimiento.setDictamenFinal(CUARENTENA);
-
-        return movimientoRepository.save(movimiento);
-    }
-
-    //***********CU4 BAJA: DEVOLUCION COMPRA***********
-    @Transactional
-    public Movimiento persistirMovimientoDevolucionCompra(final MovimientoDTO dto, Lote lote) {
-        return movimientoRepository.save(createMovimientoDevolucionCompra(dto, lote));
-    }
-
-    private static Movimiento createMovimientoDevolucionCompra(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = new Movimiento();
-
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        movimiento.setMotivo(DEVOLUCION_COMPRA);
-
-        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        movimiento.setCantidad(lote.getCantidadActual());
-        movimiento.setUnidadMedida(lote.getUnidadMedida());
-
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setLote(lote);
-        movimiento.setObservaciones(dto.getObservaciones());
-        movimiento.setActivo(true);
-        return movimiento;
-    }
-
-    public Movimiento persistirMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote loteBulto) {
-        return movimientoRepository.save(createMovimientoResultadoAnalisis(dto, loteBulto));
-    }
-
-    private static Movimiento createMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = createMovimientoCambioDictamen(dto, lote);
-        movimiento.setMotivo(ANALISIS);
-        movimiento.setNroAnalisis(dto.getNroAnalisis());
-        movimiento.setDictamenInicial(lote.getDictamen());
-        movimiento.setDictamenFinal(dto.getDictamenFinal());
-        return movimiento;
-    }
 }

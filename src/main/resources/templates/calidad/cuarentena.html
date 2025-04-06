@@ -10,7 +10,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Cambiar Dictamen a Cuarentena</h2>
-    <form th:action="@{/dictamen/cuarentena}" th:object="${movimientoDTO}" method="post">
+    <form th:action="@{/calidad/cuarentena}" th:object="${movimientoDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
         <hr class="my-4">
@@ -82,7 +82,7 @@
 
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
-            <a th:href="@{/dictamen/cancelar}" class="btn btn-secondary">Cancelar</a>
+            <a th:href="@{/calidad/cancelar}" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">Enviar a Cuarentena</button>
         </div>
     </form>

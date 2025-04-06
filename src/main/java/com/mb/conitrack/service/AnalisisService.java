@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.repository.AnalisisRepository;
 
 @Service
@@ -40,7 +41,7 @@ public class AnalisisService {
             .toList();
     }
 
-    public Analisis addDictamenResultado(final MovimientoDTO dto) {
+    public Analisis addResultadoAnalisis(final MovimientoDTO dto) {
         Analisis analisis = analisisRepository.findByNroAnalisis(dto.getNroAnalisis()).orElseThrow(
             () -> new IllegalArgumentException("No se encontró el análisis con el número: " + dto.getNroAnalisis()));
 
@@ -51,6 +52,10 @@ public class AnalisisService {
         analisis.setTitulo(dto.getTitulo());
         analisis.setObservaciones(dto.getObservaciones());
         return analisisRepository.save(analisis);
+    }
+
+    public Analisis findByNroAnalisis(final String nroAnalisis) {
+        return analisisRepository.findByNroAnalisis(nroAnalisis).filter(Analisis::getActivo).orElseThrow(() -> new IllegalArgumentException("El Analisis no existe."));
     }
 
 }

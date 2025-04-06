@@ -11,6 +11,8 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
@@ -63,8 +65,10 @@ public class LoteDTO {
     @NotNull(message = "El lote del proveedor es obligatorio")
     private String loteProveedor;
 
+    @Future(message = "La fecha de ingreso de ser futura")
     private LocalDate fechaReanalisisProveedor;
 
+    @Future(message = "La fecha de ingreso de ser futura")
     private LocalDate fechaVencimientoProveedor;
 
     private String estadoLote;

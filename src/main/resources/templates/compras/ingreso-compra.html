@@ -13,7 +13,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Ingreso de Stock por Compra</h2>
-    <form th:action="@{/lotes/ingreso-compra-dinamico}" th:object="${loteDTO}" method="post">
+    <form th:action="@{/compras/ingreso-compra}" th:object="${loteDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
         <hr class="my-4">
@@ -141,7 +141,7 @@
         <!-- Botones: Cancelar y Guardar -->
         <!-- ========================================================= -->
         <div class="d-flex justify-content-between mt-3">
-            <a th:href="@{/lotes/cancelar}" class="btn btn-secondary">Cancelar</a>
+            <a th:href="@{/compras/cancelar}" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">Guardar</button>
         </div>
     </form>

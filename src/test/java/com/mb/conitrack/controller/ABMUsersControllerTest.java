@@ -29,7 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class UsersControllerTest {
+class ABMUsersControllerTest {
 
     @Mock
     private UserRepository userRepository;
@@ -41,7 +41,7 @@ class UsersControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private UsersController controller;
+    private ABMUsersController controller;
 
     private Model model;
 

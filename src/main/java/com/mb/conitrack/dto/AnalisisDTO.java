@@ -12,9 +12,10 @@ import lombok.Data;
 @Data
 public class AnalisisDTO {
 
-
     @NotNull
     private String nroAnalisis;
+
+    private String codigoInternoLote;
 
     private LocalDateTime fechaYHoraCreacion;
 
