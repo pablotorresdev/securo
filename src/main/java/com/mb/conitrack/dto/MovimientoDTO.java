@@ -17,18 +17,25 @@ import lombok.Data;
 @Data
 public class MovimientoDTO {
 
+    //Dato del back
     private LocalDateTime fechaYHoraCreacion;
 
+    //Datos Comunes de ingreso
     @NotNull(message = "La fecha del movimiento es obligatoria")
     private LocalDate fechaMovimiento;
+    private DictamenEnum dictamenInicial;
+    private DictamenEnum dictamenFinal;
+    private String observaciones;
 
-    private Long loteId; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
+
+    // Datos de ingreso por Muestreo
+    @Positive(message = "La cantidad debe ser mayor a cero")
+    private BigDecimal cantidad;
+    private UnidadMedidaEnum unidadMedida;
+    private String nroAnalisis;
 
     //CAMPOS ALTA/BAJA
     private String nroBulto;
-    @Positive(message = "La cantidad inicial debe ser mayor a cero")
-    private BigDecimal cantidad;
-    private UnidadMedidaEnum unidadMedida;
 
     // CAMPOS ANALISIS
     @PastOrPresent(message = "La fecha en que se realizo el analisis no puede ser futura")
@@ -37,20 +44,18 @@ public class MovimientoDTO {
     private LocalDate fechaReanalisis;
     @FutureOrPresent(message = "La fecha de vencimiento debe ser presente o futura")
     private LocalDate fechaVencimiento;
-
-    private String nroAnalisis;
-    private String nroReanalisis;
     private BigDecimal titulo;
-
-    private DictamenEnum dictamenInicial;
-    private DictamenEnum dictamenFinal;
-
-    private String ordenProduccion;
-    private Movimiento movimientoOrigen;
-
-    private String observaciones;
 
     //Campos extra
     private String tipoMovimiento;
     private String motivo;
+    private Long loteId; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
+    private String nroReanalisis;
+
+    // Campos no usados aun
+    private Movimiento movimientoOrigen;
+    private String ordenProduccion;
+
+
+
 }

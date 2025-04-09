@@ -152,8 +152,8 @@ public class MovimientoService {
 
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setLote(lote);
         movimiento.setObservaciones(dto.getObservaciones());
+        movimiento.setLote(lote);
         movimiento.setActivo(true);
         return movimiento;
     }
@@ -167,19 +167,21 @@ public class MovimientoService {
 
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setLote(lote);
         movimiento.setCantidad(dto.getCantidad());
         movimiento.setUnidadMedida(dto.getUnidadMedida());
         movimiento.setNroAnalisis(dto.getNroAnalisis());
         movimiento.setObservaciones("Baja de stock por muestreo (CU2):\n" + lote.getObservaciones());
+        movimiento.setLote(lote);
         movimiento.setActivo(true);
         return movimiento;
     }
 
     private Movimiento createMovimientoAltaIngresoCompra(final Lote lote) {
         Movimiento movimiento = new Movimiento();
-        movimiento.setFecha(LocalDate.now());
+
         movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
+        movimiento.setLote(lote);
+        movimiento.setFecha(lote.getFechaYHoraCreacion().toLocalDate());
         movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
         movimiento.setMotivo(MotivoEnum.COMPRA);
         movimiento.setCantidad(lote.getCantidadInicial());
@@ -187,7 +189,6 @@ public class MovimientoService {
         movimiento.setObservaciones("Ingreso de stock por compra (CU1):\n" + lote.getObservaciones());
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setActivo(Boolean.TRUE);
-        movimiento.setLote(lote);
         return movimiento;
     }
 

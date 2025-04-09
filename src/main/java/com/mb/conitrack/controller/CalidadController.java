@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.thymeleaf.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -169,30 +170,9 @@ public class CalidadController {
 
     @PostMapping("/resultado-analisis")
     public String procesarResultadoAnalisis(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, SessionStatus sessionStatus) {
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 
-        if (movimientoDTO.getNroAnalisis() == null) {
-            bindingResult.rejectValue("nroAnalisis", "El Nro de Analisis es obligatorio");
-        }
-        if (movimientoDTO.getDictamenFinal() == null) {
-            bindingResult.rejectValue("dictamenFinal", "Debe ingresar un Resultado");
-        }
-
-        if (DictamenEnum.APROBADO == movimientoDTO.getDictamenFinal()) {
-            if (movimientoDTO.getFechaVencimiento() == null && movimientoDTO.getFechaReanalisis() == null) {
-                bindingResult.rejectValue("fechaVencimiento", "Debe ingresar una fecha de Re Analisis o Vencimiento");
-            }
-        }
-
-        if (movimientoDTO.getFechaRealizadoAnalisis() == null) {
-            bindingResult.rejectValue("fechaRealizadoAnalisis", "Debe ingresar la fecha en la que se realizó el análisis");
-        } else {
-            //validar no anterior a fecha de ingreso
-        }
-
-        if (movimientoDTO.getTitulo() == null) {
-            bindingResult.rejectValue("titulo", "Debe ingresar el valor de titulo del Analisis");
-        }
+        validarResultadoAnalisis(movimientoDTO, bindingResult);
 
         if (bindingResult.hasErrors()) {
             setupModelResultadoAnalisis(movimientoDTO, model);
@@ -210,8 +190,47 @@ public class CalidadController {
 
         redirectAttributes.addFlashAttribute("loteDTO", DTOUtils.fromEntities(lotes));
         redirectAttributes.addFlashAttribute("success", "Cambio de dictamen a " + movimientoDTO.getDictamenFinal() + " exitoso");
-        sessionStatus.setComplete();
         return "redirect:/calidad/resultado-analisis-ok";
+    }
+
+    private static void validarResultadoAnalisis(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
+        if (StringUtils.isEmpty(movimientoDTO.getNroAnalisis())) {
+//            bindingResult.rejectValue("nroAnalisis", "El Nro de Analisis es obligatorio");
+            bindingResult.rejectValue("nroAnalisis",
+                "nroAnalisis.required",
+                "El Nro de Analisis es obligatorio");
+            return;
+        }
+
+        if (movimientoDTO.getDictamenFinal() == null) {
+            bindingResult.rejectValue("dictamenFinal", "Debe ingresar un Resultado");
+            return;
+        }
+
+        if (movimientoDTO.getFechaRealizadoAnalisis() == null) {
+            bindingResult.rejectValue("fechaRealizadoAnalisis", "Debe ingresar la fecha en la que se realizó el análisis");
+            return;
+        }
+
+        if (DictamenEnum.APROBADO == movimientoDTO.getDictamenFinal()) {
+            if (movimientoDTO.getFechaVencimiento() == null && movimientoDTO.getFechaReanalisis() == null) {
+                bindingResult.rejectValue("fechaVencimiento", "fechaVencimiento.required","Debe ingresar una fecha de Re Analisis o Vencimiento");
+                return;
+            }
+            if (movimientoDTO.getFechaVencimiento() != null && movimientoDTO.getFechaReanalisis() != null && movimientoDTO.getFechaReanalisis().isAfter(movimientoDTO.getFechaVencimiento())) {
+                bindingResult.rejectValue("fechaReanalisis", "La fecha de vencimiento no puede ser anterior a la fecha de reanalisis");
+                return;
+            }
+            if (movimientoDTO.getTitulo() == null) {
+                bindingResult.rejectValue("titulo", "Debe ingresar el valor de titulo del Analisis");
+                return;
+            }
+        } else {
+            movimientoDTO.setTitulo(null);
+            movimientoDTO.setFechaReanalisis(null);
+            movimientoDTO.setFechaVencimiento(null);
+        }
+
     }
 
     @GetMapping("/resultado-analisis-ok")
