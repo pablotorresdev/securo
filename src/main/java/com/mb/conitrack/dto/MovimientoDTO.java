@@ -9,6 +9,8 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
@@ -44,6 +46,8 @@ public class MovimientoDTO {
     private LocalDate fechaReanalisis;
     @FutureOrPresent(message = "La fecha de vencimiento debe ser presente o futura")
     private LocalDate fechaVencimiento;
+    @Min(value = 0, message = "El resultado del analisis no puede ser menor a 0%")
+    @Max(value = 100, message = "El resultado del analisis no puede ser mayor a 100%")
     private BigDecimal titulo;
 
     //Campos extra

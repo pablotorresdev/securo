@@ -84,8 +84,8 @@
         </div>
 
         <div class="mb-3">
-            <label for="titulo" class="form-label">Título:</label>
-            <input type="number" id="titulo" name="titulo" class="form-control" placeholder="Ingrese el título"
+            <label for="titulo" class="form-label">Título (%):</label>
+            <input type="number" id="titulo" name="titulo" class="form-control" placeholder="Ingrese el título (%)"
                    th:value="${movimientoDTO.titulo != null ? movimientoDTO.titulo : 100}"
                    step="0.01"/>
             <div th:if="${#fields.hasErrors('titulo')}" class="text-danger" th:errors="*{titulo}"></div>
@@ -113,9 +113,12 @@
 
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
-        const analisisSelector = document.getElementById('analisisSelector');
+
         const loteSelector = document.getElementById('loteSelector');
+        const analisisSelector = document.getElementById('analisisSelector');
         const infoSection = document.getElementById('infoSection');
+        const nroAnalisisField = document.getElementById('nroAnalisis');
+        const loteIdField = document.getElementById('loteId');
 
         var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ [];
         if (fechaRealizadoAnalisisDTO && fechaRealizadoAnalisisDTO !== "null") {
@@ -137,7 +140,6 @@
             html += '<p><strong>Fecha ingreso:</strong> ' + (data.fechaIngreso || 'N/D') + '</p>';
             html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (data.fechaReanalisisProveedor || 'N/D') + '</p>';
             html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (data.fechaVencimientoProveedor || 'N/D') + '</p>';
-            // Lista de detalles de análisis
             if (data.analisisDTOs && data.analisisDTOs.length > 0) {
                 html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
                 data.analisisDTOs.forEach(function (a) {
@@ -155,13 +157,12 @@
         }
 
         loteSelector.addEventListener('change', function () {
-            // Resetea el combo de Análisis
-            document.getElementById('analisisSelector').value = "";
-            document.getElementById('nroAnalisis').value = this.value;
-            document.getElementById("loteId").value = this.options[this.selectedIndex].getAttribute('lote-id');
-            var nroAnalisis = this.value;
-            if (nroAnalisis) {
-                fetch('/analisis/nroAnalisis/' + nroAnalisis, {
+            analisisSelector.value = ""; // se resetea el otro select
+            nroAnalisisField.value = this.value;
+            loteIdField.value = this.options[this.selectedIndex].getAttribute('lote-id') || "";
+
+            if (this.value) {
+                fetch('/analisis/nroAnalisis/' + this.value, {
                     method: 'GET',
                     headers: {[csrfHeader]: csrfToken}
                 })
@@ -179,13 +180,12 @@
         });
 
         analisisSelector.addEventListener('change', function () {
-            // Resetea el combo de Lote
-            document.getElementById('loteSelector').value = "";
-            document.getElementById('nroAnalisis').value = this.value;
-            document.getElementById("loteId").value = this.options[this.selectedIndex].getAttribute('lote-id');
-            var nroAnalisis = this.value;
-            if (nroAnalisis) {
-                fetch('/analisis/nroAnalisis/' + nroAnalisis, {
+            loteSelector.value = ""; // se resetea el select de Lote
+            nroAnalisisField.value = this.value;
+            loteIdField.value = this.options[this.selectedIndex].getAttribute('lote-id') || "";
+
+            if (this.value) {
+                fetch('/analisis/nroAnalisis/' + this.value, {
                     method: 'GET',
                     headers: {[csrfHeader]: csrfToken}
                 })
@@ -201,6 +201,12 @@
                 infoSection.innerHTML = '';
             }
         });
+
+        if (analisisSelector.value) {
+            analisisSelector.dispatchEvent(new Event('change'));
+        } else if (loteSelector.value) {
+            loteSelector.dispatchEvent(new Event('change'));
+        }
     });
 </script>
 </body>

@@ -47,14 +47,14 @@ public class LoteService {
 
     //Getters
     public Lote findLoteBultoById(final Long id) {
-        if(id == null) {
+        if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo.");
         }
         return loteRepository.findById(id).filter(Lote::getActivo).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
     public List<Lote> findLoteListById(final Long id) {
-        if(id == null) {
+        if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo.");
         }
         Lote lote = loteRepository.findById(id).filter(Lote::getActivo).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -64,12 +64,9 @@ public class LoteService {
     public List<Lote> findAllForMuestreo() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
-            .filter(l -> EnumSet.of(
-                DictamenEnum.RECIBIDO,
-                DictamenEnum.CUARENTENA,
-                DictamenEnum.DEVOLUCION_CLIENTES,
-                DictamenEnum.RETIRO_MERCADO
-            ).contains(l.getDictamen()))
+            .filter(l -> DictamenEnum.RECIBIDO != l.getDictamen())
+            .filter(l -> l.getAnalisisList().stream()
+                .anyMatch(a -> a.getNroAnalisis() != null))
             .toList();
     }
 
@@ -85,18 +82,11 @@ public class LoteService {
 
     //*****************************************************************
 
+    //TODO: verificar que lotes se pueden pasar a Cuarentena
     public List<Lote> findAllForCuarentena() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
-            .filter(l -> EnumSet.of(
-                DictamenEnum.RECIBIDO,
-                DictamenEnum.APROBADO,
-                DictamenEnum.CUARENTENA,
-                DictamenEnum.LIBERADO,
-                DictamenEnum.DEVOLUCION_CLIENTES,
-                DictamenEnum.RETIRO_MERCADO
-            ).contains(l.getDictamen()))
-            .toList();
+            .filter(l -> DictamenEnum.CUARENTENA != l.getDictamen()).toList();
     }
 
     public List<Lote> findAllForDevolucionCompra() {
@@ -123,8 +113,7 @@ public class LoteService {
     }
 
     /**
-     * Devuelve una lista de lotes que están en estado de cuarentena y no tienen
-     * análisis dictaminados.
+     * Devuelve una lista de lotes que están en estado de cuarentena y no tienen análisis dictaminados.
      *
      * @return Lista de lotes en estado de cuarentena sin análisis realizados.
      */
@@ -132,12 +121,8 @@ public class LoteService {
         final List<Lote> lotes = loteRepository.findAll();
         return lotes.stream()
             .filter(l -> EnumSet.of(DictamenEnum.CUARENTENA).contains(l.getDictamen()))
-            .filter(l -> l.getAnalisisList()
-                .stream()
-                .filter(analisis -> analisis.getDictamen() != null)
-                .filter(analisis -> analisis.getFechaRealizado() != null)
-                .toList()
-                .isEmpty())
+            .filter(l -> l.getAnalisisList().stream()
+                .anyMatch(a -> a.getDictamen() == null && a.getFechaRealizado() == null))
             .toList();
     }
 
