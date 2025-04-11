@@ -14,7 +14,7 @@
         <!-- Campo oculto para CSRF -->
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <input type="hidden" th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"/>
-        <input type="hidden" id="loteId" th:field="*{loteId}"/>
+        <input type="hidden" id="codigoInterno" th:field="*{codigoInterno}"/>
         <input type="hidden" id="nroAnalisis" th:field="*{nroAnalisis}"/>
 
         <hr class="my-4">
@@ -26,11 +26,10 @@
             <label for="loteSelector" class="form-label">Seleccione el Lote:</label>
             <select id="loteSelector" class="form-select">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:each="lote : ${lotesForResultado}"
-                        th:if="${lote.nroBulto} == 1"
-                        th:value="${lote.getCurrentAnalisis().getNroAnalisis()}"
-                        th:attr="lote-id=${lote.id}"
-                        th:text="'Nombre: ' + ${lote.producto.nombreGenerico} + ' | Código: ' + ${lote.codigoInterno} + ' | Análisis: ' + ${lote.getCurrentAnalisis().nroAnalisis}">
+                <option th:each="loteDTO : ${lotesForResultado}"
+                        th:value="${loteDTO.getCurrentNroAnalisis()}"
+                        th:attr="lote-codigoInterno=${loteDTO.codigoInterno}"
+                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno} + ' | Análisis: ' + ${loteDTO.getCurrentNroAnalisis()}">
                 </option>
             </select>
         </div>
@@ -41,7 +40,7 @@
                 <option value="">-- Seleccione un Análisis --</option>
                 <option th:each="anal : ${analisisEnCurso}"
                         th:value="${anal.nroAnalisis}"
-                        th:attr="lote-id=${anal.lotes.get(0).id}"
+                        th:attr="lote-codigoInterno=${anal.lotes.get(0).codigoInterno}"
                         th:selected="${anal.nroAnalisis} == *{nroAnalisis}"
                         th:text="'Nro Análisis: ' + ${anal.nroAnalisis} + ' | Producto: ' + ${anal.lotes.get(0).producto.nombreGenerico} + ' | Código Lote: ' + ${anal.lotes.get(0).codigoInterno}">
                 </option>
@@ -118,18 +117,18 @@
         const analisisSelector = document.getElementById('analisisSelector');
         const infoSection = document.getElementById('infoSection');
         const nroAnalisisField = document.getElementById('nroAnalisis');
-        const loteIdField = document.getElementById('loteId');
+        const codigoInternoField = document.getElementById('codigoInterno');
 
         var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ [];
-        if (fechaRealizadoAnalisisDTO && fechaRealizadoAnalisisDTO !== "null") {
+        if (fechaRealizadoAnalisisDTO) {
             document.getElementById("fechaRealizadoAnalisis").value = fechaRealizadoAnalisisDTO;
         }
         var fechaReanalisisDTO = /*[[${movimientoDTO.fechaReanalisis}]]*/ [];
-        if (fechaReanalisisDTO && fechaReanalisisDTO !== "null") {
+        if (fechaReanalisisDTO) {
             document.getElementById("fechaReanalisis").value = fechaReanalisisDTO;
         }
         var fechaVencimientoDTO = /*[[${movimientoDTO.fechaVencimiento}]]*/ [];
-        if (fechaVencimientoDTO && fechaVencimientoDTO !== "null") {
+        if (fechaVencimientoDTO) {
             document.getElementById("fechaVencimiento").value = fechaVencimientoDTO;
         }
 
@@ -159,7 +158,6 @@
         loteSelector.addEventListener('change', function () {
             analisisSelector.value = ""; // se resetea el otro select
             nroAnalisisField.value = this.value;
-            loteIdField.value = this.options[this.selectedIndex].getAttribute('lote-id') || "";
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {
@@ -182,7 +180,6 @@
         analisisSelector.addEventListener('change', function () {
             loteSelector.value = ""; // se resetea el select de Lote
             nroAnalisisField.value = this.value;
-            loteIdField.value = this.options[this.selectedIndex].getAttribute('lote-id') || "";
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {

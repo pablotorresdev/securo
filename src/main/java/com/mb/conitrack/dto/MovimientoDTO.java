@@ -54,6 +54,7 @@ public class MovimientoDTO {
     private String tipoMovimiento;
     private String motivo;
     private Long loteId; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
+    private String codigoInterno; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
     private String nroReanalisis;
 
     // Campos no usados aun

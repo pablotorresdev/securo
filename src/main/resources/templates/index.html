@@ -50,7 +50,6 @@
                 CU4 - Devolución de Compra
             </a>
         </li>
-
         <li>
             <a th:href="@{/calidad/resultado-analisis}"
                th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
@@ -58,7 +57,8 @@
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a th:href="@{/produccion/consumo-produccion}"
+               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
                 CU7. Consumo de Producción
             </a>
         </li>

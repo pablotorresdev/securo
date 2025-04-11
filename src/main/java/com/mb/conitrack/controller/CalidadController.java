@@ -2,9 +2,12 @@ package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,6 +32,8 @@ import com.mb.conitrack.service.LoteService;
 
 import jakarta.validation.Valid;
 
+import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+
 @Controller
 @RequestMapping("/calidad")
 public class CalidadController {
@@ -52,7 +57,8 @@ public class CalidadController {
     public String showDictamenCuarentenaForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
         //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
-        model.addAttribute("lotesForCuarentena", loteService.findAllForCuarentena());
+        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForCuarentena());
+        model.addAttribute("lotesForCuarentena", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
 
         return "calidad/cuarentena";
@@ -65,10 +71,10 @@ public class CalidadController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        final List<Lote> lotesList = loteService.findLoteListById(movimientoDTO.getLoteId());
+        final List<Lote> lotesList = loteService.findLoteListByCodigoInterno(movimientoDTO.getCodigoInterno());
 
         if (lotesList.isEmpty()) {
-            bindingResult.reject("loteId", "Lote bloqueado.");
+            bindingResult.reject("codigoInterno", "Lote bloqueado.");
             return "calidad/cuarentena";
         }
 
@@ -200,6 +206,8 @@ public class CalidadController {
         return "";
     }
 
+
+
     private void validarDatosResultadoAnalisisComunes(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
         // Verificamos que nroAnalisis no sea vacío
         if (StringUtils.isEmpty(movimientoDTO.getNroAnalisis())) {
@@ -239,12 +247,13 @@ public class CalidadController {
     }
 
     private void setupModelResultadoAnalisis(final MovimientoDTO movimientoDTO, final Model model) {
-        List<Lote> lotes = loteService.findAllForResultadoAnalisis();
+        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForResultadoAnalisis());
+
         List<Analisis> analisis = analisisService.findAllEnCurso();
 
         movimientoDTO.setFechaMovimiento(LocalDateTime.now().toLocalDate());
         model.addAttribute("movimientoDTO", movimientoDTO);
-        model.addAttribute("lotesForResultado", lotes);
+        model.addAttribute("lotesForResultado", lotesDtos);
         model.addAttribute("analisisEnCurso", analisis);
         model.addAttribute("resultados", List.of(DictamenEnum.APROBADO, DictamenEnum.RECHAZADO));
     }
@@ -271,7 +280,11 @@ public class CalidadController {
 
     private void validarDatosResultadoAnalisisAprobadoContraLote(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
         // A partir de aquí, validaciones personalizadas en base a los datos del Lote
-        final Lote loteBulto = loteService.findLoteBultoById(movimientoDTO.getLoteId());
+        final Lote loteBulto = loteService.findLoteListByCodigoInterno(movimientoDTO.getCodigoInterno())
+            .stream()
+            .findFirst()
+            .orElse(null);
+
         if (loteBulto == null) {
             // Si por algún motivo no se encuentra el lote, marcamos error y detenemos
             bindingResult.rejectValue("loteId", "", "No se encontró el Lote asociado");

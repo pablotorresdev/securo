@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.ValidacionAlta;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
@@ -27,6 +29,8 @@ import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 
 import jakarta.validation.Valid;
+
+import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 
 @Controller
 @RequestMapping("/compras")
@@ -49,29 +53,29 @@ public class ComprasController {
     // CU1 Ingreso por compra *****************************************************
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/ingreso-compra")
-    public String showIngresoCompra(@ModelAttribute("loteDTO") LoteDTO dto, Model model) {
-        setupModelIngresoCompra(model, dto);
+    public String showIngresoCompra(@ModelAttribute("loteDTO") LoteDTO loteDTO, Model model) {
+        setupModelIngresoCompra(model, loteDTO);
         return "compras/ingreso-compra";
     }
 
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @PostMapping("/ingreso-compra")
     public String ingresoCompra(
-        @Valid @ModelAttribute("loteDTO") LoteDTO dto,
+        @Validated(ValidacionAlta.class) @ModelAttribute("loteDTO") LoteDTO loteDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        validateCantidadIngreso(dto, bindingResult);
-        validateFechasProveedor(dto, bindingResult);
-        validarBultos(dto, bindingResult);
+        validateCantidadIngreso(loteDTO, bindingResult);
+        validateFechasProveedor(loteDTO, bindingResult);
+        validarBultos(loteDTO, bindingResult);
 
         if (bindingResult.hasErrors()) {
-            setupModelIngresoCompra(model, dto);
+            setupModelIngresoCompra(model, loteDTO);
             return "compras/ingreso-compra";
         }
 
-        ingresoCompra(dto, redirectAttributes);
+        ingresoCompra(loteDTO, redirectAttributes);
         return "redirect:/compras/ingreso-compra-ok";
     }
 
@@ -93,7 +97,7 @@ public class ComprasController {
     @GetMapping("/devolucion-compra")
     public String showDevolucionCompraForm(
         @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
-        model.addAttribute("lotesDevolvibles", loteService.findAllForDevolucionCompra());
+        model.addAttribute("lotesDevolvibles", getLotesDtosByCodigoInterno(loteService.findAllForDevolucionCompra()));
         return "compras/devolucion-compra";
     }
 
@@ -102,24 +106,23 @@ public class ComprasController {
     public String procesarDevolucionCompra(
         @Valid @ModelAttribute MovimientoDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 
-        Lote lote = loteService.findLoteBultoById(dto.getLoteId());
         if (bindingResult.hasErrors()) {
-            model.addAttribute("lote", lote);
+            model.addAttribute("lotesDevolvibles", getLotesDtosByCodigoInterno(loteService.findAllForDevolucionCompra()));
             return "compras/devolucion-compra";
         }
 
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final List<Lote> lotes = loteService.persistirDevolucionCompra(dto, lote);
+        final List<Lote> lotes = loteService.persistirDevolucionCompra(dto, dto.getCodigoInterno());
 
         if (lotes.isEmpty()) {
-            model.addAttribute("lote", lote);
+            model.addAttribute("lotesDevolvibles", getLotesDtosByCodigoInterno(loteService.findAllForDevolucionCompra()));
             bindingResult.reject("error", "Error al persistir la devoluciono.");
             return "compras/devolucion-compra";
         }
 
         redirectAttributes.addFlashAttribute("loteDTO", DTOUtils.fromEntities(lotes));
         redirectAttributes.addFlashAttribute("success", "Devolucion realizada correctamente.");
-        return "redirect:/lotes/devolucion-compra-ok";
+        return "redirect:/compras/devolucion-compra-ok";
     }
 
     @GetMapping("/devolucion-compra-ok")
@@ -128,51 +131,51 @@ public class ComprasController {
         return "compras/devolucion-compra-ok";
     }
 
-    private void ingresoCompra(final LoteDTO dto, final RedirectAttributes redirectAttributes) {
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final List<Lote> lotes = loteService.ingresarStockPorCompra(dto);
+    private void ingresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+        loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
+        final List<Lote> lotes = loteService.ingresarStockPorCompra(loteDTO);
         redirectAttributes.addFlashAttribute("newLoteDTO", DTOUtils.fromEntities(lotes));
         redirectAttributes.addFlashAttribute("success", "Ingreso de stock por compra exitoso.");
     }
 
-    private void validateFechasProveedor(final LoteDTO dto, final BindingResult bindingResult) {
-        if (dto.getFechaReanalisisProveedor() != null && dto.getFechaVencimientoProveedor() != null) {
-            if (dto.getFechaReanalisisProveedor().isAfter(dto.getFechaVencimientoProveedor())) {
+    private void validateFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        if (loteDTO.getFechaReanalisisProveedor() != null && loteDTO.getFechaVencimientoProveedor() != null) {
+            if (loteDTO.getFechaReanalisisProveedor().isAfter(loteDTO.getFechaVencimientoProveedor())) {
                 bindingResult.rejectValue("fechaReanalisisProveedor", "error.fechaReanalisisProveedor",
                     "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.");
             }
         }
     }
 
-    private void validateCantidadIngreso(final LoteDTO dto, final BindingResult bindingResult) {
-        BigDecimal cantidad = dto.getCantidadInicial();
+    private void validateCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        BigDecimal cantidad = loteDTO.getCantidadInicial();
         if (cantidad == null) {
             bindingResult.rejectValue("cantidadInicial", "error.cantidadInicial", "La cantidad no puede ser nula.");
         } else {
-            if (UnidadMedidaEnum.UNIDAD.equals(dto.getUnidadMedida())) {
+            if (UnidadMedidaEnum.UNIDAD.equals(loteDTO.getUnidadMedida())) {
                 if (cantidad.stripTrailingZeros().scale() > 0) {
                     bindingResult.rejectValue("cantidadInicial", "error.cantidadInicial",
                         "La cantidad debe ser un número entero positivo cuando la unidad es UNIDAD.");
                 }
-                if (cantidad.compareTo(new BigDecimal(dto.getBultosTotales())) < 0) {
+                if (cantidad.compareTo(new BigDecimal(loteDTO.getBultosTotales())) < 0) {
                     bindingResult.rejectValue("bultosTotales", "error.bultosTotales",
-                        "La cantidad de Unidades (" + cantidad + ") no puede ser menor a la cantidad de  Bultos totales: " + dto.getBultosTotales());
+                        "La cantidad de Unidades (" + cantidad + ") no puede ser menor a la cantidad de  Bultos totales: " + loteDTO.getBultosTotales());
                 }
             }
         }
     }
 
-    private void setupModelIngresoCompra(final Model model, final LoteDTO dto) {
+    private void setupModelIngresoCompra(final Model model, final LoteDTO loteDTO) {
         model.addAttribute("productos", productoService.getProductosExternos());
         model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
 
-        if (dto.getCantidadesBultos() == null) {
-            dto.setCantidadesBultos(new ArrayList<>());
+        if (loteDTO.getCantidadesBultos() == null) {
+            loteDTO.setCantidadesBultos(new ArrayList<>());
         }
-        if (dto.getUnidadMedidaBultos() == null) {
-            dto.setUnidadMedidaBultos(new ArrayList<>());
+        if (loteDTO.getUnidadMedidaBultos() == null) {
+            loteDTO.setUnidadMedidaBultos(new ArrayList<>());
         }
-        model.addAttribute("loteDTO", dto);
+        model.addAttribute("loteDTO", loteDTO);
 
         String[] countryCodes = Locale.getISOCountries();
         List<String> countries = new ArrayList<>();
@@ -184,19 +187,19 @@ public class ComprasController {
         model.addAttribute("paises", countries);
     }
 
-    private void validarBultos(final LoteDTO dto, final BindingResult bindingResult) {
+    private void validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
         // Si se ingresan más de 1 bulto, se valida la distribución
-        if (dto.getBultosTotales() > 1) {
-            validarTipoDeDato(dto, bindingResult);
-            validarSumaBultosConvertida(dto, bindingResult);
+        if (loteDTO.getBultosTotales() > 1) {
+            validarTipoDeDato(loteDTO, bindingResult);
+            validarSumaBultosConvertida(loteDTO, bindingResult);
         } else {
-            dto.setNroBulto(1);
+            loteDTO.setNroBulto(1);
         }
     }
 
-    private void validarTipoDeDato(final LoteDTO dto, final BindingResult bindingResult) {
-        List<BigDecimal> cantidades = dto.getCantidadesBultos();
-        List<UnidadMedidaEnum> unidades = dto.getUnidadMedidaBultos();
+    private void validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        List<BigDecimal> cantidades = loteDTO.getCantidadesBultos();
+        List<UnidadMedidaEnum> unidades = loteDTO.getUnidadMedidaBultos();
         for (int i = 0; i < cantidades.size(); i++) {
             BigDecimal cantidad = cantidades.get(i);
             if (cantidad == null) {
@@ -212,10 +215,10 @@ public class ComprasController {
         }
     }
 
-    private void validarSumaBultosConvertida(LoteDTO dto, BindingResult bindingResult) {
-        List<BigDecimal> cantidades = dto.getCantidadesBultos();
-        List<UnidadMedidaEnum> unidades = dto.getUnidadMedidaBultos();
-        UnidadMedidaEnum unidadBase = dto.getUnidadMedida();
+    private void validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
+        List<BigDecimal> cantidades = loteDTO.getCantidadesBultos();
+        List<UnidadMedidaEnum> unidades = loteDTO.getUnidadMedidaBultos();
+        UnidadMedidaEnum unidadBase = loteDTO.getUnidadMedida();
 
         if (cantidades == null || unidades == null || cantidades.size() != unidades.size()) {
             bindingResult.rejectValue("cantidadesBultos", "error.cantidadesBultos", "Datos incompletos o inconsistentes.");
@@ -243,7 +246,7 @@ public class ComprasController {
         //TODO: ver tema suma de cantidades
         // Redondear la suma a 3 decimales para comparar y mostrar
         BigDecimal sumaRedondeada = sumaConvertida.setScale(6, RoundingMode.HALF_UP);
-        BigDecimal totalEsperado = dto.getCantidadInicial().setScale(6, RoundingMode.HALF_UP);
+        BigDecimal totalEsperado = loteDTO.getCantidadInicial().setScale(6, RoundingMode.HALF_UP);
 
         if (sumaRedondeada.compareTo(totalEsperado) != 0) {
             bindingResult.rejectValue(

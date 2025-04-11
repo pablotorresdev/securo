@@ -16,6 +16,24 @@
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
+        <!-- Select de Lotes disponibles para Cuarentena -->
+        <div class="mb-3">
+            <label for="codigoInterno" class="form-label">Lote:</label>
+            <select id="codigoInterno" th:field="*{codigoInterno}" class="form-select" required>
+                <option value="">-- Seleccione un Lote --</option>
+                <option th:each="loteDTO : ${lotesForCuarentena}"
+                        th:value="${loteDTO.codigoInterno}"
+                        th:text="'Producto: ' + ${loteDTO.nombreProducto}
+                         + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
+                         + ' | Codigo Interno: ' + ${loteDTO.codigoInterno}
+                         + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
+                        th:data-dictamen="${loteDTO.dictamen.valor}"
+                        th:data-nroanalisis="${loteDTO.getCurrentNroAnalisis()}">
+                </option>
+            </select>
+        </div>
+
+
         <!-- Fecha del Movimiento a Cuarentena -->
         <div class="mb-2">
             <label for="fechaMovimiento" class="form-label">Fecha de Cambio de Dictamen:</label>
@@ -28,24 +46,6 @@
             <div th:if="${#fields.hasErrors('fechaMovimiento')}"
                  style="color: red; font-weight: bold;"
                  th:errors="*{fechaMovimiento}"></div>
-        </div>
-
-        <!-- Select de Lotes disponibles para Cuarentena -->
-        <div class="mb-3">
-            <label for="loteId" class="form-label">Lote:</label>
-            <select id="loteId" th:field="*{loteId}" class="form-select" required>
-                <option value="">-- Seleccione un Lote --</option>
-                <option th:each="lote : ${lotesForCuarentena}"
-                        th:if="${lote.nroBulto} == 1"
-                        th:value="${lote.id}"
-                        th:text="'Producto: ' + ${lote.producto.nombreGenerico}
-                         + ' | Dictamen: ' + ${lote.dictamen.valor}
-                         + ' | Codigo Interno: ' + ${lote.codigoInterno}
-                         + ' | Proveedor: ' + ${lote.proveedor.razonSocial}"
-                        th:data-dictamen="${lote.dictamen.valor}"
-                        th:data-nroanalisis="${lote.getCurrentAnalisis()?.nroAnalisis}">
-                </option>
-            </select>
         </div>
 
         <!-- Campo editable solo si dictamen = Recibido -->
@@ -93,7 +93,7 @@
 </footer>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        const loteSelect = document.getElementById('loteId');
+        const loteSelect = document.getElementById('codigoInterno');
         const grupoEditable = document.getElementById('grupoNroAnalisisEditable');
         const grupoReadonly = document.getElementById('grupoNroAnalisisSoloLectura');
         const grupoReanalisis = document.getElementById('grupoNroReanalisis');

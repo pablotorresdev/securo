@@ -13,6 +13,7 @@
         <tr>
             <th>Producto</th>
             <th>Código Interno</th>
+            <th>Nro Analisis</th>
             <th>Dictamen</th>
             <th>Fecha Ingreso</th>
             <th>Nro Bulto</th>
@@ -34,6 +35,7 @@
         <tr th:each="lote : ${lotes}">
             <td th:text="${lote.producto.nombreGenerico}"></td>
             <td th:text="${lote.codigoInterno}"></td>
+            <td th:text="${lote.getCurrentNroAnalisis()}"></td>
             <td th:text="${lote.dictamen}"></td>
             <td th:text="${lote.fechaIngreso}"></td>
             <td th:text="${lote.nroBulto}"></td>
@@ -49,7 +51,8 @@
             <td th:text="${lote.estadoLote}"></td>
             <td th:text="${lote.observaciones}"></td>
             <td>
-                <a th:href="@{'/lotes/id/' + ${lote.id}}" class="btn btn-primary btn-sm">Ver Movimientos</a>
+                <a th:href="@{'/movimientos/loteId/' + ${lote.id}}" class="btn btn-primary btn-sm">Ver Movimientos</a>
+                <a th:href="@{'/analisis/loteId/' + ${lote.id}}" class="btn btn-primary btn-sm">Ver Analisis</a>
             </td>
         </tr>
         </tbody>

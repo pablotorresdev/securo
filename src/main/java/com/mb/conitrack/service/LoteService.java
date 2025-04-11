@@ -45,7 +45,6 @@ public class LoteService {
 
     private final AnalisisService analisisService;
 
-    //Getters
     public Lote findLoteBultoById(final Long id) {
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo.");
@@ -53,12 +52,11 @@ public class LoteService {
         return loteRepository.findById(id).filter(Lote::getActivo).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
-    public List<Lote> findLoteListById(final Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El id no puede ser nulo.");
+    public List<Lote> findLoteListByCodigoInterno(final String codigoInterno) {
+        if (codigoInterno == null) {
+            return new ArrayList<>();
         }
-        Lote lote = loteRepository.findById(id).filter(Lote::getActivo).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
-        return loteRepository.findAllByCodigoInternoAndActivoTrue(lote.getCodigoInterno());
+        return loteRepository.findAllByCodigoInternoAndActivoTrue(codigoInterno);
     }
 
     public List<Lote> findAllForMuestreo() {
@@ -70,7 +68,14 @@ public class LoteService {
             .toList();
     }
 
-    //Getters
+    public List<Lote> findAllForConsumoProduccion() {
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        return allSortByDateAndNroBulto.stream()
+            .filter(l -> DictamenEnum.APROBADO == l.getDictamen())
+            .filter(l -> TipoProductoEnum.UNIDAD_VENTA != l.getProducto().getTipoProducto())
+            .toList();
+    }
+
     public List<Lote> findAllSortByDateAndNroBulto() {
         final List<Lote> lotes = loteRepository.findAll();
         lotes.sort(Comparator
@@ -104,6 +109,7 @@ public class LoteService {
                 TipoProductoEnum.ACOND_PRIMARIO,
                 TipoProductoEnum.ACOND_SECUNDARIO
             ).contains(l.getProducto().getTipoProducto()))
+            .filter(l -> EstadoLoteEnum.DEVUELTO != l.getEstadoLote())
             .toList();
     }
 
@@ -112,11 +118,6 @@ public class LoteService {
         return Optional.of(nuevoLote);
     }
 
-    /**
-     * Devuelve una lista de lotes que están en estado de cuarentena y no tienen análisis dictaminados.
-     *
-     * @return Lista de lotes en estado de cuarentena sin análisis realizados.
-     */
     public List<Lote> findAllForResultadoAnalisis() {
         final List<Lote> lotes = loteRepository.findAll();
         return lotes.stream()
@@ -128,36 +129,36 @@ public class LoteService {
 
     //***********CU1 ALTA: COMPRA***********
     @Transactional
-    public List<Lote> ingresarStockPorCompra(LoteDTO dto) {
-        if (dto.getFechaIngreso().isAfter(LocalDate.now())) {
+    public List<Lote> ingresarStockPorCompra(LoteDTO loteDTO) {
+        if (loteDTO.getFechaIngreso().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de ingreso no puede ser posterior al día de hoy.");
         }
         List<Lote> result = new ArrayList<>();
-        Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId()).orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
-        Producto producto = productoRepository.findById(dto.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
-        int bultosTotales = Math.max(dto.getBultosTotales(), 1);
+        Proveedor proveedor = proveedorRepository.findById(loteDTO.getProveedorId()).orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
+        Producto producto = productoRepository.findById(loteDTO.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+        int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
-        String timestamp = dto.getFechaYHoraCreacion().format(formatter);
+        String timestamp = loteDTO.getFechaYHoraCreacion().format(formatter);
 
         for (int i = 0; i < bultosTotales; i++) {
-            Lote lote = createLoteIngreso(dto);
+            Lote lote = createLoteIngreso(loteDTO);
             lote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
-            if (dto.getFabricanteId() != null) {
-                proveedorRepository.findById(dto.getFabricanteId()).ifPresent(lote::setFabricante);
+            if (loteDTO.getFabricanteId() != null) {
+                proveedorRepository.findById(loteDTO.getFabricanteId()).ifPresent(lote::setFabricante);
             }
 
             lote.setProducto(producto);
             lote.setProveedor(proveedor);
 
             if (bultosTotales == 1) {
-                lote.setCantidadInicial(dto.getCantidadInicial());
-                lote.setCantidadActual(dto.getCantidadInicial());
-                lote.setUnidadMedida(dto.getUnidadMedida());
+                lote.setCantidadInicial(loteDTO.getCantidadInicial());
+                lote.setCantidadActual(loteDTO.getCantidadInicial());
+                lote.setUnidadMedida(loteDTO.getUnidadMedida());
             } else {
-                lote.setCantidadInicial(dto.getCantidadesBultos().get(i));
-                lote.setCantidadActual(dto.getCantidadesBultos().get(i));
-                lote.setUnidadMedida(dto.getUnidadMedidaBultos().get(i));
+                lote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
+                lote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
+                lote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
             }
             lote.setNroBulto(i + 1);
 
@@ -231,8 +232,8 @@ public class LoteService {
 
     //***********CU4 BAJA: DEVOLUCION COMPRA***********
     @Transactional
-    public List<Lote> persistirDevolucionCompra(final MovimientoDTO dto, final Lote lote) {
-        final List<Lote> byCodigoInternoAndActivoTrue = loteRepository.findAllByCodigoInternoAndActivoTrue(lote.getCodigoInterno());
+    public List<Lote> persistirDevolucionCompra(final MovimientoDTO dto, final String codigoInterno) {
+        final List<Lote> byCodigoInternoAndActivoTrue = loteRepository.findAllByCodigoInternoAndActivoTrue(codigoInterno);
 
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : byCodigoInternoAndActivoTrue) {
@@ -259,27 +260,27 @@ public class LoteService {
         return result;
     }
 
-    private Lote createLoteIngreso(final LoteDTO dto) {
+    private Lote createLoteIngreso(final LoteDTO loteDTO) {
         Lote lote = new Lote();
 
         //Datos CU1
-        lote.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        lote.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
         lote.setEstadoLote(EstadoLoteEnum.NUEVO);
         lote.setDictamen(DictamenEnum.RECIBIDO);
         lote.setActivo(Boolean.TRUE);
 
         //Datos obligatorios comunes
-        lote.setPaisOrigen(dto.getPaisOrigen());
-        lote.setFechaIngreso(dto.getFechaIngreso());
-        lote.setBultosTotales(dto.getBultosTotales());
-        lote.setLoteProveedor(dto.getLoteProveedor());
+        lote.setPaisOrigen(loteDTO.getPaisOrigen());
+        lote.setFechaIngreso(loteDTO.getFechaIngreso());
+        lote.setBultosTotales(loteDTO.getBultosTotales());
+        lote.setLoteProveedor(loteDTO.getLoteProveedor());
 
         //Datos opcionales comunes
-        lote.setFechaReanalisisProveedor(dto.getFechaReanalisisProveedor());
-        lote.setFechaVencimientoProveedor(dto.getFechaVencimientoProveedor());
-        lote.setNroRemito(dto.getNroRemito());
-        lote.setDetalleConservacion(dto.getDetalleConservacion());
-        lote.setObservaciones(dto.getObservaciones());
+        lote.setFechaReanalisisProveedor(loteDTO.getFechaReanalisisProveedor());
+        lote.setFechaVencimientoProveedor(loteDTO.getFechaVencimientoProveedor());
+        lote.setNroRemito(loteDTO.getNroRemito());
+        lote.setDetalleConservacion(loteDTO.getDetalleConservacion());
+        lote.setObservaciones(loteDTO.getObservaciones());
 
         return lote;
     }

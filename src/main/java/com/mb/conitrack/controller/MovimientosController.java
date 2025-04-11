@@ -1,36 +1,19 @@
 package com.mb.conitrack.controller;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
-import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.MovimientoService;
-
-import jakarta.validation.Valid;
 
 /**
  * CU3
@@ -53,8 +36,7 @@ public class MovimientosController {
 
     //Salida del CU
     @GetMapping("/cancelar")
-    public String cancelar(SessionStatus sessionStatus) {
-        sessionStatus.setComplete();
+    public String cancelar() {
         return "redirect:/";
     }
 
@@ -65,7 +47,7 @@ public class MovimientosController {
     }
 
     //TODO: mover a lotes
-    @GetMapping("/lote/{loteId}")
+    @GetMapping("/loteId/{loteId}")
     public String listMovimientosPorLote(@PathVariable("loteId") Long loteId, Model model) {
         // Se asume que findById() recupera el lote con sus movimientos (por ejemplo, con fetch join)
         final List<Movimiento> movimientos = loteService.findLoteBultoById(loteId).getMovimientos();

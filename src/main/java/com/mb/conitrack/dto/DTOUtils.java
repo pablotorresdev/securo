@@ -1,6 +1,9 @@
 package com.mb.conitrack.dto;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.thymeleaf.util.StringUtils;
 
@@ -77,81 +80,93 @@ public class DTOUtils {
             return null;
         }
 
-        LoteDTO dto = new LoteDTO();
+        LoteDTO loteDTO = new LoteDTO();
         boolean firstCase = true;
         for (Lote entity : entities) {
             if (firstCase) {
-                dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
+                loteDTO.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
 
                 if (entity.getProducto() != null) {
                     final Producto producto = entity.getProducto();
-                    dto.setProductoId(producto.getId());
-                    dto.setNombreProducto(producto.getNombreGenerico());
-                    dto.setCodigoProducto(producto.getCodigoInterno());
-                    dto.setTipoProducto(producto.getTipoProducto());
-                    dto.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino().getNombreGenerico() : null);
+                    loteDTO.setProductoId(producto.getId());
+                    loteDTO.setNombreProducto(producto.getNombreGenerico());
+                    loteDTO.setCodigoProducto(producto.getCodigoInterno());
+                    loteDTO.setTipoProducto(producto.getTipoProducto());
+                    loteDTO.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino().getNombreGenerico() : null);
                 }
 
-                dto.setProveedorId(entity.getProveedor() != null ? entity.getProveedor().getId() : null);
-                dto.setNombreProveedor(entity.getProveedor() != null ? entity.getProveedor().getRazonSocial() : null);
+                loteDTO.setProveedorId(entity.getProveedor() != null ? entity.getProveedor().getId() : null);
+                loteDTO.setNombreProveedor(entity.getProveedor() != null ? entity.getProveedor().getRazonSocial() : null);
 
-                dto.setFabricanteId(entity.getFabricante() != null ? entity.getFabricante().getId() : null);
-                dto.setNombreFabricante(entity.getFabricante() != null ? entity.getFabricante().getRazonSocial() : null);
+                loteDTO.setFabricanteId(entity.getFabricante() != null ? entity.getFabricante().getId() : null);
+                loteDTO.setNombreFabricante(entity.getFabricante() != null ? entity.getFabricante().getRazonSocial() : null);
 
-                dto.setCodigoInterno(entity.getCodigoInterno());
-                dto.setPaisOrigen(entity.getPaisOrigen());
+                loteDTO.setCodigoInterno(entity.getCodigoInterno());
+                loteDTO.setPaisOrigen(entity.getPaisOrigen());
 
-                dto.setFechaIngreso(entity.getFechaIngreso());
+                loteDTO.setFechaIngreso(entity.getFechaIngreso());
 
-                dto.setBultosTotales(entity.getBultosTotales());
+                loteDTO.setBultosTotales(entity.getBultosTotales());
 
-                dto.setCantidadInicial(entity.getCantidadInicial());
-                dto.setUnidadMedida(entity.getUnidadMedida());
+                loteDTO.setCantidadInicial(entity.getCantidadInicial());
+                loteDTO.setUnidadMedida(entity.getUnidadMedida());
 
-                dto.setLoteProveedor(entity.getLoteProveedor());
+                loteDTO.setLoteProveedor(entity.getLoteProveedor());
 
-                dto.setFechaReanalisisProveedor(entity.getFechaReanalisisProveedor());
-                dto.setFechaVencimientoProveedor(entity.getFechaVencimientoProveedor());
-                dto.setEstadoLote(entity.getEstadoLote().getValor());
-                dto.setDictamen(entity.getDictamen());
-                dto.setLoteOrigenId(entity.getLoteOrigen()!=null ? entity.getLoteOrigen().getId() : null);
+                loteDTO.setFechaReanalisisProveedor(entity.getFechaReanalisisProveedor());
+                loteDTO.setFechaVencimientoProveedor(entity.getFechaVencimientoProveedor());
+                loteDTO.setEstadoLote(entity.getEstadoLote().getValor());
+                loteDTO.setDictamen(entity.getDictamen());
+                loteDTO.setLoteOrigenId(entity.getLoteOrigen()!=null ? entity.getLoteOrigen().getId() : null);
 
-                dto.setNroRemito(entity.getNroRemito());
-                dto.setDetalleConservacion(entity.getDetalleConservacion());
-                dto.setObservaciones(entity.getObservaciones());
+                loteDTO.setNroRemito(entity.getNroRemito());
+                loteDTO.setDetalleConservacion(entity.getDetalleConservacion());
+                loteDTO.setObservaciones(entity.getObservaciones());
 
-                dto.getCantidadesBultos().add(entity.getCantidadInicial());
-                dto.getUnidadMedidaBultos().add(entity.getUnidadMedida());
+                loteDTO.getCantidadesBultos().add(entity.getCantidadInicial());
+                loteDTO.getUnidadMedidaBultos().add(entity.getUnidadMedida());
 
-                addMovimientosDTO(dto, entity);
-                addAnalisisDTO(dto, entity);
+                addMovimientosDTO(loteDTO, entity);
+                addAnalisisDTO(loteDTO, entity);
 
                 firstCase = false;
             } else {
                 //TODO: Hacer suma por bulto
-                //dto.getCantidadInicial().add(entity.getCantidadInicial().from(entity.getUnidadMedida()).to(dto.getUnidadMedida()))
+                //loteDTO.getCantidadInicial().add(entity.getCantidadInicial().from(entity.getUnidadMedida()).to(loteDTO.getUnidadMedida()))
 
-                dto.getCantidadesBultos().add(entity.getNroBulto() - 1, entity.getCantidadInicial());
-                dto.getUnidadMedidaBultos().add(entity.getNroBulto() - 1, entity.getUnidadMedida());
+                loteDTO.getCantidadesBultos().add(entity.getNroBulto() - 1, entity.getCantidadInicial());
+                loteDTO.getUnidadMedidaBultos().add(entity.getNroBulto() - 1, entity.getUnidadMedida());
 
-                addMovimientosDTO(dto, entity);
+                addMovimientosDTO(loteDTO, entity);
             }
         }
-        return dto;
+        return loteDTO;
     }
 
-    private static void addMovimientosDTO(final LoteDTO dto, final Lote entity) {
+    private static void addMovimientosDTO(final LoteDTO loteDTO, final Lote entity) {
         for (Movimiento movimiento : entity.getMovimientos()) {
             final MovimientoDTO movimientoDTO = DTOUtils.fromEntity(movimiento);
             movimientoDTO.setNroBulto(String.valueOf(entity.getNroBulto()));
-            dto.getMovimientoDTOs().add(movimientoDTO);
+            loteDTO.getMovimientoDTOs().add(movimientoDTO);
         }
     }
 
-    private static void addAnalisisDTO(final LoteDTO dto, final Lote entity) {
+    private static void addAnalisisDTO(final LoteDTO loteDTO, final Lote entity) {
         for (Analisis analisis : entity.getAnalisisList()) {
-            dto.getAnalisisDTOs().add(DTOUtils.fromEntity(analisis));
+            loteDTO.getAnalisisDTOs().add(DTOUtils.fromEntity(analisis));
         }
+    }
+
+    public static List<LoteDTO> getLotesDtosByCodigoInterno(final List<Lote> lotesCuarentena) {
+        Map<String, List<Lote>> lotesAgrupados = lotesCuarentena.stream()
+            .collect(Collectors.groupingBy(Lote::getCodigoInterno));
+        final List<LoteDTO> lotesDtos = new ArrayList<>();
+
+        for (Map.Entry<String, List<Lote>> entry : lotesAgrupados.entrySet()) {
+            List<Lote> lotes = entry.getValue();
+            lotesDtos.add(DTOUtils.fromEntities(lotes));
+        }
+        return lotesDtos;
     }
 
 }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -144,6 +145,14 @@ public class Lote {
                 .filter(Analisis::getActivo).max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
                 .orElse(null);
         }
+    }
+
+    public String getCurrentNroAnalisis() {
+        final Analisis currentAnalisis = getCurrentAnalisis();
+        if(currentAnalisis== null) {
+            return null;
+        }
+        return currentAnalisis.getNroAnalisis();
     }
 
 }

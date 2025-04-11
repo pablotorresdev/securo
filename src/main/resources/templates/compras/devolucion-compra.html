@@ -11,17 +11,32 @@
 <div class="container mt-5">
     <h2 class="mb-4">Devolución de Compra</h2>
 
-    <!-- Formulario para devolver un Lote -->
     <form th:action="@{/compras/devolucion-compra}" th:object="${movimientoDTO}" method="post">
         <!-- Token CSRF -->
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
         <hr class="my-4">
-        <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
+
+        <!-- Select de Lotes Devolvibles -->
+        <div class="mb-3">
+            <label for="codigoInterno" class="form-label">Lote a Devolver:</label>
+            <select id="codigoInterno" th:field="*{codigoInterno}" class="form-select" required>
+                <option value="">-- Seleccione un lote --</option>
+                <option th:each="loteDTO : ${lotesDevolvibles}"
+                        th:value="${loteDTO.codigoInterno}"
+                        th:text="'Codigo Interno: ' + ${loteDTO.codigoInterno}
+                    + ' | Proveedor: ' + ${loteDTO.nombreProveedor}
+                    + ' | Producto: ' + ${loteDTO.nombreProducto}
+                    + ' | Dictamen: ' + ${loteDTO.dictamen}">
+                </option>
+            </select>
+            <div th:if="${#fields.hasErrors('codigoInterno')}" class="text-danger"
+                 th:errors="*{codigoInterno}"></div>
+        </div>
 
         <!-- Fecha de la Devolución -->
         <div class="mb-2">
-            <label for="fechaMovimiento" class="form-label">Fecha de Cambio de Dictamen:</label>
+            <label for="fechaMovimiento" class="form-label">Fecha de Devolucion:</label>
             <input type="date" id="fechaMovimiento"
                    th:field="*{fechaMovimiento}"
                    class="form-control"
@@ -33,23 +48,6 @@
                  th:errors="*{fechaMovimiento}"></div>
         </div>
 
-        <!-- Select de Lotes Devolvibles -->
-        <div class="mb-3">
-            <label for="loteId" class="form-label">Lote a Devolver:</label>
-            <select id="loteId" th:field="*{loteId}" class="form-select" required>
-                <option value="">-- Seleccione un lote --</option>
-                <option th:each="lote : ${lotesDevolvibles}"
-                        th:if="${lote.nroBulto} == 1"
-                        th:value="${lote.id}"
-                        th:text="'Codigo Interno: ' + ${lote.codigoInterno}
-                    + ' | Proveedor: ' + ${lote.proveedor.razonSocial}
-                    + ' | Producto: ' + ${lote.producto.nombreGenerico}
-                    + ' | Dictamen: ' + ${lote.dictamen}">
-                </option>
-            </select>
-            <div th:if="${#fields.hasErrors('loteId')}" class="text-danger"
-                 th:errors="*{loteId}"></div>
-        </div>
 
         <!-- Observaciones (opcional) -->
         <div class="mb-3">
