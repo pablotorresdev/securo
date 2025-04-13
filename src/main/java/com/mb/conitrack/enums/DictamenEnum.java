@@ -6,6 +6,7 @@ public enum DictamenEnum {
     APROBADO("Aprobado"),
     RECHAZADO("Rechazado"),
     VENCIDO("Vencido"),
+    ANALISIS_EXPIRADO ("Analisis expirado"),
     LIBERADO("Liberado"),
     DEVOLUCION_CLIENTES("Devolucion clientes"),
     RETIRO_MERCADO("Retiro mercado");

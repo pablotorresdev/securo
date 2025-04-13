@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class EstadoLoteEnumTest {
+public class EstadoEnumTest {
 
     @Test
     public void testDefaultStatusData() {
-        EstadoLoteEnum[] estados = EstadoLoteEnum.values();
+        EstadoEnum[] estados = EstadoEnum.values();
         assertThat(estados).hasSize(6);
-        assertThat(estados).extracting(EstadoLoteEnum::getValor)
+        assertThat(estados).extracting(EstadoEnum::getValor)
             .containsExactlyInAnyOrder("Nuevo", "En uso", "Consumido", "Vendido", "Devuelto", "Descartado");
     }
 

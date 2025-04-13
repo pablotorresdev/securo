@@ -118,9 +118,11 @@
             html += '<p><strong>Código Interno:</strong> ' + (loteDto.codigoInterno || 'N/D') + '</p>';
             html += '<p><strong>Producto:</strong> ' + (loteDto.nombreProducto || 'N/D') + '</p>';
             html += '<p><strong>Producto destino:</strong> ' + (loteDto.productoDestino || 'N/D') + '</p>';
+            html += '<p><strong>Cantidad Inicial:</strong> ' + (loteDto.cantidadInicial || 'N/D') + '</p>';
+            html += '<p><strong>Nro Bultos Iniciales:</strong> ' + (loteDto.bultosTotales || 'N/D') + '</p>';
             html += '<p><strong>Cantidad Actual:</strong> ' + (loteDto.cantidadActual || 'N/D') + '</p>';
+            html += '<p><strong>Nro Bultos Actuales:</strong> ' + (loteDto.bultosActuales || 'N/D') + '</p>';
             html += '<p><strong>Unidad Medida:</strong> ' + (loteDto.unidadMedida || 'N/D') + '</p>';
-            html += '<p><strong>Nro Bultos:</strong> ' + (loteDto.bultosTotales || 'N/D') + '</p>';
             html += '<p><strong>Nro Análisis:</strong> ' + (loteDto.currentNroAnalisis || 'Sin fecha') + '</p>';
             html += '<p><strong>Fecha ultimo Análisis:</strong> ' + (loteDto.currentAnalisisDto.fechaRealizado || 'Sin fecha') + '</p>';
             html += '<p><strong>Fecha Re-Análisis:</strong> ' + (loteDto.currentAnalisisDto.fechaReanalisis || 'Sin fecha') + '</p>';

@@ -32,6 +32,7 @@
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno} + ' | Análisis: ' + ${loteDTO.getCurrentNroAnalisis()}">
                 </option>
             </select>
+            <div th:if="${#fields.hasErrors('codigoInterno')}" class="text-danger" th:errors="*{codigoInterno}"></div>
         </div>
 
         <div class="mb-3">
@@ -158,6 +159,7 @@
         loteSelector.addEventListener('change', function () {
             analisisSelector.value = ""; // se resetea el otro select
             nroAnalisisField.value = this.value;
+            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('lote-codigoInterno') || '';
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {
@@ -180,6 +182,7 @@
         analisisSelector.addEventListener('change', function () {
             loteSelector.value = ""; // se resetea el select de Lote
             nroAnalisisField.value = this.value;
+            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('lote-codigoInterno') || '';
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {

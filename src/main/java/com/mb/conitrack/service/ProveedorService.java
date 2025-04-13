@@ -54,12 +54,12 @@ public class ProveedorService {
         return proveedores;
     }
 
-    public Proveedor save(Proveedor proveedor) {
-        return proveedorRepository.save(proveedor);
-    }
-
     public Optional<Proveedor> findById(Long id) {
         return proveedorRepository.findById(id);
+    }
+
+    public Proveedor save(Proveedor proveedor) {
+        return proveedorRepository.save(proveedor);
     }
 
 }

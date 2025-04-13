@@ -40,7 +40,6 @@ public class AnalisisController {
         return "analisis/list-analisis"; //.html
     }
 
-
     @GetMapping("/nroAnalisis/{nroAnalisis}")
     @ResponseBody
     public LoteDTO analisisDetails(@PathVariable("nroAnalisis") String nroAnalisis) {
@@ -48,7 +47,6 @@ public class AnalisisController {
         return DTOUtils.fromEntities(analisis.getLotes());
     }
 
-    //TODO:Pasar a Lote Controller
     @GetMapping("/loteId/{loteId}")
     public String listAnalisisPorLote(@PathVariable("loteId") Long loteId, Model model) {
         final Lote loteBultoById = loteService.findLoteBultoById(loteId);

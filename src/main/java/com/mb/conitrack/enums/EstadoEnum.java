@@ -1,9 +1,9 @@
 package com.mb.conitrack.enums;
 
 /**
- * Enum que representa los estados de un lote respecto de su cantidad y los movimientos de Alta/Baja relacionados.
+ * Enum que representa los estados de un lote/bulto/traza respecto de su cantidad y los movimientos de Alta/Baja relacionados.
  */
-public enum EstadoLoteEnum {
+public enum EstadoEnum {
     NUEVO("Nuevo"), //Alta -> Cant inicial = actual
     EN_USO ("En uso"), //Baja -> Cant inicial > actual
     CONSUMIDO("Consumido"), //Baja -> Cant actul = 0 x Producción
@@ -13,7 +13,7 @@ public enum EstadoLoteEnum {
 
     private final String valor;
 
-    EstadoLoteEnum(String valor) {
+    EstadoEnum(String valor) {
         this.valor = valor;
     }
 

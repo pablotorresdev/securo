@@ -100,7 +100,7 @@ CREATE TABLE lotes
     lote_proveedor       TEXT           NOT NULL,
     fecha_reanal_prov    DATE,
     fecha_vto_prov       DATE,
-    estado_lote          TEXT           NOT NULL,
+    estado               VARCHAR(50)    NOT NULL,
     dictamen             TEXT           NOT NULL,
     lote_origen_id       INT,
     nro_remito           TEXT,
@@ -166,4 +166,19 @@ CREATE TABLE lote_analisis
         FOREIGN KEY (lote_id) REFERENCES lotes (id) ON DELETE CASCADE,
     CONSTRAINT fk_analisis
         FOREIGN KEY (analisis_id) REFERENCES analisis (id) ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE traza
+(
+    id             SERIAL PRIMARY KEY,
+    fecha_creacion TIMESTAMP   NOT NULL,
+    lote_id        INT         NOT NULL,
+    nro_traza      VARCHAR(50) NOT NULL,
+    estado         VARCHAR(50) NOT NULL,
+    observaciones  TEXT,
+    activo         BOOLEAN     NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_lote
+        FOREIGN KEY (lote_id) REFERENCES lotes (id) ON DELETE CASCADE
 );

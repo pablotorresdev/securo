@@ -16,6 +16,7 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -25,8 +26,9 @@ public class LoteDTO {
     //Dato del back
     protected LocalDateTime fechaYHoraCreacion;
 
-    //Datos de ALTA
-    // Obligatorios
+    protected String codigoInterno;
+
+    //Datos de ALTA obligatorios
     @NotNull(message = "La fecha de ingreso es obligatoria", groups = {ValidacionAlta.class})
     @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = {ValidacionAlta.class})
     private LocalDate fechaIngreso;
@@ -51,7 +53,7 @@ public class LoteDTO {
     @NotNull(message = "El lote del proveedor es obligatorio", groups = {ValidacionAlta.class})
     private String loteProveedor;
 
-    //Opcionales
+    //Datos de ALTA Opcionales
     @Size(max = 30, message = "El número de remito no debe superar 30 caracteres", groups = {ValidacionAlta.class})
     private String nroRemito;
     private Long fabricanteId;
@@ -62,24 +64,20 @@ public class LoteDTO {
     private LocalDate fechaVencimientoProveedor;
     private String detalleConservacion;
 
-
-    //Datos de BAJA
-    // Obligatorios
+    //Datos de BAJA Obligatorios
     @NotNull(message = "La fecha de consumo es obligatoria", groups = {ValidacionBaja.class})
     @PastOrPresent(message = "La fecha de consumo no puede ser futura", groups = {ValidacionBaja.class})
     private LocalDate fechaEgreso;
-
     @NotNull(message = "La orden de producción obligatoria", groups = {ValidacionBaja.class})
     private String ordenProduccion;
 
     protected String observaciones;
 
-    //Segun nro de bultos
+    protected Long loteOrigenId;
     protected List<BigDecimal> cantidadesBultos = new ArrayList<>();
     protected List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 
-    //Datos de salida
-    protected String codigoInterno;
+    //Datos derivados
     protected String nombreProducto;
     protected String codigoProducto;
     protected TipoProductoEnum tipoProducto;
@@ -87,8 +85,10 @@ public class LoteDTO {
     protected String nombreProveedor;
     protected String nombreFabricante;
     protected DictamenEnum dictamen;
-    protected Long loteOrigenId;
-    protected String estadoLote;
+    protected String estado;
+    @PositiveOrZero(message = "La cantidad no puede ser negativa")
+    private BigDecimal cantidadActual;
+    private Integer bultosActuales;
 
     // NUEVO: Lista de cantidades para cada bulto (en el paso 2)
     protected Integer nroBulto;

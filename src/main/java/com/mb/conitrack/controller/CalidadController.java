@@ -2,12 +2,9 @@ package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -26,6 +23,8 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
@@ -101,8 +100,8 @@ public class CalidadController {
     @GetMapping("/muestreo-bulto")
     public String showMuestreoBultoForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        List<Lote> lotesMuestreables = loteService.findAllForMuestreo();
-        model.addAttribute("lotesMuestreables", lotesMuestreables);
+        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForMuestreo());
+        model.addAttribute("lotesMuestreables", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
         return "calidad/muestreo-bulto";
     }
@@ -118,7 +117,6 @@ public class CalidadController {
             return "calidad/muestreo-bulto";
         }
 
-        validarcalidadActual(bindingResult, lote);
         validarCantidadesMovimiento(movimientoDTO, lote, bindingResult);
         validarValidarNroAnalisis(movimientoDTO, bindingResult);
 
@@ -206,8 +204,6 @@ public class CalidadController {
         return "";
     }
 
-
-
     private void validarDatosResultadoAnalisisComunes(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
         // Verificamos que nroAnalisis no sea vacío
         if (StringUtils.isEmpty(movimientoDTO.getNroAnalisis())) {
@@ -259,7 +255,7 @@ public class CalidadController {
     }
 
     private void validarResultadoAnalisis(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
-
+        //TODO: validar todas las comibnaciones de fechas y dictamenes
         validarDatosResultadoAnalisisComunes(movimientoDTO, bindingResult);
 
         // Si dictamen es APROBADO, hacemos validaciones adicionales
@@ -268,7 +264,6 @@ public class CalidadController {
             if (bindingResult.hasErrors()) {
                 return;
             }
-
             validarDatosResultadoAnalisisAprobadoContraLote(movimientoDTO, bindingResult);
         } else {
             // Si el dictamen es RECHAZADO, se limpian ciertos campos
@@ -279,55 +274,48 @@ public class CalidadController {
     }
 
     private void validarDatosResultadoAnalisisAprobadoContraLote(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
-        // A partir de aquí, validaciones personalizadas en base a los datos del Lote
-        final Lote loteBulto = loteService.findLoteListByCodigoInterno(movimientoDTO.getCodigoInterno())
-            .stream()
-            .findFirst()
-            .orElse(null);
 
-        if (loteBulto == null) {
-            // Si por algún motivo no se encuentra el lote, marcamos error y detenemos
-            bindingResult.rejectValue("loteId", "", "No se encontró el Lote asociado");
+        final List<Lote> loteList = loteService.findLoteListByCodigoInterno(movimientoDTO.getCodigoInterno());
+        if (loteList.isEmpty()) {
+            bindingResult.rejectValue("codigoInterno", "", "No se encontró el Lote asociado");
             return;
         }
 
-        // (A) Validar la existencia de un Movimiento de BAJA, motivo MUESTREO, con el mismo nroAnálisis en cada lote
-        //            final List<Lote> loteListById = loteService.findLoteListById(movimientoDTO.getLoteId());
-        //            for (Lote lote : loteListById) {
-        //
-        //                final List<Movimiento> movimientos = lote.getMovimientos();
-        //                boolean existeMuestreo = movimientos.stream()
-        //                    .anyMatch(m -> m.getTipoMovimiento() == TipoMovimientoEnum.BAJA
-        //                        && m.getMotivo() == MotivoEnum.MUESTREO
-        //                        && movimientoDTO.getNroAnalisis().equals(m.getNroAnalisis()));
-        //                if (!existeMuestreo) {
-        //                    bindingResult.rejectValue(
-        //                        "nroAnalisis",
-        //                        "",
-        //                        "No se encontró un movimiento de tipo BAJA y motivo MUESTREO con Nro de Análisis " + movimientoDTO.getNroAnalisis()
-        //                    );
-        //                    return;
-        //                }
-        //            }
+        //Al menos necesitamos haber hecho un muestreo para poder hacer un análisis
+        for (Lote lote : loteList) {
+            boolean existeMuestreo = lote.getMovimientos().stream()
+                .anyMatch(m -> m.getTipoMovimiento() == TipoMovimientoEnum.BAJA
+                    && m.getMotivo() == MotivoEnum.MUESTREO
+                    && movimientoDTO.getNroAnalisis().equals(m.getNroAnalisis()));
+            if (!existeMuestreo) {
+                bindingResult.rejectValue(
+                    "nroAnalisis",
+                    "",
+                    "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis()
+                );
+                return;
+            }
+        }
 
-        // (4) La fecha de realizado el análisis no puede ser anterior a la fecha de ingreso del lote
+        final Lote loteBulto = loteList.get(0);
+
+        // La fecha de realizado el análisis no puede ser anterior a la fecha de ingreso del lote
         if (movimientoDTO.getFechaRealizadoAnalisis() != null &&
             movimientoDTO.getFechaRealizadoAnalisis().isBefore(loteBulto.getFechaIngreso())) {
             bindingResult.rejectValue("fechaRealizadoAnalisis", "",
                 "La fecha de realización no puede ser anterior a la fecha de ingreso del lote");
         }
 
-        // (1) y (2) Validaciones sobre fecha de reanálisis vs proveedor
-        //    - Si el lote NO tiene análisis aprobado => la fechaReanálisis no puede pasar
-        //      la fechaReanálisisProveedor NI la fechaVencimientoProveedor
-        //    - Si el lote YA tiene análisis aprobado => la fechaReanálisis no puede pasar
-        //      la fechaVencimientoProveedor
+        // Validaciones sobre fecha de reanálisis vs proveedor
+        // - Si el lote NO tiene análisis aprobado => la fechaReanálisis no puede pasar la fechaReanálisisProveedor NI la fechaVencimientoProveedor
+        // - Si el lote YA tiene análisis aprobado (estamos en reanalisis) => la fechaReanálisis no puede pasar la fechaVencimientoProveedor
         final List<Analisis> analisisList = loteBulto.getAnalisisList();
-        long analisisAprobados = analisisList.stream()
-            .filter(a -> a.getDictamen() == DictamenEnum.APROBADO)
-            .count();
 
+        //TODO: completar el resto de las validaciones
         if (movimientoDTO.getFechaReanalisis() != null) {
+            long analisisAprobados = analisisList.stream()
+                .filter(a -> a.getDictamen() == DictamenEnum.APROBADO)
+                .count();
             if (analisisAprobados == 0) {
                 // Lote NO fue analizado antes con dictamen APROBADO
                 if (loteBulto.getFechaReanalisisProveedor() != null &&
@@ -371,12 +359,6 @@ public class CalidadController {
         }
     }
 
-    private void validarcalidadActual(final BindingResult bindingResult, final Lote lote) {
-        if (DictamenEnum.VENCIDO.equals(lote.getDictamen())) {
-            bindingResult.reject("estado", "El lote no está en un estado válido para muestreo: VENCIDO");
-        }
-    }
-
     private void validarCantidadesMovimiento(final MovimientoDTO dto, final Lote lote, final BindingResult bindingResult) {
         final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(lote.getUnidadMedida());
 
@@ -406,8 +388,8 @@ public class CalidadController {
     }
 
     private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
-        if (dto.getNroReanalisis() == null && dto.getNroAnalisis() == null) {
-            bindingResult.rejectValue("nroAnalisis", "", "Debe ingresar un nro de Analisis o Re Analisis");
+        if (dto.getNroAnalisis() == null) {
+            bindingResult.rejectValue("nroAnalisis", "", "Debe ingresar un nro de Analisis");
         }
     }
 

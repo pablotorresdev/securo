@@ -19,6 +19,7 @@ import lombok.Data;
 @Data
 public class MovimientoDTO {
 
+    //TODO: completar las validaciones segun el CU, definir las interfaces de validacion
     //Dato del back
     private LocalDateTime fechaYHoraCreacion;
 
@@ -28,7 +29,6 @@ public class MovimientoDTO {
     private DictamenEnum dictamenInicial;
     private DictamenEnum dictamenFinal;
     private String observaciones;
-
 
     // Datos de ingreso por Muestreo
     @Positive(message = "La cantidad debe ser mayor a cero")

@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.enums.EstadoLoteEnum;
+import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import jakarta.persistence.Column;
@@ -32,7 +31,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -99,8 +97,8 @@ public class Lote {
     private LocalDate fechaVencimientoProveedor;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado_lote", nullable = false)
-    private EstadoLoteEnum estadoLote;
+    @Column(name = "estado", nullable = false)
+    private EstadoEnum estado;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -131,6 +129,10 @@ public class Lote {
     )
     @JsonBackReference
     private List<Analisis> analisisList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Traza> trazaList = new ArrayList<>();
 
     @Column(nullable = false)
     private Boolean activo;
