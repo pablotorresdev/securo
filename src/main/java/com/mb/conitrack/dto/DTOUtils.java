@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.thymeleaf.util.StringUtils;
@@ -12,8 +13,13 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.enums.UnidadMedidaUtils;
+
+import static com.mb.conitrack.enums.UnidadMedidaUtils.convertirCantidadEntreUnidades;
+import static com.mb.conitrack.enums.UnidadMedidaUtils.obtenerMenorUnidadMedida;
+import static com.mb.conitrack.enums.UnidadMedidaUtils.sugerirUnidadParaCantidad;
 
 public class DTOUtils {
 
@@ -130,7 +136,7 @@ public class DTOUtils {
                 loteDTO.setDetalleConservacion(bultoEntity.getDetalleConservacion());
                 loteDTO.setObservaciones(bultoEntity.getObservaciones());
 
-                loteDTO.getCantidadesBultos().add(bultoEntity.getCantidadInicial());
+                loteDTO.getCantidadesBultos().add(bultoEntity.getCantidadActual());
                 loteDTO.getUnidadMedidaBultos().add(bultoEntity.getUnidadMedida());
 
                 addMovimientosDTO(loteDTO, bultoEntity);
@@ -138,50 +144,68 @@ public class DTOUtils {
 
                 firstCase = false;
             } else {
+
+                // Si el estado de alguno de los bultos es diferente, se asigna el de mayor prioridad
+                setEstadoLote(bultoEntity, loteDTO);
+
                 //TODO: Hacer suma por bulto
                 //loteDTO.getCantidadInicial().add(bultoEntity.getCantidadInicial().from(bultoEntity.getUnidadMedida()).to(loteDTO.getUnidadMedida()))
 
-                if(bultoEntity.getUnidadMedida()==unidadMedida) {
+                //La unidad de medida del bulto coincide con la del DTO
+                if (bultoEntity.getUnidadMedida() == unidadMedida) {
                     cantidadActual = bultoEntity.getCantidadActual().add(cantidadActual);
                     cantidadInicial = bultoEntity.getCantidadInicial().add(cantidadInicial);
 
-                    UnidadMedidaEnum unidadSugerida = UnidadMedidaUtils.sugerirUnidadParaCantidad(unidadMedida, cantidadActual);
-                    cantidadActual = UnidadMedidaUtils.convertirCantidadEntreUnidades(unidadMedida, cantidadActual, unidadSugerida);
-                    cantidadInicial = UnidadMedidaUtils.convertirCantidadEntreUnidades(unidadMedida, cantidadInicial, unidadSugerida);
+                    UnidadMedidaEnum unidadSugerida = sugerirUnidadParaCantidad(unidadMedida, cantidadActual);
+                    cantidadActual = convertirCantidadEntreUnidades(unidadMedida, cantidadActual, unidadSugerida);
+                    cantidadInicial = convertirCantidadEntreUnidades(unidadMedida, cantidadInicial, unidadSugerida);
 
                     unidadMedida = unidadSugerida;
                 } else {
-                    UnidadMedidaEnum menorUnidadMedida = UnidadMedidaUtils.obtenerMenorUnidadMedida(bultoEntity.getUnidadMedida(), unidadMedida);
-                    BigDecimal cantidadActualTemp = UnidadMedidaUtils.convertirCantidadEntreUnidades(unidadMedida, cantidadActual, menorUnidadMedida);
-                    BigDecimal cantidadActualBulto = UnidadMedidaUtils.convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadActual(), menorUnidadMedida);
+                    UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(bultoEntity.getUnidadMedida(), unidadMedida);
+                    BigDecimal cantidadActualTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadActual, menorUnidadMedida);
+                    BigDecimal cantidadActualBulto = convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(),bultoEntity.getCantidadActual(),
+                        menorUnidadMedida);
                     cantidadActualTemp = cantidadActualTemp.add(cantidadActualBulto);
 
-                    UnidadMedidaEnum unidadSugerida = UnidadMedidaUtils.sugerirUnidadParaCantidad(menorUnidadMedida, cantidadActualTemp);
-                    cantidadActual = UnidadMedidaUtils.convertirCantidadEntreUnidades(menorUnidadMedida, cantidadActualTemp, unidadSugerida);
+                    UnidadMedidaEnum unidadSugerida = sugerirUnidadParaCantidad(menorUnidadMedida, cantidadActualTemp);
+                    cantidadActual = convertirCantidadEntreUnidades(menorUnidadMedida, cantidadActualTemp, unidadSugerida);
 
-                    BigDecimal cantidadInicialTemp = UnidadMedidaUtils.convertirCantidadEntreUnidades(unidadMedida, cantidadInicial, unidadSugerida);
-                    BigDecimal cantidadBultoTemp = UnidadMedidaUtils.convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida);
+                    BigDecimal cantidadInicialTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadInicial, unidadSugerida);
+                    BigDecimal cantidadBultoTemp = convertirCantidadEntreUnidades( bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida);
                     cantidadInicial = cantidadInicialTemp.add(cantidadBultoTemp);
-
                     unidadMedida = unidadSugerida;
-
                 }
                 loteDTO.setCantidadInicial(cantidadInicial);
                 loteDTO.setCantidadActual(cantidadActual);
                 loteDTO.setUnidadMedida(unidadMedida);
-                loteDTO.setBultosActuales(entities.size());
 
-                loteDTO.getCantidadesBultos().add(bultoEntity.getNroBulto() - 1, bultoEntity.getCantidadInicial());
+                loteDTO.getCantidadesBultos().add(bultoEntity.getNroBulto() - 1, bultoEntity.getCantidadActual());
                 loteDTO.getUnidadMedidaBultos().add(bultoEntity.getNroBulto() - 1, bultoEntity.getUnidadMedida());
 
                 addMovimientosDTO(loteDTO, bultoEntity);
             }
         }
 
+        loteDTO.setBultosActuales(entities.size());
         loteDTO.setCantidadInicial(cantidadInicial);
         loteDTO.setCantidadActual(cantidadActual);
         loteDTO.setUnidadMedida(unidadMedida);
         return loteDTO;
+    }
+
+    private static void setEstadoLote(final Lote bultoEntity, final LoteDTO loteDTO) {
+        final Optional<EstadoEnum> estadoEnum = EstadoEnum.fromValor(loteDTO.getEstado());
+        if (estadoEnum.isPresent()) {
+            EstadoEnum estado = estadoEnum.get();
+            if (estado.getPrioridad() <
+                bultoEntity.getEstado().getPrioridad()) {
+                loteDTO.setEstado(bultoEntity.getEstado().getValor());
+            }
+        } else {
+            // Si no se encuentra el estado, se asigna el del bulto
+            loteDTO.setEstado(bultoEntity.getEstado().getValor());
+        }
     }
 
     private static void addMovimientosDTO(final LoteDTO loteDTO, final Lote entity) {

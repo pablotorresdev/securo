@@ -68,7 +68,6 @@ public class LoteDTO {
     @NotNull(message = "La fecha de consumo es obligatoria", groups = {ValidacionBaja.class})
     @PastOrPresent(message = "La fecha de consumo no puede ser futura", groups = {ValidacionBaja.class})
     private LocalDate fechaEgreso;
-    @NotNull(message = "La orden de producción obligatoria", groups = {ValidacionBaja.class})
     private String ordenProduccion;
 
     protected String observaciones;

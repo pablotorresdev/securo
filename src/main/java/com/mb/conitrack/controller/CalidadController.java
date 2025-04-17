@@ -281,20 +281,23 @@ public class CalidadController {
             return;
         }
 
+        boolean existeMuestreo = false;
+
         //Al menos necesitamos haber hecho un muestreo para poder hacer un análisis
         for (Lote lote : loteList) {
-            boolean existeMuestreo = lote.getMovimientos().stream()
+            existeMuestreo |= lote.getMovimientos().stream()
                 .anyMatch(m -> m.getTipoMovimiento() == TipoMovimientoEnum.BAJA
                     && m.getMotivo() == MotivoEnum.MUESTREO
                     && movimientoDTO.getNroAnalisis().equals(m.getNroAnalisis()));
-            if (!existeMuestreo) {
-                bindingResult.rejectValue(
-                    "nroAnalisis",
-                    "",
-                    "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis()
-                );
-                return;
-            }
+        }
+
+        if (!existeMuestreo) {
+            bindingResult.rejectValue(
+                "nroAnalisis",
+                "",
+                "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis()
+            );
+            return;
         }
 
         final Lote loteBulto = loteList.get(0);

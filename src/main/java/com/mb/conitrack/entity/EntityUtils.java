@@ -58,7 +58,7 @@ public class EntityUtils {
         movimiento.setLote(lote);
         movimiento.setActivo(true);
 
-        movimiento.setObservaciones("Baja de stock por muestreo (CU2):\n" + lote.getObservaciones());
+        movimiento.setObservaciones("Baja de stock por muestreo (CU3):\n" + lote.getObservaciones());
         return movimiento;
     }
 
