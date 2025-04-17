@@ -14,7 +14,7 @@
     <h2 class="mb-4">Consumo por Producción</h2>
     <form th:action="@{/produccion/consumo-produccion}" th:object="${loteDTO}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <input type="hidden" name="codigoInterno" id="codigoInternoHidden"/>
+        <input type="hidden" id="codigoInterno" th:field="*{codigoInterno}"/>
 
         <!-- SELECCIÓN DEL LOTE -->
         <div class="mb-3">
@@ -28,6 +28,10 @@
                   ' | Codigo Interno: ' + ${loteDTO.codigoInterno}">
                 </option>
             </select>
+            <div th:if="${#fields.hasErrors('codigoInterno')}"
+                 class="text-danger fw-bold"
+                 th:errors="*{codigoInterno}">
+            </div>
         </div>
 
         <div id="infoLote" class="border p-3 bg-light mb-4" style="display:none;">
@@ -90,65 +94,81 @@
 
         /* ---------- datos básicos ---------- */
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-        const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+
+        var fechaEgresoDTO = /*[[${loteDTO.fechaEgreso}]]*/ [];
+        if (fechaEgresoDTO) {
+            document.getElementById("fechaEgreso").value = fechaEgresoDTO;
+        }
 
         /* lotes y DTO que viene del back */
         let lotes = /*[[${lotesProduccion}]]*/ '[]';
         if (typeof lotes === 'string') lotes = JSON.parse(lotes);
 
-        let movimientos = /*[[${loteDTO.movimientoDTOs}]]*/ '[]';
-        if (typeof movimientos === 'string') movimientos = JSON.parse(movimientos);
+        let cantidadesPrev = /*[[${loteDTO.cantidadesBultos}]]*/ '[]';
+        let unidadesPrev   = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
+
+        if (typeof cantidadesPrev === 'string') cantidadesPrev = JSON.parse(cantidadesPrev);
+        if (typeof unidadesPrev   === 'string') unidadesPrev   = JSON.parse(unidadesPrev);
+
 
         const codigoSeleccionado = /*[[${loteDTO.codigoInterno != null ? loteDTO.codigoInterno : ''}]]*/ '';
 
         /* ---------- referencias DOM ---------- */
-        const loteSelect          = document.getElementById('loteSelect');
-        const infoLoteDiv         = document.getElementById('infoLote');
-        const infoContent         = document.getElementById('infoContent');
+        const loteSelect = document.getElementById('loteSelect');
+        const infoLoteDiv = document.getElementById('infoLote');
+        const infoContent = document.getElementById('infoContent');
 
-        const consumoBultosDiv    = document.getElementById('consumoBultos');
-        const bultosContainer     = document.getElementById('bultosContainer');
-        const codigoInternoHidden = document.getElementById('codigoInternoHidden');
+        const consumoBultosDiv = document.getElementById('consumoBultos');
+        const bultosContainer = document.getElementById('bultosContainer');
+        const codigoInterno = document.getElementById('codigoInterno');
 
         /* ---------- caché de sub‑unidades ---------- */
         const cacheSub = new Map();
-        function loadSubunits(base, cb){
-            if (cacheSub.has(base)){ cb(cacheSub.get(base)); return; }
-            fetch(`/enums/subunidades?unidad=${base}`, {headers:{[csrfHeader]:csrfToken}})
-                .then(r=>r.json()).then(arr=>{ cacheSub.set(base,arr); cb(arr); });
+
+        function loadSubunits(base, cb) {
+            if (cacheSub.has(base)) {
+                cb(cacheSub.get(base));
+                return;
+            }
+            fetch(`/enums/subunidades?unidad=${base}`, {headers: {[csrfHeader]: csrfToken}})
+                .then(r => r.json()).then(arr => {
+                cacheSub.set(base, arr);
+                cb(arr);
+            });
         }
 
         /* ---------- al elegir un lote ---------- */
         loteSelect.addEventListener('change', e => prepararPantalla(e.target.value));
 
         /* si la página vuelve con errores, re‑poblar selección */
-        if (codigoSeleccionado){
+        if (codigoSeleccionado) {
             loteSelect.value = codigoSeleccionado;
             prepararPantalla(codigoSeleccionado);
         }
 
         /* ---------- funciones ---------- */
-        function prepararPantalla(codigo){
+        function prepararPantalla(codigo) {
             resetearPantalla();
 
             if (!codigo) return;
-            const lote = lotes.find(l=>l.codigoInterno === codigo);
+            const lote = lotes.find(l => l.codigoInterno === codigo);
             if (!lote) return;
 
-            codigoInternoHidden.value = codigo;
+            codigoInterno.value = codigo;
             pintarInfo(lote);
             generarInputsBultos(lote);
         }
 
-        function resetearPantalla(){
-            infoContent.innerHTML          = '';
-            bultosContainer.innerHTML      = '';
-            infoLoteDiv.style.display      = 'none';
+        function resetearPantalla() {
+            infoContent.innerHTML = '';
+            bultosContainer.innerHTML = '';
+            infoLoteDiv.style.display = 'none';
             consumoBultosDiv.style.display = 'none';
-            codigoInternoHidden.value      = '';
+            codigoInterno.value = '';
         }
 
-        function pintarInfo(lote){
+        function pintarInfo(lote) {
             const a = lote.currentAnalisisDto || {};
             infoContent.innerHTML = `
             <hr>
@@ -172,57 +192,72 @@
         }
 
         function generarInputsBultos(lote){
-            const stocks    = lote.cantidadesBultos   || Array(lote.bultosActuales).fill(0);
-            const baseUnits = lote.unidadMedidaBultos || Array(lote.bultosActuales).fill(lote.unidadMedida);
 
-            for (let i=0;i<lote.bultosActuales;i++){
-                /* datos previos si el usuario ya envió */
-                const movPrev      = movimientos[i] || {};
-                const valorPrevio  = movPrev.cantidad ?? '';
-                const unidadPrev   = movPrev.unidadMedida ?? baseUnits[i];
+            /* ---------- 1. cuántos bultos debo mostrar ---------- */
+            // CAMBIO: cálculo “a prueba de nulos”
+            const totalBultos =
+                (lote.bultosActuales != null ? lote.bultosActuales :
+                    (lote.bultosTotales != null  ? lote.bultosTotales  :
+                        0));
 
-                /* fila */
+            /* ---------- 2. Arrays con stock y unidad base ---------- */
+            //  (si llegan vacíos, los relleno para que tengan totalBultos posiciones)
+            const stocks     = (lote.cantidadesBultos   ?? []).slice(0, totalBultos);
+            const baseUnits  = (lote.unidadMedidaBultos ?? []).slice(0, totalBultos);
+
+            while (stocks.length    < totalBultos) stocks.push(0);                  // CAMBIO
+            while (baseUnits.length < totalBultos) baseUnits.push(lote.unidadMedida);
+
+            /* ---------- 3. Recorro bultos y pinto ---------- */
+            for (let i = 0; i < totalBultos; i++) {
+
+                const valorPrevio = (cantidadesPrev[i] != null) ? cantidadesPrev[i] : 0;   // CAMBIO
+                const unidadPrev  = unidadesPrev[i] ?? baseUnits[i];
+
+                /* --- creo fila --- */
                 const row = document.createElement('div');
                 row.className = 'row g-2 align-items-end mb-2';
 
-                /* cantidad */
-                const colCant = document.createElement('div');
-                colCant.className = 'col-md-6';
-                colCant.innerHTML = `
-                <label class="form-label">
-                    Cant. Bulto ${i+1} (máx ${stocks[i]} ${baseUnits[i]}):
-                </label>
-                <input  type="number"
-                        name="movimientoDTOs[${i}].cantidad"
-                        class="form-control"
-                        value="${valorPrevio}"
-                        min="0" step="0.01" required>`;
-                row.appendChild(colCant);
+                /* --- cantidad --- */
+                row.innerHTML += `
+              <div class="col-md-6">
+                 <label class="form-label">
+                   Cant. Bulto ${i + 1} (máx ${stocks[i]} ${baseUnits[i]}):
+                 </label>
+                 <input  type="number"
+                         name="cantidadesBultos[${i}]"
+                         class="form-control"
+                         value="${valorPrevio}"
+                         min="0" step="0.01" required>
+              </div>`;
 
-                /* unidad */
+                /* --- unidad --- */
                 const colUni = document.createElement('div');
                 colUni.className = 'col-md-4';
                 colUni.innerHTML = '<label class="form-label">Unidad:</label>';
                 const sel = document.createElement('select');
-                sel.name  = `movimientoDTOs[${i}].unidadMedida`;
+                sel.name  = `unidadMedidaBultos[${i}]`;
                 sel.className = 'form-select'; sel.required = true;
                 colUni.appendChild(sel);
                 row.appendChild(colUni);
 
-                /* index bulto */
+                /* --- nroBulto oculto (solo lo necesita tu MovimientoDTO) --- */
                 row.insertAdjacentHTML('beforeend',
                     `<input type="hidden" name="movimientoDTOs[${i}].nroBulto" value="${i+1}">`);
 
+                /* --- agrego la fila --- */
                 bultosContainer.appendChild(row);
 
-                loadSubunits(baseUnits[i], arr=>{
-                    sel.innerHTML = arr
-                        .map(u=>`<option value="${u}" ${u===unidadPrev?'selected':''}>${u}</option>`)
-                        .join('');
+                /* --- cargo sub‑unidades --- */
+                loadSubunits(baseUnits[i], arr =>{
+                    sel.innerHTML = arr.map(u =>
+                        `<option value="${u}" ${u===unidadPrev?'selected':''}>${u}</option>`
+                    ).join('');
                 });
             }
             consumoBultosDiv.style.display = 'block';
         }
+
 
     });
 </script>

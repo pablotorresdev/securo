@@ -12,7 +12,7 @@ public class DictamenEnumTest {
     public void testDictamenEnumValues() {
         DictamenEnum[] valores = DictamenEnum.values();
         // Verifica que se tengan los 9 valores esperados
-        assertThat(valores).hasSize(8);
+        assertThat(valores).hasSize(9);
         // Verifica que cada constante tenga el valor correcto
         assertThat(valores).extracting(DictamenEnum::getValor).containsExactlyInAnyOrder(
             "Recibido",
@@ -20,6 +20,7 @@ public class DictamenEnumTest {
             "Aprobado",
             "Rechazado",
             "Vencido",
+            "Analisis expirado",
             "Liberado",
             "Devolucion clientes",
             "Retiro mercado"

@@ -164,15 +164,15 @@
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
 
         var fechaIngresoDTO = /*[[${loteDTO.fechaIngreso}]]*/ [];
-        if (fechaIngresoDTO && fechaIngresoDTO !== "null") {
+        if (fechaIngresoDTO) {
             document.getElementById("fechaIngreso").value = fechaIngresoDTO;
         }
         var fechaReanalisisProveedorDTO = /*[[${loteDTO.fechaReanalisisProveedor != null ? loteDTO.fechaReanalisisProveedor : '[]'}]]*/ [];
-        if (fechaReanalisisProveedorDTO && fechaReanalisisProveedorDTO !== "null") {
+        if (fechaReanalisisProveedorDTO) {
             document.getElementById("fechaReanalisisProveedor").value = fechaReanalisisProveedorDTO;
         }
         var fechaVencimientoProveedorDTO = /*[[${loteDTO.fechaVencimientoProveedor != null ? loteDTO.fechaVencimientoProveedor : '[]'}]]*/ [];
-        if (fechaVencimientoProveedorDTO && fechaVencimientoProveedorDTO !== "null") {
+        if (fechaVencimientoProveedorDTO) {
             document.getElementById("fechaVencimientoProveedor").value = fechaVencimientoProveedorDTO;
         }
 
@@ -242,62 +242,75 @@
 
         var unidadMedidaBultosDTO = /*[[${loteDTO.unidadMedidaBultos != null ? loteDTO.unidadMedidaBultos : '[]'}]]*/ [];
         var cantidadesBultosDTO = /*[[${loteDTO.cantidadesBultos != null ? loteDTO.cantidadesBultos : '[]'}]]*/ [];
+        let magnitudesPrev = /*[[${loteDTO.magnitudDTOMap}]]*/ {};
+        if (typeof magnitudesPrev === 'string') magnitudesPrev = JSON.parse(magnitudesPrev);
 
-        function generarCamposBultos(cantidad) {
-            bultosContainer.innerHTML = ''; // Limpiar campos previos
-            // Se obtiene la unidad actual del select principal para usarla al cargar subunidades
-            const unidadBaseBultos = unidadSelect.value || unidadActual;
-            for (let i = 1; i <= cantidad; i++) {
-                // --- Creación de la fila para el bulto ---
-                const divRow = document.createElement('div');
-                divRow.className = 'row mb-3 align-items-end';
+        function generarCamposBultos(lote) {
 
-                // --- Campo: Cantidad para el bulto ---
-                const divCantidad = document.createElement('div');
-                divCantidad.className = 'col-md-6';
-                const labelCantidad = document.createElement('label');
-                labelCantidad.className = 'form-label';
-                labelCantidad.setAttribute('for', 'cantidadBulto' + i);
-                labelCantidad.textContent = 'Cantidad para Bulto ' + i + ':';
-                const inputCantidad = document.createElement('input');
-                inputCantidad.type = 'number';
-                inputCantidad.step = '0.01';
-                inputCantidad.id = 'cantidadBulto' + i;
-                // Nombre para el binding en el DTO (lista)
-                inputCantidad.name = 'cantidadesBultos[' + (i - 1) + ']';
-                inputCantidad.className = 'form-control';
-                inputCantidad.required = true;
-                // Si en el DTO ya hay una cantidad para este bulto, se asigna su valor
-                if (cantidadesBultosDTO && cantidadesBultosDTO[i - 1] != null) {
-                    inputCantidad.value = cantidadesBultosDTO[i - 1];
-                }
-                divCantidad.appendChild(labelCantidad);
-                divCantidad.appendChild(inputCantidad);
+            /* stock disponible y UM base de cada bulto -------------------- */
+            const stocks    = lote.cantidadesBultos ?? Array(lote.bultosActuales).fill(0);
+            const baseUnits = lote.unidadMedidaBultos ?? Array(lote.bultosActuales).fill(lote.unidadMedida);
 
-                // --- Campo: Select de Subunidades para el bulto ---
-                const divUnidad = document.createElement('div');
-                divUnidad.className = 'col-md-3';
-                const labelUnidad = document.createElement('label');
-                labelUnidad.className = 'form-label';
-                labelUnidad.textContent = 'Unidad:';
-                const selectUnidad = document.createElement('select');
-                selectUnidad.id = 'unidadSelect' + i;
-                selectUnidad.name = 'unidadMedidaBultos[' + (i - 1) + ']';
-                selectUnidad.className = 'form-select';
-                selectUnidad.required = true;
-                // Se determina si en el DTO existe un valor preseleccionado para este bulto
-                let preselected = (unidadMedidaBultosDTO && unidadMedidaBultosDTO[i - 1]) ? unidadMedidaBultosDTO[i - 1] : null;
-                // Se carga el select con las subunidades usando la unidad base y el valor preseleccionado
-                cargarSubunidades(unidadBaseBultos, selectUnidad, preselected);
+            /* limpiar contenedor */
+            bultosContainer.innerHTML = '';
 
-                divUnidad.appendChild(labelUnidad);
-                divUnidad.appendChild(selectUnidad);
+            /* bucle 1‑based sobre los bultos ------------------------------ */
+            for (let idx = 1; idx <= lote.bultosActuales; idx++) {
 
-                // Se añade la fila con ambos campos al contenedor
-                divRow.appendChild(divCantidad);
-                divRow.appendChild(divUnidad);
-                bultosContainer.appendChild(divRow);
+                /* valores que el usuario ya había enviado (si existen) ---- */
+                const prevMag      = magnitudesPrev[idx] || {};     // {cantidad, unidadMedida}
+                const valorPrevio  = (prevMag.cantidad != null)     ? prevMag.cantidad   : 0;
+                const unidadPrev   = prevMag.unidadMedida || baseUnits[idx-1];
+
+                /* fila ---------------------------------------------------- */
+                const row = document.createElement('div');
+                row.className = 'row g-2 align-items-end mb-2';
+
+                /* ----- cantidad ----------------------------------------- */
+                row.innerHTML += `
+        <div class="col-md-6">
+            <label class="form-label">
+                Cant. Bulto ${idx} (máx ${stocks[idx-1]} ${baseUnits[idx-1]}):
+            </label>
+            <input  type="number"
+                    name="magnitudDTOMap[${idx}].cantidad"
+                    class="form-control"
+                    value="${valorPrevio}"
+                    min="0" step="0.01" required>
+            <!-- mensaje de error de esa propiedad -->
+            <div class="text-danger fw-bold"
+                 th:errors="*{magnitudDTOMap[${idx}].cantidad}"></div>
+        </div>`;
+
+                /* ----- unidad ------------------------------------------- */
+                const colUni = document.createElement('div');
+                colUni.className = 'col-md-4';
+                colUni.innerHTML = '<label class="form-label">Unidad:</label>';
+
+                const sel = document.createElement('select');
+                sel.name  = `magnitudDTOMap[${idx}].unidadMedida`;
+                sel.className = 'form-select'; sel.required = true;
+                colUni.appendChild(sel);
+                row.appendChild(colUni);
+
+                /* mensaje de error para la unidad */
+                colUni.insertAdjacentHTML('beforeend',
+                    `<div class="text-danger fw-bold"
+                  th:errors="*{magnitudDTOMap[${idx}].unidadMedida}"></div>`);
+
+                /* finalmente añadimos la fila al contenedor -------------- */
+                bultosContainer.appendChild(row);
+
+                /* cargar sub‑unidades para este bulto --------------------- */
+                loadSubunits(baseUnits[idx-1], arr => {
+                    sel.innerHTML = arr.map(u =>
+                        `<option value="${u}" ${u === unidadPrev ? 'selected' : ''}>${u}</option>`
+                    ).join('');
+                });
             }
+
+            /* mostrar bloque */
+            consumoBultosDiv.style.display = 'block';
         }
 
         // =========================================================

@@ -137,6 +137,10 @@ public class LoteService {
             .filter(l -> DictamenEnum.APROBADO == l.getDictamen())
             .filter(l -> TipoProductoEnum.UNIDAD_VENTA != l.getProducto().getTipoProducto())
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
+            .sorted(Comparator
+                .comparing(Lote::getFechaIngreso)
+                .thenComparing(Lote::getCodigoInterno)
+                .thenComparing(Lote::getNroBulto))
             .toList();
     }
 

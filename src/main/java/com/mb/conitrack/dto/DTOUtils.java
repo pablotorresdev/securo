@@ -139,6 +139,8 @@ public class DTOUtils {
                 loteDTO.getCantidadesBultos().add(bultoEntity.getCantidadActual());
                 loteDTO.getUnidadMedidaBultos().add(bultoEntity.getUnidadMedida());
 
+                loteDTO.getMagnitudDTOMap().put(bultoEntity.getNroBulto(), new MagnitudDTO(bultoEntity.getCantidadActual(), bultoEntity.getUnidadMedida()));
+
                 addMovimientosDTO(loteDTO, bultoEntity);
                 addAnalisisDTO(loteDTO, bultoEntity);
 
@@ -182,6 +184,7 @@ public class DTOUtils {
 
                 loteDTO.getCantidadesBultos().add(bultoEntity.getNroBulto() - 1, bultoEntity.getCantidadActual());
                 loteDTO.getUnidadMedidaBultos().add(bultoEntity.getNroBulto() - 1, bultoEntity.getUnidadMedida());
+                loteDTO.getMagnitudDTOMap().put(bultoEntity.getNroBulto(), new MagnitudDTO(bultoEntity.getCantidadActual(), bultoEntity.getUnidadMedida()));
 
                 addMovimientosDTO(loteDTO, bultoEntity);
             }

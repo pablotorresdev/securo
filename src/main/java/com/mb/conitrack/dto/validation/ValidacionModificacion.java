@@ -1,4 +1,4 @@
-package com.mb.conitrack.dto;
+package com.mb.conitrack.dto.validation;
 
 public interface ValidacionModificacion {
 

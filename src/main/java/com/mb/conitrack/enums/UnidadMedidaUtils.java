@@ -125,7 +125,7 @@ public class UnidadMedidaUtils {
         if (!unidadUno.getTipo().equals(unidadDos.getTipo())) {
             throw new IllegalArgumentException("Las unidades de medida no son compatibles");
         }
-        if (unidadUno.getFactorConversion() > unidadDos.getFactorConversion()) {
+        if (unidadUno.getFactorConversion() < unidadDos.getFactorConversion()) {
             return unidadUno;
         } else {
             return unidadDos;

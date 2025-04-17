@@ -5,9 +5,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.dto.validation.AltaCompra;
+import com.mb.conitrack.dto.validation.BajaProduccion;
+import com.mb.conitrack.dto.validation.ValidacionBaja;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
@@ -26,74 +30,94 @@ public class LoteDTO {
     //Dato del back
     protected LocalDateTime fechaYHoraCreacion;
 
+    @NotNull(message = "Debe seleccionar un lote", groups = { BajaProduccion.class })
     protected String codigoInterno;
 
     //Datos de ALTA obligatorios
-    @NotNull(message = "La fecha de ingreso es obligatoria", groups = {ValidacionAlta.class})
-    @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = {ValidacionAlta.class})
+    @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class })
+    @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = { AltaCompra.class })
     private LocalDate fechaIngreso;
 
-    @NotNull(message = "El ID del producto es obligatorio", groups = {ValidacionAlta.class})
+    @NotNull(message = "El ID del producto es obligatorio", groups = { AltaCompra.class })
     private Long productoId;
 
-    @NotNull(message = "La cantidad inicial es obligatoria", groups = {ValidacionAlta.class})
-    @Positive(message = "La cantidad inicial debe ser mayor a cero", groups = {ValidacionAlta.class})
+    @NotNull(message = "La cantidad inicial es obligatoria", groups = { AltaCompra.class })
+    @Positive(message = "La cantidad inicial debe ser mayor a cero", groups = { AltaCompra.class })
     private BigDecimal cantidadInicial;
 
-    @NotNull(message = "La unidad de Medida es obligatoria", groups = {ValidacionAlta.class})
+    @NotNull(message = "La unidad de Medida es obligatoria", groups = { AltaCompra.class })
     private UnidadMedidaEnum unidadMedida;
 
-    @NotNull(message = "La cantidad de bultos totales es obligatoria", groups = {ValidacionAlta.class})
-    @Positive(message = "La cantidad de bultos totales debe ser mayor a cero", groups = {ValidacionAlta.class})
+    @NotNull(message = "La cantidad de bultos totales es obligatoria", groups = { AltaCompra.class })
+    @Positive(message = "La cantidad de bultos totales debe ser mayor a cero", groups = { AltaCompra.class })
     private Integer bultosTotales;
 
-    @NotNull(message = "El ID del proveedor es obligatorio", groups = {ValidacionAlta.class})
+    @NotNull(message = "El ID del proveedor es obligatorio", groups = { AltaCompra.class })
     private Long proveedorId;
 
-    @NotNull(message = "El lote del proveedor es obligatorio", groups = {ValidacionAlta.class})
+    @NotNull(message = "El lote del proveedor es obligatorio", groups = { AltaCompra.class })
     private String loteProveedor;
 
     //Datos de ALTA Opcionales
-    @Size(max = 30, message = "El número de remito no debe superar 30 caracteres", groups = {ValidacionAlta.class})
+    @Size(max = 30, message = "El número de remito no debe superar 30 caracteres", groups = { AltaCompra.class })
     private String nroRemito;
+
     private Long fabricanteId;
+
     private String paisOrigen;
-    @Future(message = "La fecha de ingreso de ser futura", groups = {ValidacionAlta.class})
+
+    @Future(message = "La fecha de ingreso de ser futura", groups = { AltaCompra.class })
     private LocalDate fechaReanalisisProveedor;
-    @Future(message = "La fecha de ingreso de ser futura", groups = {ValidacionAlta.class})
+
+    @Future(message = "La fecha de ingreso de ser futura", groups = { AltaCompra.class })
     private LocalDate fechaVencimientoProveedor;
+
     private String detalleConservacion;
 
     //Datos de BAJA Obligatorios
-    @NotNull(message = "La fecha de consumo es obligatoria", groups = {ValidacionBaja.class})
-    @PastOrPresent(message = "La fecha de consumo no puede ser futura", groups = {ValidacionBaja.class})
+    @NotNull(message = "La fecha de consumo es obligatoria", groups = { ValidacionBaja.class, BajaProduccion.class })
+    @PastOrPresent(message = "La fecha de consumo no puede ser futura", groups = { ValidacionBaja.class, BajaProduccion.class })
     private LocalDate fechaEgreso;
+
+    @NotNull(message = "La orden de producción es obligatoria", groups = { BajaProduccion.class })
     private String ordenProduccion;
 
     protected String observaciones;
 
     protected Long loteOrigenId;
+
+    //TODO: unir con unidaddeMedida en un objeto DTO y pasar a mapa
+    protected Map<Integer, MagnitudDTO> magnitudDTOMap = new HashMap<>();
     protected List<BigDecimal> cantidadesBultos = new ArrayList<>();
     protected List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 
     //Datos derivados
     protected String nombreProducto;
+
     protected String codigoProducto;
+
     protected TipoProductoEnum tipoProducto;
+
     protected String productoDestino;
+
     protected String nombreProveedor;
+
     protected String nombreFabricante;
+
     protected DictamenEnum dictamen;
+
     protected String estado;
+
     @PositiveOrZero(message = "La cantidad no puede ser negativa")
     private BigDecimal cantidadActual;
+
     private Integer bultosActuales;
 
     // NUEVO: Lista de cantidades para cada bulto (en el paso 2)
     protected Integer nroBulto;
 
-    protected List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
 
+    protected List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
     protected List<AnalisisDTO> analisisDTOs = new ArrayList<>();
 
     public AnalisisDTO getCurrentAnalisisDto() {
@@ -110,7 +134,7 @@ public class LoteDTO {
 
     public String getCurrentNroAnalisis() {
         final AnalisisDTO currentAnalisisDto = getCurrentAnalisisDto();
-        if(currentAnalisisDto== null) {
+        if (currentAnalisisDto == null) {
             return null;
         }
         return currentAnalisisDto.getNroAnalisis();

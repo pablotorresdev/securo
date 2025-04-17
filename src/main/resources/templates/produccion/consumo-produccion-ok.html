@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Confirmación de Consumo producción</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Confirmación de Consumo producción</h2>
+
+    <!-- Mensaje de éxito si se pasó como Flash Attribute 'success' -->
+    <div th:if="${success}"
+         class="alert alert-success fw-bold mb-4"
+         th:text="${success}">
+    </div>
+
+    <!-- Sección que muestra LoteDTO si está presente en el modelo -->
+    <div th:if="${loteDTO != null}">
+        <h4>Detalles del Lote Consumido</h4>
+        <table class="table table-bordered table-sm">
+            <tbody>
+            <!-- Datos principales de Producto/Proveedor -->
+            <tr>
+                <th>Producto ID:</th>
+                <td th:text="${loteDTO.productoId}"></td>
+            </tr>
+            <tr>
+                <th>Nombre Producto:</th>
+                <td th:text="${loteDTO.nombreProducto}"></td>
+            </tr>
+            <tr>
+                <th>Código Producto:</th>
+                <td th:text="${loteDTO.codigoProducto}"></td>
+            </tr>
+            <tr>
+                <th>Tipo Producto:</th>
+                <td th:text="${loteDTO.tipoProducto}"></td>
+            </tr>
+            <tr>
+                <th>Proveedor ID:</th>
+                <td th:text="${loteDTO.proveedorId}"></td>
+            </tr>
+            <tr>
+                <th>Nombre Proveedor:</th>
+                <td th:text="${loteDTO.nombreProveedor}"></td>
+            </tr>
+
+            <!-- Datos del Lote en sí -->
+            <tr>
+                <th>Fecha Ingreso:</th>
+                <td th:text="${loteDTO.fechaIngreso}"></td>
+            </tr>
+            <tr>
+                <th>Bultos Totales:</th>
+                <td th:text="${loteDTO.bultosTotales}"></td>
+            </tr>
+            <tr>
+                <th>Cantidad Inicial:</th>
+                <td th:text="${loteDTO.cantidadInicial}"></td>
+            </tr>
+            <tr>
+                <th>Unidad Medida:</th>
+                <td th:text="${loteDTO.unidadMedida}"></td>
+            </tr>
+            <tr>
+                <th>Lote Proveedor:</th>
+                <td th:text="${loteDTO.loteProveedor}"></td>
+            </tr>
+            <tr>
+                <th>Nro Remito:</th>
+                <td th:text="${loteDTO.nroRemito}"></td>
+            </tr>
+            <tr>
+                <th>Detalle Conservación:</th>
+                <td th:text="${loteDTO.detalleConservacion}"></td>
+            </tr>
+            <tr>
+                <th>Observaciones:</th>
+                <td th:text="${loteDTO.observaciones}"></td>
+            </tr>
+
+            <!-- Datos multi-bulto (opcional) -->
+            <tr>
+                <th>Nro Bulto (unitario):</th>
+                <td th:text="${loteDTO.nroBulto}"></td>
+            </tr>
+            <tr>
+                <th>Cantidades Bultos:</th>
+                <td>
+                    <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
+                          th:text="'Bulto ' + ${iterStat.index} + ' = ' + ${cant}
+                                   + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ') '">
+                    </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Lista de MovimientoDTOs, que representan los movimientos de Consumo producción u otros -->
+        <div th:if="${loteDTO.movimientoDTOs != null
+                    and #lists.size(loteDTO.movimientoDTOs) > 0}">
+            <h4>Movimientos tras el Consumo producción</h4>
+            <table class="table table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Lote ID</th>
+                    <th>Nro Bulto</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Fecha Realizado Análisis</th>
+                    <th>Fecha ReAnálisis</th>
+                    <th>Fecha Venc.</th>
+                    <th>Observaciones</th>
+                    <th>Orden Prod.</th>
+                    <th>Nro Análisis</th>
+                    <th>Nro ReAnálisis</th>
+                    <th>Tipo Mov.</th>
+                    <th>Motivo</th>
+                    <th>Dict.Inicial</th>
+                    <th>Dict.Final</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="mov : ${loteDTO.movimientoDTOs}">
+                    <td th:text="${mov.fechaMovimiento}"></td>
+                    <td th:text="${mov.loteId}"></td>
+                    <td th:text="${mov.nroBulto}"></td>
+                    <td th:text="${mov.cantidad}"></td>
+                    <td th:text="${mov.unidadMedida}"></td>
+
+                    <td th:text="${mov.fechaRealizadoAnalisis}"></td>
+                    <td th:text="${mov.fechaReanalisis}"></td>
+                    <td th:text="${mov.fechaVencimiento}"></td>
+
+                    <td th:text="${mov.observaciones}"></td>
+                    <td th:text="${mov.ordenProduccion}"></td>
+                    <td th:text="${mov.nroAnalisis}"></td>
+                    <td th:text="${mov.nroReanalisis}"></td>
+
+                    <td th:text="${mov.tipoMovimiento}"></td>
+                    <td th:text="${mov.motivo}"></td>
+                    <td th:text="${mov.dictamenInicial}"></td>
+                    <td th:text="${mov.dictamenFinal}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botón para finalizar y volver al menú principal -->
+    <div class="mt-4">
+        <a th:href="@{/produccion/cancelar}" class="btn btn-primary">Continuar</a>
+    </div>
+</div>
+</body>
+</html>
