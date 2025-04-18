@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
-import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.repository.AnalisisRepository;
 
 @Service

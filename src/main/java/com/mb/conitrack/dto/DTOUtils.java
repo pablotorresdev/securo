@@ -15,7 +15,6 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.enums.UnidadMedidaUtils;
 
 import static com.mb.conitrack.enums.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.enums.UnidadMedidaUtils.obtenerMenorUnidadMedida;
@@ -138,7 +137,6 @@ public class DTOUtils {
 
                 loteDTO.getCantidadesBultos().add(bultoEntity.getCantidadActual());
                 loteDTO.getUnidadMedidaBultos().add(bultoEntity.getUnidadMedida());
-
                 loteDTO.getMagnitudDTOMap().put(bultoEntity.getNroBulto(), new MagnitudDTO(bultoEntity.getCantidadActual(), bultoEntity.getUnidadMedida()));
 
                 addMovimientosDTO(loteDTO, bultoEntity);
@@ -166,7 +164,7 @@ public class DTOUtils {
                 } else {
                     UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(bultoEntity.getUnidadMedida(), unidadMedida);
                     BigDecimal cantidadActualTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadActual, menorUnidadMedida);
-                    BigDecimal cantidadActualBulto = convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(),bultoEntity.getCantidadActual(),
+                    BigDecimal cantidadActualBulto = convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadActual(),
                         menorUnidadMedida);
                     cantidadActualTemp = cantidadActualTemp.add(cantidadActualBulto);
 
@@ -174,7 +172,7 @@ public class DTOUtils {
                     cantidadActual = convertirCantidadEntreUnidades(menorUnidadMedida, cantidadActualTemp, unidadSugerida);
 
                     BigDecimal cantidadInicialTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadInicial, unidadSugerida);
-                    BigDecimal cantidadBultoTemp = convertirCantidadEntreUnidades( bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida);
+                    BigDecimal cantidadBultoTemp = convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida);
                     cantidadInicial = cantidadInicialTemp.add(cantidadBultoTemp);
                     unidadMedida = unidadSugerida;
                 }

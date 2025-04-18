@@ -51,10 +51,7 @@ public class ProduccionController {
      */
     @PostMapping("/consumo-produccion")
     public String procesarConsumoProduccion(
-        @Validated(BajaProduccion.class) @ModelAttribute LoteDTO loteDTO,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes ra) {
+        @Validated(BajaProduccion.class) @ModelAttribute LoteDTO loteDTO, BindingResult bindingResult, Model model, RedirectAttributes ra) {
 
         if (bindingResult.hasErrors()) {
             initConsumoProducciondata(loteDTO, model);
@@ -71,9 +68,7 @@ public class ProduccionController {
 
         //loteService.registrarConsumoProduccion(loteDTO);   // ← método que descuente stock y guarde movimientos
 
-        ra.addFlashAttribute(
-            "success",
-            "Consumo registrado correctamente para la orden " + loteDTO);
+        ra.addFlashAttribute("success", "Consumo registrado correctamente para la orden " + loteDTO);
         return "redirect:/produccion/consumo-produccion-ok";
     }
 
@@ -105,20 +100,16 @@ public class ProduccionController {
     }
 
     private void initConsumoProducciondata(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> lotesProduccion = getLotesDtosByCodigoInterno(
-            loteService.findAllForConsumoProduccion());
+        List<LoteDTO> lotesProduccion = getLotesDtosByCodigoInterno(loteService.findAllForConsumoProduccion());
         model.addAttribute("lotesProduccion", lotesProduccion);
         model.addAttribute("loteDTO", loteDTO); //  ← mantiene lo que el usuario ingresó
     }
 
     private void validarCantidades(final LoteDTO loteDTO, final BindingResult bindingResult) {
-        List<Lote> lotes = loteService.findLoteListByCodigoInterno(loteDTO.getCodigoInterno()).stream()
+        List<Lote> lotes = loteService.findLoteListByCodigoInterno(loteDTO.getCodigoInterno())
+            .stream()
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(
-                Comparator
-                    .comparing(Lote::getFechaIngreso)
-                    .thenComparing(Lote::getCodigoInterno)
-                    .thenComparing(Lote::getNroBulto))
+            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto))
             .toList();
 
         if (lotes.isEmpty()) {

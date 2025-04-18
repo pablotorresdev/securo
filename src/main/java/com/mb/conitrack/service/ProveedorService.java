@@ -7,7 +7,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.repository.maestro.ProveedorRepository;
 
@@ -19,6 +18,7 @@ public class ProveedorService {
 
     /**
      * Devuelve los proveedores activos que son externos a la empresa (no son Conifarma)
+     *
      * @return Lista de proveedores
      */
     public List<Proveedor> getProveedoresExternos() {
@@ -30,6 +30,7 @@ public class ProveedorService {
 
     /**
      * Devuelve los proveedores activos que son Conifarma
+     *
      * @return Lista de proveedores
      */
     public List<Proveedor> getConifarma() {
@@ -38,6 +39,7 @@ public class ProveedorService {
 
     /**
      * Devuelve los proveedores activos e inactivos que son externos a la empresa (no son Conifarma)
+     *
      * @return Lista de proveedores
      */
     public List<Proveedor> listProveedoresExternos() {

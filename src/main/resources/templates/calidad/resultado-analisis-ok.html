@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Resultado de Análisis - Confirmación</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Confirmación Resultado de Análisis</h2>
     <!-- Mensaje de éxito -->
-    <div th:if="${success}" class="alert alert-success fw-bold mb-4" th:text="${success}"/>
+    <div class="alert alert-success fw-bold mb-4" th:if="${success}" th:text="${success}"/>
     <!-- Bloque que muestra los datos del Lote (LoteDTO) -->
     <div th:if="${loteDTO != null}">
         <h4>Detalles del Lote Actualizado</h4>
@@ -87,9 +87,8 @@
             <tr th:if="${loteDTO.cantidadesBultos.size() > 1}">
                 <th>Distribución de Bultos:</th>
                 <td>
-								<span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                                      th:text="'Bulto ' + (iterStat.index+1) + ': ' + cant + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ') '">
-            </span>
+                    <span th:each="entry : ${loteDTO.magnitudDTOMap.entrySet()}"
+                          th:text="|Bulto ${entry.key}: [${entry.value.cantidad} ${entry.value.unidadMedida}] |"/>
                 </td>
             </tr>
             </tbody>
@@ -137,7 +136,7 @@
                     <th>Fecha de ReAnálisis</th>
                     <th>Fecha de Vencimiento</th>
                     <th>Dictamen</th>
-                    <th>Titulo</th>
+                    <th>Titulo %</th>
                     <th>Observaciones</th>
                 </tr>
                 </thead>
@@ -156,7 +155,7 @@
         </div>
         <!-- Botón para volver al menú principal -->
         <div class="mt-4">
-            <a th:href="@{/calidad/cancelar}" class="btn btn-primary">Continuar</a>
+            <a class="btn btn-primary" th:href="@{/calidad/cancelar}">Continuar</a>
         </div>
     </div>
 </div>

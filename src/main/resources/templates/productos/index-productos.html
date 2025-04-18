@@ -9,24 +9,24 @@
 <p>Welcome to Productos Dashboard, <span th:text="${#authentication.name}">[username]</span>!</p>
 
 <!-- Button to navigate to the User List -->
-<form th:action="@{/productos/list-productos}" method="get">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<form method="get" th:action="@{/productos/list-productos}">
+    <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
     <button type="submit">Ver productos</button>
 </form>
 
 <!-- Button to navigate to the Add User form -->
-<form th:action="@{/productos/add-producto}" method="get">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<form method="get" th:action="@{/productos/add-producto}">
+    <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
     <button type="submit">Agregar Producto</button>
 </form>
 
 <!-- Logout Button -->
-<form th:action="@{/logout}" method="post">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<form method="post" th:action="@{/logout}">
+    <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
     <button type="submit">Logout</button>
 </form>
-<form th:action="@{/}" method="post">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<form method="post" th:action="@{/}">
+    <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
     <button type="submit">Volver al inicio</button>
 </form>
 

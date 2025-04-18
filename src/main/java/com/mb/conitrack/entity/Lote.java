@@ -151,7 +151,7 @@ public class Lote {
 
     public String getCurrentNroAnalisis() {
         final Analisis currentAnalisis = getCurrentAnalisis();
-        if(currentAnalisis== null) {
+        if (currentAnalisis == null) {
             return null;
         }
         return currentAnalisis.getNroAnalisis();

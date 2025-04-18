@@ -38,7 +38,6 @@ public enum UnidadMedidaEnum {
     PORCENTAJE("Porcentaje", "Porcentaje", "%", 0.01),
     PARTES_POR_MILLON("Partes por millon", "Porcentaje", "ppm", 0.000001);
 
-
     public static List<UnidadMedidaEnum> getUnidadesPorTipo(UnidadMedidaEnum base) {
         String tipo = base.getTipo();
         return Arrays.stream(UnidadMedidaEnum.values())
@@ -47,8 +46,7 @@ public enum UnidadMedidaEnum {
             .collect(Collectors.toList());
     }
 
-
-        public static List<UnidadMedidaEnum> getUnidadesConvertibles(UnidadMedidaEnum base) {
+    public static List<UnidadMedidaEnum> getUnidadesConvertibles(UnidadMedidaEnum base) {
         List<UnidadMedidaEnum> delMismoTipo = getUnidadesPorTipo(base);
 
         int index = delMismoTipo.indexOf(base);
@@ -82,15 +80,6 @@ public enum UnidadMedidaEnum {
         return compatibles;
     }
 
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public double getFactorConversion() {
-        return factorConversion;
-    }
-
     private final String nombre;
 
     private final String tipo;
@@ -104,6 +93,14 @@ public enum UnidadMedidaEnum {
         this.tipo = tipo;
         this.simbolo = simbolo;
         this.factorConversion = factorConversion;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public double getFactorConversion() {
+        return factorConversion;
     }
 
     public String getNombre() {

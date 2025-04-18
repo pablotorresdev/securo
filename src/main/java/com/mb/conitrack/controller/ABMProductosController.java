@@ -55,14 +55,14 @@ public class ABMProductosController {
         producto.setActivo(true);  // Aseguramos que se guarde como activo
 
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
-        if(tipoProducto.requiereProductoDestino()) {
+        if (tipoProducto.requiereProductoDestino()) {
             if (producto.getProductoDestino() == null) {
                 bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
                 model.addAttribute("productosDestino", productoService.getProductosInternos());
                 return "productos/add-producto";
             }
         }
-        if(!tipoProducto.requiereProductoDestino()) {
+        if (!tipoProducto.requiereProductoDestino()) {
             producto.setProductoDestino(null);
         }
 
@@ -81,7 +81,7 @@ public class ABMProductosController {
 
         final Producto producto = productoOptional.get();
         if (!producto.getActivo()) {
-            model.addAttribute("error",  "Producto inactivo");
+            model.addAttribute("error", "Producto inactivo");
             return "redirect:/productos/list-productos";
         }
 
@@ -105,17 +105,17 @@ public class ABMProductosController {
         }
 
         //TODO: validar logica de producto de destino
-//        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
-//        if(tipoProducto.requiereProductoDestino()) {
-//            if (producto.getProductoDestino() == null) {
-//                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
-//                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
-//                return "productos/edit-producto";
-//            }
-//        }
-//        if(!tipoProducto.requiereProductoDestino()) {
-//            producto.setProductoDestino(null);
-//        }
+        //        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
+        //        if(tipoProducto.requiereProductoDestino()) {
+        //            if (producto.getProductoDestino() == null) {
+        //                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
+        //                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
+        //                return "productos/edit-producto";
+        //            }
+        //        }
+        //        if(!tipoProducto.requiereProductoDestino()) {
+        //            producto.setProductoDestino(null);
+        //        }
 
         producto.setId(id);
         producto.setActivo(true);  // Aseguramos que se guarde como activo
@@ -127,7 +127,7 @@ public class ABMProductosController {
     @PostMapping("/delete-producto")
     public String deleteProducto(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         Optional<Producto> productoOptional = productoService.findById(id);
-        if (productoOptional.isEmpty() ) {
+        if (productoOptional.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Producto no encontrado");
             return "redirect:/productos/list-productos";
         }

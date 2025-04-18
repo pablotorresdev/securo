@@ -21,15 +21,15 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Casos de uso</h4>
         <li>
-            <a th:href="@{/compras/ingreso-compra}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/compras/ingreso-compra}">
                 CU1 - Ingreso de Lote por Compra
             </a>
         </li>
 
         <li>
-            <a th:href="@{/calidad/cuarentena}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/cuarentena}">
                 CU2 - Dictamen: Cuarentena
             </a>
         </li>
@@ -37,93 +37,93 @@
 
         <!-- CU3 Retiro por Muestreo -->
         <li>
-            <a th:href="@{/calidad/muestreo-bulto}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/muestreo-bulto}">
                 CU3 - Retiro por Muestreo
             </a>
         </li>
 
         <!-- NUEVO: CU4 Devolución de Compra -->
         <li>
-            <a th:href="@{/compras/devolucion-compra}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/compras/devolucion-compra}">
                 CU4 - Devolución de Compra
             </a>
         </li>
         <li>
-            <a th:href="@{/calidad/resultado-analisis}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/resultado-analisis}">
                 CU5/CU6. Resultado QA: Aprobado/Rechazado
             </a>
         </li>
         <li>
-            <a th:href="@{/produccion/consumo-produccion}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/produccion/consumo-produccion}">
                 CU7. Consumo de Producción
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU8. Reanálisis de Producto Externo Aprobado
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU9. Reanalisis Automatico de Producto Externo Aprobado
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU10. Vencimiento de Stock
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU11. Ingreso de stock por Producción Interna
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU12. Liberación Unidad de venta
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU13. Venta de Producto Propio
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU14. Devolución de cliente
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU15. Retiro de mercado
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU16. Ajuste de Inventario
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU19. Configuración del sistema
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU20. Reverso de Movimiento de Alta
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU21. Reversión de Movimiento de Baja
             </a>
         </li>
         <li>
-            <a href="javascript:void(0);" class="disabled">
+            <a class="disabled" href="javascript:void(0);">
                 CU22. Reversión de Movimiento de Modificación
             </a>
         </li>
@@ -131,21 +131,21 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Consultas</h4>
         <li>
-            <a th:href="@{/lotes/list-lotes}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/lotes/list-lotes}">
                 Lista de Lotes
             </a>
         </li>
         <li>
-            <a th:href="@{/movimientos/list-movimientos}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/movimientos/list-movimientos}">
                 Lista de Movimientos
             </a>
         </li>
 
         <li>
-            <a th:href="@{/analisis/list-analisis}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/analisis/list-analisis}">
                 Lista de Analisis
             </a>
         </li>
@@ -153,20 +153,20 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">ABM Maestro</h4>
         <li>
-            <a th:href="@{/proveedores/}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/proveedores/}">
                 CU17. ABM Proveedores
             </a>
         </li>
         <li>
-            <a th:href="@{/productos/}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/productos/}">
                 CU18. ABM Productos
             </a>
         </li>
         <li>
-            <a th:href="@{/users/}"
-               th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/users/}">
                 CUX. ABM Usuarios
             </a>
         </li>
@@ -175,9 +175,9 @@
 
 <footer class="fixed-footer">
     <div class="container text-center">
-        <form th:action="@{/logout}" method="post">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-            <button type="submit" class="btn">Logout</button>
+        <form method="post" th:action="@{/logout}">
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <button class="btn" type="submit">Logout</button>
         </form>
     </div>
 </footer>

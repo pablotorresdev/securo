@@ -11,57 +11,57 @@
 <div class="container mt-5">
     <h2 class="mb-4">Devolución de Compra</h2>
 
-    <form th:action="@{/compras/devolucion-compra}" th:object="${movimientoDTO}" method="post">
+    <form method="post" th:action="@{/compras/devolucion-compra}" th:object="${movimientoDTO}">
         <!-- Token CSRF -->
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
 
         <!-- Select de Lotes Devolvibles -->
         <div class="mb-3">
-            <label for="codigoInterno" class="form-label">Lote a Devolver:</label>
-            <select id="codigoInterno" th:field="*{codigoInterno}" class="form-select" required>
+            <label class="form-label" for="codigoInterno">Lote a Devolver:</label>
+            <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
                 <option value="">-- Seleccione un lote --</option>
                 <option th:each="loteDTO : ${lotesDevolvibles}"
-                        th:value="${loteDTO.codigoInterno}"
                         th:text="'Codigo Interno: ' + ${loteDTO.codigoInterno}
                     + ' | Proveedor: ' + ${loteDTO.nombreProveedor}
                     + ' | Producto: ' + ${loteDTO.nombreProducto}
-                    + ' | Dictamen: ' + ${loteDTO.dictamen}">
+                    + ' | Dictamen: ' + ${loteDTO.dictamen}"
+                        th:value="${loteDTO.codigoInterno}">
                 </option>
             </select>
-            <div th:if="${#fields.hasErrors('codigoInterno')}" class="text-danger"
-                 th:errors="*{codigoInterno}"></div>
+            <div class="text-danger" th:errors="*{codigoInterno}"
+                 th:if="${#fields.hasErrors('codigoInterno')}"></div>
         </div>
 
         <!-- Fecha de la Devolución -->
         <div class="mb-2">
-            <label for="fechaMovimiento" class="form-label">Fecha de Devolucion:</label>
-            <input type="date" id="fechaMovimiento"
-                   th:field="*{fechaMovimiento}"
-                   class="form-control"
+            <label class="form-label" for="fechaMovimiento">Fecha de Devolucion:</label>
+            <input class="form-control" id="fechaMovimiento"
+                   required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
-                   required>
+                   th:field="*{fechaMovimiento}"
+                   type="date">
 
-            <div th:if="${#fields.hasErrors('fechaMovimiento')}"
-                 style="color: red; font-weight: bold;"
-                 th:errors="*{fechaMovimiento}"></div>
+            <div style="color: red; font-weight: bold;"
+                 th:errors="*{fechaMovimiento}"
+                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
 
         <!-- Observaciones (opcional) -->
         <div class="mb-3">
-            <label for="observaciones" class="form-label">Observaciones:</label>
-            <textarea id="observaciones"
-                      th:field="*{observaciones}"
-                      class="form-control"
-                      rows="3"></textarea>
+            <label class="form-label" for="observaciones">Observaciones:</label>
+            <textarea class="form-control"
+                      id="observaciones"
+                      rows="3"
+                      th:field="*{observaciones}"></textarea>
         </div>
 
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
-            <a th:href="@{/compras/cancelar}" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Devolver</button>
+            <a class="btn btn-secondary" th:href="@{/compras/cancelar}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Devolver</button>
         </div>
     </form>
 </div>

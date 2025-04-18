@@ -88,7 +88,9 @@ public class LoteDTO {
 
     //TODO: unir con unidaddeMedida en un objeto DTO y pasar a mapa
     protected Map<Integer, MagnitudDTO> magnitudDTOMap = new HashMap<>();
+
     protected List<BigDecimal> cantidadesBultos = new ArrayList<>();
+
     protected List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 
     //Datos derivados
@@ -116,8 +118,8 @@ public class LoteDTO {
     // NUEVO: Lista de cantidades para cada bulto (en el paso 2)
     protected Integer nroBulto;
 
-
     protected List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
+
     protected List<AnalisisDTO> analisisDTOs = new ArrayList<>();
 
     public AnalisisDTO getCurrentAnalisisDto() {

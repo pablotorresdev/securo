@@ -4,11 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,7 +20,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.dto.MagnitudDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.dto.validation.AltaCompra;
 import com.mb.conitrack.entity.Lote;
@@ -34,7 +30,6 @@ import com.mb.conitrack.service.ProveedorService;
 
 import jakarta.validation.Valid;
 
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 
 @Controller
@@ -180,9 +175,6 @@ public class ComprasController {
         if (loteDTO.getUnidadMedidaBultos() == null) {
             loteDTO.setUnidadMedidaBultos(new ArrayList<>());
         }
-        if (loteDTO.getMagnitudDTOMap()== null) {
-            loteDTO.setMagnitudDTOMap(new HashMap<>());
-        }
         model.addAttribute("loteDTO", loteDTO);
 
         String[] countryCodes = Locale.getISOCountries();
@@ -208,7 +200,6 @@ public class ComprasController {
     private void validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
         List<BigDecimal> cantidades = loteDTO.getCantidadesBultos();
         List<UnidadMedidaEnum> unidades = loteDTO.getUnidadMedidaBultos();
-        final Set<Entry<Integer, MagnitudDTO>> entries = loteDTO.getMagnitudDTOMap().entrySet();
         for (int i = 0; i < cantidades.size(); i++) {
             BigDecimal cantidad = cantidades.get(i);
             if (cantidad == null) {
@@ -228,32 +219,6 @@ public class ComprasController {
         List<BigDecimal> cantidades = loteDTO.getCantidadesBultos();
         List<UnidadMedidaEnum> unidades = loteDTO.getUnidadMedidaBultos();
         UnidadMedidaEnum unidadBase = loteDTO.getUnidadMedida();
-        final Set<Integer> integers = loteDTO.getMagnitudDTOMap().keySet();
-
-//        loteDTO.getMagnitudDTOMap()
-//            .entrySet()
-//            .stream()
-//            .sorted(Map.Entry.comparingByKey())   // 1‑>n
-//            .forEach(entry -> {
-//                int i = entry.getKey();                // nº de bulto
-//                MagnitudDTO mag = entry.getValue();    // cant + unidad
-//
-//                BigDecimal cant = mag.getCantidad();
-//                UnidadMedidaEnum um = mag.getUnidadMedida();
-//
-//                if (cant == null || cant.compareTo(BigDecimal.ZERO) <= 0) {
-//                    bindingResult.rejectValue(
-//                        "magnitudDTOMap[" + i + "].cantidad",
-//                        "", "La cantidad debe ser mayor a 0");
-//                }
-//                if (um == null) {
-//                    bindingResult.rejectValue(
-//                        "magnitudDTOMap[" + i + "].unidadMedida",
-//                        "", "Debe indicar la unidad");
-//                }
-//
-//                /* … resto de validaciones contra stock, idénticas … */
-//            });
 
         if (cantidades == null || unidades == null || cantidades.size() != unidades.size()) {
             bindingResult.rejectValue("cantidadesBultos", "error.cantidadesBultos", "Datos incompletos o inconsistentes.");

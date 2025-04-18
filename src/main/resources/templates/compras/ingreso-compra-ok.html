@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Detalle del Lote - Todos los Campos</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Detalles del Lote</h2>
 
     <!-- Se muestra el mensaje de éxito si existe -->
-    <div th:if="${success}" class="alert alert-success fw-bold mb-4" th:text="${success}"></div>
+    <div class="alert alert-success fw-bold mb-4" th:if="${success}" th:text="${success}"></div>
 
     <!-- Si existe un objeto loteDTO, se despliegan todos sus campos -->
     <div th:if="${loteDTO != null}">
@@ -142,7 +142,7 @@
 
     <!-- Botón para volver al menú principal o cerrar la sesión -->
     <div class="mt-4">
-        <a th:href="@{/compras/cancelar}" class="btn btn-primary">Continuar</a>
+        <a class="btn btn-primary" th:href="@{/compras/cancelar}">Continuar</a>
     </div>
 </div>
 </body>

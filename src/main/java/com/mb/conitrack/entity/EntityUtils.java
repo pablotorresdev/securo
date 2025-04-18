@@ -28,7 +28,6 @@ public class EntityUtils {
         }
     }
 
-
     public static Movimiento createMovimientoCambioDictamen(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
 
@@ -106,6 +105,5 @@ public class EntityUtils {
 
         return lote;
     }
-
 
 }

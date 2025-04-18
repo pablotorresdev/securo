@@ -48,7 +48,6 @@ public class Traza {
     @Column(length = 50, nullable = false)
     private String estado;
 
-
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 

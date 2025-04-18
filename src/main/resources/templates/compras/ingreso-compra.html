@@ -7,80 +7,82 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
-        .hidden { display: none; }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Ingreso de Stock por Compra</h2>
-    <form th:action="@{/compras/ingreso-compra}" th:object="${loteDTO}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <form method="post" th:action="@{/compras/ingreso-compra}" th:object="${loteDTO}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Datos Obligatorios</h4>
         <div class="mb-2">
-            <label for="fechaIngreso" class="form-label">Fecha de Ingreso:</label>
-            <input type="date" id="fechaIngreso" th:field="*{fechaIngreso}" class="form-control" required>
-            <div th:if="${#fields.hasErrors('fechaIngreso')}" class="text-danger" th:errors="*{fechaIngreso}"></div>
+            <label class="form-label" for="fechaIngreso">Fecha de Ingreso:</label>
+            <input class="form-control" id="fechaIngreso" required th:field="*{fechaIngreso}" type="date">
+            <div class="text-danger" th:errors="*{fechaIngreso}" th:if="${#fields.hasErrors('fechaIngreso')}"></div>
         </div>
 
         <div class="mb-2">
-            <label for="productoId" class="form-label">Producto:</label>
-            <select id="productoId" th:field="*{productoId}" class="form-select" required>
+            <label class="form-label" for="productoId">Producto:</label>
+            <select class="form-select" id="productoId" required th:field="*{productoId}">
                 <option value="">-- Seleccione un producto --</option>
-                <option th:each="producto : ${productos}"
-                        th:value="${producto.id}"
+                <option th:attr="data-unit=${producto.unidadMedida}"
+                        th:each="producto : ${productos}"
                         th:text="${producto.nombreGenerico}"
-                        th:attr="data-unit=${producto.unidadMedida}"></option>
+                        th:value="${producto.id}"></option>
             </select>
-            <div th:if="${#fields.hasErrors('productoId')}" class="text-danger" th:errors="*{productoId}"></div>
+            <div class="text-danger" th:errors="*{productoId}" th:if="${#fields.hasErrors('productoId')}"></div>
         </div>
 
         <div class="row mb-3 align-items-end">
             <div class="col-md-6">
-                <label for="cantidadInicial" class="form-label">Cantidad:</label>
-                <input type="number" step="0.0001" id="cantidadInicial" th:field="*{cantidadInicial}" class="form-control" required>
-                <div th:if="${#fields.hasErrors('cantidadInicial')}" class="text-danger" th:errors="*{cantidadInicial}"></div>
+                <label class="form-label" for="cantidadInicial">Cantidad:</label>
+                <input class="form-control" id="cantidadInicial" required step="0.0001" th:field="*{cantidadInicial}" type="number">
+                <div class="text-danger" th:errors="*{cantidadInicial}" th:if="${#fields.hasErrors('cantidadInicial')}"></div>
             </div>
             <div class="col-md-3">
-                <label for="unidadMedida" class="form-label">Unidad de Medida:</label>
-                <select id="unidadMedida" th:field="*{unidadMedida}" class="form-select" required>
+                <label class="form-label" for="unidadMedida">Unidad de Medida:</label>
+                <select class="form-select" id="unidadMedida" required th:field="*{unidadMedida}">
                     <option value="">-- Seleccione unidad --</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="bultosTotales" class="form-label">Cantidad de Bultos Totales (1 a 15):</label>
-                <input type="number" id="bultosTotales" th:field="*{bultosTotales}" class="form-control" required min="1" max="15">
-                <div th:if="${#fields.hasErrors('bultosTotales')}" class="text-danger" th:errors="*{bultosTotales}"></div>
+                <label class="form-label" for="bultosTotales">Cantidad de Bultos Totales (1 a 15):</label>
+                <input class="form-control" id="bultosTotales" max="15" min="1" required th:field="*{bultosTotales}" type="number">
+                <div class="text-danger" th:errors="*{bultosTotales}" th:if="${#fields.hasErrors('bultosTotales')}"></div>
             </div>
         </div>
 
         <div class="mb-2">
-            <label for="proveedorId" class="form-label">Proveedor:</label>
-            <select id="proveedorId" th:field="*{proveedorId}" class="form-select" required>
+            <label class="form-label" for="proveedorId">Proveedor:</label>
+            <select class="form-select" id="proveedorId" required th:field="*{proveedorId}">
                 <option value="">-- Seleccione un proveedor --</option>
                 <option th:each="proveedor : ${proveedores}"
-                        th:value="${proveedor.id}"
-                        th:text="${proveedor.razonSocial}"></option>
+                        th:text="${proveedor.razonSocial}"
+                        th:value="${proveedor.id}"></option>
             </select>
-            <div th:if="${#fields.hasErrors('proveedorId')}" class="text-danger" th:errors="*{proveedorId}"></div>
+            <div class="text-danger" th:errors="*{proveedorId}" th:if="${#fields.hasErrors('proveedorId')}"></div>
         </div>
 
         <div class="mb-2">
-            <label for="loteProveedor" class="form-label">Lote Proveedor:</label>
-            <input type="text" id="loteProveedor" th:field="*{loteProveedor}" class="form-control" required>
+            <label class="form-label" for="loteProveedor">Lote Proveedor:</label>
+            <input class="form-control" id="loteProveedor" required th:field="*{loteProveedor}" type="text">
         </div>
 
         <!-- ========================================================= -->
         <!-- Bloque: Distribución de Bultos -->
         <!-- Se muestra solo si bultosTotales > 1 -->
         <!-- ========================================================= -->
-        <div id="distribucionBultos" class="hidden">
+        <div class="hidden" id="distribucionBultos">
             <hr class="my-4">
             <h4 class="mb-3 text-primary">Distribución de Cantidades para los Bultos</h4>
             <p>La suma de las cantidades de cada bulto debe ser igual a la cantidad total ingresada.</p>
             <div id="bultosContainer"></div>
-            <div th:if="${#fields.hasErrors('cantidadesBultos')}" class="text-danger" th:errors="*{cantidadesBultos}"></div>
+            <div class="text-danger" th:errors="*{cantidadesBultos}" th:if="${#fields.hasErrors('cantidadesBultos')}"></div>
         </div>
 
         <!-- ========================================================= -->
@@ -89,60 +91,60 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Datos Opcionales</h4>
         <div class="mb-2">
-            <label for="nroRemito" class="form-label">Número de Remito:</label>
-            <input type="text" id="nroRemito" th:field="*{nroRemito}" class="form-control" maxlength="30">
+            <label class="form-label" for="nroRemito">Número de Remito:</label>
+            <input class="form-control" id="nroRemito" maxlength="30" th:field="*{nroRemito}" type="text">
         </div>
 
         <div class="mb-2">
-            <label for="fabricanteId" class="form-label">Fabricante:</label>
-            <select id="fabricanteId" th:field="*{fabricanteId}" class="form-select">
+            <label class="form-label" for="fabricanteId">Fabricante:</label>
+            <select class="form-select" id="fabricanteId" th:field="*{fabricanteId}">
                 <option value="">-- Seleccione un fabricante --</option>
                 <option th:each="fabricante : ${proveedores}"
-                        th:value="${fabricante.id}"
-                        th:text="${fabricante.razonSocial}"></option>
+                        th:text="${fabricante.razonSocial}"
+                        th:value="${fabricante.id}"></option>
             </select>
-            <div th:if="${#fields.hasErrors('fabricanteId')}" class="text-danger" th:errors="*{fabricanteId}"></div>
+            <div class="text-danger" th:errors="*{fabricanteId}" th:if="${#fields.hasErrors('fabricanteId')}"></div>
         </div>
 
         <div class="mb-2">
-            <label for="paisOrigen" class="form-label">Pais Origen</label>
-            <select id="paisOrigen" th:field="*{paisOrigen}" class="form-select">
+            <label class="form-label" for="paisOrigen">Pais Origen</label>
+            <select class="form-select" id="paisOrigen" th:field="*{paisOrigen}">
                 <option value="">-- Seleccione el pais de origen --</option>
                 <option th:each="pais : ${paises}"
-                        th:value="${pais}"
-                        th:text="${pais}"></option>
+                        th:text="${pais}"
+                        th:value="${pais}"></option>
             </select>
-            <div th:if="${#fields.hasErrors('paisOrigen')}" class="text-danger" th:errors="*{paisOrigen}"></div>
+            <div class="text-danger" th:errors="*{paisOrigen}" th:if="${#fields.hasErrors('paisOrigen')}"></div>
         </div>
 
         <div class="mb-2">
-            <label for="fechaReanalisisProveedor" class="form-label">Fecha Re Analisis Proveedor:</label>
-            <input type="date" id="fechaReanalisisProveedor" th:field="*{fechaReanalisisProveedor}" class="form-control">
-            <div th:if="${#fields.hasErrors('fechaReanalisisProveedor')}" class="text-danger" th:errors="*{fechaReanalisisProveedor}"></div>
+            <label class="form-label" for="fechaReanalisisProveedor">Fecha Re Analisis Proveedor:</label>
+            <input class="form-control" id="fechaReanalisisProveedor" th:field="*{fechaReanalisisProveedor}" type="date">
+            <div class="text-danger" th:errors="*{fechaReanalisisProveedor}" th:if="${#fields.hasErrors('fechaReanalisisProveedor')}"></div>
         </div>
 
         <div class="mb-2">
-            <label for="fechaVencimientoProveedor" class="form-label">Fecha Vencimiento Proveedor:</label>
-            <input type="date" id="fechaVencimientoProveedor" th:field="*{fechaVencimientoProveedor}" class="form-control">
-            <div th:if="${#fields.hasErrors('fechaVencimientoProveedor')}" class="text-danger" th:errors="*{fechaVencimientoProveedor}"></div>
+            <label class="form-label" for="fechaVencimientoProveedor">Fecha Vencimiento Proveedor:</label>
+            <input class="form-control" id="fechaVencimientoProveedor" th:field="*{fechaVencimientoProveedor}" type="date">
+            <div class="text-danger" th:errors="*{fechaVencimientoProveedor}" th:if="${#fields.hasErrors('fechaVencimientoProveedor')}"></div>
         </div>
 
         <div class="mb-2">
-            <label for="detalleConservacion" class="form-label">Detalle de Conservación:</label>
-            <textarea id="detalleConservacion" th:field="*{detalleConservacion}" class="form-control"></textarea>
+            <label class="form-label" for="detalleConservacion">Detalle de Conservación:</label>
+            <textarea class="form-control" id="detalleConservacion" th:field="*{detalleConservacion}"></textarea>
         </div>
 
         <div class="mb-2">
-            <label for="observaciones" class="form-label">Observaciones:</label>
-            <textarea id="observaciones" th:field="*{observaciones}" class="form-control"></textarea>
+            <label class="form-label" for="observaciones">Observaciones:</label>
+            <textarea class="form-control" id="observaciones" th:field="*{observaciones}"></textarea>
         </div>
 
         <!-- ========================================================= -->
         <!-- Botones: Cancelar y Guardar -->
         <!-- ========================================================= -->
         <div class="d-flex justify-content-between mt-3">
-            <a th:href="@{/compras/cancelar}" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-secondary" th:href="@{/compras/cancelar}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar</button>
         </div>
     </form>
 </div>
@@ -183,7 +185,7 @@
             if (!unidadBase) return;
             fetch('/enums/unidades-compatibles?unidad=' + unidadBase, {
                 method: 'GET',
-                headers: { [csrfHeader]: csrfToken }
+                headers: {[csrfHeader]: csrfToken}
             })
                 .then(response => response.json())
                 .then(data => {
@@ -198,6 +200,7 @@
                 })
                 .catch(error => console.error("Error al cargar unidades:", error));
         }
+
         const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
         cargarUnidadesCompatibles(unidadActual);
 
@@ -218,7 +221,7 @@
             if (!unidadBase) return;
             fetch('/enums/subunidades?unidad=' + unidadBase, {
                 method: 'GET',
-                headers: { [csrfHeader]: csrfToken }
+                headers: {[csrfHeader]: csrfToken}
             })
                 .then(response => response.json())
                 .then(data => {
@@ -242,75 +245,62 @@
 
         var unidadMedidaBultosDTO = /*[[${loteDTO.unidadMedidaBultos != null ? loteDTO.unidadMedidaBultos : '[]'}]]*/ [];
         var cantidadesBultosDTO = /*[[${loteDTO.cantidadesBultos != null ? loteDTO.cantidadesBultos : '[]'}]]*/ [];
-        let magnitudesPrev = /*[[${loteDTO.magnitudDTOMap}]]*/ {};
-        if (typeof magnitudesPrev === 'string') magnitudesPrev = JSON.parse(magnitudesPrev);
 
-        function generarCamposBultos(lote) {
+        function generarCamposBultos(cantidad) {
+            bultosContainer.innerHTML = ''; // Limpiar campos previos
+            // Se obtiene la unidad actual del select principal para usarla al cargar subunidades
+            const unidadBaseBultos = unidadSelect.value || unidadActual;
+            for (let i = 1; i <= cantidad; i++) {
+                // --- Creación de la fila para el bulto ---
+                const divRow = document.createElement('div');
+                divRow.className = 'row mb-3 align-items-end';
 
-            /* stock disponible y UM base de cada bulto -------------------- */
-            const stocks    = lote.cantidadesBultos ?? Array(lote.bultosActuales).fill(0);
-            const baseUnits = lote.unidadMedidaBultos ?? Array(lote.bultosActuales).fill(lote.unidadMedida);
+                // --- Campo: Cantidad para el bulto ---
+                const divCantidad = document.createElement('div');
+                divCantidad.className = 'col-md-6';
+                const labelCantidad = document.createElement('label');
+                labelCantidad.className = 'form-label';
+                labelCantidad.setAttribute('for', 'cantidadBulto' + i);
+                labelCantidad.textContent = 'Cantidad para Bulto ' + i + ':';
+                const inputCantidad = document.createElement('input');
+                inputCantidad.type = 'number';
+                inputCantidad.step = '0.01';
+                inputCantidad.id = 'cantidadBulto' + i;
+                // Nombre para el binding en el DTO (lista)
+                inputCantidad.name = 'cantidadesBultos[' + (i - 1) + ']';
+                inputCantidad.className = 'form-control';
+                inputCantidad.required = true;
+                // Si en el DTO ya hay una cantidad para este bulto, se asigna su valor
+                if (cantidadesBultosDTO && cantidadesBultosDTO[i - 1] != null) {
+                    inputCantidad.value = cantidadesBultosDTO[i - 1];
+                }
+                divCantidad.appendChild(labelCantidad);
+                divCantidad.appendChild(inputCantidad);
 
-            /* limpiar contenedor */
-            bultosContainer.innerHTML = '';
+                // --- Campo: Select de Subunidades para el bulto ---
+                const divUnidad = document.createElement('div');
+                divUnidad.className = 'col-md-3';
+                const labelUnidad = document.createElement('label');
+                labelUnidad.className = 'form-label';
+                labelUnidad.textContent = 'Unidad:';
+                const selectUnidad = document.createElement('select');
+                selectUnidad.id = 'unidadSelect' + i;
+                selectUnidad.name = 'unidadMedidaBultos[' + (i - 1) + ']';
+                selectUnidad.className = 'form-select';
+                selectUnidad.required = true;
+                // Se determina si en el DTO existe un valor preseleccionado para este bulto
+                let preselected = (unidadMedidaBultosDTO && unidadMedidaBultosDTO[i - 1]) ? unidadMedidaBultosDTO[i - 1] : null;
+                // Se carga el select con las subunidades usando la unidad base y el valor preseleccionado
+                cargarSubunidades(unidadBaseBultos, selectUnidad, preselected);
 
-            /* bucle 1‑based sobre los bultos ------------------------------ */
-            for (let idx = 1; idx <= lote.bultosActuales; idx++) {
+                divUnidad.appendChild(labelUnidad);
+                divUnidad.appendChild(selectUnidad);
 
-                /* valores que el usuario ya había enviado (si existen) ---- */
-                const prevMag      = magnitudesPrev[idx] || {};     // {cantidad, unidadMedida}
-                const valorPrevio  = (prevMag.cantidad != null)     ? prevMag.cantidad   : 0;
-                const unidadPrev   = prevMag.unidadMedida || baseUnits[idx-1];
-
-                /* fila ---------------------------------------------------- */
-                const row = document.createElement('div');
-                row.className = 'row g-2 align-items-end mb-2';
-
-                /* ----- cantidad ----------------------------------------- */
-                row.innerHTML += `
-        <div class="col-md-6">
-            <label class="form-label">
-                Cant. Bulto ${idx} (máx ${stocks[idx-1]} ${baseUnits[idx-1]}):
-            </label>
-            <input  type="number"
-                    name="magnitudDTOMap[${idx}].cantidad"
-                    class="form-control"
-                    value="${valorPrevio}"
-                    min="0" step="0.01" required>
-            <!-- mensaje de error de esa propiedad -->
-            <div class="text-danger fw-bold"
-                 th:errors="*{magnitudDTOMap[${idx}].cantidad}"></div>
-        </div>`;
-
-                /* ----- unidad ------------------------------------------- */
-                const colUni = document.createElement('div');
-                colUni.className = 'col-md-4';
-                colUni.innerHTML = '<label class="form-label">Unidad:</label>';
-
-                const sel = document.createElement('select');
-                sel.name  = `magnitudDTOMap[${idx}].unidadMedida`;
-                sel.className = 'form-select'; sel.required = true;
-                colUni.appendChild(sel);
-                row.appendChild(colUni);
-
-                /* mensaje de error para la unidad */
-                colUni.insertAdjacentHTML('beforeend',
-                    `<div class="text-danger fw-bold"
-                  th:errors="*{magnitudDTOMap[${idx}].unidadMedida}"></div>`);
-
-                /* finalmente añadimos la fila al contenedor -------------- */
-                bultosContainer.appendChild(row);
-
-                /* cargar sub‑unidades para este bulto --------------------- */
-                loadSubunits(baseUnits[idx-1], arr => {
-                    sel.innerHTML = arr.map(u =>
-                        `<option value="${u}" ${u === unidadPrev ? 'selected' : ''}>${u}</option>`
-                    ).join('');
-                });
+                // Se añade la fila con ambos campos al contenedor
+                divRow.appendChild(divCantidad);
+                divRow.appendChild(divUnidad);
+                bultosContainer.appendChild(divRow);
             }
-
-            /* mostrar bloque */
-            consumoBultosDiv.style.display = 'block';
         }
 
         // =========================================================
@@ -363,7 +353,7 @@
         var bultosValue;
         var bultosTotalesDTO = /*[[${loteDTO.bultosTotales}]]*/ [];
         if (bultosTotalesDTO && bultosTotalesDTO !== "null") {
-            bultosValue =  parseInt(bultosTotalesDTO);
+            bultosValue = parseInt(bultosTotalesDTO);
         } else {
             bultosValue = parseInt(bultosTotalesInput.value);
         }

@@ -12,72 +12,72 @@
 
 <div class="container mt-5">
     <h2 class="mb-4">Consumo por Producción</h2>
-    <form th:action="@{/produccion/consumo-produccion}" th:object="${loteDTO}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <input type="hidden" id="codigoInterno" th:field="*{codigoInterno}"/>
+    <form method="post" th:action="@{/produccion/consumo-produccion}" th:object="${loteDTO}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+        <input id="codigoInterno" th:field="*{codigoInterno}" type="hidden"/>
 
         <!-- SELECCIÓN DEL LOTE -->
         <div class="mb-3">
-            <label for="loteSelect" class="form-label">Seleccione el Lote a Consumir:</label>
-            <select id="loteSelect" class="form-select">
+            <label class="form-label" for="loteSelect">Seleccione el Lote a Consumir:</label>
+            <select class="form-select" id="loteSelect">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${lotesProduccion}"
-                        th:value="${loteDTO.codigoInterno}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} +
                   ' | Nro Analisis: ' + ${loteDTO.getCurrentNroAnalisis()} +
-                  ' | Codigo Interno: ' + ${loteDTO.codigoInterno}">
+                  ' | Codigo Interno: ' + ${loteDTO.codigoInterno}"
+                        th:value="${loteDTO.codigoInterno}">
                 </option>
             </select>
-            <div th:if="${#fields.hasErrors('codigoInterno')}"
-                 class="text-danger fw-bold"
-                 th:errors="*{codigoInterno}">
+            <div class="text-danger fw-bold"
+                 th:errors="*{codigoInterno}"
+                 th:if="${#fields.hasErrors('codigoInterno')}">
             </div>
         </div>
 
-        <div id="infoLote" class="border p-3 bg-light mb-4" style="display:none;">
+        <div class="border p-3 bg-light mb-4" id="infoLote" style="display:none;">
             <h5>Detalles del Lote</h5>
             <div id="infoContent"></div>
         </div>
 
-        <div id="consumoBultos" class="border p-3 bg-light mb-4" style="display:none;">
+        <div class="border p-3 bg-light mb-4" id="consumoBultos" style="display:none;">
             <h5>Cantidades por Bulto a consumir</h5>
             <small class="text-muted">
                 La suma de todas las cantidades no debe superar el stock disponible del lote.
             </small>
-            <div th:if="${#fields.hasErrors('cantidadesBultos')}"
-                 class="text-danger fw-bold"
-                 th:errors="*{cantidadesBultos}">
+            <div class="text-danger fw-bold"
+                 th:errors="*{cantidadesBultos}"
+                 th:if="${#fields.hasErrors('cantidadesBultos')}">
             </div>
             <div id="bultosContainer"></div>
         </div>
 
         <div class="mb-3">
-            <label for="fechaEgreso" class="form-label">Fecha de Consumo por Producción:</label>
-            <input type="date" id="fechaEgreso" th:field="*{fechaEgreso}" class="form-control" required>
-            <div th:if="${#fields.hasErrors('fechaEgreso')}" class="text-danger fw-bold" th:errors="*{fechaEgreso}">
+            <label class="form-label" for="fechaEgreso">Fecha de Consumo por Producción:</label>
+            <input class="form-control" id="fechaEgreso" required th:field="*{fechaEgreso}" type="date">
+            <div class="text-danger fw-bold" th:errors="*{fechaEgreso}" th:if="${#fields.hasErrors('fechaEgreso')}">
             </div>
         </div>
 
         <div class="mb-3">
-            <label for="ordenProduccion" class="form-label">Orden de Producción:</label>
-            <input type="text" id="ordenProduccion" th:field="*{ordenProduccion}" class="form-control" required>
-            <div th:if="${#fields.hasErrors('ordenProduccion')}" class="text-danger fw-bold" th:errors="*{ordenProduccion}">
+            <label class="form-label" for="ordenProduccion">Orden de Producción:</label>
+            <input class="form-control" id="ordenProduccion" required th:field="*{ordenProduccion}" type="text">
+            <div class="text-danger fw-bold" th:errors="*{ordenProduccion}" th:if="${#fields.hasErrors('ordenProduccion')}">
             </div>
         </div>
 
         <!-- OBSERVACIONES -->
         <div class="mb-3">
-            <label for="observaciones" class="form-label">Observaciones:</label>
-            <textarea id="observaciones"
-                      th:field="*{observaciones}"
-                      class="form-control"
-                      rows="3"></textarea>
+            <label class="form-label" for="observaciones">Observaciones:</label>
+            <textarea class="form-control"
+                      id="observaciones"
+                      rows="3"
+                      th:field="*{observaciones}"></textarea>
         </div>
 
         <!-- BOTONES -->
         <div class="d-flex justify-content-between mt-3">
-            <a th:href="@{/produccion/cancelar}" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-secondary" th:href="@{/produccion/cancelar}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar</button>
         </div>
     </form>
 </div>
@@ -106,10 +106,10 @@
         if (typeof lotes === 'string') lotes = JSON.parse(lotes);
 
         let cantidadesPrev = /*[[${loteDTO.cantidadesBultos}]]*/ '[]';
-        let unidadesPrev   = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
+        let unidadesPrev = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
 
         if (typeof cantidadesPrev === 'string') cantidadesPrev = JSON.parse(cantidadesPrev);
-        if (typeof unidadesPrev   === 'string') unidadesPrev   = JSON.parse(unidadesPrev);
+        if (typeof unidadesPrev === 'string') unidadesPrev = JSON.parse(unidadesPrev);
 
 
         const codigoSeleccionado = /*[[${loteDTO.codigoInterno != null ? loteDTO.codigoInterno : ''}]]*/ '';
@@ -191,28 +191,28 @@
             infoLoteDiv.style.display = 'block';
         }
 
-        function generarInputsBultos(lote){
+        function generarInputsBultos(lote) {
 
             /* ---------- 1. cuántos bultos debo mostrar ---------- */
             // CAMBIO: cálculo “a prueba de nulos”
             const totalBultos =
                 (lote.bultosActuales != null ? lote.bultosActuales :
-                    (lote.bultosTotales != null  ? lote.bultosTotales  :
+                    (lote.bultosTotales != null ? lote.bultosTotales :
                         0));
 
             /* ---------- 2. Arrays con stock y unidad base ---------- */
             //  (si llegan vacíos, los relleno para que tengan totalBultos posiciones)
-            const stocks     = (lote.cantidadesBultos   ?? []).slice(0, totalBultos);
-            const baseUnits  = (lote.unidadMedidaBultos ?? []).slice(0, totalBultos);
+            const stocks = (lote.cantidadesBultos ?? []).slice(0, totalBultos);
+            const baseUnits = (lote.unidadMedidaBultos ?? []).slice(0, totalBultos);
 
-            while (stocks.length    < totalBultos) stocks.push(0);                  // CAMBIO
+            while (stocks.length < totalBultos) stocks.push(0);                  // CAMBIO
             while (baseUnits.length < totalBultos) baseUnits.push(lote.unidadMedida);
 
             /* ---------- 3. Recorro bultos y pinto ---------- */
             for (let i = 0; i < totalBultos; i++) {
 
                 const valorPrevio = (cantidadesPrev[i] != null) ? cantidadesPrev[i] : 0;   // CAMBIO
-                const unidadPrev  = unidadesPrev[i] ?? baseUnits[i];
+                const unidadPrev = unidadesPrev[i] ?? baseUnits[i];
 
                 /* --- creo fila --- */
                 const row = document.createElement('div');
@@ -236,22 +236,23 @@
                 colUni.className = 'col-md-4';
                 colUni.innerHTML = '<label class="form-label">Unidad:</label>';
                 const sel = document.createElement('select');
-                sel.name  = `unidadMedidaBultos[${i}]`;
-                sel.className = 'form-select'; sel.required = true;
+                sel.name = `unidadMedidaBultos[${i}]`;
+                sel.className = 'form-select';
+                sel.required = true;
                 colUni.appendChild(sel);
                 row.appendChild(colUni);
 
                 /* --- nroBulto oculto (solo lo necesita tu MovimientoDTO) --- */
                 row.insertAdjacentHTML('beforeend',
-                    `<input type="hidden" name="movimientoDTOs[${i}].nroBulto" value="${i+1}">`);
+                    `<input type="hidden" name="movimientoDTOs[${i}].nroBulto" value="${i + 1}">`);
 
                 /* --- agrego la fila --- */
                 bultosContainer.appendChild(row);
 
                 /* --- cargo sub‑unidades --- */
-                loadSubunits(baseUnits[i], arr =>{
+                loadSubunits(baseUnits[i], arr => {
                     sel.innerHTML = arr.map(u =>
-                        `<option value="${u}" ${u===unidadPrev?'selected':''}>${u}</option>`
+                        `<option value="${u}" ${u === unidadPrev ? 'selected' : ''}>${u}</option>`
                     ).join('');
                 });
             }

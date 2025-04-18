@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,16 +21,16 @@ public class SecurityConfig {
             )
             //.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
-                .requestMatchers("/api").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/error").permitAll() // Allow access to /error
-                .requestMatchers("/users/**").hasRole("ADMIN") // Only ADMIN can access /users/*
-                .requestMatchers("/proveedores/**").hasRole("ADMIN") // Only ADMIN can access /proveedores/*
-                //.requestMatchers("/admin/users").hasRole("ADMIN") // Only ADMIN can access /admin/users
-                .requestMatchers("/user1/**").hasAnyRole("ADMIN", "USER1") // Only ADMIN and USER1 can access /user1/*
-                .requestMatchers("/user2/**").hasAnyRole("ADMIN", "USER2") // Only ADMIN and USER2 can access /user2/*
-                .anyRequest().authenticated() // All other requests require authentication
+                    .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
+                    .requestMatchers("/api").permitAll()
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                    .requestMatchers("/error").permitAll() // Allow access to /error
+                    .requestMatchers("/users/**").hasRole("ADMIN") // Only ADMIN can access /users/*
+                    .requestMatchers("/proveedores/**").hasRole("ADMIN") // Only ADMIN can access /proveedores/*
+                    //.requestMatchers("/admin/users").hasRole("ADMIN") // Only ADMIN can access /admin/users
+                    .requestMatchers("/user1/**").hasAnyRole("ADMIN", "USER1") // Only ADMIN and USER1 can access /user1/*
+                    .requestMatchers("/user2/**").hasAnyRole("ADMIN", "USER2") // Only ADMIN and USER2 can access /user2/*
+                    .anyRequest().authenticated() // All other requests require authentication
                 //.anyRequest().permitAll() // Permit all for development
             )
             .formLogin(form -> form

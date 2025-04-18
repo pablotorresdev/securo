@@ -1,7 +1,6 @@
 package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -215,7 +214,7 @@ public class LoteService {
         //Si tengo un numero de reanalisis, es que necesito crear un nuevo analisis para el producto
 
         final String currentNroAnalisis = lote.getCurrentNroAnalisis();
-        if(!currentNroAnalisis.equals(dto.getNroAnalisis())) {
+        if (!currentNroAnalisis.equals(dto.getNroAnalisis())) {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
         }
 

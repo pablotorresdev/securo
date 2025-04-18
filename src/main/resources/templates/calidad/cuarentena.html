@@ -10,25 +10,25 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Cambiar Dictamen a Cuarentena</h2>
-    <form th:action="@{/calidad/cuarentena}" th:object="${movimientoDTO}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <form method="post" th:action="@{/calidad/cuarentena}" th:object="${movimientoDTO}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
         <!-- Select de Lotes disponibles para Cuarentena -->
         <div class="mb-3">
-            <label for="codigoInterno" class="form-label">Lote:</label>
-            <select id="codigoInterno" th:field="*{codigoInterno}" class="form-select" required>
+            <label class="form-label" for="codigoInterno">Lote:</label>
+            <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${lotesForCuarentena}"
-                        th:value="${loteDTO.codigoInterno}"
+                <option th:data-dictamen="${loteDTO.dictamen.valor}"
+                        th:data-nroanalisis="${loteDTO.getCurrentNroAnalisis()}"
+                        th:each="loteDTO : ${lotesForCuarentena}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
                          + ' | Codigo Interno: ' + ${loteDTO.codigoInterno}
                          + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
-                        th:data-dictamen="${loteDTO.dictamen.valor}"
-                        th:data-nroanalisis="${loteDTO.getCurrentNroAnalisis()}">
+                        th:value="${loteDTO.codigoInterno}">
                 </option>
             </select>
         </div>
@@ -36,54 +36,54 @@
 
         <!-- Fecha del Movimiento a Cuarentena -->
         <div class="mb-2">
-            <label for="fechaMovimiento" class="form-label">Fecha de Cambio de Dictamen:</label>
-            <input type="date" id="fechaMovimiento"
-                   th:field="*{fechaMovimiento}"
-                   class="form-control"
+            <label class="form-label" for="fechaMovimiento">Fecha de Cambio de Dictamen:</label>
+            <input class="form-control" id="fechaMovimiento"
+                   required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
-                   required>
+                   th:field="*{fechaMovimiento}"
+                   type="date">
 
-            <div th:if="${#fields.hasErrors('fechaMovimiento')}"
-                 style="color: red; font-weight: bold;"
-                 th:errors="*{fechaMovimiento}"></div>
+            <div style="color: red; font-weight: bold;"
+                 th:errors="*{fechaMovimiento}"
+                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
         <!-- Campo editable solo si dictamen = Recibido -->
         <div class="mb-3" id="grupoNroAnalisisEditable">
-            <label for="nroAnalisis" class="form-label">Número de Análisis:</label>
-            <input type="text" id="nroAnalisis"
+            <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
+            <input class="form-control" id="nroAnalisis"
+                   placeholder="Ej: 1234"
                    th:field="*{nroAnalisis}"
-                   class="form-control"
-                   placeholder="Ej: 1234">
+                   type="text">
         </div>
 
         <!-- Campo de solo lectura + campo de ReAnálisis -->
         <div class="mb-3" id="grupoNroAnalisisSoloLectura" style="display: none;">
             <label class="form-label">Número de Análisis Actual:</label>
-            <input type="text" id="nroAnalisisReadonly" class="form-control" readonly>
+            <input class="form-control" id="nroAnalisisReadonly" readonly type="text">
         </div>
 
         <div class="mb-3" id="grupoNroReanalisis" style="display: none;">
-            <label for="nroReanalisis" class="form-label">Número de ReAnálisis:</label>
-            <input type="text" id="nroReanalisis"
+            <label class="form-label" for="nroReanalisis">Número de ReAnálisis:</label>
+            <input class="form-control" id="nroReanalisis"
+                   placeholder="Si aplica"
                    th:field="*{nroReanalisis}"
-                   class="form-control"
-                   placeholder="Si aplica">
+                   type="text">
         </div>
 
         <!-- Observaciones (opcional) -->
         <div class="mb-3">
-            <label for="observaciones" class="form-label">Observaciones (opcional):</label>
-            <textarea id="observaciones"
-                      th:field="*{observaciones}"
-                      class="form-control"
-                      rows="2"></textarea>
+            <label class="form-label" for="observaciones">Observaciones (opcional):</label>
+            <textarea class="form-control"
+                      id="observaciones"
+                      rows="2"
+                      th:field="*{observaciones}"></textarea>
         </div>
 
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
-            <a th:href="@{/calidad/cancelar}" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Enviar a Cuarentena</button>
+            <a class="btn btn-secondary" th:href="@{/calidad/cancelar}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Enviar a Cuarentena</button>
         </div>
     </form>
 </div>

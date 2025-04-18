@@ -10,62 +10,62 @@
     <h1 class="mb-4">Editar Proveedor</h1>
 
     <!-- Mostrar error si ocurre -->
-    <div th:if="${error}" class="alert alert-danger" role="alert">
+    <div class="alert alert-danger" role="alert" th:if="${error}">
         <p th:text="${error}"></p>
     </div>
 
-    <form th:object="${proveedor}" th:action="@{/proveedores/edit-proveedor/{id}(id=${proveedor.id})}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <form method="post" th:action="@{/proveedores/edit-proveedor/{id}(id=${proveedor.id})}" th:object="${proveedor}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
         <!-- Campo oculto para el id -->
-        <input type="hidden" th:field="*{id}">
+        <input th:field="*{id}" type="hidden">
 
         <div class="mb-3">
-            <label for="razonSocial" class="form-label">Razon Social:</label>
-            <input type="text" id="razonSocial" th:field="*{razonSocial}" class="form-control" required>
+            <label class="form-label" for="razonSocial">Razon Social:</label>
+            <input class="form-control" id="razonSocial" required th:field="*{razonSocial}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="cuit" class="form-label">CUIT:</label>
-            <input type="text" id="cuit" th:field="*{cuit}" class="form-control" required>
+            <label class="form-label" for="cuit">CUIT:</label>
+            <input class="form-control" id="cuit" required th:field="*{cuit}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="direccion" class="form-label">Dirección:</label>
-            <input type="text" id="direccion" th:field="*{direccion}" class="form-control" required>
+            <label class="form-label" for="direccion">Dirección:</label>
+            <input class="form-control" id="direccion" required th:field="*{direccion}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="ciudad" class="form-label">Ciudad:</label>
-            <input type="text" id="ciudad" th:field="*{ciudad}" class="form-control" required>
+            <label class="form-label" for="ciudad">Ciudad:</label>
+            <input class="form-control" id="ciudad" required th:field="*{ciudad}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="pais" class="form-label">País:</label>
-            <input type="text" id="pais" th:field="*{pais}" class="form-control" required>
+            <label class="form-label" for="pais">País:</label>
+            <input class="form-control" id="pais" required th:field="*{pais}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="telefono" class="form-label">Teléfono:</label>
-            <input type="text" id="telefono" th:field="*{telefono}" class="form-control">
+            <label class="form-label" for="telefono">Teléfono:</label>
+            <input class="form-control" id="telefono" th:field="*{telefono}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="email" class="form-label">Email:</label>
-            <input type="email" id="email" th:field="*{email}" class="form-control">
+            <label class="form-label" for="email">Email:</label>
+            <input class="form-control" id="email" th:field="*{email}" type="email">
         </div>
 
         <div class="mb-3">
-            <label for="contacto" class="form-label">Persona de contacto:</label>
-            <input type="text" id="contacto" th:field="*{contacto}" class="form-control">
+            <label class="form-label" for="contacto">Persona de contacto:</label>
+            <input class="form-control" id="contacto" th:field="*{contacto}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="observaciones" class="form-label">Observaciones:</label>
-            <textarea id="observaciones" th:field="*{observaciones}" class="form-control"></textarea>
+            <label class="form-label" for="observaciones">Observaciones:</label>
+            <textarea class="form-control" id="observaciones" th:field="*{observaciones}"></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-        <a th:href="@{/proveedores/list-proveedores}" class="btn btn-secondary ms-2">Volver al listado</a>
+        <button class="btn btn-primary" type="submit">Guardar cambios</button>
+        <a class="btn btn-secondary ms-2" th:href="@{/proveedores/list-proveedores}">Volver al listado</a>
     </form>
 </div>
 

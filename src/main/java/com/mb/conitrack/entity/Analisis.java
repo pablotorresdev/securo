@@ -37,7 +37,6 @@ import lombok.ToString;
 @ToString(exclude = { "lotes" })
 public class Analisis {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

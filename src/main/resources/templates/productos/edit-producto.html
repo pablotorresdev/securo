@@ -8,63 +8,66 @@
 <body>
 <div class="container mt-5">
     <h1 class="mb-4">Editar Producto</h1>
-    <div th:if="${error}" class="alert alert-danger" role="alert">
+    <div class="alert alert-danger" role="alert" th:if="${error}">
         <p th:text="${error}"></p>
     </div>
-    <form th:object="${producto}" th:action="@{/productos/edit-producto/{id}(id=${producto.id})}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-        <input type="hidden" th:field="*{id}" />
+    <form method="post" th:action="@{/productos/edit-producto/{id}(id=${producto.id})}" th:object="${producto}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+        <input th:field="*{id}" type="hidden"/>
 
         <div class="mb-3">
-            <label for="nombreGenerico" class="form-label">Nombre Generico:</label>
-            <input type="text" id="nombreGenerico" th:field="*{nombreGenerico}" class="form-control" required>
+            <label class="form-label" for="nombreGenerico">Nombre Generico:</label>
+            <input class="form-control" id="nombreGenerico" required th:field="*{nombreGenerico}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="codigoInterno" class="form-label">Codigo Interno:</label>
-            <input type="text" id="codigoInterno" th:field="*{codigoInterno}" class="form-control" required>
+            <label class="form-label" for="codigoInterno">Codigo Interno:</label>
+            <input class="form-control" id="codigoInterno" required th:field="*{codigoInterno}" type="text">
         </div>
 
         <div class="mb-3">
-            <label for="tipoProducto" class="form-label">Tipo Producto:</label>
-            <select id="tipoProducto" th:field="*{tipoProducto}" class="form-control" required>
+            <label class="form-label" for="tipoProducto">Tipo Producto:</label>
+            <select class="form-control" id="tipoProducto" required th:field="*{tipoProducto}">
                 <option th:each="tipo : ${T(com.mb.conitrack.enums.TipoProductoEnum).values()}"
-                        th:value="${tipo}" th:text="${tipo.valor}">Tipo</option>
+                        th:text="${tipo.valor}" th:value="${tipo}">Tipo
+                </option>
             </select>
         </div>
         <div class="mb-3">
-            <label for="paisOrigen" class="form-label">Pais origen:</label>
-            <input type="text" id="paisOrigen" th:field="*{paisOrigen}" class="form-control" required>
+            <label class="form-label" for="paisOrigen">Pais origen:</label>
+            <input class="form-control" id="paisOrigen" required th:field="*{paisOrigen}" type="text">
         </div>
         <div class="mb-3">
-            <label for="unidadMedida" class="form-label">Unidad Medida:</label>
-            <select id="unidadMedida" th:field="*{unidadMedida}" class="form-control" required>
+            <label class="form-label" for="unidadMedida">Unidad Medida:</label>
+            <select class="form-control" id="unidadMedida" required th:field="*{unidadMedida}">
                 <option th:each="um : ${T(com.mb.conitrack.enums.UnidadMedidaEnum).values()}"
-                        th:value="${um}" th:text="${um.nombre}">Unidad</option>
+                        th:text="${um.nombre}" th:value="${um}">Unidad
+                </option>
             </select>
         </div>
 
         <div class="mb-3">
-            <label for="productoDestino" class="form-label">Producto destino:</label>
-            <select id="productoDestino" th:field="*{productoDestino}" class="form-select">
+            <label class="form-label" for="productoDestino">Producto destino:</label>
+            <select class="form-select" id="productoDestino" th:field="*{productoDestino}">
                 <option value="">-- Seleccione un producto --</option>
                 <option th:each="productoDestino : ${productosDestino}"
-                        th:value="${productoDestino.id}"
-                        th:text="${productoDestino.nombreGenerico}">Producto destino</option>
+                        th:text="${productoDestino.nombreGenerico}"
+                        th:value="${productoDestino.id}">Producto destino
+                </option>
             </select>
             <!-- Show binding errors if any -->
-            <div th:if="${#fields.hasErrors('productoDestino')}" class="error" th:errors="*{productoDestino}"></div>
+            <div class="error" th:errors="*{productoDestino}" th:if="${#fields.hasErrors('productoDestino')}"></div>
             <!-- Also show a custom error from the model if available -->
-            <div th:if="${error != null}" class="error" th:text="${error}"></div>
+            <div class="error" th:if="${error != null}" th:text="${error}"></div>
         </div>
 
         <div class="mb-3">
-            <label for="observaciones" class="form-label">Observaciones:</label>
-            <textarea id="observaciones" th:field="*{observaciones}" class="form-control"></textarea>
+            <label class="form-label" for="observaciones">Observaciones:</label>
+            <textarea class="form-control" id="observaciones" th:field="*{observaciones}"></textarea>
         </div>
 
-        <a th:href="@{/productos/list-productos}" class="btn btn-secondary ms-2">Volver al listado</a>
-        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a class="btn btn-secondary ms-2" th:href="@{/productos/list-productos}">Volver al listado</a>
+        <button class="btn btn-primary" type="submit">Guardar cambios</button>
     </form>
 </div>
 </body>

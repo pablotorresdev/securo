@@ -4,34 +4,35 @@
     <meta charset="UTF-8">
     <title>CONITRACK</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js" type="module"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
-<body><section>
-<form th:action="@{/login}" method="post">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-    <h2>Conitrack</h2>
-    <div class="inputbox">
-        <ion-icon name="person-outline"></ion-icon>
-        <input type="text" id="username" name="username" required>
-        <label for="username">Su nombre de usuario</label>
-    </div>
-    <div class="inputbox">
-        <ion-icon name="lock-closed-outline"></ion-icon>
-        <input type="password" id="password" name="password" required>
-        <label for="password">Su contraseña</label>
-    </div>
-    <br>
-    <br>
-    <br>
-    <button type="submit">Login</button>
-    <div th:if="${param.error}">
-        <p style="color:red;">Nombre de Usuario o contraseña invalida</p>
-    </div>
-    <div th:if="${param.logout}">
-        <p style="color:green;">Ha cerrado su sesion correctamente</p>
-    </div>
-</form>
+<body>
+<section>
+    <form method="post" th:action="@{/login}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
+        <h2>Conitrack</h2>
+        <div class="inputbox">
+            <ion-icon name="person-outline"></ion-icon>
+            <input id="username" name="username" required type="text">
+            <label for="username">Su nombre de usuario</label>
+        </div>
+        <div class="inputbox">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <input id="password" name="password" required type="password">
+            <label for="password">Su contraseña</label>
+        </div>
+        <br>
+        <br>
+        <br>
+        <button type="submit">Login</button>
+        <div th:if="${param.error}">
+            <p style="color:red;">Nombre de Usuario o contraseña invalida</p>
+        </div>
+        <div th:if="${param.logout}">
+            <p style="color:green;">Ha cerrado su sesion correctamente</p>
+        </div>
+    </form>
 </section>
 </body>
 </html>

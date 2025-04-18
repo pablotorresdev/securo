@@ -51,14 +51,14 @@
             <td th:text="${lote.estado}"></td>
             <td th:text="${lote.observaciones}"></td>
             <td>
-                <a th:href="@{'/movimientos/loteId/' + ${lote.id}}" class="btn btn-primary btn-sm">Ver Movimientos</a>
-                <a th:href="@{'/analisis/loteId/' + ${lote.id}}" class="btn btn-primary btn-sm">Ver Analisis</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/movimientos/loteId/' + ${lote.id}}">Ver Movimientos</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/loteId/' + ${lote.id}}">Ver Analisis</a>
             </td>
         </tr>
         </tbody>
     </table>
     <div class="mt-3">
-        <a th:href="@{/lotes/cancelar}" class="btn btn-secondary">Volver a la página principal</a>
+        <a class="btn btn-secondary" th:href="@{/lotes/cancelar}">Volver a la página principal</a>
     </div>
 </div>
 </body>
