@@ -1,5 +1,7 @@
 package com.mb.conitrack.controller;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.LoteService;
 
 /**
@@ -22,6 +25,12 @@ public class LotesController {
 
     @Autowired
     private LoteService loteService;
+
+    //Salida del CU
+    @GetMapping("/cancelar")
+    public String cancelar() {
+        return "redirect:/";
+    }
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
@@ -35,12 +44,17 @@ public class LotesController {
         return loteService.findLoteListByCodigoInterno(codigoInterno);
     }
 
-    //Salida del CU
-    @GetMapping("/cancelar")
-    public String cancelar() {
-        return "redirect:/";
+    @GetMapping("/codigoInterno/muestreo/{codigoInterno}")
+    @ResponseBody
+    public List<Lote> getLoteForMuestreoByCodigoInterno(@PathVariable("codigoInterno") String codigoInterno) {
+        return loteService.findLoteListByCodigoInterno(codigoInterno).stream()
+            .filter(lote -> DictamenEnum.RECIBIDO != lote.getDictamen())
+            .filter(lote -> lote.getAnalisisList().stream()
+                .anyMatch(analisis -> analisis.getNroAnalisis() != null))
+            .filter(lote -> lote.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
+            .sorted(Comparator.comparing(Lote::getNroBulto))
+            .toList();
     }
 
 }
-
 

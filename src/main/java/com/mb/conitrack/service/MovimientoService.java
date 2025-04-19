@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mb.conitrack.dto.DTOUtils;
+import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.repository.MovimientoRepository;
 
@@ -146,6 +148,28 @@ public class MovimientoService {
         movimiento.setDictamenFinal(dto.getDictamenFinal());
 
         movimiento.setObservaciones(lote.getObservaciones() + "\nMovimiento Resultado de Analisis (CU5/6):\n" + dto.getObservaciones());
+        return movimientoRepository.save(movimiento);
+    }
+
+    //***********CU7: CONSUMO PRODUCCION***********
+    @Transactional
+    public Movimiento persistirMovimientoConsumoProduccion(final LoteDTO loteDTO, final Lote bulto) {
+        final Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(MotivoEnum.CONSUMO_PRODUCCION);
+
+        final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
+        movimiento.setCantidad(loteDTO.getCantidadesBultos().get(i));
+        movimiento.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
+
+        movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+        movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
+        movimiento.setFecha(loteDTO.getFechaEgreso());
+        movimiento.setObservaciones(loteDTO.getObservaciones());
+        movimiento.setLote(bulto);
+        movimiento.setActivo(true);
+        movimiento.setObservaciones(bulto.getObservaciones() + "\nMovimiento Consumo produccion (CU7):\n" + loteDTO.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 

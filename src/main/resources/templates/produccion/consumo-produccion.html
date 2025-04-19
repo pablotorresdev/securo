@@ -105,9 +105,11 @@
         let lotes = /*[[${lotesProduccion}]]*/ '[]';
         if (typeof lotes === 'string') lotes = JSON.parse(lotes);
 
+        let nroBultoPrev = /*[[${loteDTO.nroBultoList}]]*/ '[]';
         let cantidadesPrev = /*[[${loteDTO.cantidadesBultos}]]*/ '[]';
         let unidadesPrev = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
 
+        if (typeof nroBultoPrev === 'string') nroBultoPrev = JSON.parse(nroBultoPrev);
         if (typeof cantidadesPrev === 'string') cantidadesPrev = JSON.parse(cantidadesPrev);
         if (typeof unidadesPrev === 'string') unidadesPrev = JSON.parse(unidadesPrev);
 
@@ -202,6 +204,7 @@
 
             /* ---------- 2. Arrays con stock y unidad base ---------- */
             //  (si llegan vacíos, los relleno para que tengan totalBultos posiciones)
+            const idBultos = (lote.nroBultoList ?? []).slice(0, totalBultos);
             const stocks = (lote.cantidadesBultos ?? []).slice(0, totalBultos);
             const baseUnits = (lote.unidadMedidaBultos ?? []).slice(0, totalBultos);
 
@@ -244,7 +247,7 @@
 
                 /* --- nroBulto oculto (solo lo necesita tu MovimientoDTO) --- */
                 row.insertAdjacentHTML('beforeend',
-                    `<input type="hidden" name="movimientoDTOs[${i}].nroBulto" value="${i + 1}">`);
+                    `<input type="hidden" name="nroBultoList[${i}]" value=" ${idBultos[i]}">`);
 
                 /* --- agrego la fila --- */
                 bultosContainer.appendChild(row);

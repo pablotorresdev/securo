@@ -21,6 +21,8 @@ import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
+import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaUtils;
 import com.mb.conitrack.repository.LoteRepository;
@@ -255,6 +257,31 @@ public class LoteService {
         }
         return result;
     }
+
+    @Transactional
+    public List<Lote> registrarConsumoProduccion(final LoteDTO loteDTO) {
+
+        List<Lote> result = new ArrayList<>();
+        for (int nroBulto : loteDTO.getNroBultoList()) {
+            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(loteDTO.getCodigoInterno(), nroBulto)
+                .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+
+            final Movimiento movimiento = movimientoService.persistirMovimientoConsumoProduccion(loteDTO, bulto);
+            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento), bulto));
+
+            if(bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+                bulto.setEstado(EstadoEnum.CONSUMIDO);
+            } else {
+                bulto.setEstado(EstadoEnum.EN_USO);
+            }
+            bulto.getMovimientos().add(movimiento);
+            Lote newLote = loteRepository.save(bulto);
+            result.add(newLote);
+        }
+        return result;
+    }
+
+
 
 }
 

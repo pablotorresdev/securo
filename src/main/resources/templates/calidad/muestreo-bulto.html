@@ -155,7 +155,7 @@
             // Obtenemos el códigoInterno directamente del value del <option> seleccionado
             const codigoInterno = selectedRep.value;
 
-            fetch('/lotes/codigoInterno/' + codigoInterno, {
+            fetch('/lotes/codigoInterno/muestreo/' + codigoInterno, {
                 method: 'GET',
                 headers: {[csrfHeader]: csrfToken}
             })

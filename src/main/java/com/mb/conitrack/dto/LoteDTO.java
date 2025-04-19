@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.mb.conitrack.dto.validation.AltaCompra;
 import com.mb.conitrack.dto.validation.BajaProduccion;
@@ -86,42 +84,32 @@ public class LoteDTO {
 
     protected Long loteOrigenId;
 
-    //TODO: unir con unidaddeMedida en un objeto DTO y pasar a mapa
-    protected Map<Integer, MagnitudDTO> magnitudDTOMap = new HashMap<>();
-
+    //Identificadores individuales de bultos y cantidades
+    protected List<Integer> nroBultoList = new ArrayList<>();
     protected List<BigDecimal> cantidadesBultos = new ArrayList<>();
-
     protected List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
-
-    //Datos derivados
-    protected String nombreProducto;
-
-    protected String codigoProducto;
-
-    protected TipoProductoEnum tipoProducto;
-
-    protected String productoDestino;
-
-    protected String nombreProveedor;
-
-    protected String nombreFabricante;
-
-    protected DictamenEnum dictamen;
-
-    protected String estado;
 
     @PositiveOrZero(message = "La cantidad no puede ser negativa")
     private BigDecimal cantidadActual;
-
     private Integer bultosActuales;
 
-    // NUEVO: Lista de cantidades para cada bulto (en el paso 2)
+    // TODO: REMOVER
     protected Integer nroBulto;
 
     protected List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
-
     protected List<AnalisisDTO> analisisDTOs = new ArrayList<>();
 
+    //Datos derivados
+    protected String nombreProducto;
+    protected String codigoProducto;
+    protected TipoProductoEnum tipoProducto;
+    protected String productoDestino;
+    protected String nombreProveedor;
+    protected String nombreFabricante;
+    protected DictamenEnum dictamen;
+    protected String estado;
+
+    //********************Utils********************//
     public AnalisisDTO getCurrentAnalisisDto() {
         if (this.analisisDTOs.isEmpty()) {
             return null;

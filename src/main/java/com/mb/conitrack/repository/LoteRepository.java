@@ -1,6 +1,7 @@
 package com.mb.conitrack.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,5 +12,18 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     List<Lote> findAllByCodigoInternoAndActivoTrue(String codigoInterno);
 
     List<Lote> findByActivoTrue();
+
+    /**
+     * Spring Data compondrá la siguiente consulta:
+     * SELECT l FROM Lote l
+     *  WHERE l.codigoInterno = ?1
+     *    AND l.nroBulto      = ?2
+     *    AND l.activo        = true
+     *  LIMIT 1
+     */
+    Optional<Lote> findFirstByCodigoInternoAndNroBultoAndActivoTrue(
+        String codigoInterno,
+        int nroBulto
+    );
 
 }

@@ -87,8 +87,9 @@
             <tr th:if="${loteDTO.cantidadesBultos.size() > 1}">
                 <th>Distribución de Bultos:</th>
                 <td>
-                    <span th:each="entry : ${loteDTO.magnitudDTOMap.entrySet()}"
-                          th:text="|Bulto ${entry.key}: [${entry.value.cantidad} ${entry.value.unidadMedida}] |"/>
+                    <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
+                          th:text="'Bulto ' + (iterStat.index+1) + ': ' + cant + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ') '">
+                     </span>
                 </td>
             </tr>
             </tbody>

@@ -97,62 +97,25 @@ public class DTOUtils {
             if (firstCase) {
                 loteDTO.setFechaYHoraCreacion(bultoEntity.getFechaYHoraCreacion());
 
-                if (bultoEntity.getProducto() != null) {
-                    final Producto producto = bultoEntity.getProducto();
-                    loteDTO.setProductoId(producto.getId());
-                    loteDTO.setNombreProducto(producto.getNombreGenerico());
-                    loteDTO.setCodigoProducto(producto.getCodigoInterno());
-                    loteDTO.setTipoProducto(producto.getTipoProducto());
-                    loteDTO.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino().getNombreGenerico() : null);
-                }
 
-                loteDTO.setProveedorId(bultoEntity.getProveedor() != null ? bultoEntity.getProveedor().getId() : null);
-                loteDTO.setNombreProveedor(bultoEntity.getProveedor() != null ? bultoEntity.getProveedor().getRazonSocial() : null);
-
-                loteDTO.setFabricanteId(bultoEntity.getFabricante() != null ? bultoEntity.getFabricante().getId() : null);
-                loteDTO.setNombreFabricante(bultoEntity.getFabricante() != null ? bultoEntity.getFabricante().getRazonSocial() : null);
-
-                loteDTO.setCodigoInterno(bultoEntity.getCodigoInterno());
-                loteDTO.setPaisOrigen(bultoEntity.getPaisOrigen());
-
-                loteDTO.setFechaIngreso(bultoEntity.getFechaIngreso());
-
-                loteDTO.setBultosTotales(bultoEntity.getBultosTotales());
+                setProducto(bultoEntity, loteDTO);
+                setDatosProveedor(bultoEntity, loteDTO);
+                setDatosDerivados(bultoEntity, loteDTO);
+                setListasBultos(bultoEntity, loteDTO);
+                addMovimientosDTO(loteDTO, bultoEntity);
+                addAnalisisDTO(loteDTO, bultoEntity);
 
                 cantidadInicial = bultoEntity.getCantidadInicial();
                 cantidadActual = bultoEntity.getCantidadActual();
                 unidadMedida = bultoEntity.getUnidadMedida();
-
-                loteDTO.setLoteProveedor(bultoEntity.getLoteProveedor());
-
-                loteDTO.setFechaReanalisisProveedor(bultoEntity.getFechaReanalisisProveedor());
-                loteDTO.setFechaVencimientoProveedor(bultoEntity.getFechaVencimientoProveedor());
-                loteDTO.setEstado(bultoEntity.getEstado().getValor());
-                loteDTO.setDictamen(bultoEntity.getDictamen());
-                loteDTO.setLoteOrigenId(bultoEntity.getLoteOrigen() != null ? bultoEntity.getLoteOrigen().getId() : null);
-
-                loteDTO.setNroRemito(bultoEntity.getNroRemito());
-                loteDTO.setDetalleConservacion(bultoEntity.getDetalleConservacion());
-                loteDTO.setObservaciones(bultoEntity.getObservaciones());
-
-                loteDTO.getCantidadesBultos().add(bultoEntity.getCantidadActual());
-                loteDTO.getUnidadMedidaBultos().add(bultoEntity.getUnidadMedida());
-                loteDTO.getMagnitudDTOMap().put(bultoEntity.getNroBulto(), new MagnitudDTO(bultoEntity.getCantidadActual(), bultoEntity.getUnidadMedida()));
-
-                addMovimientosDTO(loteDTO, bultoEntity);
-                addAnalisisDTO(loteDTO, bultoEntity);
-
                 firstCase = false;
             } else {
 
                 // Si el estado de alguno de los bultos es diferente, se asigna el de mayor prioridad
                 setEstadoLote(bultoEntity, loteDTO);
 
-                //TODO: Hacer suma por bulto
-                //loteDTO.getCantidadInicial().add(bultoEntity.getCantidadInicial().from(bultoEntity.getUnidadMedida()).to(loteDTO.getUnidadMedida()))
-
-                //La unidad de medida del bulto coincide con la del DTO
                 if (bultoEntity.getUnidadMedida() == unidadMedida) {
+                    //La unidad de medida del bulto coincide con la del DTO
                     cantidadActual = bultoEntity.getCantidadActual().add(cantidadActual);
                     cantidadInicial = bultoEntity.getCantidadInicial().add(cantidadInicial);
 
@@ -162,27 +125,27 @@ public class DTOUtils {
 
                     unidadMedida = unidadSugerida;
                 } else {
+                    //Distitnas unidades de medida
                     UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(bultoEntity.getUnidadMedida(), unidadMedida);
                     BigDecimal cantidadActualTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadActual, menorUnidadMedida);
-                    BigDecimal cantidadActualBulto = convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadActual(),
-                        menorUnidadMedida);
-                    cantidadActualTemp = cantidadActualTemp.add(cantidadActualBulto);
+                    cantidadActualTemp = cantidadActualTemp.add(convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadActual(),
+                        menorUnidadMedida));
 
                     UnidadMedidaEnum unidadSugerida = sugerirUnidadParaCantidad(menorUnidadMedida, cantidadActualTemp);
                     cantidadActual = convertirCantidadEntreUnidades(menorUnidadMedida, cantidadActualTemp, unidadSugerida);
 
                     BigDecimal cantidadInicialTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadInicial, unidadSugerida);
-                    BigDecimal cantidadBultoTemp = convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida);
-                    cantidadInicial = cantidadInicialTemp.add(cantidadBultoTemp);
+                    cantidadInicial = cantidadInicialTemp.add(convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida));
                     unidadMedida = unidadSugerida;
                 }
                 loteDTO.setCantidadInicial(cantidadInicial);
                 loteDTO.setCantidadActual(cantidadActual);
                 loteDTO.setUnidadMedida(unidadMedida);
 
-                loteDTO.getCantidadesBultos().add(bultoEntity.getNroBulto() - 1, bultoEntity.getCantidadActual());
-                loteDTO.getUnidadMedidaBultos().add(bultoEntity.getNroBulto() - 1, bultoEntity.getUnidadMedida());
-                loteDTO.getMagnitudDTOMap().put(bultoEntity.getNroBulto(), new MagnitudDTO(bultoEntity.getCantidadActual(), bultoEntity.getUnidadMedida()));
+                final int index = loteDTO.getCantidadesBultos().size();
+                loteDTO.getNroBultoList().add(index, bultoEntity.getNroBulto());
+                loteDTO.getCantidadesBultos().add(index, bultoEntity.getCantidadActual());
+                loteDTO.getUnidadMedidaBultos().add(index, bultoEntity.getUnidadMedida());
 
                 addMovimientosDTO(loteDTO, bultoEntity);
             }
@@ -193,6 +156,46 @@ public class DTOUtils {
         loteDTO.setCantidadActual(cantidadActual);
         loteDTO.setUnidadMedida(unidadMedida);
         return loteDTO;
+    }
+
+    private static void setDatosDerivados(final Lote bultoEntity, final LoteDTO loteDTO) {
+        loteDTO.setCodigoInterno(bultoEntity.getCodigoInterno());
+        loteDTO.setFechaIngreso(bultoEntity.getFechaIngreso());
+        loteDTO.setBultosTotales(bultoEntity.getBultosTotales());
+        loteDTO.setEstado(bultoEntity.getEstado().getValor());
+        loteDTO.setDictamen(bultoEntity.getDictamen());
+        loteDTO.setLoteOrigenId(bultoEntity.getLoteOrigen() != null ? bultoEntity.getLoteOrigen().getId() : null);
+        loteDTO.setObservaciones(bultoEntity.getObservaciones());
+    }
+
+    private static void setDatosProveedor(final Lote bultoEntity, final LoteDTO loteDTO) {
+        loteDTO.setProveedorId(bultoEntity.getProveedor() != null ? bultoEntity.getProveedor().getId() : null);
+        loteDTO.setNombreProveedor(bultoEntity.getProveedor() != null ? bultoEntity.getProveedor().getRazonSocial() : null);
+        loteDTO.setFabricanteId(bultoEntity.getFabricante() != null ? bultoEntity.getFabricante().getId() : null);
+        loteDTO.setNombreFabricante(bultoEntity.getFabricante() != null ? bultoEntity.getFabricante().getRazonSocial() : null);
+        loteDTO.setLoteProveedor(bultoEntity.getLoteProveedor());
+        loteDTO.setPaisOrigen(bultoEntity.getPaisOrigen());
+        loteDTO.setFechaReanalisisProveedor(bultoEntity.getFechaReanalisisProveedor());
+        loteDTO.setFechaVencimientoProveedor(bultoEntity.getFechaVencimientoProveedor());
+        loteDTO.setNroRemito(bultoEntity.getNroRemito());
+        loteDTO.setDetalleConservacion(bultoEntity.getDetalleConservacion());
+    }
+
+    private static void setListasBultos(final Lote bultoEntity, final LoteDTO loteDTO) {
+        loteDTO.getNroBultoList().add(bultoEntity.getNroBulto());
+        loteDTO.getCantidadesBultos().add(bultoEntity.getCantidadActual());
+        loteDTO.getUnidadMedidaBultos().add(bultoEntity.getUnidadMedida());
+    }
+
+    private static void setProducto(final Lote bultoEntity, final LoteDTO loteDTO) {
+        if (bultoEntity.getProducto() != null) {
+            final Producto producto = bultoEntity.getProducto();
+            loteDTO.setProductoId(producto.getId());
+            loteDTO.setNombreProducto(producto.getNombreGenerico());
+            loteDTO.setCodigoProducto(producto.getCodigoInterno());
+            loteDTO.setTipoProducto(producto.getTipoProducto());
+            loteDTO.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino().getNombreGenerico() : null);
+        }
     }
 
     private static void setEstadoLote(final Lote bultoEntity, final LoteDTO loteDTO) {

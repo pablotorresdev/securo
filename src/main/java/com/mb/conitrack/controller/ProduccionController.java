@@ -1,9 +1,9 @@
 package com.mb.conitrack.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.BajaProduccion;
 import com.mb.conitrack.entity.Lote;
@@ -66,9 +67,11 @@ public class ProduccionController {
             return "produccion/consumo-produccion";
         }
 
-        //loteService.registrarConsumoProduccion(loteDTO);   // ← método que descuente stock y guarde movimientos
+        loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
+        final List<Lote> entities = loteService.registrarConsumoProduccion(loteDTO);
 
-        ra.addFlashAttribute("success", "Consumo registrado correctamente para la orden " + loteDTO);
+        ra.addFlashAttribute("success", "Consumo registrado correctamente para la orden " + loteDTO.getOrdenProduccion());
+        ra.addFlashAttribute("loteDTO", DTOUtils.fromEntities(entities));
         return "redirect:/produccion/consumo-produccion-ok";
     }
 
@@ -117,9 +120,9 @@ public class ProduccionController {
         }
 
         // Debe venir al menos un movimiento
+        final List<Integer> nroBultoList = loteDTO.getNroBultoList();
         final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
         final List<UnidadMedidaEnum> unidadMedidaBultos = loteDTO.getUnidadMedidaBultos();
-        final Set<Integer> integers = loteDTO.getMagnitudDTOMap().keySet();
 
         if (cantidadesBultos == null || cantidadesBultos.isEmpty()) {
             bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las cantidades a consumir");
@@ -129,7 +132,7 @@ public class ProduccionController {
             bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las unidades de medida");
         }
 
-        for (int i = 0; i < cantidadesBultos.size(); i++) {
+        for (int i = 0; i < nroBultoList.size(); i++) {
             final BigDecimal cantidadBulto = cantidadesBultos.get(i);
             if (cantidadBulto.compareTo(BigDecimal.ZERO) == 0) {
                 continue;
@@ -144,7 +147,7 @@ public class ProduccionController {
                 bindingResult.rejectValue("cantidadesBultos", "", "Debe indicar la unidad");
             }
 
-            final Lote lote = lotes.get(i);
+            final Lote lote = getLoteByByNroBulto(nroBultoList.get(i), lotes);
 
             if (lote.getUnidadMedida() == uniMedidaBulto) {
                 if (cantidadBulto.compareTo(lote.getCantidadActual()) > 0) {
@@ -162,6 +165,11 @@ public class ProduccionController {
                 }
             }
         }
+    }
+
+    private Lote getLoteByByNroBulto(final Integer nroBulto, final List<Lote> lotes) {
+        return lotes.stream().filter(l -> l.getNroBulto().equals(nroBulto)).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado para el número de bulto: " + nroBulto));
     }
 
 }
