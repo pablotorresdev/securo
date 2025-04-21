@@ -9,7 +9,7 @@ public class MotivoEnumTest {
     @Test
     public void testDefaultMotivoData() {
         MotivoEnum[] motivos = MotivoEnum.values();
-        assertThat(motivos).hasSize(10);
+        assertThat(motivos).hasSize(11);
         assertThat(motivos).extracting(MotivoEnum::getValor).containsExactlyInAnyOrder(
             "Compra",
             "Muestreo",
@@ -18,7 +18,8 @@ public class MotivoEnumTest {
             "Consumo produccion",
             "Produccion propia",
             "Venta",
-            "Vencido",
+            "Expiracion analisis",
+            "Vencimiento",
             "Devolucion venta",
             "Ajuste"
         );

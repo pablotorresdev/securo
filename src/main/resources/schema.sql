@@ -127,7 +127,6 @@ CREATE TABLE movimientos
     tipo_movimiento      TEXT      NOT NULL,
     motivo               TEXT      NOT NULL,
     lote_id              INT       NOT NULL,
-    observaciones        TEXT,
     cantidad             NUMERIC(12, 4),
     unidad_medida        TEXT,
     nro_analisis         VARCHAR(50), -- Post QA
@@ -135,6 +134,7 @@ CREATE TABLE movimientos
     dictamen_inicial     TEXT,
     dictamen_final       TEXT,
     movimiento_origen_id INT,
+    observaciones        TEXT,
     activo               BOOLEAN   NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_lote_id
         FOREIGN KEY (lote_id) REFERENCES lotes (id),
@@ -169,17 +169,20 @@ CREATE TABLE lote_analisis
         FOREIGN KEY (analisis_id) REFERENCES analisis (id) ON DELETE CASCADE
 );
 
-
-
 CREATE TABLE traza
 (
     id             SERIAL PRIMARY KEY,
     fecha_creacion TIMESTAMP   NOT NULL,
     lote_id        INT         NOT NULL,
-    nro_traza      VARCHAR(50) NOT NULL,
+    producto_id    INT         NOT NULL,
+    nro_traza      BIGINT      NOT NULL,
     estado         VARCHAR(50) NOT NULL,
     observaciones  TEXT,
     activo         BOOLEAN     NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_lote
-        FOREIGN KEY (lote_id) REFERENCES lotes (id) ON DELETE CASCADE
+        FOREIGN KEY (lote_id) REFERENCES lotes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_producto
+        FOREIGN KEY (producto_id) REFERENCES productos (id),
+    CONSTRAINT uk_traza_producto_traza
+        UNIQUE (producto_id, nro_traza)
 );

@@ -55,7 +55,7 @@ server:
     include-binding-errors: always
   servlet:
     session:
-      timeout: 30s
+      timeout: 90s
 
 logging:
   level:

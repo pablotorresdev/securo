@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
@@ -21,13 +22,9 @@ import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.MotivoEnum;
-import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaUtils;
 import com.mb.conitrack.repository.LoteRepository;
-import com.mb.conitrack.repository.maestro.ProductoRepository;
-import com.mb.conitrack.repository.maestro.ProveedorRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -39,13 +36,15 @@ public class LoteService {
 
     private final LoteRepository loteRepository;
 
-    private final ProveedorRepository proveedorRepository;
+    private final ProveedorService proveedorService;
 
-    private final ProductoRepository productoRepository;
+    private final ProductoService productoService;
 
     private final MovimientoService movimientoService;
 
     private final AnalisisService analisisService;
+
+    private final TrazaService trazaService;
 
     public Lote findLoteBultoById(final Long id) {
         if (id == null) {
@@ -145,14 +144,18 @@ public class LoteService {
             .toList();
     }
 
+    public Long findMaxNroTraza(Long idProducto) {
+        return trazaService.findMaxNroTraza(idProducto);
+    }
+
     //Persistencia
 
     //***********CU1 ALTA: COMPRA***********
     @Transactional
     public List<Lote> ingresarStockPorCompra(LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
-        Proveedor proveedor = proveedorRepository.findById(loteDTO.getProveedorId()).orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
-        Producto producto = productoRepository.findById(loteDTO.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+        Proveedor proveedor = proveedorService.findById(loteDTO.getProveedorId()).orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
+        Producto producto = productoService.findById(loteDTO.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
         int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
@@ -161,12 +164,22 @@ public class LoteService {
         for (int i = 0; i < bultosTotales; i++) {
             Lote bultoLote = createLoteIngreso(loteDTO);
             bultoLote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
+            Optional<Proveedor> fabricante = Optional.empty();
             if (loteDTO.getFabricanteId() != null) {
-                proveedorRepository.findById(loteDTO.getFabricanteId()).ifPresent(bultoLote::setFabricante);
+                fabricante = proveedorService.findById(loteDTO.getFabricanteId());
+                fabricante.ifPresent(bultoLote::setFabricante);
             }
 
             bultoLote.setProducto(producto);
             bultoLote.setProveedor(proveedor);
+
+            if(StringUtils.isEmpty(loteDTO.getPaisOrigen())) {
+                if(fabricante.isPresent()) {
+                    bultoLote.setPaisOrigen(fabricante.get().getPais());
+                } else {
+                    bultoLote.setPaisOrigen(proveedor.getPais());
+                }
+            }
 
             if (bultosTotales == 1) {
                 bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
@@ -281,7 +294,43 @@ public class LoteService {
         return result;
     }
 
+    @Transactional
+    public List<Lote> ingresarStockPorProduccion(final LoteDTO loteDTO) {
+        List<Lote> result = new ArrayList<>();
+        Proveedor conifarma = proveedorService.getConifarma();
+        Producto producto = productoService.findById(loteDTO.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+        int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
+        String timestamp = loteDTO.getFechaYHoraCreacion().format(formatter);
+
+        for (int i = 0; i < bultosTotales; i++) {
+            Lote bultoLote = createLoteIngreso(loteDTO);
+            bultoLote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
+
+            bultoLote.setProducto(producto);
+            bultoLote.setProveedor(conifarma);
+            bultoLote.setFabricante(conifarma);
+            bultoLote.setPaisOrigen(conifarma.getPais());
+
+            if (bultosTotales == 1) {
+                bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
+                bultoLote.setCantidadActual(loteDTO.getCantidadInicial());
+                bultoLote.setUnidadMedida(loteDTO.getUnidadMedida());
+            } else {
+                bultoLote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
+                bultoLote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
+                bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
+            }
+            bultoLote.setNroBulto(i + 1);
+
+            Lote bultoGuardado = loteRepository.save(bultoLote);
+            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(bultoGuardado);
+            bultoGuardado.getMovimientos().add(movimiento);
+            result.add(bultoGuardado);
+        }
+        return result;
+    }
 
 }
 

@@ -33,8 +33,9 @@ public class ProveedorService {
      *
      * @return Lista de proveedores
      */
-    public List<Proveedor> getConifarma() {
-        return proveedorRepository.findByRazonSocialIgnoreCaseContaining("conifarma");
+    public Proveedor getConifarma() {
+        return proveedorRepository.findByRazonSocialIgnoreCaseContaining("conifarma").stream().findFirst().orElseThrow(
+            () -> new IllegalArgumentException("No se encontró el proveedor Conifarma"));
     }
 
     /**

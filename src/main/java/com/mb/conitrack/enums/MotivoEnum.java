@@ -8,7 +8,8 @@ public enum MotivoEnum {
     CONSUMO_PRODUCCION("Consumo produccion"),
     PRODUCCION_PROPIA("Produccion propia"),
     VENTA("Venta"),
-    VENCIDO("Vencido"),
+    EXPIRACION_ANALISIS("Expiracion analisis"),
+    VENCIMIENTO("Vencimiento"),
     DEVOLUCION_VENTA("Devolucion venta"),
     AJUSTE("Ajuste");
 

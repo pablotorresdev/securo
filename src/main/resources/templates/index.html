@@ -64,67 +64,53 @@
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU8. Reanálisis de Producto Externo Aprobado
+                CU8. Fecha Reanalisis Alcanzada (Automatico)
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU9. Reanalisis Automatico de Producto Externo Aprobado
+                CU9. Vencimiento de Stock (Automatico)
+            </a>
+        </li>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/produccion/ingreso-produccion}">
+                CU10. Ingreso de stock por Producción Interna
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU10. Vencimiento de Stock
+                CU11. Liberación Unidad de venta
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU11. Ingreso de stock por Producción Interna
+                CU12. Venta de Producto Propio
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU12. Liberación Unidad de venta
+                CU13. Devolución de cliente
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU13. Venta de Producto Propio
+                CU14. Retiro de mercado
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU14. Devolución de cliente
+                CU15. Ajuste de Inventario
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU15. Retiro de mercado
+                CU18. Configuración del sistema
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU16. Ajuste de Inventario
-            </a>
-        </li>
-        <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU19. Configuración del sistema
-            </a>
-        </li>
-        <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU20. Reverso de Movimiento de Alta
-            </a>
-        </li>
-        <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU21. Reversión de Movimiento de Baja
-            </a>
-        </li>
-        <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU22. Reversión de Movimiento de Modificación
+                CU19. Reverso de Ultimo Movimiento
             </a>
         </li>
 
@@ -155,13 +141,13 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/proveedores/}">
-                CU17. ABM Proveedores
+                CU16. ABM Proveedores
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/productos/}">
-                CU18. ABM Productos
+                CU17. ABM Productos
             </a>
         </li>
         <li>

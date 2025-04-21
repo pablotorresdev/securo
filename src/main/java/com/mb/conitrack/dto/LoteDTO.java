@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.mb.conitrack.dto.validation.AltaCompra;
+import com.mb.conitrack.dto.validation.AltaProduccion;
 import com.mb.conitrack.dto.validation.BajaProduccion;
 import com.mb.conitrack.dto.validation.ValidacionBaja;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -32,28 +33,28 @@ public class LoteDTO {
     protected String codigoInterno;
 
     //Datos de ALTA obligatorios
-    @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class })
+    @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class, AltaProduccion.class  })
     @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = { AltaCompra.class })
     private LocalDate fechaIngreso;
 
-    @NotNull(message = "El ID del producto es obligatorio", groups = { AltaCompra.class })
+    @NotNull(message = "El ID del producto es obligatorio", groups = { AltaCompra.class, AltaProduccion.class })
     private Long productoId;
 
-    @NotNull(message = "La cantidad inicial es obligatoria", groups = { AltaCompra.class })
-    @Positive(message = "La cantidad inicial debe ser mayor a cero", groups = { AltaCompra.class })
+    @NotNull(message = "La cantidad inicial es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
+    @Positive(message = "La cantidad inicial debe ser mayor a cero", groups = { AltaCompra.class, AltaProduccion.class })
     private BigDecimal cantidadInicial;
 
-    @NotNull(message = "La unidad de Medida es obligatoria", groups = { AltaCompra.class })
+    @NotNull(message = "La unidad de Medida es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
     private UnidadMedidaEnum unidadMedida;
 
-    @NotNull(message = "La cantidad de bultos totales es obligatoria", groups = { AltaCompra.class })
-    @Positive(message = "La cantidad de bultos totales debe ser mayor a cero", groups = { AltaCompra.class })
+    @NotNull(message = "La cantidad de bultos totales es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
+    @Positive(message = "La cantidad de bultos totales debe ser mayor a cero", groups = { AltaCompra.class, AltaProduccion.class })
     private Integer bultosTotales;
 
     @NotNull(message = "El ID del proveedor es obligatorio", groups = { AltaCompra.class })
     private Long proveedorId;
 
-    @NotNull(message = "El lote del proveedor es obligatorio", groups = { AltaCompra.class })
+    @NotNull(message = "El lote del proveedor es obligatorio", groups = { AltaCompra.class, AltaProduccion.class })
     private String loteProveedor;
 
     //Datos de ALTA Opcionales
@@ -77,7 +78,7 @@ public class LoteDTO {
     @PastOrPresent(message = "La fecha de consumo no puede ser futura", groups = { ValidacionBaja.class, BajaProduccion.class })
     private LocalDate fechaEgreso;
 
-    @NotNull(message = "La orden de producción es obligatoria", groups = { BajaProduccion.class })
+    @NotNull(message = "La orden de producción es obligatoria", groups = { BajaProduccion.class, AltaProduccion.class })
     private String ordenProduccion;
 
     protected String observaciones;
@@ -92,6 +93,10 @@ public class LoteDTO {
     @PositiveOrZero(message = "La cantidad no puede ser negativa")
     private BigDecimal cantidadActual;
     private Integer bultosActuales;
+
+
+    //Esto junto con cantidad de unidades total, dara el rango de traza para ese lote
+    protected Long trazaInicial;
 
     // TODO: REMOVER
     protected Integer nroBulto;
