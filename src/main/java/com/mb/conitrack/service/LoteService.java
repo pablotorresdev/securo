@@ -18,11 +18,13 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.enums.UnidadMedidaUtils;
 import com.mb.conitrack.repository.LoteRepository;
 
@@ -33,6 +35,19 @@ import static com.mb.conitrack.entity.EntityUtils.createLoteIngreso;
 @AllArgsConstructor
 @Service
 public class LoteService {
+
+    private static void setBultos(final LoteDTO loteDTO, final int bultosTotales, final Lote bultoLote, final int i) {
+        if (bultosTotales == 1) {
+            bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
+            bultoLote.setCantidadActual(loteDTO.getCantidadInicial());
+            bultoLote.setUnidadMedida(loteDTO.getUnidadMedida());
+        } else {
+            bultoLote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
+            bultoLote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
+            bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
+        }
+        bultoLote.setNroBulto(i + 1);
+    }
 
     private final LoteRepository loteRepository;
 
@@ -62,32 +77,30 @@ public class LoteService {
 
     public List<Lote> findAllSortByDateAndNroBulto() {
         final List<Lote> lotes = loteRepository.findAll();
-        lotes.sort(Comparator
-            .comparing(Lote::getFechaIngreso)
-            .thenComparing(Lote::getCodigoInterno)
-            .thenComparing(Lote::getNroBulto));
+        lotes.sort(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto));
         return lotes;
     }
+
+    //Getters para el Front
 
     public Optional<Lote> save(final Lote lote) {
         final Lote nuevoLote = loteRepository.save(lote);
         return Optional.of(nuevoLote);
     }
 
-    //Getters para el Front
-
     //***********CU2 MODIFICACION: CUARENTENA***********
     public List<Lote> findAllForCuarentena() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> EnumSet.of(
-                DictamenEnum.RECIBIDO,
-                DictamenEnum.APROBADO,
-                DictamenEnum.ANALISIS_EXPIRADO,
-                DictamenEnum.LIBERADO,
-                DictamenEnum.DEVOLUCION_CLIENTES,
-                DictamenEnum.RETIRO_MERCADO
-            ).contains(l.getDictamen())).toList();
+                    DictamenEnum.RECIBIDO,
+                    DictamenEnum.APROBADO,
+                    DictamenEnum.ANALISIS_EXPIRADO,
+                    DictamenEnum.LIBERADO,
+                    DictamenEnum.DEVOLUCION_CLIENTES,
+                    DictamenEnum.RETIRO_MERCADO)
+                .contains(l.getDictamen()))
+            .toList();
     }
 
     //***********CU3 BAJA: MUESTREO***********
@@ -95,8 +108,7 @@ public class LoteService {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> DictamenEnum.RECIBIDO != l.getDictamen())
-            .filter(l -> l.getAnalisisList().stream()
-                .anyMatch(a -> a.getNroAnalisis() != null))
+            .filter(l -> l.getAnalisisList().stream().anyMatch(a -> a.getNroAnalisis() != null))
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
             .toList();
     }
@@ -105,18 +117,9 @@ public class LoteService {
     public List<Lote> findAllForDevolucionCompra() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
-            .filter(l -> EnumSet.of(
-                DictamenEnum.RECIBIDO,
-                DictamenEnum.CUARENTENA,
-                DictamenEnum.APROBADO,
-                DictamenEnum.RECHAZADO
-            ).contains(l.getDictamen()))
-            .filter(l -> EnumSet.of(
-                TipoProductoEnum.API,
-                TipoProductoEnum.EXCIPIENTE,
-                TipoProductoEnum.ACOND_PRIMARIO,
-                TipoProductoEnum.ACOND_SECUNDARIO
-            ).contains(l.getProducto().getTipoProducto()))
+            .filter(l -> EnumSet.of(DictamenEnum.RECIBIDO, DictamenEnum.CUARENTENA, DictamenEnum.APROBADO, DictamenEnum.RECHAZADO).contains(l.getDictamen()))
+            .filter(l -> EnumSet.of(TipoProductoEnum.API, TipoProductoEnum.EXCIPIENTE, TipoProductoEnum.ACOND_PRIMARIO, TipoProductoEnum.ACOND_SECUNDARIO)
+                .contains(l.getProducto().getTipoProducto()))
             .filter(l -> EstadoEnum.DEVUELTO != l.getEstado())
             .toList();
     }
@@ -126,8 +129,7 @@ public class LoteService {
         final List<Lote> lotes = loteRepository.findAll();
         return lotes.stream()
             .filter(l -> EnumSet.of(DictamenEnum.CUARENTENA).contains(l.getDictamen()))
-            .filter(l -> l.getAnalisisList().stream()
-                .anyMatch(a -> a.getDictamen() == null && a.getFechaRealizado() == null))
+            .filter(l -> l.getAnalisisList().stream().anyMatch(a -> a.getDictamen() == null && a.getFechaRealizado() == null))
             .toList();
     }
 
@@ -137,18 +139,15 @@ public class LoteService {
             .filter(l -> DictamenEnum.APROBADO == l.getDictamen())
             .filter(l -> TipoProductoEnum.UNIDAD_VENTA != l.getProducto().getTipoProducto())
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator
-                .comparing(Lote::getFechaIngreso)
-                .thenComparing(Lote::getCodigoInterno)
-                .thenComparing(Lote::getNroBulto))
+            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto))
             .toList();
     }
+
+    //Persistencia
 
     public Long findMaxNroTraza(Long idProducto) {
         return trazaService.findMaxNroTraza(idProducto);
     }
-
-    //Persistencia
 
     //***********CU1 ALTA: COMPRA***********
     @Transactional
@@ -164,6 +163,7 @@ public class LoteService {
         for (int i = 0; i < bultosTotales; i++) {
             Lote bultoLote = createLoteIngreso(loteDTO);
             bultoLote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
+
             Optional<Proveedor> fabricante = Optional.empty();
             if (loteDTO.getFabricanteId() != null) {
                 fabricante = proveedorService.findById(loteDTO.getFabricanteId());
@@ -173,24 +173,15 @@ public class LoteService {
             bultoLote.setProducto(producto);
             bultoLote.setProveedor(proveedor);
 
-            if(StringUtils.isEmpty(loteDTO.getPaisOrigen())) {
-                if(fabricante.isPresent()) {
+            if (StringUtils.isEmpty(loteDTO.getPaisOrigen())) {
+                if (fabricante.isPresent()) {
                     bultoLote.setPaisOrigen(fabricante.get().getPais());
                 } else {
                     bultoLote.setPaisOrigen(proveedor.getPais());
                 }
             }
 
-            if (bultosTotales == 1) {
-                bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
-                bultoLote.setCantidadActual(loteDTO.getCantidadInicial());
-                bultoLote.setUnidadMedida(loteDTO.getUnidadMedida());
-            } else {
-                bultoLote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
-                bultoLote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
-                bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
-            }
-            bultoLote.setNroBulto(i + 1);
+            setBultos(loteDTO, bultosTotales, bultoLote, i);
 
             Lote bultoGuardado = loteRepository.save(bultoLote);
             final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(bultoGuardado);
@@ -282,7 +273,7 @@ public class LoteService {
             final Movimiento movimiento = movimientoService.persistirMovimientoConsumoProduccion(loteDTO, bulto);
             bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento), bulto));
 
-            if(bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+            if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
                 bulto.setEstado(EstadoEnum.CONSUMIDO);
             } else {
                 bulto.setEstado(EstadoEnum.EN_USO);
@@ -298,11 +289,25 @@ public class LoteService {
     public List<Lote> ingresarStockPorProduccion(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         Proveedor conifarma = proveedorService.getConifarma();
-        Producto producto = productoService.findById(loteDTO.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+        Producto producto = productoService.findById(loteDTO.getProductoId())
+            .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
         int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
         String timestamp = loteDTO.getFechaYHoraCreacion().format(formatter);
+
+        Optional<Long> trazaActual = Optional.ofNullable(loteDTO.getTrazaInicial());
+        final BigDecimal cantidadInicialLote = loteDTO.getCantidadInicial();
+
+        if (trazaActual.isPresent()) {
+            if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+                throw new IllegalArgumentException("La traza solo es aplicable a UNIDADES");
+            }
+
+            if (cantidadInicialLote.stripTrailingZeros().scale() > 0) {
+                throw new IllegalArgumentException("La cantidad de Unidades debe ser entero");
+            }
+        }
 
         for (int i = 0; i < bultosTotales; i++) {
             Lote bultoLote = createLoteIngreso(loteDTO);
@@ -313,22 +318,30 @@ public class LoteService {
             bultoLote.setFabricante(conifarma);
             bultoLote.setPaisOrigen(conifarma.getPais());
 
-            if (bultosTotales == 1) {
-                bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
-                bultoLote.setCantidadActual(loteDTO.getCantidadInicial());
-                bultoLote.setUnidadMedida(loteDTO.getUnidadMedida());
-            } else {
-                bultoLote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
-                bultoLote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
-                bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
-            }
-            bultoLote.setNroBulto(i + 1);
+            setBultos(loteDTO, bultosTotales, bultoLote, i);
 
             Lote bultoGuardado = loteRepository.save(bultoLote);
-            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(bultoGuardado);
+            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoProduccion(bultoGuardado);
             bultoGuardado.getMovimientos().add(movimiento);
+
+            if (trazaActual.isPresent()) {
+                List<Traza> trazasGuardadas = trazaService.persistirTrazasIngresoProduccion(bultoGuardado, trazaActual.get());
+                bultoGuardado.getTrazas().addAll(trazasGuardadas);
+                trazaActual = trazasGuardadas.stream()
+                    .map(Traza::getNroTraza)
+                    .max(Long::compareTo)
+                    .map(max -> max + 1);
+            }
+
             result.add(bultoGuardado);
         }
+
+        if (trazaActual.isPresent()) {
+            if (trazaActual.get() - loteDTO.getTrazaInicial() != cantidadInicialLote.longValueExact()) {
+                throw new IllegalStateException("Error al crear las trazas");
+            }
+        }
+
         return result;
     }
 

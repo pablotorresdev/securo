@@ -106,4 +106,21 @@ public class EntityUtils {
         return lote;
     }
 
+    public static Movimiento createMovimientoAltaIngresoProduccion(final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setMotivo(MotivoEnum.PRODUCCION_PROPIA);
+
+        movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
+        movimiento.setFecha(lote.getFechaYHoraCreacion().toLocalDate());
+        movimiento.setCantidad(lote.getCantidadInicial());
+        movimiento.setUnidadMedida(lote.getUnidadMedida());
+        movimiento.setDictamenFinal(lote.getDictamen());
+        movimiento.setLote(lote);
+        movimiento.setActivo(true);
+
+        movimiento.setObservaciones("Ingreso de stock por Produccion propia (CU10):\n" + lote.getObservaciones());
+        return movimiento;
+    }
 }

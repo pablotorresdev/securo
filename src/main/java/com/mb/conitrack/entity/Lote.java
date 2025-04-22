@@ -132,7 +132,7 @@ public class Lote {
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
     @JsonManagedReference
-    private List<Traza> trazaList = new ArrayList<>();
+    private List<Traza> trazas = new ArrayList<>();
 
     @Column(nullable = false)
     private Boolean activo;
@@ -155,6 +155,42 @@ public class Lote {
             return null;
         }
         return currentAnalisis.getNroAnalisis();
+    }
+
+    public Traza getFirstTraza() {
+        if (this.trazas.isEmpty()) {
+            return null;
+        } else if (this.trazas.size() == 1) {
+            return this.trazas.get(0);
+        } else {
+            return this.trazas.stream()
+                .filter(Traza::getActivo).min(Comparator.comparing(Traza::getNroTraza))
+                .orElse(null);
+        }
+    }
+
+    public Traza getLastTraza() {
+        if (this.trazas.isEmpty()) {
+            return null;
+        } else if (this.trazas.size() == 1) {
+            return this.trazas.get(0);
+        } else {
+            return this.trazas.stream()
+                .filter(Traza::getActivo).max(Comparator.comparing(Traza::getNroTraza))
+                .orElse(null);
+        }
+    }
+
+    public Traza getTrazaRangeEnd() {
+        if (this.trazas.isEmpty()) {
+            return null;
+        } else if (this.trazas.size() == 1) {
+            return this.trazas.get(0);
+        } else {
+            return this.trazas.stream()
+                .max(Comparator.comparing(Traza::getNroTraza))
+                .orElse(null);
+        }
     }
 
 }

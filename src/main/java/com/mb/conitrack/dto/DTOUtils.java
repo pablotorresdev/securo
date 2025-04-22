@@ -92,11 +92,11 @@ public class DTOUtils {
         BigDecimal cantidadInicial = BigDecimal.ZERO;
         BigDecimal cantidadActual = BigDecimal.ZERO;
         UnidadMedidaEnum unidadMedida = null;
+        Long trazaInicial = null;
 
         for (Lote bultoEntity : entities) {
             if (firstCase) {
                 loteDTO.setFechaYHoraCreacion(bultoEntity.getFechaYHoraCreacion());
-
 
                 setProducto(bultoEntity, loteDTO);
                 setDatosProveedor(bultoEntity, loteDTO);
@@ -108,6 +108,10 @@ public class DTOUtils {
                 cantidadInicial = bultoEntity.getCantidadInicial();
                 cantidadActual = bultoEntity.getCantidadActual();
                 unidadMedida = bultoEntity.getUnidadMedida();
+                if (bultoEntity.getFirstTraza() != null) {
+                    trazaInicial = bultoEntity.getFirstTraza().getNroTraza();
+                }
+
                 firstCase = false;
             } else {
 
@@ -138,6 +142,13 @@ public class DTOUtils {
                     cantidadInicial = cantidadInicialTemp.add(convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida));
                     unidadMedida = unidadSugerida;
                 }
+                if (bultoEntity.getFirstTraza() != null) {
+                    if (trazaInicial == null) {
+                        trazaInicial = bultoEntity.getFirstTraza().getNroTraza();
+                    } else {
+                        trazaInicial = Math.min(trazaInicial, bultoEntity.getFirstTraza().getNroTraza());
+                    }
+                }
                 loteDTO.setCantidadInicial(cantidadInicial);
                 loteDTO.setCantidadActual(cantidadActual);
                 loteDTO.setUnidadMedida(unidadMedida);
@@ -151,6 +162,7 @@ public class DTOUtils {
             }
         }
 
+        loteDTO.setTrazaInicial(trazaInicial);
         loteDTO.setBultosActuales(entities.size());
         loteDTO.setCantidadInicial(cantidadInicial);
         loteDTO.setCantidadActual(cantidadActual);

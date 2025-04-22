@@ -21,6 +21,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoAltaIngresoCompra;
+import static com.mb.conitrack.entity.EntityUtils.createMovimientoAltaIngresoProduccion;
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoCambioDictamen;
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoPorMuestreo;
 import static com.mb.conitrack.entity.EntityUtils.getAnalisisEnCurso;
@@ -171,6 +172,14 @@ public class MovimientoService {
         movimiento.setActivo(true);
         movimiento.setObservaciones(bulto.getObservaciones() + "\nMovimiento Consumo produccion (CU7):\n" + loteDTO.getObservaciones());
         return movimientoRepository.save(movimiento);
+    }
+
+    //***********CU10 ALTA: Produccion***********
+    @Transactional
+    public Movimiento persistirMovimientoAltaIngresoProduccion(Lote lote) {
+        final Movimiento movimientoAltaIngresoProduccion = createMovimientoAltaIngresoProduccion(lote);
+        movimientoAltaIngresoProduccion.setLote(lote);
+        return movimientoRepository.save(movimientoAltaIngresoProduccion);
     }
 
 }

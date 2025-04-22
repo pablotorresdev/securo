@@ -11,6 +11,7 @@ import com.mb.conitrack.dto.validation.AltaCompra;
 import com.mb.conitrack.dto.validation.AltaProduccion;
 import com.mb.conitrack.dto.validation.BajaProduccion;
 import com.mb.conitrack.dto.validation.ValidacionBaja;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
@@ -133,6 +134,13 @@ public class LoteDTO {
             return null;
         }
         return currentAnalisisDto.getNroAnalisis();
+    }
+
+    public Long getTrazaFinal() {
+        if (this.trazaInicial == null) {
+            return null;
+        }
+        return this.trazaInicial + this.cantidadActual.longValueExact() - 1;
     }
 
 }

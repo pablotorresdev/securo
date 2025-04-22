@@ -136,6 +136,13 @@
             </a>
         </li>
 
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/trazas/list-trazas}">
+                Lista de Trazas
+            </a>
+        </li>
+
         <hr class="my-4">
         <h4 class="mb-3 text-primary">ABM Maestro</h4>
         <li>

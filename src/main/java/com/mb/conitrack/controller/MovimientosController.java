@@ -45,7 +45,7 @@ public class MovimientosController {
         return "movimientos/list-movimientos"; //.html
     }
 
-    //TODO: mover a lotes
+    //TODO: ver de refactorear a bodyresponse para unificar
     @GetMapping("/loteId/{loteId}")
     public String listMovimientosPorLote(@PathVariable("loteId") Long loteId, Model model) {
         // Se asume que findById() recupera el lote con sus movimientos (por ejemplo, con fetch join)
