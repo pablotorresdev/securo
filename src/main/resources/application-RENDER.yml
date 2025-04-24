@@ -12,7 +12,7 @@ spring:
     # h2:
     #   console:
     #     enabled: true
-    url: postgresql://conitrack_user:xykmzdgGu9BITrWsOff2FFSkDmv5Fbey@dpg-d05c33euk2gs73cb0520-a/conitrack
+    url: jdbc:postgresql://conitrack_user:xykmzdgGu9BITrWsOff2FFSkDmv5Fbey@dpg-d05c33euk2gs73cb0520-a/conitrack
     username: conitrack_user
     password: xykmzdgGu9BITrWsOff2FFSkDmv5Fbey
   jpa:
