@@ -11,12 +11,12 @@ COPY build/libs/conitrack-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # Configuración de conexión a la base de datos
-# ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/conitrack
-# ENV SPRING_DATASOURCE_USERNAME=postgres
-# ENV SPRING_DATASOURCE_PASSWORD=root
-ENV SPRING_DATASOURCE_URL=jdbc:postgresql://conitrack_user:xykmzdgGu9BITrWsOff2FFSkDmv5Fbey@dpg-d05c33euk2gs73cb0520-a/conitrack
-ENV SPRING_DATASOURCE_USERNAME=conitrack_user
-ENV SPRING_DATASOURCE_PASSWORD=xykmzdgGu9BITrWsOff2FFSkDmv5Fbey
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/conitrack
+ENV SPRING_DATASOURCE_USERNAME=postgres
+ENV SPRING_DATASOURCE_PASSWORD=root
+# ENV SPRING_DATASOURCE_URL=jdbc:postgresql://conitrack_user:xykmzdgGu9BITrWsOff2FFSkDmv5Fbey@dpg-d05c33euk2gs73cb0520-a/conitrack
+# ENV SPRING_DATASOURCE_USERNAME=conitrack_user
+# ENV SPRING_DATASOURCE_PASSWORD=xykmzdgGu9BITrWsOff2FFSkDmv5Fbey
 
 # Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
