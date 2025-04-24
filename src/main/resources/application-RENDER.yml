@@ -12,12 +12,12 @@ spring:
     # h2:
     #   console:
     #     enabled: true
-    url: jdbc:postgresql://localhost:5432/conitrack
-    username: postgres
-    password: root
+    url: postgresql://conitrack_user:xykmzdgGu9BITrWsOff2FFSkDmv5Fbey@dpg-d05c33euk2gs73cb0520-a/conitrack
+    username: conitrack_user
+    password: xykmzdgGu9BITrWsOff2FFSkDmv5Fbey
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect

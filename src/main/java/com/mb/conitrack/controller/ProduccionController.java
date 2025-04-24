@@ -36,6 +36,8 @@ import static com.mb.conitrack.enums.UnidadMedidaUtils.obtenerMenorUnidadMedida;
 @RequestMapping("/produccion")
 public class ProduccionController {
 
+    //TODO: Sistema FIFO (fecha reanalisis/vencimiento) para lotes que compartan el mismo producto
+
     @Autowired
     private ProductoService productoService;
 

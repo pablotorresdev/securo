@@ -37,6 +37,9 @@ import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 @RequestMapping("/calidad")
 public class CalidadController {
 
+
+    //TODO: Nuevo estado APROBADO con Analisis vigente para poder muestrear
+
     @Autowired
     private LoteService loteService;
 
