@@ -5,6 +5,8 @@ FROM gradle:8.2.1-jdk17 AS builder
 COPY . /home/app
 WORKDIR /home/app
 
+RUN chmod +x gradlew
+
 # Build del proyecto
 RUN ./gradlew clean bootJar -x test
 

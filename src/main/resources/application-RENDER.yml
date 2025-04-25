@@ -12,9 +12,9 @@ spring:
     # h2:
     #   console:
     #     enabled: true
-    url: jdbc:postgresql://conitrack_user:xykmzdgGu9BITrWsOff2FFSkDmv5Fbey@dpg-d05c33euk2gs73cb0520-a/conitrack
-    username: conitrack_user
-    password: xykmzdgGu9BITrWsOff2FFSkDmv5Fbey
+    url: jdbc:postgresql://conitrack_8afq_user:Y3ZOu3R4QPuXcS4qcDZyIA6Jp3wtFFBj@dpg-d05um8ruibrs739k77p0-a/conitrack_8afq
+    username: conitrack_8afq_user
+    password: Y3ZOu3R4QPuXcS4qcDZyIA6Jp3wtFFBj
   jpa:
     hibernate:
       ddl-auto: update
