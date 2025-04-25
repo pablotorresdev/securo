@@ -24,7 +24,7 @@ services:
   spring-app:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile
     container_name: spring-app
     environment:
       SPRING_PROFILES_ACTIVE: DEV

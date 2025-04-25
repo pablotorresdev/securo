@@ -9,16 +9,16 @@ Conitrack is a Spring Boot application designed for user management with a Postg
 ## **Project Structure**
 
 ```
-/conitrack                  # Root directory of the project
-   ├── src                 # Source code of the Spring Boot application
-   ├── backups             # Directory for database backups
-   ├── Dockerfile.app      # Dockerfile for the Spring Boot application
-   ├── build.gradle        # Gradle build file
-   ├── data-base           # Directory for database configurations
-   │   ├── backup.sh       # Backup script for PostgreSQL cron job
-   │   ├── custom_backup.sh       # Backup script for custom PostgreSQL copy
-   │   └── Dockerfile.db   # Dockerfile for the PostgreSQL database
-   ├── docker-compose.yml  # Docker Compose configuration file
+/conitrack                   # Root directory of the project
+   ├── src                   # Source code of the Spring Boot application
+   ├── backups               # Directory for database backups
+   ├── Dockerfile            # Dockerfile for the Spring Boot application
+   ├── build.gradle          # Gradle build file
+   ├── data-base             # Directory for database configurations
+   │   ├── backup.sh         # Backup script for PostgreSQL cron job
+   │   ├── custom_backup.sh  # Backup script for custom PostgreSQL copy
+   │   └── Dockerfile.db     # Dockerfile for the PostgreSQL database
+   ├── docker-compose.yml    # Docker Compose configuration file
 ```
 
 ---
