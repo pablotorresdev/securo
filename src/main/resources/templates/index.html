@@ -34,6 +34,13 @@
             </a>
         </li>
 
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/reanalisis-producto}">
+                CUZ. Reanalisis de Producto Aprobado
+            </a>
+        </li>
+
 
         <!-- CU3 Retiro por Muestreo -->
         <li>
@@ -128,7 +135,6 @@
                 Lista de Movimientos
             </a>
         </li>
-
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/analisis/list-analisis}">

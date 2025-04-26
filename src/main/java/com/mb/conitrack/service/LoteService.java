@@ -103,6 +103,17 @@ public class LoteService {
             .toList();
     }
 
+    //***********CU2 MODIFICACION: Reanalisis de Producto Aprobado***********
+    public List<Lote> findAllForReanalisisProducto() {
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        return allSortByDateAndNroBulto.stream()
+            .filter(l -> l.getDictamen() ==
+                DictamenEnum.APROBADO)
+            .filter(l -> l.getAnalisisList().stream()
+                .noneMatch(a -> a.getDictamen() == null && a.getFechaRealizado() == null))
+            .toList();
+    }
+
     //***********CU3 BAJA: MUESTREO***********
     public List<Lote> findAllForMuestreo() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
@@ -211,6 +222,21 @@ public class LoteService {
         }
         return result;
     }
+    //***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
+    @Transactional
+    public List<Lote> persistirReanalisisProducto(final List<Lote> lotes, final MovimientoDTO dto) {
+        final Analisis analisis = DTOUtils.createAnalisis(dto);
+        List<Lote> result = new ArrayList<>();
+        for (Lote loteBulto : lotes) {
+            final Movimiento movimiento = movimientoService.persistirMovimientoReanalisisProducto(dto, loteBulto, analisis.getNroAnalisis());
+            loteBulto.getMovimientos().add(movimiento);
+            loteBulto.getAnalisisList().add(analisis);
+            analisis.getLotes().add(loteBulto);
+            analisisService.save(analisis);
+            result.add(loteRepository.save(loteBulto));
+        }
+        return result;
+    }
 
     //***********CU3 BAJA: MUESTREO***********
     @Transactional
@@ -241,6 +267,7 @@ public class LoteService {
             final Movimiento movimiento = movimientoService.persistirMovimientoDevolucionCompra(dto, loteBulto);
             loteBulto.setCantidadActual(BigDecimal.ZERO);
             loteBulto.setEstado(EstadoEnum.DEVUELTO);
+            loteBulto.setDictamen(DictamenEnum.RECHAZADO);
             loteBulto.getMovimientos().add(movimiento);
             Lote newLote = loteRepository.save(loteBulto);
             result.add(newLote);

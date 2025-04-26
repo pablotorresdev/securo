@@ -28,7 +28,7 @@ public class ProductoService {
             .stream()
             .sorted(Comparator.comparing(Producto::getCodigoInterno))
             .filter(Producto::getActivo)
-            .filter(p -> p.getTipoProducto().esSemiElaborado() && p.getTipoProducto() != TipoProductoEnum.UNIDAD_VENTA)
+            .filter(p -> !p.getTipoProducto().esSemiElaborado() && p.getTipoProducto() != TipoProductoEnum.UNIDAD_VENTA)
             .collect(Collectors.toList());
     }
 

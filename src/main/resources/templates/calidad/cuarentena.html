@@ -22,7 +22,8 @@
             <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:data-dictamen="${loteDTO.dictamen.valor}"
-                        th:data-nroanalisis="${loteDTO.getCurrentNroAnalisis()}"
+                        th:data-nroanalisis="${loteDTO.getNroUltimoAnalisis()}"
+                        th:data-analisisencurso="${loteDTO.getNroAnalisisEnCurso()}"
                         th:each="loteDTO : ${lotesForCuarentena}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
@@ -101,10 +102,21 @@
         const nroAnalisisInput = document.getElementById('nroAnalisis');
         const nroReanalisisInput = document.getElementById('nroReanalisis');
 
+
+        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        if (fechaMovimientoDTO) {
+            document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            document.getElementById("fechaMovimiento").value = hoyFormateado;
+        }
+
         function actualizarVisibilidadCampos() {
             const selectedOption = loteSelect.options[loteSelect.selectedIndex];
             const dictamen = selectedOption.getAttribute('data-dictamen');
             const nroAnalisis = selectedOption.getAttribute('data-nroanalisis');
+            const analisisencurso = selectedOption.getAttribute('data-analisisencurso');
 
             if (!dictamen) {
                 grupoEditable.style.display = 'none';
@@ -115,19 +127,37 @@
                 return;
             }
 
-            if (dictamen.trim().toLowerCase() === 'recibido') {
-                grupoEditable.style.display = 'block';
-                grupoReadonly.style.display = 'none';
+            if (analisisencurso && analisisencurso.trim() !== "") {
+                // Si hay análisis en curso
+                grupoEditable.style.display = 'none';
+                grupoReadonly.style.display = 'block';
                 grupoReanalisis.style.display = 'none';
+
+                // Mostrar el análisis en curso como readonly
+                nroAnalisisReadonlyInput.value = analisisencurso;
+
+                // También setearlo en el campo oculto para enviar
+                nroAnalisisInput.value = analisisencurso;
                 nroAnalisisInput.required = true;
                 nroReanalisisInput.required = false;
             } else {
-                grupoEditable.style.display = 'none';
-                grupoReadonly.style.display = 'block';
-                grupoReanalisis.style.display = 'block';
-                nroAnalisisReadonlyInput.value = nroAnalisis || '';
-                nroAnalisisInput.required = false;
-                nroReanalisisInput.required = true;
+                // Si NO hay análisis en curso, comportamiento normal
+                if (dictamen.trim().toLowerCase() === 'recibido') {
+                    grupoEditable.style.display = 'block';
+                    grupoReadonly.style.display = 'none';
+                    grupoReanalisis.style.display = 'none';
+                    nroAnalisisInput.required = true;
+                    nroReanalisisInput.required = false;
+                    nroAnalisisInput.value = ''; // limpiar valor anterior
+                } else {
+                    grupoEditable.style.display = 'none';
+                    grupoReadonly.style.display = 'block';
+                    grupoReanalisis.style.display = 'block';
+                    nroAnalisisReadonlyInput.value = nroAnalisis || '';
+                    nroAnalisisInput.required = false;
+                    nroReanalisisInput.required = true;
+                    nroAnalisisInput.value = ''; // limpiar valor anterior
+                }
             }
         }
 

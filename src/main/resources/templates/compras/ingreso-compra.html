@@ -32,7 +32,11 @@
                 <option value="">-- Seleccione un producto --</option>
                 <option th:attr="data-unit=${producto.unidadMedida}"
                         th:each="producto : ${productos}"
-                        th:text="${producto.nombreGenerico}"
+                        th:text="'Producto: ' + ${producto.nombreGenerico}
+                         + ' | Tipo: ' + ${producto.tipoProducto}
+                         + ' | Grupo: ' + ${producto.tipoProducto.getGrupo()}
+                         + ' | Codigo Interno: ' + ${producto.codigoInterno}
+                         + (${producto.productoDestino} != null ? ' | Producto destino: ' + ${producto.productoDestino} : '')"
                         th:value="${producto.id}"></option>
             </select>
             <div class="text-danger" th:errors="*{productoId}" th:if="${#fields.hasErrors('productoId')}"></div>
@@ -168,7 +172,12 @@
         var fechaIngresoDTO = /*[[${loteDTO.fechaIngreso}]]*/ [];
         if (fechaIngresoDTO) {
             document.getElementById("fechaIngreso").value = fechaIngresoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            document.getElementById("fechaIngreso").value = hoyFormateado;
         }
+
         var fechaReanalisisProveedorDTO = /*[[${loteDTO.fechaReanalisisProveedor != null ? loteDTO.fechaReanalisisProveedor : '[]'}]]*/ [];
         if (fechaReanalisisProveedorDTO) {
             document.getElementById("fechaReanalisisProveedor").value = fechaReanalisisProveedorDTO;

@@ -28,7 +28,7 @@ public class EntityUtils {
         }
     }
 
-    public static Movimiento createMovimientoCambioDictamen(final MovimientoDTO dto, final Lote lote) {
+    public static Movimiento createMovimientoModificacion(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
 
         movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);

@@ -69,5 +69,18 @@
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        if (fechaMovimientoDTO) {
+            document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            document.getElementById("fechaMovimiento").value = hoyFormateado;
+        }
+    });
+</script>
 </body>
 </html>

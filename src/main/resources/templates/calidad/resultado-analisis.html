@@ -28,8 +28,8 @@
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:attr="lote-codigoInterno=${loteDTO.codigoInterno}"
                         th:each="loteDTO : ${lotesForResultado}"
-                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno} + ' | Análisis: ' + ${loteDTO.getCurrentNroAnalisis()}"
-                        th:value="${loteDTO.getCurrentNroAnalisis()}">
+                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisis()}"
+                        th:value="${loteDTO.getNroUltimoAnalisis()}">
                 </option>
             </select>
             <div class="text-danger" th:errors="*{codigoInterno}" th:if="${#fields.hasErrors('codigoInterno')}"></div>
@@ -123,6 +123,10 @@
         var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ [];
         if (fechaRealizadoAnalisisDTO) {
             document.getElementById("fechaRealizadoAnalisis").value = fechaRealizadoAnalisisDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            document.getElementById("fechaRealizadoAnalisis").value = hoyFormateado;
         }
         var fechaReanalisisDTO = /*[[${movimientoDTO.fechaReanalisis}]]*/ [];
         if (fechaReanalisisDTO) {

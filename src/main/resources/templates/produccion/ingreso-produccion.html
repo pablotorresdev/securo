@@ -33,7 +33,11 @@
                 <option
                         th:each="producto : ${productos}"
                         th:value="${producto.id}"
-                        th:text="${producto.nombreGenerico}"
+                        th:text="'Producto: ' + ${producto.nombreGenerico}
+                         + ' | Tipo: ' + ${producto.tipoProducto}
+                         + ' | Grupo: ' + ${producto.tipoProducto.getGrupo()}
+                         + ' | Codigo Interno: ' + ${producto.codigoInterno}
+                         + (${producto.productoDestino} != null ? ' | Producto destino: ' + ${producto.productoDestino} : '')"
                         th:attr="data-unit=${producto.unidadMedida},data-tipo-producto=${producto.tipoProducto}">
                 </option>
             </select>
@@ -135,6 +139,10 @@
         var fechaIngresoDTO = /*[[${loteDTO.fechaIngreso}]]*/ [];
         if (fechaIngresoDTO) {
             document.getElementById("fechaIngreso").value = fechaIngresoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            document.getElementById("fechaIngreso").value = hoyFormateado;
         }
 
         // Referencia al select de unidad de medida principal

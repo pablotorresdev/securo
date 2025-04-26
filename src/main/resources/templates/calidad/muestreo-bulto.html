@@ -43,7 +43,7 @@
                 <option th:each="loteDto : ${lotesMuestreables}"
                         th:text="'Nombre: ' + ${loteDto.nombreProducto}
                         + ' ID Lote: ' +${loteDto.loteProveedor}
-                        + ' Nro Analisis: ' +${loteDto.currentNroAnalisis}
+                        + ' Nro Analisis: ' +${loteDto.nroUltimoAnalisis}
                         + ' Dictamen: ' + ${loteDto.dictamen}"
                         th:value="${loteDto.codigoInterno}">
                 </option>
@@ -138,6 +138,15 @@
         // === Campos relacionados con análisis ===
         const nroAnalisisInfo = document.getElementById('nroAnalisisInfo');
         const dictamenAnalisisInfo = document.getElementById('dictamenAnalisisInfo');     // input para nro de análisis
+
+        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        if (fechaMovimientoDTO) {
+            document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            document.getElementById("fechaMovimiento").value = hoyFormateado;
+        }
 
         // === Cambio en el combo de lote representativo ===
         loteMuestreoSelect.addEventListener('change', function () {

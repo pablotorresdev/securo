@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import org.thymeleaf.util.StringUtils;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.validation.BajaProduccion;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -36,7 +38,6 @@ import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 @Controller
 @RequestMapping("/calidad")
 public class CalidadController {
-
 
     //TODO: Nuevo estado APROBADO con Analisis vigente para poder muestrear
 
@@ -68,10 +69,12 @@ public class CalidadController {
 
     @PostMapping("/cuarentena")
     public String procesarDictamenCuarentena(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes) {
+        @Validated(BajaProduccion.class) @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("movimientoDTO", movimientoDTO);
+            return "calidad/cuarentena";
+        }
 
         final List<Lote> lotesList = loteService.findLoteListByCodigoInterno(movimientoDTO.getCodigoInterno());
 
@@ -87,7 +90,7 @@ public class CalidadController {
             return "calidad/cuarentena";
         }
 
-        calidadCuarentena(movimientoDTO, redirectAttributes, lotesList);
+        persistirDictamenCuarentena(movimientoDTO, redirectAttributes, lotesList);
         return "redirect:/calidad/cuarentena-ok";
     }
 
@@ -95,6 +98,53 @@ public class CalidadController {
     public String exitoDictamenCuarentena(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
         return "calidad/cuarentena-ok";
+    }
+
+    //***************************** CUZ Reanalisis de Producto Aprobado************************************
+    // CUZ: Reanalisis de Producto Aprobado
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
+    @GetMapping("/reanalisis-producto")
+    public String showReanalisisProductoForm(
+        @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
+        //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
+        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForReanalisisProducto());
+        model.addAttribute("lotesForReanalisis", lotesDtos);
+        model.addAttribute("movimientoDTO", movimientoDTO);
+
+        return "calidad/reanalisis-producto";
+    }
+
+    @PostMapping("/reanalisis-producto")
+    public String procesarReanalisisProducto(
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("movimientoDTO", movimientoDTO);
+            return "calidad/reanalisis-producto";
+        }
+
+        final List<Lote> lotesList = loteService.findLoteListByCodigoInterno(movimientoDTO.getCodigoInterno());
+
+        if (lotesList.isEmpty()) {
+            bindingResult.reject("codigoInterno", "Lote bloqueado.");
+            return "calidad/reanalisis-producto";
+        }
+
+        validarValidarNroAnalisis(movimientoDTO, bindingResult);
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("movimientoDTO", movimientoDTO);
+            return "calidad/reanalisis-producto";
+        }
+
+        persistirReanalisisProducto(movimientoDTO, redirectAttributes, lotesList);
+        return "redirect:/calidad/reanalisis-producto-ok";
+    }
+
+    @GetMapping("/reanalisis-producto-ok")
+    public String exitoReanalisisProducto(
+        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
+        return "calidad/reanalisis-producto-ok";
     }
 
     //***************************** CU3 Muestreo************************************
@@ -112,6 +162,11 @@ public class CalidadController {
     @PostMapping("/muestreo-bulto")
     public String procesarMuestreoBulto(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("movimientoDTO", movimientoDTO);
+            return "calidad/muestreo-bulto";
+        }
 
         Lote lote = loteService.findLoteBultoById(movimientoDTO.getLoteId());
 
@@ -165,6 +220,11 @@ public class CalidadController {
     @PostMapping("/resultado-analisis")
     public String procesarResultadoAnalisis(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            setupModelResultadoAnalisis(movimientoDTO, model);
+            return "calidad/resultado-analisis";
+        }
 
         validarResultadoAnalisis(movimientoDTO, bindingResult);
 
@@ -288,28 +348,23 @@ public class CalidadController {
 
         //Al menos necesitamos haber hecho un muestreo para poder hacer un análisis
         for (Lote lote : loteList) {
-            existeMuestreo |= lote.getMovimientos().stream()
-                .anyMatch(m -> m.getTipoMovimiento() == TipoMovimientoEnum.BAJA
-                    && m.getMotivo() == MotivoEnum.MUESTREO
-                    && movimientoDTO.getNroAnalisis().equals(m.getNroAnalisis()));
+            existeMuestreo |= lote.getMovimientos()
+                .stream()
+                .anyMatch(m -> m.getTipoMovimiento() == TipoMovimientoEnum.BAJA &&
+                    m.getMotivo() == MotivoEnum.MUESTREO &&
+                    movimientoDTO.getNroAnalisis().equals(m.getNroAnalisis()));
         }
 
         if (!existeMuestreo) {
-            bindingResult.rejectValue(
-                "nroAnalisis",
-                "",
-                "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis()
-            );
+            bindingResult.rejectValue("nroAnalisis", "", "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis());
             return;
         }
 
         final Lote loteBulto = loteList.get(0);
 
         // La fecha de realizado el análisis no puede ser anterior a la fecha de ingreso del lote
-        if (movimientoDTO.getFechaRealizadoAnalisis() != null &&
-            movimientoDTO.getFechaRealizadoAnalisis().isBefore(loteBulto.getFechaIngreso())) {
-            bindingResult.rejectValue("fechaRealizadoAnalisis", "",
-                "La fecha de realización no puede ser anterior a la fecha de ingreso del lote");
+        if (movimientoDTO.getFechaRealizadoAnalisis() != null && movimientoDTO.getFechaRealizadoAnalisis().isBefore(loteBulto.getFechaIngreso())) {
+            bindingResult.rejectValue("fechaRealizadoAnalisis", "", "La fecha de realización no puede ser anterior a la fecha de ingreso del lote");
         }
 
         // Validaciones sobre fecha de reanálisis vs proveedor
@@ -319,27 +374,19 @@ public class CalidadController {
 
         //TODO: completar el resto de las validaciones
         if (movimientoDTO.getFechaReanalisis() != null) {
-            long analisisAprobados = analisisList.stream()
-                .filter(a -> a.getDictamen() == DictamenEnum.APROBADO)
-                .count();
+            long analisisAprobados = analisisList.stream().filter(a -> a.getDictamen() == DictamenEnum.APROBADO).count();
             if (analisisAprobados == 0) {
                 // Lote NO fue analizado antes con dictamen APROBADO
-                if (loteBulto.getFechaReanalisisProveedor() != null &&
-                    movimientoDTO.getFechaReanalisis().isAfter(loteBulto.getFechaReanalisisProveedor())) {
-                    bindingResult.rejectValue("fechaReanalisis", "",
-                        "La fecha de reanálisis no puede ser posterior a la fecha de reanálisis del proveedor");
+                if (loteBulto.getFechaReanalisisProveedor() != null && movimientoDTO.getFechaReanalisis().isAfter(loteBulto.getFechaReanalisisProveedor())) {
+                    bindingResult.rejectValue("fechaReanalisis", "", "La fecha de reanálisis no puede ser posterior a la fecha de reanálisis del proveedor");
                 }
-                if (loteBulto.getFechaVencimientoProveedor() != null &&
-                    movimientoDTO.getFechaReanalisis().isAfter(loteBulto.getFechaVencimientoProveedor())) {
-                    bindingResult.rejectValue("fechaReanalisis", "",
-                        "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento del proveedor");
+                if (loteBulto.getFechaVencimientoProveedor() != null && movimientoDTO.getFechaReanalisis().isAfter(loteBulto.getFechaVencimientoProveedor())) {
+                    bindingResult.rejectValue("fechaReanalisis", "", "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento del proveedor");
                 }
             } else {
                 // El lote YA tiene al menos un análisis APROBADO
-                if (loteBulto.getFechaVencimientoProveedor() != null &&
-                    movimientoDTO.getFechaReanalisis().isAfter(loteBulto.getFechaVencimientoProveedor())) {
-                    bindingResult.rejectValue("fechaReanalisis", "",
-                        "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento del proveedor");
+                if (loteBulto.getFechaVencimientoProveedor() != null && movimientoDTO.getFechaReanalisis().isAfter(loteBulto.getFechaVencimientoProveedor())) {
+                    bindingResult.rejectValue("fechaReanalisis", "", "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento del proveedor");
                 }
             }
         }
@@ -348,8 +395,7 @@ public class CalidadController {
         if (movimientoDTO.getFechaVencimiento() != null &&
             loteBulto.getFechaVencimientoProveedor() != null &&
             movimientoDTO.getFechaVencimiento().isAfter(loteBulto.getFechaVencimientoProveedor())) {
-            bindingResult.rejectValue("fechaVencimiento", "",
-                "La fecha de vencimiento no puede ser posterior a la fecha de vencimiento del proveedor");
+            bindingResult.rejectValue("fechaVencimiento", "", "La fecha de vencimiento no puede ser posterior a la fecha de vencimiento del proveedor");
         }
 
         // (5) El valor del título no puede ser mayor al valor del título del último análisis aprobado
@@ -360,8 +406,13 @@ public class CalidadController {
             .orElse(null);
 
         if (ultimoAprobado != null && movimientoDTO.getTitulo().compareTo(ultimoAprobado.getTitulo()) > 0) {
-            bindingResult.rejectValue("titulo", "",
-                "El valor del título no puede ser mayor al del último análisis aprobado (" + ultimoAprobado.getTitulo() + ")");
+            bindingResult.rejectValue("titulo", "", "El valor del título no puede ser mayor al del último análisis aprobado (" + ultimoAprobado.getTitulo() + ")");
+        }
+    }
+
+    private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
+        if (dto.getNroAnalisis() == null) {
+            bindingResult.rejectValue("nroAnalisis", "", "Debe ingresar un nro de Analisis");
         }
     }
 
@@ -385,7 +436,7 @@ public class CalidadController {
         }
     }
 
-    private void calidadCuarentena(final MovimientoDTO dto, final RedirectAttributes redirectAttributes, final List<Lote> lotesList) {
+    private void persistirDictamenCuarentena(final MovimientoDTO dto, final RedirectAttributes redirectAttributes, final List<Lote> lotesList) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.persistirDictamenCuarentena(lotesList, dto);
 
@@ -393,10 +444,12 @@ public class CalidadController {
         redirectAttributes.addFlashAttribute("success", "Cambio de calidad a Cuarentena exitoso");
     }
 
-    private void validarValidarNroAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
-        if (dto.getNroAnalisis() == null) {
-            bindingResult.rejectValue("nroAnalisis", "", "Debe ingresar un nro de Analisis");
-        }
+    private void persistirReanalisisProducto(final MovimientoDTO dto, final RedirectAttributes redirectAttributes, final List<Lote> lotesList) {
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        final List<Lote> lotes = loteService.persistirReanalisisProducto(lotesList, dto);
+
+        redirectAttributes.addFlashAttribute("loteDTO", DTOUtils.fromEntities(lotes));
+        redirectAttributes.addFlashAttribute("success", "Anilisis asignado con éxito");
     }
 
 }

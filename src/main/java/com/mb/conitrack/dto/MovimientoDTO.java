@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.mb.conitrack.dto.validation.AltaProduccion;
+import com.mb.conitrack.dto.validation.BajaProduccion;
+import com.mb.conitrack.dto.validation.ValidacionModificacion;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
@@ -25,6 +28,7 @@ public class MovimientoDTO {
 
     //Datos Comunes de ingreso
     @NotNull(message = "La fecha del movimiento es obligatoria")
+    @PastOrPresent(message = "La fecha en que se realizo el analisis no puede ser futura", groups = { ValidacionModificacion.class })
     private LocalDate fechaMovimiento;
 
     private DictamenEnum dictamenInicial;

@@ -23,7 +23,7 @@
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${lotesProduccion}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} +
-                  ' | Nro Analisis: ' + ${loteDTO.getCurrentNroAnalisis()} +
+                  ' | Nro Analisis: ' + ${loteDTO.getNroUltimoAnalisis()} +
                   ' | Codigo Interno: ' + ${loteDTO.codigoInterno}"
                         th:value="${loteDTO.codigoInterno}">
                 </option>
@@ -99,6 +99,10 @@
         var fechaEgresoDTO = /*[[${loteDTO.fechaEgreso}]]*/ [];
         if (fechaEgresoDTO) {
             document.getElementById("fechaEgreso").value = fechaEgresoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            document.getElementById("fechaEgreso").value = hoyFormateado;
         }
 
         /* lotes y DTO que viene del back */

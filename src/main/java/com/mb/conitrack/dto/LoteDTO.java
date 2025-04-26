@@ -11,7 +11,6 @@ import com.mb.conitrack.dto.validation.AltaCompra;
 import com.mb.conitrack.dto.validation.AltaProduccion;
 import com.mb.conitrack.dto.validation.BajaProduccion;
 import com.mb.conitrack.dto.validation.ValidacionBaja;
-import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
@@ -34,7 +33,7 @@ public class LoteDTO {
     protected String codigoInterno;
 
     //Datos de ALTA obligatorios
-    @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class, AltaProduccion.class  })
+    @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
     @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = { AltaCompra.class })
     private LocalDate fechaIngreso;
 
@@ -88,13 +87,15 @@ public class LoteDTO {
 
     //Identificadores individuales de bultos y cantidades
     protected List<Integer> nroBultoList = new ArrayList<>();
+
     protected List<BigDecimal> cantidadesBultos = new ArrayList<>();
+
     protected List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 
     @PositiveOrZero(message = "La cantidad no puede ser negativa")
     private BigDecimal cantidadActual;
-    private Integer bultosActuales;
 
+    private Integer bultosActuales;
 
     //Esto junto con cantidad de unidades total, dara el rango de traza para ese lote
     protected Long trazaInicial;
@@ -103,16 +104,24 @@ public class LoteDTO {
     protected Integer nroBulto;
 
     protected List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
+
     protected List<AnalisisDTO> analisisDTOs = new ArrayList<>();
 
     //Datos derivados
     protected String nombreProducto;
+
     protected String codigoProducto;
+
     protected TipoProductoEnum tipoProducto;
+
     protected String productoDestino;
+
     protected String nombreProveedor;
+
     protected String nombreFabricante;
+
     protected DictamenEnum dictamen;
+
     protected String estado;
 
     //********************Utils********************//
@@ -128,12 +137,20 @@ public class LoteDTO {
         }
     }
 
-    public String getCurrentNroAnalisis() {
+    public String getNroUltimoAnalisis() {
         final AnalisisDTO currentAnalisisDto = getCurrentAnalisisDto();
         if (currentAnalisisDto == null) {
             return null;
         }
         return currentAnalisisDto.getNroAnalisis();
+    }
+
+    public String getNroAnalisisEnCurso() {
+        return this.analisisDTOs.stream()
+            .filter(analisis -> analisis.getDictamen() == null && analisis.getFechaRealizado() == null)
+            .map(AnalisisDTO::getNroAnalisis)
+            .findFirst()
+            .orElse(null);
     }
 
     public Long getTrazaFinal() {
