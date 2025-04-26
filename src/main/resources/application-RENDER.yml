@@ -20,7 +20,6 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         connection:
           charSet: UTF-8
@@ -36,9 +35,9 @@ spring:
   web:
     resources:
       static-locations: classpath:/static/,classpath:/public/
-#  sql:
-#    init:
-#      mode: always
+  sql:
+    init:
+      mode: always
 
 server:
   port: 8080

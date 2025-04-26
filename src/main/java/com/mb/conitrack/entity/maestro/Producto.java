@@ -49,9 +49,6 @@ public class Producto {
     @Column(name = "unidad_medida", nullable = false)
     private UnidadMedidaEnum unidadMedida;
 
-    @Column(name = "pais_origen", nullable = false)
-    private String paisOrigen;
-
     //TODO: Obligatorio para: API, Semielaborado, Acond. secundario
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "producto_destino_id")

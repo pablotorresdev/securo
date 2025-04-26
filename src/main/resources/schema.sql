@@ -47,7 +47,6 @@ CREATE TABLE productos
     nombre_generico     VARCHAR(255) NOT NULL,
     codigo_interno      VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
     tipo_producto       VARCHAR(50)  NOT NULL,
-    pais_origen         VARCHAR(100) NOT NULL,
     unidad_medida       VARCHAR(50)  NOT NULL,
     producto_destino_id INT,
     observaciones       TEXT,
