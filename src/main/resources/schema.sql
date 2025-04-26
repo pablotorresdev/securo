@@ -43,16 +43,14 @@ CREATE TABLE IF NOT EXISTS users
 --TABLAS DATOS MAESTROS--
 CREATE TABLE productos
 (
-    id                  SERIAL PRIMARY KEY,
-    nombre_generico     VARCHAR(255) NOT NULL,
-    codigo_interno      VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
-    tipo_producto       VARCHAR(50)  NOT NULL,
-    unidad_medida       VARCHAR(50)  NOT NULL,
-    producto_destino_id INT,
-    observaciones       TEXT,
-    activo              BOOLEAN      NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_producto
-        FOREIGN KEY (producto_destino_id) REFERENCES productos (id)
+    id               SERIAL PRIMARY KEY,
+    nombre_generico  VARCHAR(255) NOT NULL,
+    codigo_interno   VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
+    tipo_producto    VARCHAR(50)  NOT NULL,
+    unidad_medida    VARCHAR(50)  NOT NULL,
+    producto_destino VARCHAR(50),
+    observaciones    TEXT,
+    activo           BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE proveedores

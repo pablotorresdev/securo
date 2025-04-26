@@ -1,5 +1,9 @@
 package com.mb.conitrack.enums;
 
+import lombok.Data;
+import lombok.Getter;
+
+@Getter
 public enum TipoProductoEnum {
     API("Api", "MatPrima", 1, true),
     EXCIPIENTE("Excipiente", "MatPrima",  1,false),
@@ -16,35 +20,17 @@ public enum TipoProductoEnum {
     UNIDAD_VENTA("Unidad venta", "UniVenta", 9,false);
 
     private final String valor;
-
     private final String grupo;
-
-    private int codigo;
-
+    private final int codigo;
     private final boolean requiereProductoDestino;
 
-    TipoProductoEnum(String valor, String grupo, int codigo, boolean productoDestino) {
+    TipoProductoEnum(String valor, String grupo, int codigo, boolean requiereProductoDestino) {
         this.valor = valor;
         this.grupo = grupo;
         this.codigo = codigo;
-        this.requiereProductoDestino = productoDestino;
+        this.requiereProductoDestino = requiereProductoDestino;
     }
 
-    public String getValor() {
-        return valor;
-    }
-
-    public String getGrupo() {
-        return grupo;
-    }
-
-    public int getCodigo() {
-        return codigo;
-    }
-
-    public boolean requiereProductoDestino() {
-        return requiereProductoDestino;
-    }
 
     public boolean esSemiElaborado() {
         return "SemiElab".equals(this.grupo);

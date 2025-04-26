@@ -50,9 +50,8 @@ public class Producto {
     private UnidadMedidaEnum unidadMedida;
 
     //TODO: Obligatorio para: API, Semielaborado, Acond. secundario
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "producto_destino_id")
-    private Producto productoDestino;
+    @Column(name = "producto_destino", length = 50)
+    private String productoDestino;
 
     @Column(columnDefinition = "TEXT")
     private String observaciones;

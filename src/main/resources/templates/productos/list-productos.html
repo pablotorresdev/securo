@@ -34,7 +34,7 @@
             <td th:text="${producto.codigoInterno}"></td>
             <td th:text="${producto.tipoProducto}"></td>
             <td th:text="${producto.unidadMedida}"></td>
-            <td th:text="${producto.productoDestino != null ? producto.productoDestino.nombreGenerico : ''}"></td>
+            <td th:text="${producto.productoDestino != null ? producto.productoDestino : ''}"></td>
             <td th:text="${producto.observaciones}"></td>
             <td>
                 <div th:if="${producto.activo}">

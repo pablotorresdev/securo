@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.TipoProductoEnum;
@@ -55,14 +56,13 @@ public class ABMProductosController {
         producto.setActivo(true);  // Aseguramos que se guarde como activo
 
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
-        if (tipoProducto.requiereProductoDestino()) {
-            if (producto.getProductoDestino() == null) {
+        if (tipoProducto.isRequiereProductoDestino()) {
+            if (StringUtils.isEmpty(producto.getProductoDestino())) {
                 bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
                 model.addAttribute("productosDestino", productoService.getProductosInternos());
                 return "productos/add-producto";
             }
-        }
-        if (!tipoProducto.requiereProductoDestino()) {
+        } else {
             producto.setProductoDestino(null);
         }
 

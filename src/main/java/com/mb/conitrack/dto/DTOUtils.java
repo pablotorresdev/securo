@@ -206,7 +206,7 @@ public class DTOUtils {
             loteDTO.setNombreProducto(producto.getNombreGenerico());
             loteDTO.setCodigoProducto(producto.getCodigoInterno());
             loteDTO.setTipoProducto(producto.getTipoProducto());
-            loteDTO.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino().getNombreGenerico() : null);
+            loteDTO.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino() : null);
         }
     }
 

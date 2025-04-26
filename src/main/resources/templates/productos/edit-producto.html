@@ -33,10 +33,7 @@
                 </option>
             </select>
         </div>
-        <div class="mb-3">
-            <label class="form-label" for="paisOrigen">Pais origen:</label>
-            <input class="form-control" id="paisOrigen" required th:field="*{paisOrigen}" type="text">
-        </div>
+
         <div class="mb-3">
             <label class="form-label" for="unidadMedida">Unidad Medida:</label>
             <select class="form-control" id="unidadMedida" required th:field="*{unidadMedida}">
@@ -46,18 +43,10 @@
             </select>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label" for="productoDestino">Producto destino:</label>
-            <select class="form-select" id="productoDestino" th:field="*{productoDestino}">
-                <option value="">-- Seleccione un producto --</option>
-                <option th:each="productoDestino : ${productosDestino}"
-                        th:text="${productoDestino.nombreGenerico}"
-                        th:value="${productoDestino.id}">Producto destino
-                </option>
-            </select>
-            <!-- Show binding errors if any -->
+        <div class="mb-2">
+            <label class="form-label" for="productoDestino">Producto Destino:</label>
+            <input class="form-control" id="productoDestino" required th:field="*{productoDestino}" type="text">
             <div class="error" th:errors="*{productoDestino}" th:if="${#fields.hasErrors('productoDestino')}"></div>
-            <!-- Also show a custom error from the model if available -->
             <div class="error" th:if="${error != null}" th:text="${error}"></div>
         </div>
 
