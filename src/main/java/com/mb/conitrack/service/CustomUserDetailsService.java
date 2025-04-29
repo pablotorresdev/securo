@@ -50,6 +50,24 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (userRepository.findByUsername("pablo").isEmpty()) {
             userRepository.save(new User("pablo", passwordEncoder().encode("pablo"), adminRole));
         }
+        if (userRepository.findByUsername("julian").isEmpty()) {
+            userRepository.save(new User("julian", passwordEncoder().encode("julian"), adminRole));
+        }
+        if (userRepository.findByUsername("matias").isEmpty()) {
+            userRepository.save(new User("matias", passwordEncoder().encode("matias"), adminRole));
+        }
+        if (userRepository.findByUsername("carolina").isEmpty()) {
+            userRepository.save(new User("carolina", passwordEncoder().encode("carolina"), adminRole));
+        }
+        if (userRepository.findByUsername("romina").isEmpty()) {
+            userRepository.save(new User("romina", passwordEncoder().encode("romina"), adminRole));
+        }
+        if (userRepository.findByUsername("juan").isEmpty()) {
+            userRepository.save(new User("juan", passwordEncoder().encode("juan"), adminRole));
+        }
+        if (userRepository.findByUsername("emiliano").isEmpty()) {
+            userRepository.save(new User("emiliano", passwordEncoder().encode("emiliano"), adminRole));
+        }
         if (userRepository.findByUsername("user1").isEmpty()) {
             userRepository.save(new User("user1", passwordEncoder().encode("user1"), userRole1));
         }

@@ -11,26 +11,20 @@
     <table class="table table-bordered table-sm">
         <thead>
         <tr>
-            <th>ID</th>
+            <th>Nro Traza</th>
             <th>Producto</th>
             <th>Lote</th>
-            <th>Nro Traza</th>
             <th>Estado</th>
-            <th>Fecha de Creación</th>
             <th>Observaciones</th>
-            <th>Activo</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="traza : ${trazas}">
-            <td th:text="${traza.id}"></td>
+            <td th:text="${traza.nroTraza}"></td>
             <td th:text="${traza.producto.nombreGenerico}"></td>
             <td th:text="${traza.lote.codigoInterno}"></td>
-            <td th:text="${traza.nroTraza}"></td>
             <td th:text="${traza.estado}"></td>
-            <td th:text="${#temporals.format(traza.fechaYHoraCreacion, 'dd/MM/yyyy HH:mm')}"></td>
             <td th:text="${traza.observaciones}"></td>
-            <td th:text="${traza.activo ? 'Sí' : 'No'}"></td>
         </tr>
         </tbody>
     </table>

@@ -35,20 +35,23 @@
         <!-- 1er Selector: Lote a muestrear  (representante) -->
         <div class="mb-2">
             <label class="form-label" for="loteMuestreo">Lote:</label>
-            <select class="form-select" id="loteMuestreo" required>
+            <select class="form-select"
+                    id="loteMuestreo"
+                    required
+                    th:field="*{codigoInterno}"
+                    th:classappend="${#fields.hasErrors('codigoInterno')} ? ' error-field'">
                 <option value="">-- Seleccione el lote a muestrear --</option>
                 <!-- Iteramos sobre todos los lotes “muestreables”
                      Pero solo mostramos en el combo aquellos con nroBulto = 1
                      (los “representantes”). -->
-                <option th:each="loteDto : ${lotesMuestreables}"
-                        th:text="'Nombre: ' + ${loteDto.nombreProducto}
-                        + ' ID Lote: ' +${loteDto.loteProveedor}
-                        + ' Nro Analisis: ' +${loteDto.nroUltimoAnalisis}
-                        + ' Dictamen: ' + ${loteDto.dictamen}"
-                        th:value="${loteDto.codigoInterno}">
+                <option th:each="loteDTO : ${lotesMuestreables}"
+                        th:text="'Nombre: ' + ${loteDTO.nombreProducto}
+                         + ' | ID Lote: ' + ${loteDTO.loteProveedor}
+                         + ' | Nro Análisis: ' + ${loteDTO.nroUltimoAnalisisDto}
+                         + ' | Dictamen: ' + ${loteDTO.dictamen}"
+                        th:value="${loteDTO.codigoInterno}">
                 </option>
             </select>
-
         </div>
 
         <!-- 2do Selector: Bultos por lote (segundo combo) -->
@@ -74,23 +77,24 @@
 
         <!-- Cantidad + Unidad que se usarán para el muestreo real -->
         <div class="row mb-3 align-items-end">
-            <div class="col-md-6">
+            <div class="col-md-6 d-flex flex-column">
                 <label class="form-label" for="cantidadBultoElegido">Cantidad:</label>
-                <input class="form-control" id="cantidadBultoElegido" required step="0.0001" th:field="*{cantidad}" type="number">
-                <div class="text-danger fw-bold"
-                     th:errors="*{cantidad}"
-                     th:if="${#fields.hasErrors('cantidad')}">
-                </div>
+                <input class="form-control" id="cantidadBultoElegido" required step="0.01" th:field="*{cantidad}" type="number">
             </div>
-            <div class="col-md-3">
+
+            <div class="col-md-3 d-flex flex-column">
                 <label class="form-label" for="uniMedBultoElegido">Unidad de Medida:</label>
                 <select class="form-select" id="uniMedBultoElegido" required th:field="*{unidadMedida}">
                     <option value="">-- Seleccione unidad --</option>
                 </select>
             </div>
+
+            <div class="text-danger fw-bold mt-1"
+                 th:errors="*{cantidad}"
+                 th:if="${#fields.hasErrors('cantidad')}">
+            </div>
         </div>
 
-        <!-- N° de Análisis -->
         <!-- N° de Análisis -->
         <div class="mb-2">
             <label class="form-label">N° de Análisis (último):</label>
@@ -120,32 +124,32 @@
 </footer>
 
 <script th:inline="javascript">
-    // Ejecutar el script una vez que el DOM esté completamente cargado
     document.addEventListener('DOMContentLoaded', function () {
-
-        // === CSRF ===
-        // Recuperamos el token CSRF necesario para hacer peticiones seguras vía fetch
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
-        // === Referencias a elementos del formulario ===
-        const loteMuestreoSelect = document.getElementById('loteMuestreo');        // combo de lote representativo
-        const nroBultoMuestreoSelect = document.getElementById('nroBultoMuestreo');    // combo de bultos específicos
-        const cantidadRef = document.getElementById('refCantBulto');        // campo deshabilitado con la cantidad
-        const unidadRef = document.getElementById('refUniMedBulto');      // campo deshabilitado con la unidad
-        const unidadSelect = document.getElementById('uniMedBultoElegido');  // combo editable de unidad de medida
-
-        // === Campos relacionados con análisis ===
+        const loteMuestreoSelect = document.getElementById('loteMuestreo');
+        const nroBultoMuestreoSelect = document.getElementById('nroBultoMuestreo');
+        const cantidadRef = document.getElementById('refCantBulto');
+        const unidadRef = document.getElementById('refUniMedBulto');
+        const unidadSelect = document.getElementById('uniMedBultoElegido');
         const nroAnalisisInfo = document.getElementById('nroAnalisisInfo');
-        const dictamenAnalisisInfo = document.getElementById('dictamenAnalisisInfo');     // input para nro de análisis
+        const dictamenAnalisisInfo = document.getElementById('dictamenAnalisisInfo');
 
-        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        const codigoInternoSeleccionado = /*[[${movimientoDTO.codigoInterno}]]*/ null;
+        const loteIdSeleccionado = /*[[${movimientoDTO.loteId}]]*/ null;
+        const unidadMedidaSeleccionado = /*[[${movimientoDTO.unidadMedida}]]*/ null;
+        const fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
+
         if (fechaMovimientoDTO) {
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
             const hoy = new Date();
-            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
-            document.getElementById("fechaMovimiento").value = hoyFormateado;
+            document.getElementById("fechaMovimiento").value = hoy.toISOString().split('T')[0];
+        }
+
+        if (loteMuestreoSelect.value) {
+            loteMuestreoSelect.dispatchEvent(new Event('change'));
         }
 
         // === Cambio en el combo de lote representativo ===
@@ -154,8 +158,8 @@
             nroBultoMuestreoSelect.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
             cantidadRef.value = '';
             unidadRef.value = '';
-            nroAnalisisInfo.value = '';
-            dictamenAnalisisInfo.value = '';
+            nroAnalisisInfo.textContent = '';
+            dictamenAnalisisInfo.textContent = '';
 
             // Validamos selección
             const selectedRep = loteMuestreoSelect.options[loteMuestreoSelect.selectedIndex];
@@ -178,15 +182,18 @@
                         // Guardamos info útil en atributos del <option>
                         opt.setAttribute('data-cantidad-bulto', b.cantidadActual);
                         opt.setAttribute('data-unidad-bulto', b.unidadMedida);
-                        opt.setAttribute('data-nro-analisis', b.currentAnalisis?.nroAnalisis || '');
-                        opt.setAttribute('data-dictamen-analisis', b.currentAnalisis?.dictamen || '');
-
+                        opt.setAttribute('data-nro-analisis', b.ultimoAnalisis?.nroAnalisis || '');
+                        opt.setAttribute('data-dictamen-analisis', b.ultimoAnalisis?.dictamen || '');
                         nroBultoMuestreoSelect.appendChild(opt);
                     });
+
+                    if (loteIdSeleccionado) {
+                        nroBultoMuestreoSelect.value = loteIdSeleccionado;
+                        nroBultoMuestreoSelect.dispatchEvent(new Event('change'));
+                    }
                 })
                 .catch(error => {
-                    console.error("Error al cargar detalles del lote:", error);
-                    infoSection.innerHTML = '<p>Error al cargar detalles.</p>';
+                    console.error("Error al cargar bultos:", error);
                 });
         });
 
@@ -198,76 +205,64 @@
             if (!selectedBulto || !selectedBulto.value) {
                 cantidadRef.value = '';
                 unidadRef.value = '';
-                nroAnalisisInfo.value = '';
-                dictamenAnalisisInfo.value = '';
+                nroAnalisisInfo.textContent = '';
+                dictamenAnalisisInfo.textContent = '';
                 return;
             }
 
             // === Mostramos cantidad y unidad en campos deshabilitados ===
             cantidadRef.value = selectedBulto.getAttribute('data-cantidad-bulto') || '';
             unidadRef.value = selectedBulto.getAttribute('data-unidad-bulto') || '';
+            nroAnalisisInfo.textContent = selectedBulto.getAttribute('data-nro-analisis') || '';
+            document.getElementById('nroAnalisis').value = selectedBulto.getAttribute('data-nro-analisis') || '';
 
-            const nroAnalisis = selectedBulto.getAttribute('data-nro-analisis');
-            nroAnalisisInfo.textContent = nroAnalisis || '';
-            document.getElementById('nroAnalisis').value = nroAnalisis || '';
+            const dictamen = selectedBulto.getAttribute('data-dictamen-analisis') || 'EN CURSO';
+            dictamenAnalisisInfo.textContent = dictamen;
 
-            const dictamenAnalisis = selectedBulto.getAttribute('data-dictamen-analisis');
-            const dictamenValue = dictamenAnalisis || 'EN CURSO';
-            dictamenAnalisisInfo.textContent = dictamenValue;
-
-            // Limpiamos clases anteriores
             dictamenAnalisisInfo.classList.remove('text-success', 'text-danger', 'text-warning');
+            if (dictamen === 'APROBADO') dictamenAnalisisInfo.classList.add('text-success');
+            else if (dictamen === 'RECHAZADO') dictamenAnalisisInfo.classList.add('text-danger');
+            else dictamenAnalisisInfo.classList.add('text-warning');
 
-            // Aplicamos estilo según valor
-            if (dictamenValue === 'APROBADO') {
-                dictamenAnalisisInfo.classList.add('text-success');
-            } else if (dictamenValue === 'RECHAZADO') {
-                dictamenAnalisisInfo.classList.add('text-danger');
-            } else {
-                dictamenAnalisisInfo.classList.add('text-warning');
-            }
-
-            // === Cargamos subunidades compatibles con la unidad base ===
-            cargarSubunidades(unidadRef.value);
+            if (unidadRef.value) cargarSubunidades(unidadRef.value);
         });
 
-        // === Carga dinámica de subunidades según unidad base ===
         function cargarSubunidades(unidadBase) {
             if (!unidadBase) return;
 
             fetch('/enums/subunidades?unidad=' + unidadBase, {
                 method: 'GET',
-                headers: {
-                    [csrfHeader]: csrfToken
-                }
+                headers: {[csrfHeader]: csrfToken}
             })
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
-                    // Reiniciamos el combo y lo llenamos con las subunidades
                     unidadSelect.innerHTML = '<option value="">-- Seleccione unidad --</option>';
+
                     data.forEach(u => {
-                        const option = document.createElement('option');
-                        option.value = u;
-                        option.textContent = u;
-                        if (u === unidadBase) option.selected = true;
-                        unidadSelect.appendChild(option);
+                        const opt = document.createElement('option');
+                        opt.value = u;
+                        opt.textContent = u;
+                        unidadSelect.appendChild(opt);
                     });
+
+                    // Si el DTO ya trae unidad, úsala; si no, dejá la unidad del bulto.
+                    const unidadDTO = /*[[${movimientoDTO.unidadMedida}]]*/ null;
+                    unidadSelect.value = unidadDTO || unidadBase;
                 })
-                .catch(error => {
-                    console.error("Error al cargar subunidades:", error);
-                });
+                .catch(err => console.error('Error al cargar sub-unidades:', err));
         }
 
-        // === Si ya hay un lote seleccionado al cargar la página, forzamos el cambio ===
-        if (loteMuestreoSelect.selectedIndex > 0) {
+        // --- AQUI: Cargar todo si volvimos del back ---
+        if (codigoInternoSeleccionado) {
+            loteMuestreoSelect.value = codigoInternoSeleccionado;
             loteMuestreoSelect.dispatchEvent(new Event('change'));
         }
 
-        // === Si hay un campo con error de validación, enfocamos automáticamente ===
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });
 </script>
+
 
 </body>
 </html>

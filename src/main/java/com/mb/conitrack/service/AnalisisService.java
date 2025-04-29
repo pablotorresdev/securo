@@ -6,9 +6,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.repository.AnalisisRepository;
+
+import static com.mb.conitrack.enums.DictamenEnum.CUARENTENA;
 
 @Service
 public class AnalisisService {
@@ -29,11 +33,12 @@ public class AnalisisService {
             .toList();
     }
 
-    public List<Analisis> findAllEnCurso() {
+    public List<Analisis> findAllEnCursoForLotesCuarentena() {
         return analisisRepository.findAll().stream()
             .filter(Analisis::getActivo)
             .filter(analisis -> analisis.getDictamen() == null)
             .filter(analisis -> analisis.getFechaRealizado() == null)
+            .filter(analisis -> analisis.getLotes().stream().anyMatch(lote -> lote.getDictamen() == CUARENTENA))
             .sorted(Comparator.comparing(
                 Analisis::getFechaYHoraCreacion,
                 Comparator.nullsLast(Comparator.reverseOrder())))
@@ -41,20 +46,24 @@ public class AnalisisService {
     }
 
     public Analisis addResultadoAnalisis(final MovimientoDTO dto) {
-        Analisis analisis = analisisRepository.findByNroAnalisis(dto.getNroAnalisis()).orElseThrow(
-            () -> new IllegalArgumentException("No se encontró el análisis con el número: " + dto.getNroAnalisis()));
+        Analisis analisis = findByNroAnalisis(dto.getNroAnalisis());
+        if(analisis == null) {
+            analisis= DTOUtils.createAnalisis(dto);
+        }
 
         analisis.setFechaRealizado(dto.getFechaRealizadoAnalisis());
-        analisis.setFechaReanalisis(dto.getFechaReanalisis());
-        analisis.setFechaVencimiento(dto.getFechaVencimiento());
         analisis.setDictamen(dto.getDictamenFinal());
-        analisis.setTitulo(dto.getTitulo());
+        if (dto.getDictamenFinal() == DictamenEnum.APROBADO) {
+            analisis.setFechaReanalisis(dto.getFechaReanalisis());
+            analisis.setFechaVencimiento(dto.getFechaVencimiento());
+            analisis.setTitulo(dto.getTitulo());
+        }
         analisis.setObservaciones(dto.getObservaciones());
         return analisisRepository.save(analisis);
     }
 
     public Analisis findByNroAnalisis(final String nroAnalisis) {
-        return analisisRepository.findByNroAnalisis(nroAnalisis).filter(Analisis::getActivo).orElseThrow(() -> new IllegalArgumentException("El Analisis no existe."));
+        return analisisRepository.findByNroAnalisisAndActivoTrue(nroAnalisis);
     }
 
 }

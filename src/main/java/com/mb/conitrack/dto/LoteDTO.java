@@ -3,6 +3,7 @@ package com.mb.conitrack.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -37,21 +38,21 @@ public class LoteDTO {
     @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = { AltaCompra.class })
     private LocalDate fechaIngreso;
 
-    @NotNull(message = "El ID del producto es obligatorio", groups = { AltaCompra.class, AltaProduccion.class })
+    @NotNull(message = "El producto es obligatorio", groups = { AltaCompra.class, AltaProduccion.class })
     private Long productoId;
 
     @NotNull(message = "La cantidad inicial es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
     @Positive(message = "La cantidad inicial debe ser mayor a cero", groups = { AltaCompra.class, AltaProduccion.class })
     private BigDecimal cantidadInicial;
 
-    @NotNull(message = "La unidad de Medida es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
+    @NotNull(message = "La unidad de medida es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
     private UnidadMedidaEnum unidadMedida;
 
     @NotNull(message = "La cantidad de bultos totales es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
     @Positive(message = "La cantidad de bultos totales debe ser mayor a cero", groups = { AltaCompra.class, AltaProduccion.class })
     private Integer bultosTotales;
 
-    @NotNull(message = "El ID del proveedor es obligatorio", groups = { AltaCompra.class })
+    @NotNull(message = "El proveedor es obligatorio", groups = { AltaCompra.class })
     private Long proveedorId;
 
     @NotNull(message = "El lote del proveedor es obligatorio", groups = { AltaCompra.class, AltaProduccion.class })
@@ -65,10 +66,10 @@ public class LoteDTO {
 
     private String paisOrigen;
 
-    @Future(message = "La fecha de ingreso de ser futura", groups = { AltaCompra.class })
+    @Future(message = "La fecha de reanalisis del proveedor debe ser futura", groups = { AltaCompra.class })
     private LocalDate fechaReanalisisProveedor;
 
-    @Future(message = "La fecha de ingreso de ser futura", groups = { AltaCompra.class })
+    @Future(message = "La fecha de vencimiento del proveedor debe ser futura", groups = { AltaCompra.class })
     private LocalDate fechaVencimientoProveedor;
 
     private String detalleConservacion;
@@ -125,7 +126,7 @@ public class LoteDTO {
     protected String estado;
 
     //********************Utils********************//
-    public AnalisisDTO getCurrentAnalisisDto() {
+    public AnalisisDTO getUltimoAnalisisDto() {
         if (this.analisisDTOs.isEmpty()) {
             return null;
         } else if (this.analisisDTOs.size() == 1) {
@@ -137,15 +138,16 @@ public class LoteDTO {
         }
     }
 
-    public String getNroUltimoAnalisis() {
-        final AnalisisDTO currentAnalisisDto = getCurrentAnalisisDto();
+
+    public String getNroUltimoAnalisisDto() {
+        final AnalisisDTO currentAnalisisDto = getUltimoAnalisisDto();
         if (currentAnalisisDto == null) {
             return null;
         }
         return currentAnalisisDto.getNroAnalisis();
     }
 
-    public String getNroAnalisisEnCurso() {
+    public String getNroAnalisisDtoEnCurso() {
         return this.analisisDTOs.stream()
             .filter(analisis -> analisis.getDictamen() == null && analisis.getFechaRealizado() == null)
             .map(AnalisisDTO::getNroAnalisis)
@@ -158,6 +160,77 @@ public class LoteDTO {
             return null;
         }
         return this.trazaInicial + this.cantidadActual.longValueExact() - 1;
+    }
+
+
+
+    public LocalDate getFechaVencimientoVigente() {
+        final List<AnalisisDTO> list = this.analisisDTOs.stream().filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaVencimiento() != null).toList();
+        if (list.isEmpty()) {
+            return fechaVencimientoProveedor;
+        } else if (list.size() == 1) {
+            LocalDate fechaAnalisis = list.get(0).getFechaVencimiento();
+            if (fechaAnalisis == null || fechaVencimientoProveedor == null) {
+                return fechaAnalisis != null ? fechaAnalisis : fechaVencimientoProveedor;
+            }
+            LocalDate hoy = LocalDate.now();
+            long diffProveedor = Math.abs(ChronoUnit.DAYS.between(hoy, fechaVencimientoProveedor));
+            long diffAnalisis = Math.abs(ChronoUnit.DAYS.between(hoy, fechaAnalisis));
+            return diffAnalisis <= diffProveedor ? fechaAnalisis : fechaVencimientoProveedor;
+        } else {
+            throw new IllegalStateException("Hay más de un análisis activo con fecha de vencimiento");
+        }
+    }
+
+    public LocalDate getFechaReanalisisVigente() {
+        AnalisisDTO analisis = this.analisisDTOs.stream().filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaReanalisis() != null).min(Comparator.comparing(AnalisisDTO::getFechaReanalisis)).orElse(null);
+        if (analisis==null) {
+            return fechaReanalisisProveedor;
+        } else {
+            LocalDate fechaAnalisis = analisis.getFechaReanalisis();
+            if (fechaAnalisis == null || fechaReanalisisProveedor == null) {
+                return fechaAnalisis != null ? fechaAnalisis : fechaReanalisisProveedor;
+            }
+            LocalDate hoy = LocalDate.now();
+            long diffProveedor = Math.abs(ChronoUnit.DAYS.between(hoy, fechaReanalisisProveedor));
+            long diffAnalisis = Math.abs(ChronoUnit.DAYS.between(hoy, fechaAnalisis));
+            return diffAnalisis <= diffProveedor ? fechaAnalisis : fechaReanalisisProveedor;
+        }
+    }
+
+    public Long getDiasHastaFechaReanalisisVigente() {
+        LocalDate fecha = getFechaReanalisisVigente();
+        return fecha != null ? ChronoUnit.DAYS.between(LocalDate.now(), fecha) : null;
+    }
+
+    public Long getDiasHastaFechaVencimientoVigente() {
+        LocalDate fecha = getFechaVencimientoVigente();
+        return fecha != null ? ChronoUnit.DAYS.between(LocalDate.now(), fecha) : null;
+    }
+
+    public AnalisisDTO getUltimoAnalisisDtoDictaminado() {
+        return this.analisisDTOs.stream()
+            .filter(a -> a.getDictamen() != null)
+            .max(Comparator.comparing(AnalisisDTO::getFechaYHoraCreacion))
+            .orElse(null);
+    }
+
+    public String getNroUltimoAnalisisDictaminado() {
+        final AnalisisDTO currentAnalisis = getUltimoAnalisisDtoDictaminado();
+        if (currentAnalisis == null) {
+            return null;
+        }
+        return currentAnalisis.getNroAnalisis();
+    }
+
+    public String getUltimoNroAnalisisDto() {
+        final AnalisisDTO currentAnalisis = getUltimoAnalisisDto();
+        if (currentAnalisis == null) {
+            return null;
+        }
+        return currentAnalisis.getNroAnalisis();
     }
 
 }

@@ -129,7 +129,7 @@
                     <td th:text="${analis.fechaRealizado}"/>
                     <td th:text="${analis.fechaReanalisis}"/>
                     <td th:text="${analis.fechaVencimiento}"/>
-                    <td th:text="${analis.dictamen}"/>
+                    <td th:text="${analis.dictamen != null ? analis.dictamen : 'EN CURSO'}"></td>
                     <td th:text="${analis.titulo}"/>
                     <td th:text="${analis.observaciones}"/>
                 </tr>

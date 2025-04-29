@@ -22,8 +22,8 @@
             <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:data-dictamen="${loteDTO.dictamen.valor}"
-                        th:data-nroanalisis="${loteDTO.getNroUltimoAnalisis()}"
-                        th:data-analisisencurso="${loteDTO.getNroAnalisisEnCurso()}"
+                        th:data-nroanalisis="${loteDTO.getNroUltimoAnalisisDto()}"
+                        th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}"
                         th:each="loteDTO : ${lotesForCuarentena}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
@@ -55,7 +55,8 @@
             <input class="form-control" id="nroAnalisis"
                    placeholder="Ej: 1234"
                    th:field="*{nroAnalisis}"
-                   type="text">
+                   type="text"
+                   maxlength="30">
         </div>
 
         <!-- Campo de solo lectura + campo de ReAnálisis -->
@@ -69,7 +70,8 @@
             <input class="form-control" id="nroReanalisis"
                    placeholder="Si aplica"
                    th:field="*{nroReanalisis}"
-                   type="text">
+                   type="text"
+                   maxlength="30">
         </div>
 
         <!-- Observaciones (opcional) -->
@@ -102,8 +104,10 @@
         const nroAnalisisInput = document.getElementById('nroAnalisis');
         const nroReanalisisInput = document.getElementById('nroReanalisis');
 
-
         var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        var nroAnalisisDTO = /*[[${movimientoDTO.nroAnalisis}]]*/ null;
+        var nroReanalisisDTO = /*[[${movimientoDTO.nroReanalisis}]]*/ null;
+
         if (fechaMovimientoDTO) {
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
@@ -118,6 +122,7 @@
             const nroAnalisis = selectedOption.getAttribute('data-nroanalisis');
             const analisisencurso = selectedOption.getAttribute('data-analisisencurso');
 
+            // El analisis no tiene dictamen
             if (!dictamen) {
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'none';
@@ -128,7 +133,7 @@
             }
 
             if (analisisencurso && analisisencurso.trim() !== "") {
-                // Si hay análisis en curso
+                // Hay análisis en curso
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'block';
                 grupoReanalisis.style.display = 'none';
@@ -141,28 +146,45 @@
                 nroAnalisisInput.required = true;
                 nroReanalisisInput.required = false;
             } else {
-                // Si NO hay análisis en curso, comportamiento normal
+                // No hay análisis en curso
                 if (dictamen.trim().toLowerCase() === 'recibido') {
                     grupoEditable.style.display = 'block';
                     grupoReadonly.style.display = 'none';
                     grupoReanalisis.style.display = 'none';
                     nroAnalisisInput.required = true;
                     nroReanalisisInput.required = false;
-                    nroAnalisisInput.value = ''; // limpiar valor anterior
+
+                    if (nroAnalisisDTO) {
+                        nroAnalisisInput.value = nroAnalisisDTO;
+                    } else {
+                        nroAnalisisInput.value = ''; // limpiar si no hay info
+                    }
+
                 } else {
                     grupoEditable.style.display = 'none';
                     grupoReadonly.style.display = 'block';
                     grupoReanalisis.style.display = 'block';
-                    nroAnalisisReadonlyInput.value = nroAnalisis || '';
                     nroAnalisisInput.required = false;
                     nroReanalisisInput.required = true;
-                    nroAnalisisInput.value = ''; // limpiar valor anterior
+
+                    nroAnalisisReadonlyInput.value = nroAnalisis || '';
+
+                    if (nroReanalisisDTO) {
+                        nroReanalisisInput.value = nroReanalisisDTO;
+                    } else {
+                        nroReanalisisInput.value = ''; // limpiar si no hay info
+                    }
+
+                    nroAnalisisInput.value = ''; // aseguramos limpio
                 }
             }
         }
 
         loteSelect.addEventListener('change', actualizarVisibilidadCampos);
         actualizarVisibilidadCampos(); // Ejecutar al cargar
+
+        const errorField = document.querySelector('.error-field');
+        if (errorField) errorField.focus();
     });
 </script>
 

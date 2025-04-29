@@ -70,13 +70,9 @@
             </a>
         </li>
         <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU8. Fecha Reanalisis Alcanzada (Automatico)
-            </a>
-        </li>
-        <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU9. Vencimiento de Stock (Automatico)
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/lotes/list-fechas-lotes}">
+                CU8/CU9. Consulta Fecha Reanalisis / Vencimiento
             </a>
         </li>
         <li>

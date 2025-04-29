@@ -98,7 +98,7 @@ CREATE TABLE lotes
     lote_proveedor       TEXT           NOT NULL,
     fecha_reanal_prov    DATE,
     fecha_vto_prov       DATE,
-    estado               VARCHAR(50)    NOT NULL,
+    estado               VARCHAR(30)    NOT NULL,
     dictamen             TEXT           NOT NULL,
     lote_origen_id       INT,
     nro_remito           TEXT,
@@ -126,8 +126,8 @@ CREATE TABLE movimientos
     lote_id              INT       NOT NULL,
     cantidad             NUMERIC(12, 4),
     unidad_medida        TEXT,
-    nro_analisis         VARCHAR(50), -- Post QA
-    orden_produccion     VARCHAR(50), -- Para movimientos de consumo prod
+    nro_analisis         VARCHAR(30), -- Post QA
+    orden_produccion     VARCHAR(30), -- Para movimientos de consumo prod
     dictamen_inicial     TEXT,
     dictamen_final       TEXT,
     movimiento_origen_id INT,
@@ -144,7 +144,7 @@ CREATE TABLE analisis
 (
     id                SERIAL PRIMARY KEY,
     fecha_creacion    TIMESTAMP   NOT NULL,
-    nro_analisis      VARCHAR(50) NOT NULL,
+    nro_analisis      VARCHAR(30) NOT NULL,
     fecha_realizado   DATE,
     fecha_reanalisis  DATE,
     fecha_vencimiento DATE,
@@ -173,7 +173,7 @@ CREATE TABLE traza
     lote_id        INT         NOT NULL,
     producto_id    INT         NOT NULL,
     nro_traza      BIGINT      NOT NULL,
-    estado         VARCHAR(50) NOT NULL,
+    estado         VARCHAR(30) NOT NULL,
     observaciones  TEXT,
     activo         BOOLEAN     NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_lote

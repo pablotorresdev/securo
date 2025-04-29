@@ -38,18 +38,6 @@ public class ProveedorService {
             () -> new IllegalArgumentException("No se encontró el proveedor Conifarma"));
     }
 
-    /**
-     * Devuelve los proveedores activos e inactivos que son externos a la empresa (no son Conifarma)
-     *
-     * @return Lista de proveedores
-     */
-    public List<Proveedor> listProveedoresExternos() {
-        final List<Proveedor> proveedoresExternos = proveedorRepository.findByRazonSocialNotIgnoreCaseContaining("conifarma");
-        proveedoresExternos.sort(Comparator
-            .comparing(Proveedor::getRazonSocial));
-        return proveedoresExternos;
-    }
-
     public List<Proveedor> findAll() {
         final List<Proveedor> proveedores = proveedorRepository.findAll();
         proveedores.sort(Comparator

@@ -23,7 +23,7 @@
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${lotesProduccion}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} +
-                  ' | Nro Analisis: ' + ${loteDTO.getNroUltimoAnalisis()} +
+                  ' | Nro Analisis: ' + ${loteDTO.getNroUltimoAnalisisDto()} +
                   ' | Codigo Interno: ' + ${loteDTO.codigoInterno}"
                         th:value="${loteDTO.codigoInterno}">
                 </option>
@@ -174,25 +174,25 @@
             codigoInterno.value = '';
         }
 
-        function pintarInfo(lote) {
-            const a = lote.currentAnalisisDto || {};
+        function pintarInfo(loteDTO) {
+            const a = loteDTO.ultimoAnalisisDtoDictaminado || {};
             infoContent.innerHTML = `
             <hr>
-            <p><strong>Producto:</strong> ${lote.nombreProducto || 'N/D'}</p>
-            <p><strong>Código interno:</strong> ${lote.codigoInterno}</p>
-            <p><strong>Producto destino:</strong> ${lote.productoDestino || 'N/D'}</p>
+            <p><strong>Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
+            <p><strong>Código interno:</strong> ${loteDTO.codigoInterno}</p>
+            <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
             <hr>
-            <p><strong>Cantidad inicial:</strong> ${lote.cantidadInicial} ${lote.unidadMedida}</p>
-            <p><strong>Stock actual:</strong> ${lote.cantidadActual} ${lote.unidadMedida}</p>
-            <p><strong>Bultos iniciales / actuales:</strong> ${lote.bultosTotales} / ${lote.bultosActuales}</p>
+            <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</p>
+            <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual} ${loteDTO.unidadMedida}</p>
+            <p><strong>Bultos iniciales / actuales:</strong> ${loteDTO.bultosTotales} / ${loteDTO.bultosActuales}</p>
             <hr>
-            <p><strong>Nº análisis actual:</strong> ${lote.currentNroAnalisis || '—'}</p>
-            <p><strong>Fecha análisis:</strong> ${a.fechaRealizado || '—'}</p>
+            <p><strong>Nº análisis actual:</strong> ${a.nroAnalisis || '—'}</p>
+            <p><strong>Fecha realizado análisis:</strong> ${a.fechaRealizado || '—'}</p>
             <p><strong>Fecha re‑análisis:</strong> ${a.fechaReanalisis || '—'}</p>
             <p><strong>Fecha vencimiento análisis:</strong> ${a.fechaVencimiento || '—'}</p>
             <hr>
-            <p><strong>Re‑análisis proveedor:</strong> ${lote.fechaReanalisisProveedor || 'N/D'}</p>
-            <p><strong>Vto. proveedor:</strong> ${lote.fechaVencimientoProveedor || 'N/D'}</p>
+            <p><strong>Re‑análisis proveedor:</strong> ${loteDTO.fechaReanalisisProveedor || 'N/D'}</p>
+            <p><strong>Vto. proveedor:</strong> ${loteDTO.fechaVencimientoProveedor || 'N/D'}</p>
         `;
             infoLoteDiv.style.display = 'block';
         }

@@ -358,7 +358,6 @@
         // Si la página se recarga y el DTO trae un valor mayor a 1 en bultosTotales,
         // se muestra automáticamente el bloque de distribución y se generan los campos con los datos del DTO.
 
-
         var bultosValue;
         var bultosTotalesDTO = /*[[${loteDTO.bultosTotales}]]*/ [];
         if (bultosTotalesDTO && bultosTotalesDTO !== "null") {
@@ -370,6 +369,9 @@
             distribucionDiv.classList.remove('hidden');
             generarCamposBultos(bultosValue);
         }
+
+        const errorField = document.querySelector('.error-field');
+        if (errorField) errorField.focus();
     });
 </script>
 </body>

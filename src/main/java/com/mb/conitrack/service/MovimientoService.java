@@ -26,10 +26,14 @@ import static com.mb.conitrack.entity.EntityUtils.createMovimientoAltaIngresoPro
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoModificacion;
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoPorMuestreo;
 import static com.mb.conitrack.entity.EntityUtils.getAnalisisEnCurso;
+import static com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO;
 import static com.mb.conitrack.enums.DictamenEnum.CUARENTENA;
+import static com.mb.conitrack.enums.DictamenEnum.VENCIDO;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
+import static com.mb.conitrack.enums.MotivoEnum.EXPIRACION_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
+import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
 
 @AllArgsConstructor
 @Service
@@ -41,15 +45,22 @@ public class MovimientoService {
     @Autowired
     private final MovimientoRepository movimientoRepository;
 
+    private static Movimiento createMovimientoConAnalisis(final MovimientoDTO dto, final Lote lote, final Analisis ultimoAnalisis) {
+        final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto);
+        movimientoPorMuestreo.setLote(lote);
+        movimientoPorMuestreo.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
+        return movimientoPorMuestreo;
+    }
+
     public List<Movimiento> findAll() {
-        final List<Movimiento> movimientos = movimientoRepository.findAll();
+        final List<Movimiento> movimientos = movimientoRepository.findAllByActivoTrue();
         movimientos.sort(Comparator
             .comparing(Movimiento::getFecha));
         return movimientos;
     }
 
     public List<Movimiento> findAllMuestreos() {
-        return movimientoRepository.findAll().stream()
+        return movimientoRepository.findAllByActivoTrue().stream()
             .filter(movimiento -> MUESTREO.equals(movimiento.getMotivo()))
             .sorted(Comparator.comparing(Movimiento::getFecha))
             .toList();
@@ -77,7 +88,7 @@ public class MovimientoService {
         movimiento.setDictamenFinal(CUARENTENA);
         movimiento.setNroAnalisis(nroAnalisis);
 
-        movimiento.setObservaciones(lote.getObservaciones() + "\nMovimiento Cuarentena Analisis (CU2):\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU2_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
@@ -91,7 +102,7 @@ public class MovimientoService {
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setNroAnalisis(nroAnalisis);
 
-        movimiento.setObservaciones(lote.getObservaciones() + "\nAsignación Analisis (CUZ):\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CUZ_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
@@ -109,40 +120,6 @@ public class MovimientoService {
                 return crearMovmimientoConAnalisisDictaminado(dto, lote);
             }
         }
-    }
-
-    private Movimiento crearMovmimientoConAnalisisDictaminado(final MovimientoDTO dto, final Lote lote) {
-        //Si el lote tiene n analisis realizados, se guarda el movimiento y se asocia al ultimo analisis realizado
-        Analisis ultimoAnalisis = lote.getCurrentAnalisis();
-        if (dto.getNroAnalisis().equals(ultimoAnalisis.getNroAnalisis())) {
-            final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
-            movimientoPorMuestreo.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
-            return movimientoRepository.save(movimientoPorMuestreo);
-        } else {
-            throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
-        }
-    }
-
-    private Movimiento crearMovimientoConAnalisisEnCurso(final MovimientoDTO dto, final Lote lote, final Optional<Analisis> analisisEnCurso) {
-        //Si el lote tiene un analisis en curso, se guarda el movimiento y se asocia al analisis en curso
-        //El lote puede tiene n analisis realizados siempre se asocia al analisis en curso
-        final Analisis analisis = analisisEnCurso.get();
-        if (dto.getNroAnalisis().equals(analisis.getNroAnalisis())) {
-            final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
-            movimientoPorMuestreo.setNroAnalisis(analisis.getNroAnalisis());
-            return movimientoRepository.save(movimientoPorMuestreo);
-        } else {
-            throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
-        }
-    }
-
-    private Movimiento crearMovimientoConPrimerAnalisis(final MovimientoDTO dto, final Lote lote) {
-        //Si el lote no tiene analisis realizado (Recibido), se crea uno nuevo y se guarda el movimiento
-        final Analisis analisis = DTOUtils.createAnalisis(dto);
-        final Analisis newAnalisis = analisisService.save(analisis);
-        final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto, lote);
-        movimientoPorMuestreo.setNroAnalisis(newAnalisis.getNroAnalisis());
-        return movimientoRepository.save(movimientoPorMuestreo);
     }
 
     //***********CU4 BAJA: DEVOLUCION COMPRA***********
@@ -164,7 +141,7 @@ public class MovimientoService {
         movimiento.setLote(lote);
         movimiento.setActivo(true);
 
-        movimiento.setObservaciones(lote.getObservaciones() + "\nMovimiento Devolucion Compra (CU4):\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU4_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
@@ -178,7 +155,7 @@ public class MovimientoService {
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(dto.getDictamenFinal());
 
-        movimiento.setObservaciones(lote.getObservaciones() + "\nMovimiento Resultado de Analisis (CU5/6):\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU5/6_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
@@ -197,10 +174,9 @@ public class MovimientoService {
         movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
         movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
         movimiento.setFecha(loteDTO.getFechaEgreso());
-        movimiento.setObservaciones(loteDTO.getObservaciones());
         movimiento.setLote(bulto);
         movimiento.setActivo(true);
-        movimiento.setObservaciones(bulto.getObservaciones() + "\nMovimiento Consumo produccion (CU7):\n" + loteDTO.getObservaciones());
+        movimiento.setObservaciones("_CU7_\n" + loteDTO.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
@@ -210,6 +186,60 @@ public class MovimientoService {
         final Movimiento movimientoAltaIngresoProduccion = createMovimientoAltaIngresoProduccion(lote);
         movimientoAltaIngresoProduccion.setLote(lote);
         return movimientoRepository.save(movimientoAltaIngresoProduccion);
+    }
+
+    //***********CU9 MODIFICACION: VENCIDO***********
+    @Transactional
+    public Movimiento persistirMovimientoExpiracionAnalisis(final MovimientoDTO dto, Lote lote) {
+        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+
+        movimiento.setMotivo(EXPIRACION_ANALISIS);
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setDictamenFinal(ANALISIS_EXPIRADO);
+
+        movimiento.setObservaciones("_CU8_\n" + dto.getObservaciones());
+        return movimientoRepository.save(movimiento);
+    }
+
+    //***********CU9 MODIFICACION: VENCIDO***********
+    @Transactional
+    public Movimiento persistirMovimientoProductoVencido(final MovimientoDTO dto, Lote lote) {
+        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+
+        movimiento.setMotivo(VENCIMIENTO);
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setDictamenFinal(VENCIDO);
+
+        //TODO: fix observaciones
+        movimiento.setObservaciones("_CU9_\n" + dto.getObservaciones());
+        return movimientoRepository.save(movimiento);
+    }
+
+    private Movimiento crearMovimientoConAnalisisEnCurso(final MovimientoDTO dto, final Lote lote, final Optional<Analisis> analisisEnCurso) {
+        //Si el lote tiene un analisis en curso, se guarda el movimiento y se asocia al analisis en curso
+        //El lote puede tiene n analisis realizados siempre se asocia al analisis en curso
+        if (dto.getNroAnalisis()
+            .equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio")).getNroAnalisis())) {
+            return movimientoRepository.save(createMovimientoConAnalisis(dto, lote, analisisEnCurso.get()));
+        } else {
+            throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
+        }
+    }
+
+    private Movimiento crearMovimientoConPrimerAnalisis(final MovimientoDTO dto, final Lote lote) {
+        //Si el lote no tiene analisis realizado (Recibido), se crea uno nuevo y se guarda el movimiento
+        final Analisis newAnalisis = analisisService.save(DTOUtils.createAnalisis(dto));
+        return movimientoRepository.save(createMovimientoConAnalisis(dto, lote, newAnalisis));
+    }
+
+    private Movimiento crearMovmimientoConAnalisisDictaminado(final MovimientoDTO dto, final Lote lote) {
+        //Si el lote tiene n analisis realizados, se guarda el movimiento y se asocia al ultimo analisis realizado
+        Analisis ultimoAnalisis = lote.getUltimoAnalisis();
+        if (dto.getNroAnalisis().equals(ultimoAnalisis.getNroAnalisis())) {
+            return movimientoRepository.save(createMovimientoConAnalisis(dto, lote, ultimoAnalisis));
+        } else {
+            throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
+        }
     }
 
 }

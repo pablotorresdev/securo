@@ -40,7 +40,15 @@
         <!-- Fecha Movimiento -->
         <div class="mb-3">
             <label class="form-label" for="fechaMovimiento">Fecha de Movimiento:</label>
-            <input class="form-control" id="fechaMovimiento" type="date" required th:field="*{fechaMovimiento}">
+            <input class="form-control" id="fechaMovimiento"
+                   required
+                   th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
+                   th:field="*{fechaMovimiento}"
+                   type="date">
+
+            <div style="color: red; font-weight: bold;"
+                 th:errors="*{fechaMovimiento}"
+                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
         <!-- Número de Análisis -->

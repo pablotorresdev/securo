@@ -38,6 +38,12 @@ public class LotesController {
         return "lotes/list-lotes";
     }
 
+    @GetMapping("/list-fechas-lotes")
+    public String listFechasLotes(Model model) {
+        model.addAttribute("lotes", loteService.findAllLotesDictaminados());
+        return "lotes/list-fechas-lotes";
+    }
+
     @GetMapping("/codigoInterno/{codigoInterno}")
     @ResponseBody
     public List<Lote> getLoteByCodigoInterno(@PathVariable("codigoInterno") String codigoInterno) {

@@ -4,19 +4,17 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.mb.conitrack.dto.validation.AltaProduccion;
-import com.mb.conitrack.dto.validation.BajaProduccion;
-import com.mb.conitrack.dto.validation.ValidacionModificacion;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
-import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
@@ -28,7 +26,7 @@ public class MovimientoDTO {
 
     //Datos Comunes de ingreso
     @NotNull(message = "La fecha del movimiento es obligatoria")
-    @PastOrPresent(message = "La fecha en que se realizo el analisis no puede ser futura", groups = { ValidacionModificacion.class })
+    @PastOrPresent(message = "La fecha del movimiento no puede ser futura")
     private LocalDate fechaMovimiento;
 
     private DictamenEnum dictamenInicial;
@@ -43,6 +41,7 @@ public class MovimientoDTO {
 
     private UnidadMedidaEnum unidadMedida;
 
+    @Size(max = 20, message = "El número de analisis no debe superar 30 caracteres")
     private String nroAnalisis;
 
     //CAMPOS ALTA/BAJA
@@ -52,10 +51,10 @@ public class MovimientoDTO {
     @PastOrPresent(message = "La fecha en que se realizo el analisis no puede ser futura")
     private LocalDate fechaRealizadoAnalisis;
 
-    @FutureOrPresent(message = "La fecha de vencimiento debe ser presente o futura")
+    @Future(message = "La fecha de reanalisis debe ser futura")
     private LocalDate fechaReanalisis;
 
-    @FutureOrPresent(message = "La fecha de vencimiento debe ser presente o futura")
+    @Future(message = "La fecha de vencimiento debe ser futura")
     private LocalDate fechaVencimiento;
 
     @Min(value = 0, message = "El resultado del analisis no puede ser menor a 0%")
@@ -71,6 +70,7 @@ public class MovimientoDTO {
 
     private String codigoInterno; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
 
+    @Size(max = 20, message = "El número de re analisis no debe superar 30 caracteres")
     private String nroReanalisis;
 
     // Campos no usados aun

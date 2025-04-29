@@ -44,7 +44,7 @@ public class Analisis {
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaYHoraCreacion;
 
-    @Column(name = "nro_analisis", length = 20, nullable = false)
+    @Column(name = "nro_analisis", length = 30, nullable = false)
     private String nroAnalisis;
 
     @ManyToMany(mappedBy = "analisisList")

@@ -14,71 +14,6 @@ import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 
 public class EntityUtils {
 
-    public static Optional<Analisis> getAnalisisEnCurso(final List<Analisis> analisisList) {
-        List<Analisis> enCurso = analisisList.stream()
-            .filter(analisis -> analisis.getDictamen() == null)
-            .filter(analisis -> analisis.getFechaRealizado() == null)
-            .toList();
-        if (enCurso.isEmpty()) {
-            return Optional.empty();
-        } else if (enCurso.size() == 1) {
-            return Optional.of(enCurso.get(0));
-        } else {
-            throw new IllegalArgumentException("El lote tiene más de un análisis en curso");
-        }
-    }
-
-    public static Movimiento createMovimientoModificacion(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = new Movimiento();
-
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
-
-        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setObservaciones(dto.getObservaciones());
-        movimiento.setLote(lote);
-        movimiento.setActivo(true);
-
-        return movimiento;
-    }
-
-    //***********CU3 BAJA: MUESTREO***********
-    public static Movimiento createMovimientoPorMuestreo(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = new Movimiento();
-
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        movimiento.setMotivo(MUESTREO);
-
-        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setCantidad(dto.getCantidad());
-        movimiento.setUnidadMedida(dto.getUnidadMedida());
-        movimiento.setNroAnalisis(dto.getNroAnalisis());
-        movimiento.setLote(lote);
-        movimiento.setActivo(true);
-
-        movimiento.setObservaciones("Baja de stock por muestreo (CU3):\n" + lote.getObservaciones());
-        return movimiento;
-    }
-
-    public static Movimiento createMovimientoAltaIngresoCompra(final Lote lote) {
-        Movimiento movimiento = new Movimiento();
-
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
-        movimiento.setMotivo(MotivoEnum.COMPRA);
-
-        movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
-        movimiento.setFecha(lote.getFechaYHoraCreacion().toLocalDate());
-        movimiento.setCantidad(lote.getCantidadInicial());
-        movimiento.setUnidadMedida(lote.getUnidadMedida());
-        movimiento.setDictamenFinal(lote.getDictamen());
-        movimiento.setLote(lote);
-        movimiento.setActivo(true);
-
-        movimiento.setObservaciones("Ingreso de stock por compra (CU1):\n" + lote.getObservaciones());
-        return movimiento;
-    }
-
     public static Lote createLoteIngreso(final LoteDTO loteDTO) {
         Lote lote = new Lote();
 
@@ -100,17 +35,16 @@ public class EntityUtils {
         lote.setNroRemito(loteDTO.getNroRemito());
         lote.setDetalleConservacion(loteDTO.getDetalleConservacion());
         lote.setObservaciones(loteDTO.getObservaciones());
-        lote.setEstado(EstadoEnum.NUEVO);
         lote.setActivo(true);
 
         return lote;
     }
 
-    public static Movimiento createMovimientoAltaIngresoProduccion(final Lote lote) {
+    public static Movimiento createMovimientoAltaIngresoCompra(final Lote lote) {
         Movimiento movimiento = new Movimiento();
 
         movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
-        movimiento.setMotivo(MotivoEnum.PRODUCCION_PROPIA);
+        movimiento.setMotivo(MotivoEnum.COMPRA);
 
         movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
         movimiento.setFecha(lote.getFechaYHoraCreacion().toLocalDate());
@@ -120,7 +54,73 @@ public class EntityUtils {
         movimiento.setLote(lote);
         movimiento.setActivo(true);
 
-        movimiento.setObservaciones("Ingreso de stock por Produccion propia (CU10):\n" + lote.getObservaciones());
+        movimiento.setObservaciones("_CU1_\n" + lote.getObservaciones());
         return movimiento;
     }
+
+    public static Movimiento createMovimientoAltaIngresoProduccion(final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setMotivo(MotivoEnum.PRODUCCION_PROPIA);
+
+        movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
+        movimiento.setFecha(lote.getFechaIngreso());
+        movimiento.setCantidad(lote.getCantidadInicial());
+        movimiento.setUnidadMedida(lote.getUnidadMedida());
+        movimiento.setDictamenFinal(lote.getDictamen());
+        movimiento.setLote(lote);
+        movimiento.setActivo(true);
+
+        movimiento.setObservaciones("_CU10_\n" + lote.getObservaciones());
+        return movimiento;
+    }
+
+    public static Movimiento createMovimientoModificacion(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setObservaciones(dto.getObservaciones());
+        movimiento.setLote(lote);
+        movimiento.setActivo(true);
+
+        return movimiento;
+    }
+
+    //***********CU3 BAJA: MUESTREO***********
+    public static Movimiento createMovimientoPorMuestreo(final MovimientoDTO dto) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(MUESTREO);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setCantidad(dto.getCantidad());
+        movimiento.setUnidadMedida(dto.getUnidadMedida());
+        movimiento.setNroAnalisis(dto.getNroAnalisis());
+        movimiento.setActivo(true);
+
+        movimiento.setObservaciones("_CU3_\n" + dto.getObservaciones());
+        return movimiento;
+    }
+
+    public static Optional<Analisis> getAnalisisEnCurso(final List<Analisis> analisisList) {
+        List<Analisis> enCurso = analisisList.stream()
+            .filter(Analisis::getActivo)
+            .filter(analisis -> analisis.getDictamen() == null)
+            .filter(analisis -> analisis.getFechaRealizado() == null)
+            .toList();
+        if (enCurso.isEmpty()) {
+            return Optional.empty();
+        } else if (enCurso.size() == 1) {
+            return Optional.of(enCurso.get(0));
+        } else {
+            throw new IllegalArgumentException("El lote tiene más de un análisis en curso");
+        }
+    }
+
 }

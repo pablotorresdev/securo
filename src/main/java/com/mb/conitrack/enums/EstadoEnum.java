@@ -8,6 +8,7 @@ import java.util.Optional;
  */
 public enum EstadoEnum {
     NUEVO("Nuevo", 0), //Alta -> Cant inicial = actual
+    DISPONIBLE("Disponible", 0), //Alta -> Cant inicial = actual Traza
     EN_USO("En uso", 1), //Baja -> Cant inicial > actual
     CONSUMIDO("Consumido", 2), //Baja -> Cant actul = 0 x Producción
     VENDIDO("Vendido", 2), //Baja -> Cant actul = 0 x Venta

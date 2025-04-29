@@ -11,7 +11,7 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
 
     List<Lote> findAllByCodigoInternoAndActivoTrue(String codigoInterno);
 
-    List<Lote> findByActivoTrue();
+    List<Lote> findAllByActivoTrue();
 
     /**
      * Spring Data compondrá la siguiente consulta:

@@ -3,6 +3,7 @@ package com.mb.conitrack.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -137,7 +138,7 @@ public class Lote {
     @Column(nullable = false)
     private Boolean activo;
 
-    public Analisis getCurrentAnalisis() {
+    public Analisis getUltimoAnalisis() {
         if (this.analisisList.isEmpty()) {
             return null;
         } else if (this.analisisList.size() == 1) {
@@ -149,8 +150,69 @@ public class Lote {
         }
     }
 
-    public String getCurrentNroAnalisis() {
-        final Analisis currentAnalisis = getCurrentAnalisis();
+    public LocalDate getFechaVencimientoVigente() {
+        final List<Analisis> list = this.analisisList.stream().filter(Analisis::getActivo).filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaVencimiento() != null).toList();
+        if (list.isEmpty()) {
+            return fechaVencimientoProveedor;
+        } else if (list.size() == 1) {
+            LocalDate fechaAnalisis = list.get(0).getFechaVencimiento();
+            if (fechaAnalisis == null || fechaVencimientoProveedor == null) {
+                return fechaAnalisis != null ? fechaAnalisis : fechaVencimientoProveedor;
+            }
+            LocalDate hoy = LocalDate.now();
+            long diffProveedor = Math.abs(ChronoUnit.DAYS.between(hoy, fechaVencimientoProveedor));
+            long diffAnalisis = Math.abs(ChronoUnit.DAYS.between(hoy, fechaAnalisis));
+            return diffAnalisis <= diffProveedor ? fechaAnalisis : fechaVencimientoProveedor;
+        } else {
+            throw new IllegalStateException("Hay más de un análisis activo con fecha de vencimiento");
+        }
+    }
+
+    public LocalDate getFechaReanalisisVigente() {
+        Analisis analisis = this.analisisList.stream().filter(Analisis::getActivo).filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaReanalisis() != null).min(Comparator.comparing(Analisis::getFechaReanalisis)).orElse(null);
+        if (analisis==null) {
+            return fechaReanalisisProveedor;
+        } else {
+            LocalDate fechaAnalisis = analisis.getFechaReanalisis();
+            if (fechaAnalisis == null || fechaReanalisisProveedor == null) {
+                return fechaAnalisis != null ? fechaAnalisis : fechaReanalisisProveedor;
+            }
+            LocalDate hoy = LocalDate.now();
+            long diffProveedor = Math.abs(ChronoUnit.DAYS.between(hoy, fechaReanalisisProveedor));
+            long diffAnalisis = Math.abs(ChronoUnit.DAYS.between(hoy, fechaAnalisis));
+            return diffAnalisis <= diffProveedor ? fechaAnalisis : fechaReanalisisProveedor;
+        }
+    }
+
+    public Long getDiasHastaFechaReanalisisVigente() {
+        LocalDate fecha = getFechaReanalisisVigente();
+        return fecha != null ? ChronoUnit.DAYS.between(LocalDate.now(), fecha) : null;
+    }
+
+    public Long getDiasHastaFechaVencimientoVigente() {
+        LocalDate fecha = getFechaVencimientoVigente();
+        return fecha != null ? ChronoUnit.DAYS.between(LocalDate.now(), fecha) : null;
+    }
+
+    public Analisis getUltimoAnalisisDictaminado() {
+        return this.analisisList.stream()
+            .filter(Analisis::getActivo).filter(a -> a.getDictamen() != null)
+            .max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
+            .orElse(null);
+    }
+
+    public String getNroUltimoAnalisisDictaminado() {
+        final Analisis currentAnalisis = getUltimoAnalisisDictaminado();
+        if (currentAnalisis == null) {
+            return null;
+        }
+        return currentAnalisis.getNroAnalisis();
+    }
+
+    public String getUltimoNroAnalisis() {
+        final Analisis currentAnalisis = getUltimoAnalisis();
         if (currentAnalisis == null) {
             return null;
         }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Fechas de Lotes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="mb-4">Listado de Fechas de Lotes</h1>
+    <table class="table table-bordered table-sm">
+        <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Código Interno</th>
+            <th>Nro Bulto</th>
+            <th>Cantidad Actual</th>
+            <th>Unidad Medida</th>
+            <th>Días hasta Reanálisis Vigente</th>
+            <th>Días hasta Vencimiento Vigente</th>
+            <th>Última Fecha Reanálisis Vigente</th>
+            <th>Última Fecha Vencimiento Vigente</th>
+            <th>Fecha Reanálisis Proveedor</th>
+            <th>Fecha Vencimiento Proveedor</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="lote : ${lotes}">
+            <td th:text="${lote.producto.nombreGenerico}">Producto</td>
+            <td th:text="${lote.codigoInterno}">Código Interno</td>
+            <td th:text="${lote.nroBulto}">Nro Bulto</td>
+            <td th:text="${lote.cantidadActual}">Cantidad Actual</td>
+            <td th:text="${lote.unidadMedida}">Unidad Medida</td>
+            <!-- Días hasta Reanálisis Vigente -->
+            <td>
+                <span th:text="${lote.diasHastaFechaReanalisisVigente}"
+                      th:classappend="${lote.diasHastaFechaReanalisisVigente != null and lote.diasHastaFechaReanalisisVigente <= 30} ? 'text-danger'">
+                </span>
+            </td>
+
+            <!-- Días hasta Vencimiento Vigente -->
+            <td>
+                <span th:text="${lote.diasHastaFechaVencimientoVigente}"
+                      th:classappend="${lote.diasHastaFechaVencimientoVigente != null and lote.diasHastaFechaVencimientoVigente <= 30} ? 'text-danger'">
+                </span>
+            </td>
+            <td th:text="${lote.fechaReanalisisVigente}">Última Fecha Reanálisis Vigente</td>
+            <td th:text="${lote.fechaVencimientoVigente}">Última Fecha Vencimiento Vigente</td>
+            <td th:text="${lote.fechaReanalisisProveedor}">Fecha Reanálisis Proveedor</td>
+            <td th:text="${lote.fechaVencimientoProveedor}">Fecha Vencimiento Proveedor</td>
+            <td>
+                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/loteId/' + ${lote.id}}">Ver Analisis</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="mt-3">
+        <a class="btn btn-secondary" th:href="@{/lotes/cancelar}">Volver a la página principal</a>
+    </div>
+</div>
+</body>
+</html>

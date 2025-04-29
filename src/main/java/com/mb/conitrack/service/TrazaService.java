@@ -41,8 +41,9 @@ public class TrazaService {
             traza.setProducto(producto);
             traza.setLote(bultoGuardado);
             traza.setNroTraza(nroTraza);
-            traza.setEstado(EstadoEnum.NUEVO);
-            traza.setObservaciones("CU7 Traza: " + nroTraza + " - Producto: " + producto.getCodigoInterno() + " / " + producto.getNombreGenerico());
+            traza.setEstado(EstadoEnum.DISPONIBLE);
+            //TODO: comentarios?
+            traza.setObservaciones("CU7 Traza: " + nroTraza + "\n - Producto: " + producto.getCodigoInterno() + " / " + producto.getNombreGenerico());
             traza.setActivo(true);
 
             trazas.add(traza);

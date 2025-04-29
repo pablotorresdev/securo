@@ -28,8 +28,8 @@
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:attr="lote-codigoInterno=${loteDTO.codigoInterno}"
                         th:each="loteDTO : ${lotesForResultado}"
-                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisis()}"
-                        th:value="${loteDTO.getNroUltimoAnalisis()}">
+                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
+                        th:value="${loteDTO.getNroUltimoAnalisisDto()}">
                 </option>
             </select>
             <div class="text-danger" th:errors="*{codigoInterno}" th:if="${#fields.hasErrors('codigoInterno')}"></div>
@@ -137,22 +137,23 @@
             document.getElementById("fechaVencimiento").value = fechaVencimientoDTO;
         }
 
-        function actualizarInfo(data) {
+        function actualizarInfo(loteDTO) {
             let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
-            html += '<p><strong>Código Interno:</strong> ' + (data.codigoInterno || 'N/D') + '</p>';
-            html += '<p><strong>Producto:</strong> ' + (data.nombreProducto || 'N/D') + '</p>';
-            html += '<p><strong>Fecha ingreso:</strong> ' + (data.fechaIngreso || 'N/D') + '</p>';
-            html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (data.fechaReanalisisProveedor || 'N/D') + '</p>';
-            html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (data.fechaVencimientoProveedor || 'N/D') + '</p>';
-            if (data.analisisDTOs && data.analisisDTOs.length > 0) {
+            html += '<p><strong>Código Interno:</strong> ' + (loteDTO.codigoInterno || 'N/D') + '</p>';
+            html += '<p><strong>Producto:</strong> ' + (loteDTO.nombreProducto || 'N/D') + '</p>';
+            html += '<p><strong>Fecha ingreso:</strong> ' + (loteDTO.fechaIngreso || 'N/D') + '</p>';
+            html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (loteDTO.fechaReanalisisProveedor || 'N/D') + '</p>';
+            html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (loteDTO.fechaVencimientoProveedor || 'N/D') + '</p>';
+            if (loteDTO.analisisDTOs && loteDTO.analisisDTOs.length > 0) {
                 html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
-                data.analisisDTOs.forEach(function (a) {
+                loteDTO.analisisDTOs.forEach(function (analisisDTO) {
                     html += '<li>';
-                    html += '<strong>Nro Análisis:</strong> ' + a.nroAnalisis + ' ';
-                    html += '<strong>Fecha Realizado:</strong> ' + (a.fechaRealizado || 'En curso') + ' | ';
-                    html += '<strong>Fecha Reanálisis:</strong> ' + (a.fechaReanalisis || 'N/A') + ' | ';
-                    html += '<strong>Dictamen:</strong> ' + (a.dictamen || 'En curso') + ' | ';
-                    html += '<strong>Título:</strong> ' + (a.titulo || 'N/A');
+                    html += '<strong>Nro Análisis:</strong> ' + analisisDTO.nroAnalisis + ' ';
+                    html += '<strong>Fecha Realizado:</strong> ' + (analisisDTO.fechaRealizado || 'En curso') + ' | ';
+                    html += '<strong>Fecha Reanálisis:</strong> ' + (analisisDTO.fechaReanalisis || 'N/A') + ' | ';
+                    html += '<strong>Fecha Vencimiento:</strong> ' + (analisisDTO.fechaVencimiento || 'N/A') + ' | ';
+                    html += '<strong>Dictamen:</strong> ' + (analisisDTO.dictamen || 'En curso') + ' | ';
+                    html += '<strong>Título:</strong> ' + (analisisDTO.titulo || 'N/A');
                     html += '</li>';
                 });
                 html += '</ul>';

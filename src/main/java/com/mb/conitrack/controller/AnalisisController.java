@@ -43,15 +43,23 @@ public class AnalisisController {
     @ResponseBody
     public LoteDTO analisisDetails(@PathVariable("nroAnalisis") String nroAnalisis) {
         final Analisis analisis = analisisService.findByNroAnalisis(nroAnalisis);
-        return DTOUtils.fromEntities(analisis.getLotes());
+        if(analisis == null) {
+            return new LoteDTO();
+        }
+        return DTOUtils.mergeEntities(analisis.getLotes());
     }
 
     @GetMapping("/loteId/{loteId}")
     public String listAnalisisPorLote(@PathVariable("loteId") Long loteId, Model model) {
         final Lote loteBultoById = loteService.findLoteBultoById(loteId);
-        final List<Analisis> analisis = loteBultoById.getAnalisisList();
-        analisis.sort(Comparator
-            .comparing(Analisis::getFechaYHoraCreacion));
+        if (loteBultoById == null) {
+            return "redirect:/lote/list-lotes";
+        }
+        List<Analisis> analisis = loteBultoById.getAnalisisList().stream().filter(Analisis::getActivo).sorted(Comparator
+            .comparing(Analisis::getFechaYHoraCreacion)).toList();
+        if (analisis.isEmpty()) {
+            return "redirect:/lote/list-lotes";
+        }
         model.addAttribute("analisis", analisis);
         return "analisis/list-analisis"; // Corresponde a analisis-lote.html
     }
