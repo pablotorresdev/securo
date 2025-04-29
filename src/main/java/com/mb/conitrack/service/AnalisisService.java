@@ -47,8 +47,8 @@ public class AnalisisService {
 
     public Analisis addResultadoAnalisis(final MovimientoDTO dto) {
         Analisis analisis = findByNroAnalisis(dto.getNroAnalisis());
-        if(analisis == null) {
-            analisis= DTOUtils.createAnalisis(dto);
+        if (analisis == null) {
+            analisis = DTOUtils.createAnalisis(dto);
         }
 
         analisis.setFechaRealizado(dto.getFechaRealizadoAnalisis());

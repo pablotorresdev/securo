@@ -172,7 +172,7 @@ public class Lote {
     public LocalDate getFechaReanalisisVigente() {
         Analisis analisis = this.analisisList.stream().filter(Analisis::getActivo).filter(a -> a.getDictamen() != null)
             .filter(a -> a.getFechaReanalisis() != null).min(Comparator.comparing(Analisis::getFechaReanalisis)).orElse(null);
-        if (analisis==null) {
+        if (analisis == null) {
             return fechaReanalisisProveedor;
         } else {
             LocalDate fechaAnalisis = analisis.getFechaReanalisis();

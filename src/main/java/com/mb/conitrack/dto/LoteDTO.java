@@ -138,7 +138,6 @@ public class LoteDTO {
         }
     }
 
-
     public String getNroUltimoAnalisisDto() {
         final AnalisisDTO currentAnalisisDto = getUltimoAnalisisDto();
         if (currentAnalisisDto == null) {
@@ -162,8 +161,6 @@ public class LoteDTO {
         return this.trazaInicial + this.cantidadActual.longValueExact() - 1;
     }
 
-
-
     public LocalDate getFechaVencimientoVigente() {
         final List<AnalisisDTO> list = this.analisisDTOs.stream().filter(a -> a.getDictamen() != null)
             .filter(a -> a.getFechaVencimiento() != null).toList();
@@ -186,7 +183,7 @@ public class LoteDTO {
     public LocalDate getFechaReanalisisVigente() {
         AnalisisDTO analisis = this.analisisDTOs.stream().filter(a -> a.getDictamen() != null)
             .filter(a -> a.getFechaReanalisis() != null).min(Comparator.comparing(AnalisisDTO::getFechaReanalisis)).orElse(null);
-        if (analisis==null) {
+        if (analisis == null) {
             return fechaReanalisisProveedor;
         } else {
             LocalDate fechaAnalisis = analisis.getFechaReanalisis();

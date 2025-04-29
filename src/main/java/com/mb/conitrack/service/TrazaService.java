@@ -56,7 +56,7 @@ public class TrazaService {
         return trazaRepository.saveAll(trazas);
     }
 
-    public List<Traza>  findAll() {
+    public List<Traza> findAll() {
         List<Traza> trazas = trazaRepository.findAll();
         trazas.sort(Comparator.comparing(Traza::getNroTraza));
         return trazas;

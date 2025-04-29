@@ -9,4 +9,5 @@ import com.mb.conitrack.entity.Movimiento;
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
     List<Movimiento> findAllByActivoTrue();
+
 }

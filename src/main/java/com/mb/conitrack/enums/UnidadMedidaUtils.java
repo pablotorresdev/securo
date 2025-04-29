@@ -34,47 +34,24 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Determina la unidad de medida más adecuada para representar una cantidad determinada, considerando la legibilidad del número (evita cantidades muy pequeñas o muy grandes).
+     * Devuelve la unidad de medida más pequeña (la de menor magnitud) entre dos unidades del mismo tipo.
      *
-     * @param unidadMedida Unidad actual asociada a la cantidad.
-     * @param cantidad     Cantidad que se desea evaluar.
+     * @param unidadUno Primera unidad de medida a comparar.
+     * @param unidadDos Segunda unidad de medida a comparar.
      *
-     * @return Unidad de medida ideal para representar la cantidad, sin perder precisión.
+     * @return La unidad de menor magnitud (es decir, la que tiene el menor factor de conversión).
+     *
+     * @throws IllegalArgumentException si las unidades no pertenecen al mismo tipo (masa, volumen, etc.).
      */
-    public static UnidadMedidaEnum sugerirUnidadParaCantidad(UnidadMedidaEnum unidadMedida, BigDecimal cantidad) {
-        if (cantidad == null || unidadMedida == null || UNIDAD.equals(unidadMedida)) {
-            return unidadMedida;
+    public static UnidadMedidaEnum obtenerMenorUnidadMedida(UnidadMedidaEnum unidadUno, UnidadMedidaEnum unidadDos) {
+        if (!unidadUno.getTipo().equals(unidadDos.getTipo())) {
+            throw new IllegalArgumentException("Las unidades de medida no son compatibles");
         }
-
-        List<UnidadMedidaEnum> unidadesCompatibles = getUnidadesPorTipo(unidadMedida);
-        int indexActual = unidadesCompatibles.indexOf(unidadMedida);
-
-        // Si la cantidad es pequeña o tiene demasiados decimales, se busca una unidad menor
-        if ((cantidad.compareTo(BigDecimal.ONE) < 0) || ((cantidad.compareTo(BigDecimal.TEN) < 0 && cantidad.stripTrailingZeros().scale() > 2))) {
-            for (int i = indexActual + 1; i < unidadesCompatibles.size(); i++) {
-                UnidadMedidaEnum menor = unidadesCompatibles.get(i);
-                double factor = unidadMedida.getFactorConversion() / menor.getFactorConversion();
-                BigDecimal convertida = cantidad.multiply(BigDecimal.valueOf(factor)).setScale(4, RoundingMode.HALF_UP);
-                if (convertida.compareTo(BigDecimal.ONE) > 0 && convertida.stripTrailingZeros().scale() <= 2 || i == unidadesCompatibles.size() - 1) {
-                    return menor;
-                }
-            }
+        if (unidadUno.getFactorConversion() < unidadDos.getFactorConversion()) {
+            return unidadUno;
+        } else {
+            return unidadDos;
         }
-
-        // Si la cantidad es muy grande y sin decimales, se busca una unidad mayor
-        final int potenciaBase10 = ordenDeMagnitudBase10(cantidad);
-        if (potenciaBase10 > 2 && cantidad.stripTrailingZeros().scale() < 1) {
-            for (int i = indexActual - 1; i >= 0; i--) {
-                UnidadMedidaEnum mayor = unidadesCompatibles.get(i);
-                double factor = unidadMedida.getFactorConversion() / mayor.getFactorConversion();
-                BigDecimal convertida = cantidad.multiply(BigDecimal.valueOf(factor));
-                if (convertida.compareTo(new BigDecimal(100)) < 0 && convertida.stripTrailingZeros().scale() <= 3 || i == 0) {
-                    return mayor;
-                }
-            }
-        }
-
-        return unidadMedida;
     }
 
     /**
@@ -116,24 +93,47 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Devuelve la unidad de medida más pequeña (la de menor magnitud) entre dos unidades del mismo tipo.
+     * Determina la unidad de medida más adecuada para representar una cantidad determinada, considerando la legibilidad del número (evita cantidades muy pequeñas o muy grandes).
      *
-     * @param unidadUno Primera unidad de medida a comparar.
-     * @param unidadDos Segunda unidad de medida a comparar.
+     * @param unidadMedida Unidad actual asociada a la cantidad.
+     * @param cantidad     Cantidad que se desea evaluar.
      *
-     * @return La unidad de menor magnitud (es decir, la que tiene el menor factor de conversión).
-     *
-     * @throws IllegalArgumentException si las unidades no pertenecen al mismo tipo (masa, volumen, etc.).
+     * @return Unidad de medida ideal para representar la cantidad, sin perder precisión.
      */
-    public static UnidadMedidaEnum obtenerMenorUnidadMedida(UnidadMedidaEnum unidadUno, UnidadMedidaEnum unidadDos) {
-        if (!unidadUno.getTipo().equals(unidadDos.getTipo())) {
-            throw new IllegalArgumentException("Las unidades de medida no son compatibles");
+    public static UnidadMedidaEnum sugerirUnidadParaCantidad(UnidadMedidaEnum unidadMedida, BigDecimal cantidad) {
+        if (cantidad == null || unidadMedida == null || UNIDAD.equals(unidadMedida)) {
+            return unidadMedida;
         }
-        if (unidadUno.getFactorConversion() < unidadDos.getFactorConversion()) {
-            return unidadUno;
-        } else {
-            return unidadDos;
+
+        List<UnidadMedidaEnum> unidadesCompatibles = getUnidadesPorTipo(unidadMedida);
+        int indexActual = unidadesCompatibles.indexOf(unidadMedida);
+
+        // Si la cantidad es pequeña o tiene demasiados decimales, se busca una unidad menor
+        if ((cantidad.compareTo(BigDecimal.ONE) < 0) || ((cantidad.compareTo(BigDecimal.TEN) < 0 && cantidad.stripTrailingZeros().scale() > 2))) {
+            for (int i = indexActual + 1; i < unidadesCompatibles.size(); i++) {
+                UnidadMedidaEnum menor = unidadesCompatibles.get(i);
+                double factor = unidadMedida.getFactorConversion() / menor.getFactorConversion();
+                BigDecimal convertida = cantidad.multiply(BigDecimal.valueOf(factor)).setScale(4, RoundingMode.HALF_UP);
+                if (convertida.compareTo(BigDecimal.ONE) > 0 && convertida.stripTrailingZeros().scale() <= 2 || i == unidadesCompatibles.size() - 1) {
+                    return menor;
+                }
+            }
         }
+
+        // Si la cantidad es muy grande y sin decimales, se busca una unidad mayor
+        final int potenciaBase10 = ordenDeMagnitudBase10(cantidad);
+        if (potenciaBase10 > 2 && cantidad.stripTrailingZeros().scale() < 1) {
+            for (int i = indexActual - 1; i >= 0; i--) {
+                UnidadMedidaEnum mayor = unidadesCompatibles.get(i);
+                double factor = unidadMedida.getFactorConversion() / mayor.getFactorConversion();
+                BigDecimal convertida = cantidad.multiply(BigDecimal.valueOf(factor));
+                if (convertida.compareTo(new BigDecimal(100)) < 0 && convertida.stripTrailingZeros().scale() <= 3 || i == 0) {
+                    return mayor;
+                }
+            }
+        }
+
+        return unidadMedida;
     }
 
 }

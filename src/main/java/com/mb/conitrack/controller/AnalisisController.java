@@ -43,7 +43,7 @@ public class AnalisisController {
     @ResponseBody
     public LoteDTO analisisDetails(@PathVariable("nroAnalisis") String nroAnalisis) {
         final Analisis analisis = analisisService.findByNroAnalisis(nroAnalisis);
-        if(analisis == null) {
+        if (analisis == null) {
             return new LoteDTO();
         }
         return DTOUtils.mergeEntities(analisis.getLotes());

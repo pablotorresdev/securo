@@ -123,7 +123,8 @@ public class ComprasController {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
         final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.persistirDevolucionCompra(movimientoDTO, lotesList));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
-        redirectAttributes.addFlashAttribute(resultDTO != null ? "success" : "error",
+        redirectAttributes.addFlashAttribute(
+            resultDTO != null ? "success" : "error",
             resultDTO != null ? "Ingreso de stock por compra exitoso." : "Hubo un error en el ingreso de stock por compra.");
         redirectAttributes.addFlashAttribute("success", "Devolucion realizada correctamente.");
     }
@@ -132,7 +133,8 @@ public class ComprasController {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
         final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.ingresarStockPorCompra(loteDTO));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
-        redirectAttributes.addFlashAttribute(resultDTO != null ? "success" : "error",
+        redirectAttributes.addFlashAttribute(
+            resultDTO != null ? "success" : "error",
             resultDTO != null ? "Ingreso de stock por compra exitoso." : "Hubo un error en el ingreso de stock por compra.");
     }
 

@@ -38,12 +38,19 @@ public enum UnidadMedidaEnum {
     PORCENTAJE("Porcentaje", "Porcentaje", "%", 0.01),
     PARTES_POR_MILLON("Partes por millon", "Porcentaje", "ppm", 0.000001);
 
-    public static List<UnidadMedidaEnum> getUnidadesPorTipo(UnidadMedidaEnum base) {
-        String tipo = base.getTipo();
-        return Arrays.stream(UnidadMedidaEnum.values())
-            .filter(u -> u.getTipo().equals(tipo))
-            .sorted(Comparator.comparingDouble(UnidadMedidaEnum::getFactorConversion).reversed()) // ASC
-            .collect(Collectors.toList());
+    private final String nombre;
+
+    private final String tipo;
+
+    private final String simbolo;
+
+    private final double factorConversion;
+
+    UnidadMedidaEnum(String nombre, String tipo, String simbolo, double factorConversion) {
+        this.nombre = nombre;
+        this.tipo = tipo;
+        this.simbolo = simbolo;
+        this.factorConversion = factorConversion;
     }
 
     public static List<UnidadMedidaEnum> getUnidadesConvertibles(UnidadMedidaEnum base) {
@@ -80,19 +87,12 @@ public enum UnidadMedidaEnum {
         return compatibles;
     }
 
-    private final String nombre;
-
-    private final String tipo;
-
-    private final String simbolo;
-
-    private final double factorConversion;
-
-    UnidadMedidaEnum(String nombre, String tipo, String simbolo, double factorConversion) {
-        this.nombre = nombre;
-        this.tipo = tipo;
-        this.simbolo = simbolo;
-        this.factorConversion = factorConversion;
+    public static List<UnidadMedidaEnum> getUnidadesPorTipo(UnidadMedidaEnum base) {
+        String tipo = base.getTipo();
+        return Arrays.stream(UnidadMedidaEnum.values())
+            .filter(u -> u.getTipo().equals(tipo))
+            .sorted(Comparator.comparingDouble(UnidadMedidaEnum::getFactorConversion).reversed()) // ASC
+            .collect(Collectors.toList());
     }
 
     public String getTipo() {

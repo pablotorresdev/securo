@@ -54,13 +54,13 @@ public class MovimientoService {
 
     public List<Movimiento> findAll() {
         final List<Movimiento> movimientos = movimientoRepository.findAllByActivoTrue();
-        movimientos.sort(Comparator
-            .comparing(Movimiento::getFecha));
+        movimientos.sort(Comparator.comparing(Movimiento::getFecha));
         return movimientos;
     }
 
     public List<Movimiento> findAllMuestreos() {
-        return movimientoRepository.findAllByActivoTrue().stream()
+        return movimientoRepository.findAllByActivoTrue()
+            .stream()
             .filter(movimiento -> MUESTREO.equals(movimiento.getMotivo()))
             .sorted(Comparator.comparing(Movimiento::getFecha))
             .toList();
@@ -218,8 +218,7 @@ public class MovimientoService {
     private Movimiento crearMovimientoConAnalisisEnCurso(final MovimientoDTO dto, final Lote lote, final Optional<Analisis> analisisEnCurso) {
         //Si el lote tiene un analisis en curso, se guarda el movimiento y se asocia al analisis en curso
         //El lote puede tiene n analisis realizados siempre se asocia al analisis en curso
-        if (dto.getNroAnalisis()
-            .equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio")).getNroAnalisis())) {
+        if (dto.getNroAnalisis().equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio")).getNroAnalisis())) {
             return movimientoRepository.save(createMovimientoConAnalisis(dto, lote, analisisEnCurso.get()));
         } else {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");

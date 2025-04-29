@@ -15,13 +15,6 @@ public enum EstadoEnum {
     DEVUELTO("Devuelto", 2), //Baja -> Cant actul = 0 x Devolución
     DESCARTADO("Descartado", 2);  //Baja -> Cant actul = 0 x Destrucción
 
-    // Obtener el primero que coincida con el valor
-    public static Optional<EstadoEnum> fromValor(String valor) {
-        return Arrays.stream(values())
-            .filter(e -> e.valor.equalsIgnoreCase(valor))
-            .findFirst();
-    }
-
     private final String valor;
 
     private final int prioridad;
@@ -29,6 +22,13 @@ public enum EstadoEnum {
     EstadoEnum(String valor, int prioridad) {
         this.valor = valor;
         this.prioridad = prioridad;
+    }
+
+    // Obtener el primero que coincida con el valor
+    public static Optional<EstadoEnum> fromValor(String valor) {
+        return Arrays.stream(values())
+            .filter(e -> e.valor.equalsIgnoreCase(valor))
+            .findFirst();
     }
 
     public String getValor() {

@@ -14,12 +14,7 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     List<Lote> findAllByActivoTrue();
 
     /**
-     * Spring Data compondrá la siguiente consulta:
-     * SELECT l FROM Lote l
-     *  WHERE l.codigoInterno = ?1
-     *    AND l.nroBulto      = ?2
-     *    AND l.activo        = true
-     *  LIMIT 1
+     * Spring Data compondrá la siguiente consulta: SELECT l FROM Lote l WHERE l.codigoInterno = ?1 AND l.nroBulto      = ?2 AND l.activo        = true LIMIT 1
      */
     Optional<Lote> findFirstByCodigoInternoAndNroBultoAndActivoTrue(
         String codigoInterno,
