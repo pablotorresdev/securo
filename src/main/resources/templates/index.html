@@ -23,21 +23,21 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/compras/ingreso-compra}">
-                CU1 - Ingreso de Lote por Compra
+                CU1 - Ingreso de Lote por Compra [Analista de planta]
             </a>
         </li>
 
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/cuarentena}">
-                CU2 - Dictamen: Cuarentena
+                CU2 - Dictamen: Cuarentena [Analista control de calidad]
             </a>
         </li>
 
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/reanalisis-producto}">
-                CUZ. Reanalisis de Producto Aprobado
+                CUZ. Reanalisis de Producto Aprobado [Gerente control de calidad]
             </a>
         </li>
 
@@ -46,7 +46,7 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/muestreo-bulto}">
-                CU3 - Retiro por Muestreo
+                CU3 - Retiro por Muestreo [Analista control de calidad]
             </a>
         </li>
 
@@ -54,66 +54,66 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/compras/devolucion-compra}">
-                CU4 - Devolución de Compra
+                CU4 - Devolución de Compra [Analista de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/resultado-analisis}">
-                CU5/CU6. Resultado QA: Aprobado/Rechazado
+                CU5/CU6. Resultado QA: Aprobado/Rechazado [Gerente control de calidad]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/produccion/consumo-produccion}">
-                CU7. Consumo de Producción
+                CU7. Consumo de Producción [Supervisor de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/lotes/list-fechas-lotes}">
-                CU8/CU9. Consulta Fecha Reanalisis / Vencimiento
+                CU8/CU9 [AUTOMATICO] -> Consulta Fecha Reanalisis / Vencimiento [A DEFINIR]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/produccion/ingreso-produccion}">
-                CU10. Ingreso de stock por Producción Interna
+                CU10. Ingreso de stock por Producción Interna [Supervisor de planta]
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU11. Liberación Unidad de venta
+                CU11. Liberación Unidad de venta [Gerente garantía de calidad/DT]
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU12. Venta de Producto Propio
+                CU12. Venta de Producto Propio [Analista de planta]
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU13. Devolución de cliente
+                CU13. Devolución de cliente [Gerente garantía de calidad]
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU14. Retiro de mercado
+                CU14. Retiro de mercado [Gerente garantía de calidad]
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU15. Ajuste de Inventario
+                CU15. Ajuste de Inventario [Supervisor de planta]
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU18. Configuración del sistema
+                CU18. Configuración del sistema [Admin]
             </a>
         </li>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU19. Reverso de Ultimo Movimiento
+                CU19. Reverso de Ultimo Movimiento [Analista de planta]
             </a>
         </li>
 
@@ -150,21 +150,21 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/proveedores/}">
-                CU16. ABM Proveedores
+                CU16. ABM Proveedores [Analista de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/productos/}">
-                CU17. ABM Productos
+                CU17. ABM Productos [Gerente control de calidad]
             </a>
         </li>
-        <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/users/}">
-                CUX. ABM Usuarios
-            </a>
-        </li>
+<!--        <li>-->
+<!--            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"-->
+<!--               th:href="@{/users/}">-->
+<!--                CUX. ABM Usuarios [Admin]-->
+<!--            </a>-->
+<!--        </li>-->
     </ul>
 </div>
 
