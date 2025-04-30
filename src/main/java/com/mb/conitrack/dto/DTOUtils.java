@@ -23,7 +23,9 @@ import static com.mb.conitrack.enums.UnidadMedidaUtils.sugerirUnidadParaCantidad
 public class DTOUtils {
 
     public static Analisis createAnalisis(final MovimientoDTO dto) {
-        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis()) ? dto.getNroAnalisis() : dto.getNroReanalisis();
+        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis())
+            ? dto.getNroAnalisis()
+            : dto.getNroReanalisis();
         if (nroAnalisis != null) {
             Analisis analisis = new Analisis();
             analisis.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
@@ -145,16 +147,31 @@ public class DTOUtils {
                     unidadMedida = unidadSugerida;
                 } else {
                     //Distitnas unidades de medida
-                    UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(bultoEntity.getUnidadMedida(), unidadMedida);
-                    BigDecimal cantidadActualTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadActual, menorUnidadMedida);
-                    cantidadActualTemp = cantidadActualTemp.add(convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadActual(),
+                    UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(
+                        bultoEntity.getUnidadMedida(),
+                        unidadMedida);
+                    BigDecimal cantidadActualTemp = convertirCantidadEntreUnidades(
+                        unidadMedida,
+                        cantidadActual,
+                        menorUnidadMedida);
+                    cantidadActualTemp = cantidadActualTemp.add(convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(),
+                        bultoEntity.getCantidadActual(),
                         menorUnidadMedida));
 
                     UnidadMedidaEnum unidadSugerida = sugerirUnidadParaCantidad(menorUnidadMedida, cantidadActualTemp);
-                    cantidadActual = convertirCantidadEntreUnidades(menorUnidadMedida, cantidadActualTemp, unidadSugerida);
+                    cantidadActual = convertirCantidadEntreUnidades(
+                        menorUnidadMedida,
+                        cantidadActualTemp,
+                        unidadSugerida);
 
-                    BigDecimal cantidadInicialTemp = convertirCantidadEntreUnidades(unidadMedida, cantidadInicial, unidadSugerida);
-                    cantidadInicial = cantidadInicialTemp.add(convertirCantidadEntreUnidades(bultoEntity.getUnidadMedida(), bultoEntity.getCantidadInicial(), unidadSugerida));
+                    BigDecimal cantidadInicialTemp = convertirCantidadEntreUnidades(
+                        unidadMedida,
+                        cantidadInicial,
+                        unidadSugerida);
+                    cantidadInicial = cantidadInicialTemp.add(convertirCantidadEntreUnidades(
+                        bultoEntity.getUnidadMedida(),
+                        bultoEntity.getCantidadInicial(),
+                        unidadSugerida));
                     unidadMedida = unidadSugerida;
                 }
                 if (bultoEntity.getFirstTraza() != null) {
@@ -215,9 +232,13 @@ public class DTOUtils {
 
     private static void setDatosProveedorLote(final Lote bultoEntity, final LoteDTO loteDTO) {
         loteDTO.setProveedorId(bultoEntity.getProveedor() != null ? bultoEntity.getProveedor().getId() : null);
-        loteDTO.setNombreProveedor(bultoEntity.getProveedor() != null ? bultoEntity.getProveedor().getRazonSocial() : null);
+        loteDTO.setNombreProveedor(bultoEntity.getProveedor() != null
+            ? bultoEntity.getProveedor().getRazonSocial()
+            : null);
         loteDTO.setFabricanteId(bultoEntity.getFabricante() != null ? bultoEntity.getFabricante().getId() : null);
-        loteDTO.setNombreFabricante(bultoEntity.getFabricante() != null ? bultoEntity.getFabricante().getRazonSocial() : null);
+        loteDTO.setNombreFabricante(bultoEntity.getFabricante() != null
+            ? bultoEntity.getFabricante().getRazonSocial()
+            : null);
         loteDTO.setLoteProveedor(bultoEntity.getLoteProveedor());
         loteDTO.setPaisOrigen(bultoEntity.getPaisOrigen());
         loteDTO.setFechaReanalisisProveedor(bultoEntity.getFechaReanalisisProveedor());

@@ -1,4 +1,4 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.controller.maestro;
 
 import java.util.Optional;
 

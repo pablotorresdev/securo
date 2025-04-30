@@ -21,15 +21,15 @@
             <label class="form-label" for="codigoInterno">Lote:</label>
             <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:data-dictamen="${loteDTO.dictamen.valor}"
-                        th:data-nroanalisis="${loteDTO.getNroUltimoAnalisisDto()}"
-                        th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}"
-                        th:each="loteDTO : ${lotesForCuarentena}"
+                <option th:each="loteDTO : ${lotesForCuarentena}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
                          + ' | Codigo Interno: ' + ${loteDTO.codigoInterno}
                          + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
-                        th:value="${loteDTO.codigoInterno}">
+                        th:value="${loteDTO.codigoInterno}"
+                        th:data-dictamen="${loteDTO.dictamen.valor}"
+                        th:data-nroanalisis="${loteDTO.getNroUltimoAnalisisDto()}"
+                        th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}">
                 </option>
             </select>
         </div>
@@ -62,7 +62,7 @@
         <!-- Campo de solo lectura + campo de ReAnálisis -->
         <div class="mb-3" id="grupoNroAnalisisSoloLectura" style="display: none;">
             <label class="form-label">Número de Análisis Actual:</label>
-            <input class="form-control" id="nroAnalisisReadonly" readonly type="text">
+            <input class="form-control" id="nroAnalisisReadonly" readonly type="text" maxlength="30">
         </div>
 
         <div class="mb-3" id="grupoNroReanalisis" style="display: none;">

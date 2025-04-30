@@ -24,7 +24,10 @@ public class UnidadMedidaUtils {
      *
      * @return Cantidad convertida a la unidad de destino.
      */
-    public static BigDecimal convertirCantidadEntreUnidades(UnidadMedidaEnum unidadOrigen, BigDecimal cantidad, UnidadMedidaEnum unidadDestino) {
+    public static BigDecimal convertirCantidadEntreUnidades(
+        UnidadMedidaEnum unidadOrigen,
+        BigDecimal cantidad,
+        UnidadMedidaEnum unidadDestino) {
         if (unidadOrigen.equals(unidadDestino)) {
             return cantidad;
         }
@@ -55,7 +58,8 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Calcula la "potencia" base 10 de una cantidad, útil para evaluar magnitudes en logaritmo base 10 sin usar funciones logarítmicas.
+     * Calcula la "potencia" base 10 de una cantidad, útil para evaluar magnitudes en logaritmo base 10 sin usar
+     * funciones logarítmicas.
      * <p>
      * Por ejemplo, para 1234 -> devuelve 3 (es decir, 10^3).
      *
@@ -73,7 +77,8 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la cantidad del movimiento a la unidad del lote.
+     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
+     * cantidad del movimiento a la unidad del lote.
      *
      * @param dto  Movimiento a aplicar, expresado en su propia unidad.
      * @param lote Lote afectado, con su cantidad y unidad actual.
@@ -93,7 +98,8 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Determina la unidad de medida más adecuada para representar una cantidad determinada, considerando la legibilidad del número (evita cantidades muy pequeñas o muy grandes).
+     * Determina la unidad de medida más adecuada para representar una cantidad determinada, considerando la legibilidad
+     * del número (evita cantidades muy pequeñas o muy grandes).
      *
      * @param unidadMedida Unidad actual asociada a la cantidad.
      * @param cantidad     Cantidad que se desea evaluar.
@@ -109,12 +115,14 @@ public class UnidadMedidaUtils {
         int indexActual = unidadesCompatibles.indexOf(unidadMedida);
 
         // Si la cantidad es pequeña o tiene demasiados decimales, se busca una unidad menor
-        if ((cantidad.compareTo(BigDecimal.ONE) < 0) || ((cantidad.compareTo(BigDecimal.TEN) < 0 && cantidad.stripTrailingZeros().scale() > 2))) {
+        if ((cantidad.compareTo(BigDecimal.ONE) < 0) ||
+            ((cantidad.compareTo(BigDecimal.TEN) < 0 && cantidad.stripTrailingZeros().scale() > 2))) {
             for (int i = indexActual + 1; i < unidadesCompatibles.size(); i++) {
                 UnidadMedidaEnum menor = unidadesCompatibles.get(i);
                 double factor = unidadMedida.getFactorConversion() / menor.getFactorConversion();
                 BigDecimal convertida = cantidad.multiply(BigDecimal.valueOf(factor)).setScale(4, RoundingMode.HALF_UP);
-                if (convertida.compareTo(BigDecimal.ONE) > 0 && convertida.stripTrailingZeros().scale() <= 2 || i == unidadesCompatibles.size() - 1) {
+                if (convertida.compareTo(BigDecimal.ONE) > 0 && convertida.stripTrailingZeros().scale() <= 2 ||
+                    i == unidadesCompatibles.size() - 1) {
                     return menor;
                 }
             }
@@ -127,7 +135,8 @@ public class UnidadMedidaUtils {
                 UnidadMedidaEnum mayor = unidadesCompatibles.get(i);
                 double factor = unidadMedida.getFactorConversion() / mayor.getFactorConversion();
                 BigDecimal convertida = cantidad.multiply(BigDecimal.valueOf(factor));
-                if (convertida.compareTo(new BigDecimal(100)) < 0 && convertida.stripTrailingZeros().scale() <= 3 || i == 0) {
+                if (convertida.compareTo(new BigDecimal(100)) < 0 && convertida.stripTrailingZeros().scale() <= 3 ||
+                    i == 0) {
                     return mayor;
                 }
             }

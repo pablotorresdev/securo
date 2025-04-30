@@ -18,20 +18,7 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -151,8 +138,11 @@ public class Lote {
     }
 
     public LocalDate getFechaVencimientoVigente() {
-        final List<Analisis> list = this.analisisList.stream().filter(Analisis::getActivo).filter(a -> a.getDictamen() != null)
-            .filter(a -> a.getFechaVencimiento() != null).toList();
+        final List<Analisis> list = this.analisisList.stream()
+            .filter(Analisis::getActivo)
+            .filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaVencimiento() != null)
+            .toList();
         if (list.isEmpty()) {
             return fechaVencimientoProveedor;
         } else if (list.size() == 1) {
@@ -170,8 +160,12 @@ public class Lote {
     }
 
     public LocalDate getFechaReanalisisVigente() {
-        Analisis analisis = this.analisisList.stream().filter(Analisis::getActivo).filter(a -> a.getDictamen() != null)
-            .filter(a -> a.getFechaReanalisis() != null).min(Comparator.comparing(Analisis::getFechaReanalisis)).orElse(null);
+        Analisis analisis = this.analisisList.stream()
+            .filter(Analisis::getActivo)
+            .filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaReanalisis() != null)
+            .min(Comparator.comparing(Analisis::getFechaReanalisis))
+            .orElse(null);
         if (analisis == null) {
             return fechaReanalisisProveedor;
         } else {

@@ -17,7 +17,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // necesario para que JS pueda acceder
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                // necesario para que JS pueda acceder
             )
             //.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth

@@ -42,14 +42,23 @@ public class LoteDTO {
     private Long productoId;
 
     @NotNull(message = "La cantidad inicial es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
-    @Positive(message = "La cantidad inicial debe ser mayor a cero", groups = { AltaCompra.class, AltaProduccion.class })
+    @Positive(message = "La cantidad inicial debe ser mayor a cero", groups = {
+        AltaCompra.class,
+        AltaProduccion.class
+    })
     private BigDecimal cantidadInicial;
 
     @NotNull(message = "La unidad de medida es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
     private UnidadMedidaEnum unidadMedida;
 
-    @NotNull(message = "La cantidad de bultos totales es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
-    @Positive(message = "La cantidad de bultos totales debe ser mayor a cero", groups = { AltaCompra.class, AltaProduccion.class })
+    @NotNull(message = "La cantidad de bultos totales es obligatoria", groups = {
+        AltaCompra.class,
+        AltaProduccion.class
+    })
+    @Positive(message = "La cantidad de bultos totales debe ser mayor a cero", groups = {
+        AltaCompra.class,
+        AltaProduccion.class
+    })
     private Integer bultosTotales;
 
     @NotNull(message = "El proveedor es obligatorio", groups = { AltaCompra.class })
@@ -76,7 +85,10 @@ public class LoteDTO {
 
     //Datos de BAJA Obligatorios
     @NotNull(message = "La fecha de consumo es obligatoria", groups = { ValidacionBaja.class, BajaProduccion.class })
-    @PastOrPresent(message = "La fecha de consumo no puede ser futura", groups = { ValidacionBaja.class, BajaProduccion.class })
+    @PastOrPresent(message = "La fecha de consumo no puede ser futura", groups = {
+        ValidacionBaja.class,
+        BajaProduccion.class
+    })
     private LocalDate fechaEgreso;
 
     @NotNull(message = "La orden de producción es obligatoria", groups = { BajaProduccion.class, AltaProduccion.class })
@@ -181,8 +193,11 @@ public class LoteDTO {
     }
 
     public LocalDate getFechaReanalisisVigente() {
-        AnalisisDTO analisis = this.analisisDTOs.stream().filter(a -> a.getDictamen() != null)
-            .filter(a -> a.getFechaReanalisis() != null).min(Comparator.comparing(AnalisisDTO::getFechaReanalisis)).orElse(null);
+        AnalisisDTO analisis = this.analisisDTOs.stream()
+            .filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaReanalisis() != null)
+            .min(Comparator.comparing(AnalisisDTO::getFechaReanalisis))
+            .orElse(null);
         if (analisis == null) {
             return fechaReanalisisProveedor;
         } else {

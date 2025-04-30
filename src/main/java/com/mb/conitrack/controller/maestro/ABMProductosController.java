@@ -1,4 +1,4 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.controller.maestro;
 
 import java.util.Optional;
 
@@ -58,7 +58,10 @@ public class ABMProductosController {
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
         if (tipoProducto.isRequiereProductoDestino()) {
             if (StringUtils.isEmpty(producto.getProductoDestino())) {
-                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
+                bindingResult.rejectValue(
+                    "productoDestino",
+                    "error.productoDestino",
+                    "Indique el producto destino para este tipo de producto.");
                 model.addAttribute("productosDestino", productoService.getProductosInternos());
                 return "productos/add-producto";
             }

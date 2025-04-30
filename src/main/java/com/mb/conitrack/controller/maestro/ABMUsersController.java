@@ -1,4 +1,4 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.controller.maestro;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,10 @@ public class ABMUsersController {
 
     private final RoleRepository roleRepository;
 
-    public ABMUsersController(UserRepository userRepository, PasswordEncoder passwordEncoder, final RoleRepository roleRepository) {
+    public ABMUsersController(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder,
+        final RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.usernames = new ArrayList<>();

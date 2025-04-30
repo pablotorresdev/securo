@@ -34,7 +34,7 @@
                         th:each="producto : ${productos}"
                         th:value="${producto.id}"
                         th:text="'Producto: ' + ${producto.nombreGenerico}
-                         + ' | Tipo: ' + ${producto.tipoProducto}
+                         + ' | Tipo: ' + ${producto.tipoProducto.getValor()}
                          + ' | Grupo: ' + ${producto.tipoProducto.getGrupo()}
                          + ' | Codigo Interno: ' + ${producto.codigoInterno}
                          + (${producto.productoDestino} != null ? ' | Producto destino: ' + ${producto.productoDestino} : '')"

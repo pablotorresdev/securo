@@ -35,7 +35,10 @@ public class FechaValidatorService {
         dto.setObservaciones("(CU8) ANALISIS EXPIRADO POR FECHA: " + hoy);
         final List<Lote> lotes = loteService.persistirExpiracionAnalisis(dto, lotesReanalisis);
         for (Lote lote : lotes) {
-            System.out.println("Reanalisis expirado: " + lote.getLoteProveedor() + " - " + lote.getFechaReanalisisVigente());
+            System.out.println("Reanalisis expirado: " +
+                lote.getLoteProveedor() +
+                " - " +
+                lote.getFechaReanalisisVigente());
         }
     }
 

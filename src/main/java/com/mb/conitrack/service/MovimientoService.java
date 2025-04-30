@@ -28,12 +28,14 @@ import static com.mb.conitrack.entity.EntityUtils.createMovimientoPorMuestreo;
 import static com.mb.conitrack.entity.EntityUtils.getAnalisisEnCurso;
 import static com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO;
 import static com.mb.conitrack.enums.DictamenEnum.CUARENTENA;
+import static com.mb.conitrack.enums.DictamenEnum.LIBERADO;
 import static com.mb.conitrack.enums.DictamenEnum.VENCIDO;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.EXPIRACION_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
+import static com.mb.conitrack.enums.MotivoEnum.VENTA;
 
 @AllArgsConstructor
 @Service
@@ -45,7 +47,10 @@ public class MovimientoService {
     @Autowired
     private final MovimientoRepository movimientoRepository;
 
-    private static Movimiento createMovimientoConAnalisis(final MovimientoDTO dto, final Lote lote, final Analisis ultimoAnalisis) {
+    private static Movimiento createMovimientoConAnalisis(
+        final MovimientoDTO dto,
+        final Lote lote,
+        final Analisis ultimoAnalisis) {
         final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto);
         movimientoPorMuestreo.setLote(lote);
         movimientoPorMuestreo.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
@@ -210,15 +215,32 @@ public class MovimientoService {
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(VENCIDO);
 
-        //TODO: fix observaciones
         movimiento.setObservaciones("_CU9_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
-    private Movimiento crearMovimientoConAnalisisEnCurso(final MovimientoDTO dto, final Lote lote, final Optional<Analisis> analisisEnCurso) {
+    //***********CU11 MODIFICACION: LIBERACION PRODUCTO***********
+    @Transactional
+    public Movimiento persistirMovimientoLiberacionProducto(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+
+        movimiento.setMotivo(VENTA);
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setDictamenFinal(LIBERADO);
+
+        movimiento.setObservaciones("_CU11_\n" + dto.getObservaciones());
+        return movimientoRepository.save(movimiento);
+    }
+
+    private Movimiento crearMovimientoConAnalisisEnCurso(
+        final MovimientoDTO dto,
+        final Lote lote,
+        final Optional<Analisis> analisisEnCurso) {
         //Si el lote tiene un analisis en curso, se guarda el movimiento y se asocia al analisis en curso
         //El lote puede tiene n analisis realizados siempre se asocia al analisis en curso
-        if (dto.getNroAnalisis().equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio")).getNroAnalisis())) {
+        if (dto.getNroAnalisis()
+            .equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio"))
+                .getNroAnalisis())) {
             return movimientoRepository.save(createMovimientoConAnalisis(dto, lote, analisisEnCurso.get()));
         } else {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");

@@ -4,7 +4,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Enum que representa los estados de un lote/bulto/traza respecto de su cantidad y los movimientos de Alta/Baja relacionados.
+ * Enum que representa los estados de un lote/bulto/traza respecto de su cantidad y los movimientos de Alta/Baja
+ * relacionados.
  */
 public enum EstadoEnum {
     NUEVO("Nuevo", 0), //Alta -> Cant inicial = actual

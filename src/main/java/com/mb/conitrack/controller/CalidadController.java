@@ -65,7 +65,10 @@ public class CalidadController {
 
     @PostMapping("/cuarentena")
     public String procesarDictamenCuarentena(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
 
         final List<Lote> lotesList = new ArrayList<>();
         boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
@@ -100,7 +103,10 @@ public class CalidadController {
 
     @PostMapping("/reanalisis-producto")
     public String procesarReanalisisProducto(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
 
         final List<Lote> lotesList = new ArrayList<>();
         boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
@@ -135,7 +141,10 @@ public class CalidadController {
 
     @PostMapping("/muestreo-bulto")
     public String procesarMuestreoBulto(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
 
         if (!validarNroAnalisisNotNull(movimientoDTO, bindingResult)) {
             initModelMuestreoBulto(movimientoDTO, model);
@@ -176,7 +185,10 @@ public class CalidadController {
 
     @PostMapping("/resultado-analisis")
     public String procesarResultadoAnalisis(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
         // Validar throw new IllegalStateException("Hay más de un análisis activo con fecha de vencimiento");
         if (!validarResultadoAnalisisInput(movimientoDTO, bindingResult)) {
             initModelResultadoAnalisis(movimientoDTO, model);
@@ -193,25 +205,19 @@ public class CalidadController {
         return "calidad/resultado-analisis-ok";
     }
 
-    // CU8: Reanálisis manual
-    // @PreAuthorize("hasAuthority('ROLE_CONTROL_CALIDAD')")
-    @GetMapping("/cu8")
-    public String reanalisisManual() {
-        return "";
-    }
-
-    // CU18: Alta de Producto
-    // @PreAuthorize("hasAuthority('ROLE_CONTROL_CALIDAD')")
-    @GetMapping("/cu18")
-    public String altaProducto() {
-        return "";
-    }
-
-    private void dictamenCuarentena(final MovimientoDTO dto, final List<Lote> lotesList, final RedirectAttributes redirectAttributes) {
+    private void dictamenCuarentena(
+        final MovimientoDTO dto,
+        final List<Lote> lotesList,
+        final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final List<Lote> lotes = loteService.persistirDictamenCuarentena(dto, lotesList);
-        redirectAttributes.addFlashAttribute("loteDTO", DTOUtils.mergeEntities(lotes));
-        redirectAttributes.addFlashAttribute("success", "Cambio de calidad a Cuarentena exitoso");
+        final LoteDTO loteDTO = DTOUtils.mergeEntities(loteService.persistirDictamenCuarentena(dto, lotesList));
+        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+
+        redirectAttributes.addFlashAttribute(
+            loteDTO != null ? "success" : "error",
+            loteDTO != null
+                ? "Cambio de calidad a Cuarentena exitoso"
+                : "Hubo un error al realizar el cambio de calidad a Cuarentena.");
     }
 
     private void initModelDictamencuarentena(final MovimientoDTO movimientoDTO, final Model model) {
@@ -243,7 +249,10 @@ public class CalidadController {
         model.addAttribute("resultados", List.of(DictamenEnum.APROBADO, DictamenEnum.RECHAZADO));
     }
 
-    private void muestreoBulto(final MovimientoDTO movimientoDTO, final Lote lote, final RedirectAttributes redirectAttributes) {
+    private void muestreoBulto(
+        final MovimientoDTO movimientoDTO,
+        final Lote lote,
+        final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
         LoteDTO loteDTO = DTOUtils.mergeEntities(List.of(loteService.persistirMuestreo(movimientoDTO, lote)));
 
@@ -253,11 +262,18 @@ public class CalidadController {
             loteDTO != null ? "Muestreo registrado correctamente." : "Hubo un error persistiendo el muestreo.");
     }
 
-    private void reanalisisProducto(final MovimientoDTO dto, final List<Lote> lotesList, final RedirectAttributes redirectAttributes) {
+    private void reanalisisProducto(
+        final MovimientoDTO dto,
+        final List<Lote> lotesList,
+        final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final List<Lote> lotes = loteService.persistirReanalisisProducto(dto, lotesList);
-        redirectAttributes.addFlashAttribute("loteDTO", DTOUtils.mergeEntities(lotes));
-        redirectAttributes.addFlashAttribute("success", "Anilisis asignado con éxito");
+        final LoteDTO loteDTO = DTOUtils.mergeEntities(loteService.persistirReanalisisProducto(dto, lotesList));
+        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+        redirectAttributes.addFlashAttribute(
+            loteDTO != null ? "success" : "error",
+            loteDTO != null
+                ? "Anilisis asignado con éxito: " + loteDTO.getUltimoNroAnalisisDto()
+                : "Hubo un error al asignar el analisis.");
     }
 
     private void resultadoAnalisis(final MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {
@@ -267,10 +283,14 @@ public class CalidadController {
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
-            loteDTO != null ? "Cambio de dictamen a " + movimientoDTO.getDictamenFinal() + " exitoso" : "Hubo un error con el cambio de dictamen.");
+            loteDTO != null
+                ? "Cambio de dictamen a " + movimientoDTO.getDictamenFinal() + " exitoso"
+                : "Hubo un error con el cambio de dictamen.");
     }
 
-    private boolean validarResultadoAnalisisInput(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
+    private boolean validarResultadoAnalisisInput(
+        final MovimientoDTO movimientoDTO,
+        final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

@@ -64,7 +64,10 @@ public class ComprasController {
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @PostMapping("/ingreso-compra")
     public String ingresoCompra(
-        @Validated(AltaCompra.class) @ModelAttribute("loteDTO") LoteDTO loteDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        @Validated(AltaCompra.class) @ModelAttribute("loteDTO") LoteDTO loteDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
 
         final boolean success = validateCantidadIngreso(loteDTO, bindingResult)
             && validateFechasProveedor(loteDTO, bindingResult)
@@ -99,10 +102,17 @@ public class ComprasController {
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @PostMapping("/devolucion-compra")
     public String procesarDevolucionCompra(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
 
         final List<Lote> lotesList = new ArrayList<>();
-        if (!(populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInterno(), bindingResult, loteService) &&
+        if (!(populateLoteListByCodigoInterno(
+            lotesList,
+            movimientoDTO.getCodigoInterno(),
+            bindingResult,
+            loteService) &&
             validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult))) {
             initModelDevolucionCompra(model);
             model.addAttribute("movimientoDTO", movimientoDTO);
@@ -114,19 +124,25 @@ public class ComprasController {
     }
 
     @GetMapping("/devolucion-compra-ok")
-    public String exitoMuestreo(
+    public String exitoDevolucionCompra(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
         return "compras/devolucion-compra-ok";
     }
 
-    private void devolucionCompra(final MovimientoDTO movimientoDTO, final List<Lote> lotesList, final RedirectAttributes redirectAttributes) {
+    private void devolucionCompra(
+        final MovimientoDTO movimientoDTO,
+        final List<Lote> lotesList,
+        final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.persistirDevolucionCompra(movimientoDTO, lotesList));
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.persistirDevolucionCompra(
+            movimientoDTO,
+            lotesList));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
-            resultDTO != null ? "Ingreso de stock por compra exitoso." : "Hubo un error en el ingreso de stock por compra.");
-        redirectAttributes.addFlashAttribute("success", "Devolucion realizada correctamente.");
+            resultDTO != null
+                ? "Devolucion realizada correctamente."
+                : "Hubo un error en la devolucion de compra.");
     }
 
     private void ingresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
@@ -135,7 +151,9 @@ public class ComprasController {
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
-            resultDTO != null ? "Ingreso de stock por compra exitoso." : "Hubo un error en el ingreso de stock por compra.");
+            resultDTO != null
+                ? "Ingreso de stock por compra exitoso."
+                : "Hubo un error en el ingreso de stock por compra.");
     }
 
     private void initModelDevolucionCompra(final Model model) {

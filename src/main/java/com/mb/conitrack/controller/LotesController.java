@@ -34,7 +34,7 @@ public class LotesController {
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
-        model.addAttribute("lotes", loteService.findAllSortByDateAndNroBulto());
+        model.addAttribute("lotes", loteService.findAllSortByDateAndNroBultoAudit());
         return "lotes/list-lotes";
     }
 

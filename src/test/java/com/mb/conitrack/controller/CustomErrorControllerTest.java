@@ -10,6 +10,8 @@ import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.web.context.request.ServletWebRequest;
 
+import com.mb.conitrack.controller.maestro.CustomErrorController;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

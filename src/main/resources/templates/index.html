@@ -20,33 +20,12 @@
     <ul>
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Casos de uso</h4>
+        <br>
+        <h5 class="mb-3 text-primary">Compras</h5>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/compras/ingreso-compra}">
                 CU1 - Ingreso de Lote por Compra [Analista de planta]
-            </a>
-        </li>
-
-        <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/cuarentena}">
-                CU2 - Dictamen: Cuarentena [Analista control de calidad]
-            </a>
-        </li>
-
-        <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/reanalisis-producto}">
-                CUZ. Reanalisis de Producto Aprobado [Gerente control de calidad]
-            </a>
-        </li>
-
-
-        <!-- CU3 Retiro por Muestreo -->
-        <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/muestreo-bulto}">
-                CU3 - Retiro por Muestreo [Analista control de calidad]
             </a>
         </li>
 
@@ -57,6 +36,23 @@
                 CU4 - Devolución de Compra [Analista de planta]
             </a>
         </li>
+
+        <br>
+        <h5 class="mb-3 text-primary">Calidad</h5>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/cuarentena}">
+                CU2 - Dictamen: Cuarentena [Analista control de calidad]
+            </a>
+        </li>
+
+        <!-- CU3 Retiro por Muestreo -->
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/muestreo-bulto}">
+                CU3 - Retiro por Muestreo [Analista control de calidad]
+            </a>
+        </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/resultado-analisis}">
@@ -65,8 +61,8 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/produccion/consumo-produccion}">
-                CU7. Consumo de Producción [Supervisor de planta]
+               th:href="@{/calidad/reanalisis-producto}">
+                CUZ. Reanalisis de Producto Aprobado [Gerente control de calidad]
             </a>
         </li>
         <li>
@@ -75,14 +71,28 @@
                 CU8/CU9 [AUTOMATICO] -> Consulta Fecha Reanalisis / Vencimiento [A DEFINIR]
             </a>
         </li>
+
+        <br>
+        <h5 class="mb-3 text-primary">Produccion</h5>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/produccion/consumo-produccion}">
+                CU7. Consumo de Producción [Supervisor de planta]
+            </a>
+        </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/produccion/ingreso-produccion}">
                 CU10. Ingreso de stock por Producción Interna [Supervisor de planta]
             </a>
         </li>
+
+
+        <br>
+        <h5 class="mb-3 text-primary">Ventas</h5>
         <li>
-            <a class="disabled" href="javascript:void(0);">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/ventas/liberacion-producto}">
                 CU11. Liberación Unidad de venta [Gerente garantía de calidad/DT]
             </a>
         </li>
@@ -101,6 +111,9 @@
                 CU14. Retiro de mercado [Gerente garantía de calidad]
             </a>
         </li>
+
+        <br>
+        <h5 class="mb-3 text-primary">Contingencias y Configuracion</h5>
         <li>
             <a class="disabled" href="javascript:void(0);">
                 CU15. Ajuste de Inventario [Supervisor de planta]

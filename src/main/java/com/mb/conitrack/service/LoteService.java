@@ -49,11 +49,14 @@ public class LoteService {
 
     private final TrazaService trazaService;
 
+    //TODO: unificar la logica de activo vs todos para operatoria vs auditoria
     public Lote findLoteBultoById(final Long id) {
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo.");
         }
-        return loteRepository.findById(id).filter(Lote::getActivo).orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+        return loteRepository.findById(id)
+            .filter(Lote::getActivo)
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
     public List<Lote> findLoteListByCodigoInterno(final String codigoInterno) {
@@ -63,10 +66,23 @@ public class LoteService {
         return loteRepository.findAllByCodigoInternoAndActivoTrue(codigoInterno);
     }
 
+    public List<Lote> findAllSortByDateAndNroBultoAudit() {
+        return loteRepository.findAll()
+            .stream()
+            .sorted(Comparator.comparing(Lote::getFechaIngreso)
+                .thenComparing(Lote::getCodigoInterno)
+                .thenComparing(Lote::getNroBulto))
+            .toList();
+    }
+
     public List<Lote> findAllSortByDateAndNroBulto() {
-        final List<Lote> lotes = loteRepository.findAll();
-        lotes.sort(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto));
-        return lotes;
+        return loteRepository.findAll()
+            .stream()
+            .filter(Lote::getActivo)
+            .sorted(Comparator.comparing(Lote::getFechaIngreso)
+                .thenComparing(Lote::getCodigoInterno)
+                .thenComparing(Lote::getNroBulto))
+            .toList();
     }
 
     public List<Lote> findAllLotesDictaminados() {
@@ -74,16 +90,23 @@ public class LoteService {
             .stream()
             .filter(lote -> lote.getFechaVencimientoVigente() != null || lote.getFechaReanalisisVigente() != null)
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto)).toList();
+            .sorted(Comparator.comparing(Lote::getFechaIngreso)
+                .thenComparing(Lote::getCodigoInterno)
+                .thenComparing(Lote::getNroBulto))
+            .toList();
     }
 
     public List<Lote> findAllLotesVencidos() {
         final LocalDate now = LocalDate.now();
         return loteRepository.findAll()
             .stream()
-            .filter(lote -> lote.getFechaVencimientoVigente() != null && !lote.getFechaVencimientoVigente().isBefore(now))
+            .filter(lote -> lote.getFechaVencimientoVigente() != null &&
+                !lote.getFechaVencimientoVigente().isBefore(now))
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto)).toList();
+            .sorted(Comparator.comparing(Lote::getFechaIngreso)
+                .thenComparing(Lote::getCodigoInterno)
+                .thenComparing(Lote::getNroBulto))
+            .toList();
     }
 
     public List<Lote> findAllLotesAnalisisExpirado() {
@@ -92,7 +115,10 @@ public class LoteService {
             .stream()
             .filter(lote -> lote.getFechaReanalisisVigente() != null && !lote.getFechaReanalisisVigente().isBefore(now))
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto)).toList();
+            .sorted(Comparator.comparing(Lote::getFechaIngreso)
+                .thenComparing(Lote::getCodigoInterno)
+                .thenComparing(Lote::getNroBulto))
+            .toList();
     }
 
     //Getters para el Front
@@ -105,26 +131,22 @@ public class LoteService {
     public List<Lote> findAllForCuarentena() {
         //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
-        return allSortByDateAndNroBulto.stream()
-            .filter(l -> EnumSet.of(
-                    DictamenEnum.RECIBIDO,
-                    DictamenEnum.APROBADO,
-                    DictamenEnum.ANALISIS_EXPIRADO,
-                    DictamenEnum.LIBERADO,
-                    DictamenEnum.DEVOLUCION_CLIENTES,
-                    DictamenEnum.RETIRO_MERCADO)
-                .contains(l.getDictamen()))
-            .toList();
+        return allSortByDateAndNroBulto.stream().filter(l -> EnumSet.of(DictamenEnum.RECIBIDO,
+            DictamenEnum.APROBADO,
+            DictamenEnum.ANALISIS_EXPIRADO,
+            DictamenEnum.LIBERADO,
+            DictamenEnum.DEVOLUCION_CLIENTES,
+            DictamenEnum.RETIRO_MERCADO).contains(l.getDictamen())).toList();
     }
 
-    //***********CU2 MODIFICACION: Reanalisis de Producto Aprobado***********
+    //***********CUZ MODIFICACION: Reanalisis de Producto Aprobado***********
     public List<Lote> findAllForReanalisisProducto() {
         //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
-            .filter(l -> l.getDictamen() ==
-                DictamenEnum.APROBADO)
-            .filter(l -> l.getAnalisisList().stream()
+            .filter(l -> l.getDictamen() == DictamenEnum.APROBADO)
+            .filter(l -> l.getAnalisisList()
+                .stream()
                 .noneMatch(a -> a.getDictamen() == null && a.getFechaRealizado() == null))
             .toList();
     }
@@ -143,9 +165,15 @@ public class LoteService {
     public List<Lote> findAllForDevolucionCompra() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
-            .filter(l -> EnumSet.of(DictamenEnum.RECIBIDO, DictamenEnum.CUARENTENA, DictamenEnum.APROBADO, DictamenEnum.RECHAZADO).contains(l.getDictamen()))
-            .filter(l -> EnumSet.of(TipoProductoEnum.API, TipoProductoEnum.EXCIPIENTE, TipoProductoEnum.ACOND_PRIMARIO, TipoProductoEnum.ACOND_SECUNDARIO)
-                .contains(l.getProducto().getTipoProducto()))
+            .filter(l -> EnumSet.of(DictamenEnum.RECIBIDO,
+                    DictamenEnum.CUARENTENA,
+                    DictamenEnum.APROBADO,
+                    DictamenEnum.RECHAZADO)
+                .contains(l.getDictamen()))
+            .filter(l -> EnumSet.of(TipoProductoEnum.API,
+                TipoProductoEnum.EXCIPIENTE,
+                TipoProductoEnum.ACOND_PRIMARIO,
+                TipoProductoEnum.ACOND_SECUNDARIO).contains(l.getProducto().getTipoProducto()))
             .filter(l -> EstadoEnum.DEVUELTO != l.getEstado())
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
             .toList();
@@ -155,19 +183,33 @@ public class LoteService {
     public List<Lote> findAllForResultadoAnalisis() {
         final List<Lote> lotes = loteRepository.findAll();
         return lotes.stream()
+            .filter(Lote::getActivo)
             .filter(l -> EnumSet.of(DictamenEnum.CUARENTENA).contains(l.getDictamen()))
-            .filter(l -> l.getAnalisisList().stream().anyMatch(a -> a.getDictamen() == null && a.getFechaRealizado() == null))
+            .filter(l -> l.getAnalisisList()
+                .stream()
+                .anyMatch(a -> a.getDictamen() == null && a.getFechaRealizado() == null))
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
             .toList();
     }
 
+    //***********CU7 BAJA: CONSUMO PRODUCCION***********
     public List<Lote> findAllForConsumoProduccion() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> DictamenEnum.APROBADO == l.getDictamen())
             .filter(l -> TipoProductoEnum.UNIDAD_VENTA != l.getProducto().getTipoProducto())
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno).thenComparing(Lote::getNroBulto))
+            .toList();
+    }
+
+    //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
+    public List<Lote> findAllForLiberacionProducto() {
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        return allSortByDateAndNroBulto.stream()
+            .filter(l -> DictamenEnum.APROBADO == l.getDictamen())
+            .filter(l -> TipoProductoEnum.UNIDAD_VENTA == l.getProducto().getTipoProducto())
+            .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
+            .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
             .toList();
     }
 
@@ -181,8 +223,10 @@ public class LoteService {
     @Transactional
     public List<Lote> ingresarStockPorCompra(LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
-        Proveedor proveedor = proveedorService.findById(loteDTO.getProveedorId()).orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
-        Producto producto = productoService.findById(loteDTO.getProductoId()).orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+        Proveedor proveedor = proveedorService.findById(loteDTO.getProveedorId())
+            .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
+        Producto producto = productoService.findById(loteDTO.getProductoId())
+            .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
         int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
@@ -223,7 +267,9 @@ public class LoteService {
     @Transactional
     public List<Lote> persistirDictamenCuarentena(final MovimientoDTO dto, final List<Lote> lotes) {
         //TODO, eliminar NRO de Reanalisis del DTO
-        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis()) ? dto.getNroAnalisis() : dto.getNroReanalisis();
+        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis())
+            ? dto.getNroAnalisis()
+            : dto.getNroReanalisis();
 
         Analisis currentAnalisis = analisisService.findByNroAnalisis(nroAnalisis);
         Analisis newAnalisis = null;
@@ -234,7 +280,9 @@ public class LoteService {
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : lotes) {
             final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
-            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(dto, loteBulto, nroAnalisisMovimiento);
+            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(dto,
+                loteBulto,
+                nroAnalisisMovimiento);
 
             loteBulto.setDictamen(movimiento.getDictamenFinal());
             loteBulto.getMovimientos().add(movimiento);
@@ -249,6 +297,24 @@ public class LoteService {
         return result;
     }
 
+    //***********CU11 MODIFICACION: LIBERACION DE PRODUCTO***********
+    @Transactional
+    public List<Lote> persistirLiberacionProducto(final MovimientoDTO dto, final List<Lote> lotes) {
+
+        List<Lote> result = new ArrayList<>();
+        for (Lote loteBulto : lotes) {
+            final Movimiento movimiento = movimientoService.persistirMovimientoLiberacionProducto(dto, loteBulto);
+
+            loteBulto.setFechaReanalisisProveedor(loteBulto.getFechaReanalisisVigente());
+            loteBulto.setFechaVencimientoProveedor(loteBulto.getFechaVencimientoVigente());
+
+            loteBulto.setDictamen(movimiento.getDictamenFinal());
+            loteBulto.getMovimientos().add(movimiento);
+            result.add(loteRepository.save(loteBulto));
+        }
+        return result;
+    }
+
     //***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
     @Transactional
     public List<Lote> persistirReanalisisProducto(final MovimientoDTO dto, final List<Lote> lotes) {
@@ -256,7 +322,9 @@ public class LoteService {
         final Analisis newAnalisis = analisisService.save(analisis);
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : lotes) {
-            final Movimiento movimiento = movimientoService.persistirMovimientoReanalisisProducto(dto, loteBulto, newAnalisis.getNroAnalisis());
+            final Movimiento movimiento = movimientoService.persistirMovimientoReanalisisProducto(dto,
+                loteBulto,
+                newAnalisis.getNroAnalisis());
             loteBulto.getMovimientos().add(movimiento);
             loteBulto.getAnalisisList().add(newAnalisis);
             newAnalisis.getLotes().add(loteBulto);
@@ -319,11 +387,13 @@ public class LoteService {
     public List<Lote> registrarConsumoProduccion(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         for (int nroBulto : loteDTO.getNroBultoList()) {
-            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(loteDTO.getCodigoInterno(), nroBulto)
+            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(loteDTO.getCodigoInterno(),
+                    nroBulto)
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
             final Movimiento movimiento = movimientoService.persistirMovimientoConsumoProduccion(loteDTO, bulto);
-            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento), bulto));
+            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento),
+                bulto));
 
             if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
                 bulto.setEstado(EstadoEnum.CONSUMIDO);
@@ -379,12 +449,10 @@ public class LoteService {
             bultoGuardado.getMovimientos().add(movimiento);
 
             if (trazaActual.isPresent()) {
-                List<Traza> trazasGuardadas = trazaService.persistirTrazasIngresoProduccion(bultoGuardado, trazaActual.get());
+                List<Traza> trazasGuardadas = trazaService.persistirTrazasIngresoProduccion(bultoGuardado,
+                    trazaActual.get());
                 bultoGuardado.getTrazas().addAll(trazasGuardadas);
-                trazaActual = trazasGuardadas.stream()
-                    .map(Traza::getNroTraza)
-                    .max(Long::compareTo)
-                    .map(max -> max + 1);
+                trazaActual = trazasGuardadas.stream().map(Traza::getNroTraza).max(Long::compareTo).map(max -> max + 1);
             }
 
             result.add(bultoGuardado);

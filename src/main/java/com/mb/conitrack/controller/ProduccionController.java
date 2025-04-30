@@ -59,7 +59,10 @@ public class ProduccionController {
 
     @PostMapping("/consumo-produccion")
     public String procesarConsumoProduccion(
-        @Validated(BajaProduccion.class) @ModelAttribute LoteDTO loteDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes
+        @Validated(BajaProduccion.class) @ModelAttribute LoteDTO loteDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes
     ) {
 
         if (!validarConsumoProduccionInput(loteDTO, bindingResult)) {
@@ -90,7 +93,10 @@ public class ProduccionController {
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @PostMapping("/ingreso-produccion")
     public String procesarIngresoProduccion(
-        @Validated(AltaProduccion.class) @ModelAttribute("loteDTO") LoteDTO loteDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        @Validated(AltaProduccion.class) @ModelAttribute("loteDTO") LoteDTO loteDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
 
         if (!validarIngresoProduccionInput(loteDTO, bindingResult)) {
             initModelIngresoProduccion(model, loteDTO);
@@ -125,10 +131,13 @@ public class ProduccionController {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
         final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.registrarConsumoProduccion(loteDTO));
 
-        redirectAttributes.addFlashAttribute("success", "Consumo registrado correctamente para la orden " + loteDTO.getOrdenProduccion());
+        //TODO: se puede remover esto?
+        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
-            resultDTO != null ? "Consumo registrado correctamente para la orden " + loteDTO.getOrdenProduccion() : "Hubo un error en el consumo de stock por produccón.");
+            resultDTO != null
+                ? "Consumo registrado correctamente para la orden " + loteDTO.getOrdenProduccion()
+                : "Hubo un error en el consumo de stock por produccón.");
     }
 
     private void initModelConsumoProduccion(final LoteDTO loteDTO, final Model model) {
@@ -156,7 +165,9 @@ public class ProduccionController {
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
-            resultDTO != null ? "Ingreso de stock por produccion exitoso." : "Hubo un error en el ingreso de stock por produccón.");
+            resultDTO != null
+                ? "Ingreso de stock por produccion exitoso."
+                : "Hubo un error en el ingreso de stock por produccón.");
     }
 
     private boolean validarConsumoProduccionInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
@@ -191,7 +202,10 @@ public class ProduccionController {
             }
             final Long maxNroTraza = loteService.findMaxNroTraza(loteDTO.getProductoId());
             if (maxNroTraza > 0 && loteDTO.getTrazaInicial() <= maxNroTraza) {
-                bindingResult.rejectValue("trazaInicial", "", "El número de traza debe ser mayor al último registrado. " + maxNroTraza);
+                bindingResult.rejectValue(
+                    "trazaInicial",
+                    "",
+                    "El número de traza debe ser mayor al último registrado. " + maxNroTraza);
                 return false;
             }
         }

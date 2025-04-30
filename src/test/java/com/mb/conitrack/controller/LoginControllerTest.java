@@ -5,6 +5,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+import com.mb.conitrack.controller.maestro.LoginController;
+
 import jakarta.servlet.ServletException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
