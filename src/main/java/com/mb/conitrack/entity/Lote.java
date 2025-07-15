@@ -7,6 +7,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -125,6 +127,8 @@ public class Lote {
     @Column(nullable = false)
     private Boolean activo;
 
+
+    //****** ANALISIS ******//
     public Analisis getUltimoAnalisis() {
         if (this.analisisList.isEmpty()) {
             return null;
@@ -213,11 +217,12 @@ public class Lote {
         return currentAnalisis.getNroAnalisis();
     }
 
-    public Traza getFirstTraza() {
+    //****** TRAZAS ******//
+    public Traza getFirstActiveTraza() {
         if (this.trazas.isEmpty()) {
             return null;
         } else if (this.trazas.size() == 1) {
-            return this.trazas.get(0);
+            return this.trazas.stream().filter(Traza::getActivo).findFirst().orElse(null);
         } else {
             return this.trazas.stream()
                 .filter(Traza::getActivo).min(Comparator.comparing(Traza::getNroTraza))
@@ -225,11 +230,29 @@ public class Lote {
         }
     }
 
-    public Traza getLastTraza() {
+    public List<Traza> getFirstActiveTrazaList(int size) {
+        if (trazas == null || trazas.isEmpty()) {
+            return null;
+        }
+
+        Stream<Traza> stream = trazas.stream();
+
+        if (trazas.size() > size) {
+            stream = stream.filter(Traza::getActivo);
+        }
+
+        return stream
+            .sorted(Comparator.comparing(Traza::getNroTraza)) // orden ascendente por nroTraza
+            .limit(size)                                      // máximo 'size' elementos
+            .collect(Collectors.toList());
+    }
+
+
+    public Traza getLastActiveTraza() {
         if (this.trazas.isEmpty()) {
             return null;
         } else if (this.trazas.size() == 1) {
-            return this.trazas.get(0);
+            return this.trazas.stream().filter(Traza::getActivo).findFirst().orElse(null);
         } else {
             return this.trazas.stream()
                 .filter(Traza::getActivo).max(Comparator.comparing(Traza::getNroTraza))

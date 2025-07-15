@@ -22,7 +22,10 @@ import com.mb.conitrack.service.LoteService;
 
 import jakarta.validation.Valid;
 
+import static com.mb.conitrack.controller.ControllerUtils.populateAvailableLoteListByCodigoInterno;
 import static com.mb.conitrack.controller.ControllerUtils.populateLoteListByCodigoInterno;
+import static com.mb.conitrack.controller.ControllerUtils.validarCantidadesPorMedidas;
+import static com.mb.conitrack.controller.ControllerUtils.validarFechaEgresoLoteDtoPosteriorLote;
 import static com.mb.conitrack.controller.ControllerUtils.validarFechaMovimientoPosteriorLote;
 import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 
@@ -43,7 +46,7 @@ public class VentasController {
     // CU2: Dictamen Lote a liberacion
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_ventas')")
     @GetMapping("/liberacion-producto")
-    public String showliberacionProductoForm(
+    public String showLiberacionProductoForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
         //TODO: implementar el filtro correcto en base a ventas y Analisis (Fecha, ventas)
         initModelLiberacionProducto(movimientoDTO, model);
@@ -101,6 +104,68 @@ public class VentasController {
             loteDTO != null
                 ? "Liberación de Producto exitosa"
                 : "Hubo un error con la liberación del Producto");
+    }
+
+    //***************************** CU12 Venta de Producto Propio************************************
+    // CU2: Venta de Producto Propio
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
+    @GetMapping("/venta-producto")
+    public String showVentaProductoForm(
+        @ModelAttribute LoteDTO loteDTO, Model model) {
+        initModelVentaProducto(loteDTO, model);
+        return "ventas/venta-producto";
+    }
+
+    @PostMapping("/venta-producto")
+    public String procesarVentaProducto(
+        @Valid @ModelAttribute LoteDTO loteDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
+
+        if (!validarVentaProductoInput(loteDTO, bindingResult)) {
+            initModelVentaProducto(loteDTO, model);
+            return "ventas/venta-producto";
+        }
+
+        ventaProducto(loteDTO, redirectAttributes);
+        return "redirect:/ventas/venta-producto-ok";
+    }
+
+    @GetMapping("/venta-producto-ok")
+    public String exitoVentaProducto(
+        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
+        return "ventas/venta-producto-ok";
+    }
+
+    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
+        List<LoteDTO> lotesVenta = getLotesDtosByCodigoInterno(loteService.findAllForVentaProducto());
+        model.addAttribute("lotesVenta", lotesVenta);
+        model.addAttribute("loteDTO", loteDTO);
+    }
+
+    private boolean validarVentaProductoInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        //TODO: analizar validacion para ventas, ahora se copio la de consumo produccion
+        final List<Lote> lotes = new ArrayList<>();
+        return populateAvailableLoteListByCodigoInterno(lotes, loteDTO.getCodigoInterno(), bindingResult, loteService)
+            && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
+            && validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
+    }
+
+    private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+        loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.registrarVentaProducto(loteDTO));
+
+        //TODO: se puede remover esto?
+        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute(
+            resultDTO != null ? "success" : "error",
+            resultDTO != null
+                ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
+                : "Hubo un error en la venta de producto.");
     }
 
 }

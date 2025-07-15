@@ -83,12 +83,12 @@ public class DTOUtils {
         return dto;
     }
 
-    public static List<LoteDTO> getLotesDtosByCodigoInterno(final List<Lote> lotesCuarentena) {
-        Map<String, List<Lote>> lotesAgrupados = lotesCuarentena.stream()
+    public static List<LoteDTO> getLotesDtosByCodigoInterno(final List<Lote> loteList) {
+        Map<String, List<Lote>> lotesByCodigoInterno = loteList.stream()
             .collect(Collectors.groupingBy(Lote::getCodigoInterno));
         final List<LoteDTO> lotesDtos = new ArrayList<>();
 
-        for (Map.Entry<String, List<Lote>> entry : lotesAgrupados.entrySet()) {
+        for (Map.Entry<String, List<Lote>> entry : lotesByCodigoInterno.entrySet()) {
             List<Lote> lotes = entry.getValue();
             lotesDtos.add(DTOUtils.mergeEntities(lotes));
         }
@@ -125,8 +125,8 @@ public class DTOUtils {
                 cantidadInicial = bultoEntity.getCantidadInicial();
                 cantidadActual = bultoEntity.getCantidadActual();
                 unidadMedida = bultoEntity.getUnidadMedida();
-                if (bultoEntity.getFirstTraza() != null) {
-                    trazaInicial = bultoEntity.getFirstTraza().getNroTraza();
+                if (bultoEntity.getFirstActiveTraza() != null) {
+                    trazaInicial = bultoEntity.getFirstActiveTraza().getNroTraza();
                 }
 
                 firstCase = false;
@@ -174,11 +174,11 @@ public class DTOUtils {
                         unidadSugerida));
                     unidadMedida = unidadSugerida;
                 }
-                if (bultoEntity.getFirstTraza() != null) {
+                if (bultoEntity.getFirstActiveTraza() != null) {
                     if (trazaInicial == null) {
-                        trazaInicial = bultoEntity.getFirstTraza().getNroTraza();
+                        trazaInicial = bultoEntity.getFirstActiveTraza().getNroTraza();
                     } else {
-                        trazaInicial = Math.min(trazaInicial, bultoEntity.getFirstTraza().getNroTraza());
+                        trazaInicial = Math.min(trazaInicial, bultoEntity.getFirstActiveTraza().getNroTraza());
                     }
                 }
                 loteDTO.setCantidadInicial(cantidadInicial);

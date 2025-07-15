@@ -86,8 +86,6 @@
                 CU10. Ingreso de stock por Producción Interna [Supervisor de planta]
             </a>
         </li>
-
-
         <br>
         <h5 class="mb-3 text-primary">Ventas</h5>
         <li>
@@ -97,7 +95,8 @@
             </a>
         </li>
         <li>
-            <a class="disabled" href="javascript:void(0);">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/ventas/venta-producto}">
                 CU12. Venta de Producto Propio [Analista de planta]
             </a>
         </li>

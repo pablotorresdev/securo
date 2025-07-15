@@ -52,7 +52,6 @@ public class ProduccionController {
     // @PreAuthorize("hasAuthority('ROLE_SUPERVISOR_PLANTA')")
     @GetMapping("/consumo-produccion")
     public String showConsumoProduccionForm(@ModelAttribute LoteDTO loteDTO, Model model) {
-
         initModelConsumoProduccion(loteDTO, model);
         return "produccion/consumo-produccion";
     }
@@ -62,8 +61,7 @@ public class ProduccionController {
         @Validated(BajaProduccion.class) @ModelAttribute LoteDTO loteDTO,
         BindingResult bindingResult,
         Model model,
-        RedirectAttributes redirectAttributes
-    ) {
+        RedirectAttributes redirectAttributes) {
 
         if (!validarConsumoProduccionInput(loteDTO, bindingResult)) {
             initModelConsumoProduccion(loteDTO, model);

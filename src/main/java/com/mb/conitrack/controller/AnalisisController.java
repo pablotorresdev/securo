@@ -51,15 +51,14 @@ public class AnalisisController {
 
     @GetMapping("/loteId/{loteId}")
     public String listAnalisisPorLote(@PathVariable("loteId") Long loteId, Model model) {
+
         final Lote loteBultoById = loteService.findLoteBultoById(loteId);
         if (loteBultoById == null) {
-            return "redirect:/lote/list-lotes";
+            return "redirect:/lotes/list-lotes";
         }
+
         List<Analisis> analisis = loteBultoById.getAnalisisList().stream().filter(Analisis::getActivo).sorted(Comparator
             .comparing(Analisis::getFechaYHoraCreacion)).toList();
-        if (analisis.isEmpty()) {
-            return "redirect:/lote/list-lotes";
-        }
         model.addAttribute("analisis", analisis);
         return "analisis/list-analisis"; // Corresponde a analisis-lote.html
     }
