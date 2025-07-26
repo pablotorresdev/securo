@@ -49,6 +49,50 @@ public class LoteService {
 
     private final TrazaService trazaService;
 
+    private static List<Traza> createTrazas(
+        final LoteDTO loteDTO,
+        final Producto producto,
+        final BigDecimal cantidadInicialLote, boolean unidadVenta) {
+        List<Traza> trazas = new ArrayList<>();
+        if (unidadVenta) {
+            if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+                throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
+            }
+
+            if (cantidadInicialLote.stripTrailingZeros().scale() > 0) {
+                throw new IllegalStateException("La cantidad de Unidades debe ser entero");
+            }
+            for (int i = 0; i < cantidadInicialLote.intValue(); i++) {
+                Traza traza = new Traza();
+                traza.setNroTraza(loteDTO.getTrazaInicial() + i);
+                traza.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+                traza.setProducto(producto);
+                traza.setObservaciones("CU7 Traza: " +
+                    traza.getNroTraza() +
+                    "\n - Producto: " +
+                    producto.getCodigoInterno() +
+                    " / " +
+                    producto.getNombreGenerico());
+                traza.setEstado(EstadoEnum.DISPONIBLE);
+                traza.setActivo(true);
+                trazas.add(traza);
+            }
+        }
+        return trazas;
+    }
+
+    private static void populateInfoProduccion(
+        final Lote bultoLote,
+        final Producto producto,
+        final String timestampLoteDTO,
+        final Proveedor conifarma) {
+        bultoLote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestampLoteDTO);
+        bultoLote.setProducto(producto);
+        bultoLote.setProveedor(conifarma);
+        bultoLote.setFabricante(conifarma);
+        bultoLote.setPaisOrigen(conifarma.getPais());
+    }
+
     //TODO: unificar la logica de activo vs todos para operatoria vs auditoria
     public Lote findLoteBultoById(final Long id) {
         if (id == null) {
@@ -131,7 +175,8 @@ public class LoteService {
     public List<Lote> findAllForCuarentena() {
         //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
-        return allSortByDateAndNroBulto.stream().filter(l -> EnumSet.of(DictamenEnum.RECIBIDO,
+        return allSortByDateAndNroBulto.stream().filter(l -> EnumSet.of(
+            DictamenEnum.RECIBIDO,
             DictamenEnum.APROBADO,
             DictamenEnum.ANALISIS_EXPIRADO,
             DictamenEnum.LIBERADO,
@@ -165,12 +210,14 @@ public class LoteService {
     public List<Lote> findAllForDevolucionCompra() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
         return allSortByDateAndNroBulto.stream()
-            .filter(l -> EnumSet.of(DictamenEnum.RECIBIDO,
+            .filter(l -> EnumSet.of(
+                    DictamenEnum.RECIBIDO,
                     DictamenEnum.CUARENTENA,
                     DictamenEnum.APROBADO,
                     DictamenEnum.RECHAZADO)
                 .contains(l.getDictamen()))
-            .filter(l -> EnumSet.of(TipoProductoEnum.API,
+            .filter(l -> EnumSet.of(
+                TipoProductoEnum.API,
                 TipoProductoEnum.EXCIPIENTE,
                 TipoProductoEnum.ACOND_PRIMARIO,
                 TipoProductoEnum.ACOND_SECUNDARIO).contains(l.getProducto().getTipoProducto()))
@@ -212,6 +259,8 @@ public class LoteService {
             .toList();
     }
 
+    //Persistencia
+
     //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
     public List<Lote> findAllForVentaProducto() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
@@ -225,8 +274,6 @@ public class LoteService {
     public Long findMaxNroTraza(Long idProducto) {
         return trazaService.findMaxNroTraza(idProducto);
     }
-
-    //Persistencia
 
     //***********CU1 ALTA: COMPRA***********
     @Transactional
@@ -262,7 +309,7 @@ public class LoteService {
                 }
             }
 
-            setBultos(loteDTO, bultosTotales, bultoLote, i);
+            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
 
             Lote bultoGuardado = loteRepository.save(bultoLote);
             final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(bultoGuardado);
@@ -289,7 +336,8 @@ public class LoteService {
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : lotes) {
             final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
-            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(dto,
+            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(
+                dto,
                 loteBulto,
                 nroAnalisisMovimiento);
 
@@ -331,7 +379,8 @@ public class LoteService {
         final Analisis newAnalisis = analisisService.save(analisis);
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : lotes) {
-            final Movimiento movimiento = movimientoService.persistirMovimientoReanalisisProducto(dto,
+            final Movimiento movimiento = movimientoService.persistirMovimientoReanalisisProducto(
+                dto,
                 loteBulto,
                 newAnalisis.getNroAnalisis());
             loteBulto.getMovimientos().add(movimiento);
@@ -357,6 +406,29 @@ public class LoteService {
 
         final Movimiento movimiento = movimientoService.persistirMovimientoMuestreo(dto, lote);
         lote.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(dto, lote));
+
+        boolean unidadVenta = lote.getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
+
+        if (unidadVenta) {
+            final BigDecimal cantidad = movimiento.getCantidad();
+            if (lote.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+                throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
+            }
+
+            if (cantidad.stripTrailingZeros().scale() > 0) {
+                throw new IllegalStateException("La cantidad de Unidades debe ser entero");
+            }
+
+            final List<Traza> trazas = lote.getFirstAvailableTrazaList(cantidad.intValue());
+
+            for (Traza traza : trazas) {
+                traza.setEstado(EstadoEnum.EN_USO);
+                traza.getMovimientos().add(movimiento);
+            }
+            trazaService.save(trazas);
+            dto.setTrazaDTOs(trazas.stream().map(DTOUtils::fromEntity).toList());
+        }
+
         lote.setEstado(EstadoEnum.EN_USO);
         lote.getMovimientos().add(movimiento);
         return loteRepository.save(lote);
@@ -396,12 +468,14 @@ public class LoteService {
     public List<Lote> registrarConsumoProduccion(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         for (int nroBulto : loteDTO.getNroBultoList()) {
-            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(loteDTO.getCodigoInterno(),
+            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(
+                    loteDTO.getCodigoInterno(),
                     nroBulto)
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
             final Movimiento movimiento = movimientoService.persistirMovimientoConsumoProduccion(loteDTO, bulto);
-            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento),
+            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
+                DTOUtils.fromEntity(movimiento),
                 bulto));
 
             if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
@@ -422,54 +496,48 @@ public class LoteService {
         Proveedor conifarma = proveedorService.getConifarma();
         Producto producto = productoService.findById(loteDTO.getProductoId())
             .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
-        int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
-        if (loteDTO.getBultosTotales() == 1) {
-            loteDTO.setNroBulto(1);
-        }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
-        String timestamp = loteDTO.getFechaYHoraCreacion().format(formatter);
 
-        Optional<Long> trazaActual = Optional.ofNullable(loteDTO.getTrazaInicial());
+        int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
+
+        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
         final BigDecimal cantidadInicialLote = loteDTO.getCantidadInicial();
 
-        if (trazaActual.isPresent()) {
-            if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
-                throw new IllegalArgumentException("La traza solo es aplicable a UNIDADES");
-            }
+        boolean unidadVenta = producto.getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
 
-            if (cantidadInicialLote.stripTrailingZeros().scale() > 0) {
-                throw new IllegalArgumentException("La cantidad de Unidades debe ser entero");
-            }
-        }
+        List<Traza> trazas = createTrazas(loteDTO, producto, cantidadInicialLote, unidadVenta);
+
+        int idxTrazaActual = 0;
 
         for (int i = 0; i < bultosTotales; i++) {
+
             Lote bultoLote = createLoteIngreso(loteDTO);
-            bultoLote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
+            populateInfoProduccion(bultoLote, producto, timestampLoteDTO, conifarma);
 
-            bultoLote.setProducto(producto);
-            bultoLote.setProveedor(conifarma);
-            bultoLote.setFabricante(conifarma);
-            bultoLote.setPaisOrigen(conifarma.getPais());
+            //seteo cantidades y unidades de medida para cada bulto del lote
+            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
 
-            setBultos(loteDTO, bultosTotales, bultoLote, i);
+            List<Traza> trazasLocales = new ArrayList<>();
+            if (unidadVenta) {
+                final int indexTrazaFinal = bultoLote.getCantidadInicial().intValue();
+                trazasLocales = new ArrayList<>(trazas.subList(idxTrazaActual, idxTrazaActual + indexTrazaFinal));
+                bultoLote.getTrazas().addAll(trazasLocales);
+                idxTrazaActual += indexTrazaFinal;
+            }
 
             Lote bultoGuardado = loteRepository.save(bultoLote);
             final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoProduccion(bultoGuardado);
             bultoGuardado.getMovimientos().add(movimiento);
 
-            if (trazaActual.isPresent()) {
-                List<Traza> trazasGuardadas = trazaService.persistirTrazasIngresoProduccion(bultoGuardado, trazaActual.get());
-                bultoGuardado.getTrazas().addAll(trazasGuardadas);
-                trazaActual = trazasGuardadas.stream().map(Traza::getNroTraza).max(Long::compareTo).map(max -> max + 1);
+            if (!trazasLocales.isEmpty()) {
+                for (Traza traza : trazasLocales) {
+                    traza.getMovimientos().add(movimiento);
+                    traza.setLote(bultoGuardado);
+                }
+                bultoGuardado.getTrazas().addAll(trazasLocales);
+                trazaService.save(trazasLocales);
             }
-
             result.add(bultoGuardado);
-        }
-
-        if (trazaActual.isPresent()) {
-            if (trazaActual.get() - loteDTO.getTrazaInicial() != cantidadInicialLote.longValueExact()) {
-                throw new IllegalStateException("Error al crear las trazas");
-            }
         }
 
         return result;
@@ -501,30 +569,19 @@ public class LoteService {
         return result;
     }
 
-    private void setBultos(final LoteDTO loteDTO, final int bultosTotales, final Lote bultoLote, final int i) {
-        if (bultosTotales == 1) {
-            bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
-            bultoLote.setCantidadActual(loteDTO.getCantidadInicial());
-            bultoLote.setUnidadMedida(loteDTO.getUnidadMedida());
-        } else {
-            bultoLote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
-            bultoLote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
-            bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
-        }
-        bultoLote.setNroBulto(i + 1);
-    }
-
     //***********CU9 BAJA: VENTA***********
     @Transactional
     public List<Lote> registrarVentaProducto(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         for (int nroBulto : loteDTO.getNroBultoList()) {
-            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(loteDTO.getCodigoInterno(),
+            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(
+                    loteDTO.getCodigoInterno(),
                     nroBulto)
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
             final Movimiento movimiento = movimientoService.persistirMovimientoConsumoProduccion(loteDTO, bulto);
-            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento),
+            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
+                DTOUtils.fromEntity(movimiento),
                 bulto));
 
             if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
@@ -537,6 +594,23 @@ public class LoteService {
             result.add(newLote);
         }
         return result;
+    }
+
+    private void populateCantidadUdeMLote(
+        final LoteDTO loteDTO,
+        final int bultosTotales,
+        final Lote bultoLote,
+        final int i) {
+        if (bultosTotales == 1) {
+            bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
+            bultoLote.setCantidadActual(loteDTO.getCantidadInicial());
+            bultoLote.setUnidadMedida(loteDTO.getUnidadMedida());
+        } else {
+            bultoLote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
+            bultoLote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
+            bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
+        }
+        bultoLote.setNroBulto(i + 1);
     }
 
 }

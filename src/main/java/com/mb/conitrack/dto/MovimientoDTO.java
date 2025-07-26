@@ -3,6 +3,8 @@ package com.mb.conitrack.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -77,5 +79,7 @@ public class MovimientoDTO {
     private Movimiento movimientoOrigen;
 
     private String ordenProduccion;
+
+    protected List<TrazaDTO> trazaDTOs = new ArrayList<>();
 
 }

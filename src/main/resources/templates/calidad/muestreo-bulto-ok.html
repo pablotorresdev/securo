@@ -80,17 +80,11 @@
                 <th>Observaciones:</th>
                 <td th:text="${loteDTO.observaciones}"></td>
             </tr>
-
-            <!-- Datos multi-bulto (opcional) -->
             <tr>
-                <th>Nro Bulto (unitario):</th>
-                <td th:text="${loteDTO.nroBulto}"></td>
-            </tr>
-            <tr>
-                <th>Cantidades Bultos:</th>
+                <th>Cantidad en Bulto:</th>
                 <td>
                     <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                          th:text="'Bulto ' + ${iterStat.index} + ' = ' + ${cant}
+                          th:text="'Bulto ' + ${iterStat.count} + ' = ' + ${cant}
                                    + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ') '">
                     </span>
                 </td>
@@ -149,7 +143,18 @@
             </table>
         </div>
     </div>
+    <!-- Cartel de unidades a retirar -->
+    <div class="alert alert-warning display-6 fw-bold text-center"
+         th:if="${trazasMuestreo != null and !#lists.isEmpty(trazasMuestreo)}">
 
+        <span class="text-danger">¡ATENCIÓN!</span>
+        Retirar del stock las unidades con el siguiente numero de traza, del bulto indicado arriba para su muestreo:
+
+        <span th:each="t, iterStat : ${trazasMuestreo}">
+        <span th:text="|[${t.nroTraza}]|"></span>
+        <span th:if="${!iterStat.last}">,&nbsp;</span>
+    </span>
+    </div>
     <!-- Botón para finalizar y volver al menú principal -->
     <div class="mt-4">
         <a class="btn btn-primary" th:href="@{/calidad/cancelar}">Continuar</a>

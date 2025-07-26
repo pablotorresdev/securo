@@ -230,7 +230,7 @@ public class Lote {
         }
     }
 
-    public List<Traza> getFirstActiveTrazaList(int size) {
+    public List<Traza> getFirstAvailableTrazaList(int size) {
         if (trazas == null || trazas.isEmpty()) {
             return null;
         }
@@ -238,7 +238,9 @@ public class Lote {
         Stream<Traza> stream = trazas.stream();
 
         if (trazas.size() > size) {
-            stream = stream.filter(Traza::getActivo);
+            stream = stream
+                .filter(Traza::getActivo)
+                .filter(t -> t.getEstado()== EstadoEnum.DISPONIBLE);
         }
 
         return stream

@@ -3,6 +3,8 @@ package com.mb.conitrack.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -78,6 +80,12 @@ public class Movimiento {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "movimiento_origen_id")
     private Movimiento movimientoOrigen;
+
+    @ManyToMany
+    @JoinTable(name = "trazas_movimientos",
+        joinColumns        = @JoinColumn(name = "movimiento_id"),
+        inverseJoinColumns = @JoinColumn(name = "traza_id"))
+    private List<Traza> trazas = new ArrayList<>();
 
     @Column(nullable = false)
     private Boolean activo;

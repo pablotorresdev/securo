@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS traza CASCADE;
+DROP TABLE IF EXISTS trazas_movimientos CASCADE;
+DROP TABLE IF EXISTS trazas CASCADE;
 DROP TABLE IF EXISTS lote_analisis CASCADE;
 DROP TABLE IF EXISTS analisis CASCADE;
 DROP TABLE IF EXISTS movimientos CASCADE;
@@ -105,9 +106,9 @@ CREATE TABLE lotes
     detalle_conservacion TEXT,
     observaciones        TEXT,
     activo               BOOLEAN        NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_producto
+    CONSTRAINT fk_producto_lote
         FOREIGN KEY (producto_id) REFERENCES productos (id),
-    CONSTRAINT fk_lote_origen
+    CONSTRAINT fk_lote_origen_lote
         FOREIGN KEY (lote_origen_id) REFERENCES lotes (id),
     CONSTRAINT fk_proveedor_lote
         FOREIGN KEY (proveedor_id) REFERENCES proveedores (id),
@@ -133,9 +134,9 @@ CREATE TABLE movimientos
     movimiento_origen_id INT,
     observaciones        TEXT,
     activo               BOOLEAN   NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_lote_id
+    CONSTRAINT fk_lote_movimiento
         FOREIGN KEY (lote_id) REFERENCES lotes (id),
-    CONSTRAINT fk_movimiento_origen
+    CONSTRAINT fk_movimiento_origen_movimiento
         FOREIGN KEY (movimiento_origen_id) REFERENCES movimientos (id)
 );
 
@@ -160,13 +161,13 @@ CREATE TABLE lote_analisis
     lote_id     INT NOT NULL,
     analisis_id INT NOT NULL,
     PRIMARY KEY (lote_id, analisis_id),
-    CONSTRAINT fk_lote
+    CONSTRAINT fk_lote_analisis
         FOREIGN KEY (lote_id) REFERENCES lotes (id) ON DELETE CASCADE,
-    CONSTRAINT fk_analisis
+    CONSTRAINT fk_analisis_lote
         FOREIGN KEY (analisis_id) REFERENCES analisis (id) ON DELETE CASCADE
 );
 
-CREATE TABLE traza
+CREATE TABLE trazas
 (
     id             SERIAL PRIMARY KEY,
     fecha_creacion TIMESTAMP   NOT NULL,
@@ -176,10 +177,21 @@ CREATE TABLE traza
     estado         VARCHAR(30) NOT NULL,
     observaciones  TEXT,
     activo         BOOLEAN     NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_lote
+    CONSTRAINT fk_trazas_lote
         FOREIGN KEY (lote_id) REFERENCES lotes (id) ON DELETE CASCADE,
-    CONSTRAINT fk_producto
+    CONSTRAINT fk_trazas_producto
         FOREIGN KEY (producto_id) REFERENCES productos (id),
     CONSTRAINT uk_traza_producto_traza
         UNIQUE (producto_id, nro_traza)
+);
+
+CREATE TABLE trazas_movimientos
+(
+    traza_id     BIGINT NOT NULL,
+    movimiento_id BIGINT NOT NULL,
+    PRIMARY KEY (traza_id, movimiento_id),
+    CONSTRAINT fk_traza_movimiento
+        FOREIGN KEY (traza_id) REFERENCES trazas (id) ON DELETE CASCADE,
+    CONSTRAINT fk_movimiento_traza
+        FOREIGN KEY (movimiento_id) REFERENCES movimientos (id) ON DELETE CASCADE
 );

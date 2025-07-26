@@ -113,12 +113,11 @@ public class LoteDTO {
     //Esto junto con cantidad de unidades total, dara el rango de traza para ese lote
     protected Long trazaInicial;
 
-    // TODO: REMOVER
-    protected Integer nroBulto;
-
     protected List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
 
     protected List<AnalisisDTO> analisisDTOs = new ArrayList<>();
+
+    protected List<TrazaDTO> trazaDTOs = new ArrayList<>();
 
     //Datos derivados
     protected String nombreProducto;

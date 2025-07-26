@@ -12,6 +12,7 @@ import org.thymeleaf.util.StringUtils;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
@@ -83,6 +84,19 @@ public class DTOUtils {
         return dto;
     }
 
+    public static TrazaDTO fromEntity(Traza entity) {
+        if (entity == null) {
+            return null;
+        }
+        TrazaDTO dto = new TrazaDTO();
+        dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
+        dto.setCodigoProducto(entity.getProducto().getCodigoInterno());
+        dto.setEstado(entity.getEstado());
+        dto.setNroTraza(entity.getNroTraza());
+        dto.setObservaciones(entity.getObservaciones());
+        return dto;
+    }
+
     public static List<LoteDTO> getLotesDtosByCodigoInterno(final List<Lote> loteList) {
         Map<String, List<Lote>> lotesByCodigoInterno = loteList.stream()
             .collect(Collectors.groupingBy(Lote::getCodigoInterno));
@@ -121,6 +135,7 @@ public class DTOUtils {
                 setListasBultosLote(bultoEntity, loteDTO);
                 addMovimientosDTO(loteDTO, bultoEntity);
                 addAnalisisDTO(loteDTO, bultoEntity);
+                addTrazaDTO(loteDTO, bultoEntity);
 
                 cantidadInicial = bultoEntity.getCantidadInicial();
                 cantidadActual = bultoEntity.getCantidadActual();
@@ -200,6 +215,14 @@ public class DTOUtils {
         loteDTO.setCantidadActual(cantidadActual);
         loteDTO.setUnidadMedida(unidadMedida);
         return loteDTO;
+    }
+
+    private static void addTrazaDTO(final LoteDTO loteDTO, final Lote entity) {
+        for (Traza traza : entity.getTrazas()) {
+            if (traza.getActivo()) {
+                loteDTO.getTrazaDTOs().add(DTOUtils.fromEntity(traza));
+            }
+        }
     }
 
     private static void addAnalisisDTO(final LoteDTO loteDTO, final Lote entity) {

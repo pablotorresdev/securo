@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -257,6 +258,7 @@ public class CalidadController {
         LoteDTO loteDTO = DTOUtils.mergeEntities(List.of(loteService.persistirMuestreo(movimientoDTO, lote)));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+        redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
             loteDTO != null ? "Muestreo registrado correctamente." : "Hubo un error persistiendo el muestreo.");

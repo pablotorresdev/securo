@@ -1,6 +1,8 @@
 package com.mb.conitrack.entity;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -19,14 +21,14 @@ import lombok.ToString;
 @AllArgsConstructor
 @Entity
 @Table(
-    name = "traza",
+    name = "trazas",
     uniqueConstraints = @UniqueConstraint(
         name = "uk_traza_producto_traza",
         columnNames = { "producto_id", "nro_traza" }
     )
 )
 @SQLDelete(sql = "UPDATE traza SET activo = false WHERE id = ?")
-@ToString(exclude = { "lote" })
+@ToString(exclude = { "lote" , "movimientos" })
 public class Traza {
 
     @Id
@@ -47,6 +49,10 @@ public class Traza {
 
     @Column(name = "nro_traza", nullable = false)
     private Long nroTraza;
+
+    @ManyToMany(mappedBy = "trazas")
+    @JsonBackReference
+    private Set<Movimiento> movimientos = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
