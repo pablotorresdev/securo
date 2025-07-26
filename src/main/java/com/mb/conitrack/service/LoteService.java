@@ -411,7 +411,7 @@ public class LoteService {
 
         if (unidadVenta) {
             final BigDecimal cantidad = movimiento.getCantidad();
-            if (lote.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+            if (movimiento.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
                 throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
             }
 
@@ -429,7 +429,12 @@ public class LoteService {
             dto.setTrazaDTOs(trazas.stream().map(DTOUtils::fromEntity).toList());
         }
 
-        lote.setEstado(EstadoEnum.EN_USO);
+        if (lote.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+            lote.setEstado(EstadoEnum.CONSUMIDO);
+        } else {
+            lote.setEstado(EstadoEnum.EN_USO);
+        }
+
         lote.getMovimientos().add(movimiento);
         return loteRepository.save(lote);
     }
@@ -473,7 +478,7 @@ public class LoteService {
                     nroBulto)
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-            final Movimiento movimiento = movimientoService.persistirMovimientoConsumoProduccion(loteDTO, bulto);
+            final Movimiento movimiento = movimientoService.persistirMovimientoBajaConsumoProduccion(loteDTO, bulto);
             bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
                 DTOUtils.fromEntity(movimiento),
                 bulto));
@@ -573,22 +578,22 @@ public class LoteService {
     @Transactional
     public List<Lote> registrarVentaProducto(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
+
         for (int nroBulto : loteDTO.getNroBultoList()) {
             final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(
                     loteDTO.getCodigoInterno(),
                     nroBulto)
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-            final Movimiento movimiento = movimientoService.persistirMovimientoConsumoProduccion(loteDTO, bulto);
-            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
-                DTOUtils.fromEntity(movimiento),
-                bulto));
+            final Movimiento movimiento = movimientoService.persistirMovimientoBajaVenta(loteDTO, bulto);
+            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento), bulto));
 
             if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
                 bulto.setEstado(EstadoEnum.CONSUMIDO);
             } else {
                 bulto.setEstado(EstadoEnum.EN_USO);
             }
+            loteDTO.getTrazaDTOs().addAll(movimiento.getTrazas().stream().map(DTOUtils::fromEntity).toList());
             bulto.getMovimientos().add(movimiento);
             Lote newLote = loteRepository.save(bulto);
             result.add(newLote);

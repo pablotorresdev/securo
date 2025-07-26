@@ -161,6 +161,7 @@ public class VentasController {
 
         //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute("trazasMuestreo", loteDTO.getTrazaDTOs());
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
             resultDTO != null

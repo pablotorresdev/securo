@@ -120,7 +120,18 @@
         </div>
 
     </div>
+    <!-- Cartel de unidades a retirar -->
+    <div class="alert alert-warning display-6 fw-bold text-center"
+         th:if="${trazasMuestreo != null and !#lists.isEmpty(trazasMuestreo)}">
 
+        <span class="text-danger">¡ATENCIÓN!</span>
+        Retirar del stock las unidades con el siguiente numero de traza, del bulto indicado arriba para su venta:
+
+        <span th:each="t, iterStat : ${trazasMuestreo}">
+        <span th:text="|[${t.nroTraza}]|"></span>
+        <span th:if="${!iterStat.last}">,&nbsp;</span>
+    </span>
+    </div>
     <!-- Botón para volver al menú principal -->
     <div class="mt-4">
         <a class="btn btn-primary" th:href="@{/ventas/cancelar}">Continuar</a>
