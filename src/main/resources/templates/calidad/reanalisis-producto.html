@@ -19,17 +19,17 @@
 
         <!-- Select de Lotes -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInterno">Lote:</label>
-            <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
+            <label class="form-label" for="codigoInternoLote">Lote:</label>
+            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${lotesForReanalisis}"
-                        th:value="${loteDTO.codigoInterno}"
+                        th:value="${loteDTO.codigoInternoLote}"
                         th:data-nombreproducto="${loteDTO.nombreProducto}"
                         th:data-nombreproveedor="${loteDTO.nombreProveedor}"
                         th:data-fechaingreso="${loteDTO.fechaIngreso}"
                         th:data-dictamen="${loteDTO.dictamen?.valor}"
                         th:data-analisis="${loteDTO.analisisDTOs != null ? #lists.size(loteDTO.analisisDTOs) : 0}"
-                        th:text="'Producto: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno}">
+                        th:text="'Producto: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInternoLote}">
                 </option>
             </select>
         </div>
@@ -93,7 +93,7 @@
 
     function actualizarInfo(data) {
         let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
-        html += '<p><strong>Código Interno:</strong> ' + (data.codigoInterno || 'N/D') + '</p>';
+        html += '<p><strong>Código Interno:</strong> ' + (data.codigoInternoLote || 'N/D') + '</p>';
         html += '<p><strong>Producto:</strong> ' + (data.nombreProducto || 'N/D') + '</p>';
         html += '<p><strong>Fecha ingreso:</strong> ' + (data.fechaIngreso || 'N/D') + '</p>';
         html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (data.fechaReanalisisProveedor || 'N/D') + '</p>';
@@ -115,13 +115,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        const loteSelect = document.getElementById('codigoInterno');
+        const loteSelect = document.getElementById('codigoInternoLote');
 
         loteSelect.addEventListener('change', function () {
             const codigoSeleccionado = this.value;
 
-            // Buscamos en lotesForReanalisis por codigoInterno
-            const lote = lotesForReanalisis.find(l => l.codigoInterno === codigoSeleccionado);
+            // Buscamos en lotesForReanalisis por codigoInternoLote
+            const lote = lotesForReanalisis.find(l => l.codigoInternoLote === codigoSeleccionado);
 
             if (lote) {
                 actualizarInfo(lote);
@@ -132,7 +132,7 @@
 
         // Opcional: si hay un lote ya seleccionado al cargar la página
         if (loteSelect.value) {
-            const loteInicial = lotesForReanalisis.find(l => l.codigoInterno === loteSelect.value);
+            const loteInicial = lotesForReanalisis.find(l => l.codigoInternoLote === loteSelect.value);
             if (loteInicial) {
                 actualizarInfo(loteInicial);
             }

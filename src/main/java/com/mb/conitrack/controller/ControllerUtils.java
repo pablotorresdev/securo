@@ -42,13 +42,13 @@ public class ControllerUtils {
 
     static boolean populateAvailableLoteListByCodigoInterno(
         final List<Lote> lotesList,
-        String codigoInterno,
+        String codigoInternoLote,
         BindingResult bindingResult,
         final LoteService loteService) {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInterno)
+        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote)
             .stream()
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
             .sorted(Comparator.comparing(Lote::getFechaIngreso)
@@ -56,7 +56,7 @@ public class ControllerUtils {
                 .thenComparing(Lote::getNroBulto))
             .toList();
         if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.reject("codigoInterno", "Lote inexistente.");
+            bindingResult.reject("codigoInternoLote", "Lote inexistente.");
             return false;
         }
         lotesList.addAll(loteListByCodigoInterno);
@@ -65,15 +65,15 @@ public class ControllerUtils {
 
     static boolean populateLoteListByCodigoInterno(
         final List<Lote> lotesList,
-        String codigoInterno,
+        String codigoInternoLote,
         BindingResult bindingResult,
         final LoteService loteService) {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInterno);
+        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote);
         if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.reject("codigoInterno", "Lote bloqueado.");
+            bindingResult.reject("codigoInternoLote", "Lote bloqueado.");
             return false;
         }
         lotesList.addAll(loteListByCodigoInterno);

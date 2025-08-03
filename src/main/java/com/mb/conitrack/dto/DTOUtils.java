@@ -46,6 +46,8 @@ public class DTOUtils {
         MovimientoDTO dto = new MovimientoDTO();
         dto.setFechaMovimiento(entity.getFecha());
         if (entity.getLote() != null) {
+            dto.setCodigoInternoLote(entity.getLote().getCodigoInterno());
+            dto.setNroBulto(entity.getLote().getNroBulto().toString());
             dto.setLoteId(entity.getLote().getId());
         }
 
@@ -244,7 +246,7 @@ public class DTOUtils {
     }
 
     private static void setDatosDerivadosLote(final Lote bultoEntity, final LoteDTO loteDTO) {
-        loteDTO.setCodigoInterno(bultoEntity.getCodigoInterno());
+        loteDTO.setCodigoInternoLote(bultoEntity.getCodigoInterno());
         loteDTO.setFechaIngreso(bultoEntity.getFechaIngreso());
         loteDTO.setBultosTotales(bultoEntity.getBultosTotales());
         loteDTO.setEstado(bultoEntity.getEstado().getValor());

@@ -101,7 +101,8 @@
             </a>
         </li>
         <li>
-            <a class="disabled" href="javascript:void(0);">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/ventas/devolucion-venta}">
                 CU13. Devolución de cliente [Gerente garantía de calidad]
             </a>
         </li>

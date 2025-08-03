@@ -17,7 +17,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -73,7 +72,7 @@ public class CalidadController {
 
         final List<Lote> lotesList = new ArrayList<>();
         boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
-            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInterno(), bindingResult, loteService)
+            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
             && validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
@@ -111,7 +110,7 @@ public class CalidadController {
 
         final List<Lote> lotesList = new ArrayList<>();
         boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
-            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInterno(), bindingResult, loteService)
+            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
             && validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
@@ -153,7 +152,7 @@ public class CalidadController {
             return "calidad/muestreo-bulto";
         }
 
-        Lote lote = loteService.findLoteBultoById(movimientoDTO.getLoteId());
+        Lote lote = loteService.findLoteBultoByCodigoAndBulto(movimientoDTO.getCodigoInternoLote(), Integer.parseInt(movimientoDTO.getNroBulto()));
         if (!(validarFechaMovimientoPosteriorLote(movimientoDTO, lote, bindingResult)
             && validarCantidadesMovimiento(movimientoDTO, lote, bindingResult))) {
             initModelMuestreoBulto(movimientoDTO, model);
@@ -255,7 +254,7 @@ public class CalidadController {
         final Lote lote,
         final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        LoteDTO loteDTO = DTOUtils.mergeEntities(List.of(loteService.persistirMuestreo(movimientoDTO, lote)));
+        LoteDTO loteDTO = DTOUtils.mergeEntities(List.of(loteService.bajaMuestreo(movimientoDTO, lote)));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());
@@ -299,7 +298,7 @@ public class CalidadController {
         final List<Lote> lotesList = new ArrayList<>();
         return validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult)
             && validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult)
-            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInterno(), bindingResult, loteService)
+            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
             && validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult)
             && validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult)
             && validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult)

@@ -28,7 +28,7 @@
         <tbody>
         <tr th:each="lote : ${lotes}">
             <td th:text="${lote.producto.nombreGenerico}">Producto</td>
-            <td th:text="${lote.codigoInterno}">Código Interno</td>
+            <td th:text="${lote.codigoInternoLote}">Código Interno</td>
             <td th:text="${lote.nroBulto}">Nro Bulto</td>
             <td th:text="${lote.cantidadActual}">Cantidad Actual</td>
             <td th:text="${lote.unidadMedida}">Unidad Medida</td>

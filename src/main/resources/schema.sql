@@ -120,6 +120,7 @@ CREATE TABLE lotes
 CREATE TABLE movimientos
 (
     id                   SERIAL PRIMARY KEY,
+    codigo_interno       VARCHAR(100)    NOT NULL,
     fecha_creacion       TIMESTAMP NOT NULL,
     fecha                DATE      NOT NULL,
     tipo_movimiento      TEXT      NOT NULL,

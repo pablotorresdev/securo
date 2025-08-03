@@ -14,7 +14,7 @@
     <h2 class="mb-4">Venta de producto</h2>
     <form method="post" th:action="@{/ventas/venta-producto}" th:object="${loteDTO}">
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-        <input id="codigoInterno" th:field="*{codigoInterno}" type="hidden"/>
+        <input id="codigoInternoLote" th:field="*{codigoInternoLote}" type="hidden"/>
 
         <!-- SELECCIÓN DEL LOTE -->
         <div class="mb-3">
@@ -24,13 +24,13 @@
                 <option th:each="loteDTO : ${lotesVenta}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} +
                   ' | Nro Analisis: ' + ${loteDTO.getNroUltimoAnalisisDto()} +
-                  ' | Codigo Interno: ' + ${loteDTO.codigoInterno}"
-                        th:value="${loteDTO.codigoInterno}">
+                  ' | Codigo Interno: ' + ${loteDTO.codigoInternoLote}"
+                        th:value="${loteDTO.codigoInternoLote}">
                 </option>
             </select>
             <div class="text-danger fw-bold"
-                 th:errors="*{codigoInterno}"
-                 th:if="${#fields.hasErrors('codigoInterno')}">
+                 th:errors="*{codigoInternoLote}"
+                 th:if="${#fields.hasErrors('codigoInternoLote')}">
             </div>
         </div>
 
@@ -111,7 +111,7 @@
         if (typeof unidadesPrev === 'string') unidadesPrev = JSON.parse(unidadesPrev);
 
 
-        const codigoSeleccionado = /*[[${loteDTO.codigoInterno != null ? loteDTO.codigoInterno : ''}]]*/ '';
+        const codigoSeleccionado = /*[[${loteDTO.codigoInternoLote != null ? loteDTO.codigoInternoLote : ''}]]*/ '';
 
         /* ---------- referencias DOM ---------- */
         const loteSelect = document.getElementById('loteSelect');
@@ -120,7 +120,7 @@
 
         const consumoBultosDiv = document.getElementById('consumoBultos');
         const bultosContainer = document.getElementById('bultosContainer');
-        const codigoInterno = document.getElementById('codigoInterno');
+        const codigoInternoLote = document.getElementById('codigoInternoLote');
 
         /* ---------- caché de sub‑unidades ---------- */
         const cacheSub = new Map();
@@ -151,10 +151,10 @@
             resetearPantalla();
 
             if (!codigo) return;
-            const lote = lotes.find(l => l.codigoInterno === codigo);
+            const lote = lotes.find(l => l.codigoInternoLote === codigo);
             if (!lote) return;
 
-            codigoInterno.value = codigo;
+            codigoInternoLote.value = codigo;
             pintarInfo(lote);
             generarInputsBultos(lote);
         }
@@ -164,7 +164,7 @@
             bultosContainer.innerHTML = '';
             infoLoteDiv.style.display = 'none';
             consumoBultosDiv.style.display = 'none';
-            codigoInterno.value = '';
+            codigoInternoLote.value = '';
         }
 
         function pintarInfo(loteDTO) {
@@ -172,7 +172,7 @@
             infoContent.innerHTML = `
             <hr>
             <p><strong>Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
-            <p><strong>Código interno:</strong> ${loteDTO.codigoInterno}</p>
+            <p><strong>Código interno:</strong> ${loteDTO.codigoInternoLote}</p>
             <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
             <hr>
             <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</p>

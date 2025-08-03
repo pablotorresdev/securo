@@ -24,6 +24,7 @@ import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
+import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.enums.UnidadMedidaUtils;
@@ -32,6 +33,7 @@ import com.mb.conitrack.repository.LoteRepository;
 import lombok.AllArgsConstructor;
 
 import static com.mb.conitrack.entity.EntityUtils.createLoteIngreso;
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @AllArgsConstructor
 @Service
@@ -49,38 +51,6 @@ public class LoteService {
 
     private final TrazaService trazaService;
 
-    private static List<Traza> createTrazas(
-        final LoteDTO loteDTO,
-        final Producto producto,
-        final BigDecimal cantidadInicialLote, boolean unidadVenta) {
-        List<Traza> trazas = new ArrayList<>();
-        if (unidadVenta) {
-            if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
-                throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
-            }
-
-            if (cantidadInicialLote.stripTrailingZeros().scale() > 0) {
-                throw new IllegalStateException("La cantidad de Unidades debe ser entero");
-            }
-            for (int i = 0; i < cantidadInicialLote.intValue(); i++) {
-                Traza traza = new Traza();
-                traza.setNroTraza(loteDTO.getTrazaInicial() + i);
-                traza.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
-                traza.setProducto(producto);
-                traza.setObservaciones("CU7 Traza: " +
-                    traza.getNroTraza() +
-                    "\n - Producto: " +
-                    producto.getCodigoInterno() +
-                    " / " +
-                    producto.getNombreGenerico());
-                traza.setEstado(EstadoEnum.DISPONIBLE);
-                traza.setActivo(true);
-                trazas.add(traza);
-            }
-        }
-        return trazas;
-    }
-
     private static void populateInfoProduccion(
         final Lote bultoLote,
         final Producto producto,
@@ -94,6 +64,15 @@ public class LoteService {
     }
 
     //TODO: unificar la logica de activo vs todos para operatoria vs auditoria
+    public Lote findLoteBultoByCodigoAndBulto(final String codigoInternoLote, int nroBulto) {
+        if (codigoInternoLote == null) {
+            throw new IllegalArgumentException("El Codigo Interno no puede ser nulo.");
+        }
+        return loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(codigoInternoLote, nroBulto)
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+    }
+
+    //TODO: unificar la logica de activo vs todos para operatoria vs auditoria
     public Lote findLoteBultoById(final Long id) {
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo.");
@@ -103,11 +82,11 @@ public class LoteService {
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
-    public List<Lote> findLoteListByCodigoInterno(final String codigoInterno) {
-        if (codigoInterno == null) {
+    public List<Lote> findLoteListByCodigoInterno(final String codigoInternoLote) {
+        if (codigoInternoLote == null) {
             return new ArrayList<>();
         }
-        return loteRepository.findAllByCodigoInternoAndActivoTrue(codigoInterno);
+        return loteRepository.findAllByCodigoInternoAndActivoTrue(codigoInternoLote);
     }
 
     public List<Lote> findAllSortByDateAndNroBultoAudit() {
@@ -167,8 +146,9 @@ public class LoteService {
 
     //Getters para el Front
     public Optional<Lote> save(final Lote lote) {
-        final Lote nuevoLote = loteRepository.save(lote);
-        return Optional.of(nuevoLote);
+        throw new UnsupportedOperationException("No se permite la persistencia de Lote desde el Front.");
+        //        final Lote nuevoLote = loteRepository.save(lote);
+        //        return Optional.of(nuevoLote);
     }
 
     //***********CU2 MODIFICACION: CUARENTENA***********
@@ -259,8 +239,6 @@ public class LoteService {
             .toList();
     }
 
-    //Persistencia
-
     //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
     public List<Lote> findAllForVentaProducto() {
         final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
@@ -271,13 +249,15 @@ public class LoteService {
             .toList();
     }
 
+    //Persistencia
+
     public Long findMaxNroTraza(Long idProducto) {
         return trazaService.findMaxNroTraza(idProducto);
     }
 
     //***********CU1 ALTA: COMPRA***********
     @Transactional
-    public List<Lote> ingresarStockPorCompra(LoteDTO loteDTO) {
+    public List<Lote> altaStockPorCompra(LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         Proveedor proveedor = proveedorService.findById(loteDTO.getProveedorId())
             .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
@@ -394,7 +374,7 @@ public class LoteService {
     //***********CU3 BAJA: MUESTREO***********
     @Transactional
     //TODO: soportar multimuestreo para simplificar la carga
-    public Lote persistirMuestreo(final MovimientoDTO dto, final Lote lote) {
+    public Lote bajaMuestreo(final MovimientoDTO dto, final Lote lote) {
 
         //Si el producto esta en estado Recibido debo pasarlo a Cuarentena antes
         //Si tengo un numero de reanalisis, es que necesito crear un nuevo analisis para el producto
@@ -422,7 +402,7 @@ public class LoteService {
             final List<Traza> trazas = lote.getFirstAvailableTrazaList(cantidad.intValue());
 
             for (Traza traza : trazas) {
-                traza.setEstado(EstadoEnum.EN_USO);
+                traza.setEstado(EstadoEnum.CONSUMIDO);
                 traza.getMovimientos().add(movimiento);
             }
             trazaService.save(trazas);
@@ -441,7 +421,7 @@ public class LoteService {
 
     //***********CU4 BAJA: DEVOLUCION COMPRA***********
     @Transactional
-    public List<Lote> persistirDevolucionCompra(final MovimientoDTO dto, final List<Lote> lotes) {
+    public List<Lote> bajaDevolucionCompra(final MovimientoDTO dto, final List<Lote> lotes) {
         List<Lote> result = new ArrayList<>();
         for (Lote loteBulto : lotes) {
             final Movimiento movimiento = movimientoService.persistirMovimientoDevolucionCompra(dto, loteBulto);
@@ -469,12 +449,13 @@ public class LoteService {
         return result;
     }
 
+    //***********CU7 BAJA: CONSUMO PRODUCCION***********
     @Transactional
-    public List<Lote> registrarConsumoProduccion(final LoteDTO loteDTO) {
+    public List<Lote> bajaConsumoProduccion(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         for (int nroBulto : loteDTO.getNroBultoList()) {
             final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(
-                    loteDTO.getCodigoInterno(),
+                    loteDTO.getCodigoInternoLote(),
                     nroBulto)
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
@@ -495,8 +476,9 @@ public class LoteService {
         return result;
     }
 
+    //***********CU10 ALTA: PRODUCCION INTERNA***********
     @Transactional
-    public List<Lote> ingresarStockPorProduccion(final LoteDTO loteDTO) {
+    public List<Lote> altaStockPorProduccion(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         Proveedor conifarma = proveedorService.getConifarma();
         Producto producto = productoService.findById(loteDTO.getProductoId())
@@ -562,6 +544,7 @@ public class LoteService {
         return result;
     }
 
+    //***********CU9 MODIFICACION: VENCIDO***********
     @Transactional
     public List<Lote> persistirExpiracionAnalisis(final MovimientoDTO dto, final List<Lote> lotes) {
         List<Lote> result = new ArrayList<>();
@@ -574,22 +557,24 @@ public class LoteService {
         return result;
     }
 
-    //***********CU9 BAJA: VENTA***********
+    //***********CU12 BAJA: VENTA***********
     @Transactional
-    public List<Lote> registrarVentaProducto(final LoteDTO loteDTO) {
+    public List<Lote> bajaVentaProducto(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
 
         for (int nroBulto : loteDTO.getNroBultoList()) {
             final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(
-                    loteDTO.getCodigoInterno(),
+                    loteDTO.getCodigoInternoLote(),
                     nroBulto)
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
             final Movimiento movimiento = movimientoService.persistirMovimientoBajaVenta(loteDTO, bulto);
-            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(DTOUtils.fromEntity(movimiento), bulto));
+            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
+                DTOUtils.fromEntity(movimiento),
+                bulto));
 
             if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
-                bulto.setEstado(EstadoEnum.CONSUMIDO);
+                bulto.setEstado(EstadoEnum.VENDIDO);
             } else {
                 bulto.setEstado(EstadoEnum.EN_USO);
             }
@@ -599,6 +584,144 @@ public class LoteService {
             result.add(newLote);
         }
         return result;
+    }
+
+    //***********CU13 ALTA: DEVOLUCION VENTA***********
+    public List<Lote> findAllForDevolucionVenta() {
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        for (Lote lote : allSortByDateAndNroBulto) {
+            if (lote.getEstado() == EstadoEnum.VENDIDO) {
+                continue;
+            }
+            boolean containsVenta = false;
+            final List<Movimiento> movimientos = lote.getMovimientos();
+            for (Movimiento movimiento : movimientos) {
+                if (movimiento.getMotivo() == MotivoEnum.VENTA) {
+                    containsVenta = true;
+                    break;
+                }
+            }
+            if (containsVenta) {
+                continue;
+            }
+            allSortByDateAndNroBulto.remove(lote);
+        }
+        return allSortByDateAndNroBulto;
+    }
+
+    //***********CU13 ALTA: DEVOLUCION VENTA***********
+    @Transactional
+    public List<Lote> altaStockDevolucionVenta(final MovimientoDTO dto) {
+        List<Lote> result = new ArrayList<>();
+        Lote lote = loteRepository.findById(dto.getLoteId())
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+
+        Lote loteDevolucion = createLoteDevolucionVenta(lote);
+        loteDevolucion.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        loteDevolucion.setCodigoInterno("L-" + loteDevolucion.getProducto().getTipoProducto() + "-" + loteDevolucion.getFechaYHoraCreacion());
+
+//
+//        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
+//            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+//        final BigDecimal cantidadInicialLote = loteDTO.getCantidadInicial();
+//
+//        boolean unidadVenta = producto.getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
+//
+//        List<Traza> trazas = createTrazas(loteDTO, producto, cantidadInicialLote, unidadVenta);
+//
+//        int idxTrazaActual = 0;
+//
+//        for (int i = 0; i < bultosTotales; i++) {
+//
+//            Lote bultoLote = createLoteIngreso(loteDTO);
+//            populateInfoProduccion(bultoLote, producto, timestampLoteDTO, conifarma);
+//
+//            //seteo cantidades y unidades de medida para cada bulto del lote
+//            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
+//
+//            List<Traza> trazasLocales = new ArrayList<>();
+//            if (unidadVenta) {
+//                final int indexTrazaFinal = bultoLote.getCantidadInicial().intValue();
+//                trazasLocales = new ArrayList<>(trazas.subList(idxTrazaActual, idxTrazaActual + indexTrazaFinal));
+//                bultoLote.getTrazas().addAll(trazasLocales);
+//                idxTrazaActual += indexTrazaFinal;
+//            }
+//
+//            Lote bultoGuardado = loteRepository.save(bultoLote);
+//            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoProduccion(bultoGuardado);
+//            bultoGuardado.getMovimientos().add(movimiento);
+//
+//            if (!trazasLocales.isEmpty()) {
+//                for (Traza traza : trazasLocales) {
+//                    traza.getMovimientos().add(movimiento);
+//                    traza.setLote(bultoGuardado);
+//                }
+//                bultoGuardado.getTrazas().addAll(trazasLocales);
+//                trazaService.save(trazasLocales);
+//            }
+//            result.add(bultoGuardado);
+//        }
+        result.add(loteDevolucion);
+        return result;
+    }
+
+
+    private Lote createLoteDevolucionVenta(final Lote lote) {
+        Lote clone = new Lote();
+        clone.setEstado(EstadoEnum.DEVUELTO);
+        clone.setDictamen(DictamenEnum.DEVOLUCION_CLIENTES);
+
+        clone.setProducto(lote.getProducto());
+        clone.setProveedor(lote.getProveedor());
+        clone.setFabricante(lote.getFabricante());
+        clone.setPaisOrigen(lote.getPaisOrigen());
+        clone.setNroBulto(lote.getNroBulto());
+        clone.setBultosTotales(lote.getBultosTotales());
+        clone.setUnidadMedida(lote.getUnidadMedida());
+        clone.setLoteProveedor(lote.getLoteProveedor());
+        clone.setFechaReanalisisProveedor(lote.getFechaReanalisisProveedor());
+        clone.setFechaVencimientoProveedor(lote.getFechaVencimientoProveedor());
+        clone.setAnalisisList(lote.getAnalisisList());
+        clone.setTrazas(lote.getTrazas());
+        clone.setLoteOrigen(lote);
+        clone.setDetalleConservacion(lote.getDetalleConservacion());
+        clone.setFechaIngreso(lote.getFechaIngreso());
+        clone.setObservaciones("DEVOLUCIÓN de lote " + lote.getCodigoInterno());
+        clone.setActivo(true);
+        return clone;
+    }
+
+
+    private List<Traza> createTrazas(
+        final LoteDTO loteDTO,
+        final Producto producto,
+        final BigDecimal cantidadInicialLote, boolean unidadVenta) {
+        List<Traza> trazas = new ArrayList<>();
+        if (unidadVenta) {
+            if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+                throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
+            }
+
+            if (cantidadInicialLote.stripTrailingZeros().scale() > 0) {
+                throw new IllegalStateException("La cantidad de Unidades debe ser entero");
+            }
+            for (int i = 0; i < cantidadInicialLote.intValue(); i++) {
+                Traza traza = new Traza();
+                traza.setNroTraza(loteDTO.getTrazaInicial() + i);
+                traza.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+                traza.setProducto(producto);
+                traza.setObservaciones("CU7 Traza: " +
+                    traza.getNroTraza() +
+                    "\n - Producto: " +
+                    producto.getCodigoInterno() +
+                    " / " +
+                    producto.getNombreGenerico());
+                traza.setEstado(EstadoEnum.DISPONIBLE);
+                traza.setActivo(true);
+                trazas.add(traza);
+            }
+        }
+        return trazas;
     }
 
     private void populateCantidadUdeMLote(

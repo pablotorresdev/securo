@@ -127,7 +127,7 @@ public class ProduccionController {
 
     private void consumoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.registrarConsumoProduccion(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.bajaConsumoProduccion(loteDTO));
 
         //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
@@ -158,7 +158,7 @@ public class ProduccionController {
 
     private void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.ingresarStockPorProduccion(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.altaStockPorProduccion(loteDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
@@ -174,7 +174,7 @@ public class ProduccionController {
         }
         //TODO: caso donde el lote 2/3 se haya usado, pero el 1/3 no ni el 3/3
         final List<Lote> lotes = new ArrayList<>();
-        return populateAvailableLoteListByCodigoInterno(lotes, loteDTO.getCodigoInterno(), bindingResult, loteService)
+        return populateAvailableLoteListByCodigoInterno(lotes, loteDTO.getCodigoInternoLote(), bindingResult, loteService)
             && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
             && validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
     }

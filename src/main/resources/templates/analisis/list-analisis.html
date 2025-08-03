@@ -30,7 +30,7 @@
             <td>
                 <!-- Se itera sobre la lista de lotes para mostrar, por ejemplo, el código interno de cada lote -->
                 <span th:each="lote, iterStat : ${analis.lotes}"
-                      th:text="${lote.codigoInterno} + (iterStat.hasNext ? ', ' : '')"></span>
+                      th:text="${lote.codigoInternoLote} + (iterStat.hasNext ? ', ' : '')"></span>
             </td>
             <td th:text="${analis.nroAnalisis}"></td>
             <td th:text="${analis.dictamen != null ? analis.dictamen : 'EN CURSO'}"></td>

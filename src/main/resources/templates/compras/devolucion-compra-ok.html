@@ -19,7 +19,7 @@
             <tbody>
             <tr>
                 <th>Código Interno:</th>
-                <td th:text="${loteDTO.codigoInterno}"></td>
+                <td th:text="${loteDTO.codigoInternoLote}"></td>
             </tr>
             <tr>
                 <th>Producto ID:</th>
@@ -116,7 +116,8 @@
                 <thead>
                 <tr>
                     <th>Fecha Movimiento</th>
-                    <th>Lote ID</th>
+                    <th>Codigo Lote</th>
+                    <th>Nro Bulto</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
                     <th>Tipo Movimiento</th>
@@ -128,7 +129,8 @@
                 <tbody>
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.loteId}"></td>
+                    <td th:text="${mov.codigoInternoLote}"/>
+                    <td th:text="${mov.nroBulto}"/>
                     <td th:text="${mov.cantidad}"></td>
                     <td th:text="${mov.unidadMedida}"></td>
                     <td th:text="${mov.tipoMovimiento}"></td>

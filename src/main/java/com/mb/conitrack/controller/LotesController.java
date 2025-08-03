@@ -44,16 +44,16 @@ public class LotesController {
         return "lotes/list-fechas-lotes";
     }
 
-    @GetMapping("/codigoInterno/{codigoInterno}")
+    @GetMapping("/codigoInterno/{codigoInternoLote}")
     @ResponseBody
-    public List<Lote> getLoteByCodigoInterno(@PathVariable("codigoInterno") String codigoInterno) {
-        return loteService.findLoteListByCodigoInterno(codigoInterno);
+    public List<Lote> getLoteByCodigoInterno(@PathVariable("codigoInternoLote") String codigoInternoLote) {
+        return loteService.findLoteListByCodigoInterno(codigoInternoLote);
     }
 
-    @GetMapping("/codigoInterno/muestreo/{codigoInterno}")
+    @GetMapping("/codigoInterno/muestreo/{codigoInternoLote}")
     @ResponseBody
-    public List<Lote> getLoteForMuestreoByCodigoInterno(@PathVariable("codigoInterno") String codigoInterno) {
-        return loteService.findLoteListByCodigoInterno(codigoInterno).stream()
+    public List<Lote> getLoteForMuestreoByCodigoInterno(@PathVariable("codigoInternoLote") String codigoInternoLote) {
+        return loteService.findLoteListByCodigoInterno(codigoInternoLote).stream()
             .filter(lote -> DictamenEnum.RECIBIDO != lote.getDictamen())
             .filter(lote -> lote.getAnalisisList().stream()
                 .anyMatch(analisis -> analisis.getNroAnalisis() != null))

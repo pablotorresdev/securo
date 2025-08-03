@@ -14,7 +14,7 @@
         <!-- Campo oculto para CSRF -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
         <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}" type="hidden"/>
-        <input id="codigoInterno" th:field="*{codigoInterno}" type="hidden"/>
+        <input id="codigoInternoLote" th:field="*{codigoInternoLote}" type="hidden"/>
         <input id="nroAnalisis" th:field="*{nroAnalisis}" type="hidden"/>
 
         <hr class="my-4">
@@ -26,23 +26,23 @@
             <label class="form-label" for="loteSelector">Seleccione el Lote:</label>
             <select class="form-select" id="loteSelector">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:attr="lote-codigoInterno=${loteDTO.codigoInterno}"
+                <option th:attr="attr-codigoInternoLote=${loteDTO.codigoInternoLote}"
                         th:each="loteDTO : ${lotesForResultado}"
-                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInterno} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
+                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInternoLote} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
                         th:value="${loteDTO.getNroUltimoAnalisisDto()}">
                 </option>
             </select>
-            <div class="text-danger" th:errors="*{codigoInterno}" th:if="${#fields.hasErrors('codigoInterno')}"></div>
+            <div class="text-danger" th:errors="*{codigoInternoLote}" th:if="${#fields.hasErrors('codigoInternoLote')}"></div>
         </div>
 
         <div class="mb-3">
             <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
             <select class="form-select" id="analisisSelector">
                 <option value="">-- Seleccione un Análisis --</option>
-                <option th:attr="lote-codigoInterno=${anal.lotes.get(0).codigoInterno}"
+                <option th:attr="attr-codigoInternoLote=${anal.lotes.get(0).codigoInternoLote}"
                         th:each="anal : ${analisisEnCurso}"
                         th:selected="${anal.nroAnalisis} == *{nroAnalisis}"
-                        th:text="'Nro Análisis: ' + ${anal.nroAnalisis} + ' | Producto: ' + ${anal.lotes.get(0).producto.nombreGenerico} + ' | Código Lote: ' + ${anal.lotes.get(0).codigoInterno}"
+                        th:text="'Nro Análisis: ' + ${anal.nroAnalisis} + ' | Producto: ' + ${anal.lotes.get(0).producto.nombreGenerico} + ' | Código Lote: ' + ${anal.lotes.get(0).codigoInternoLote}"
                         th:value="${anal.nroAnalisis}">
                 </option>
             </select>
@@ -118,7 +118,7 @@
         const analisisSelector = document.getElementById('analisisSelector');
         const infoSection = document.getElementById('infoSection');
         const nroAnalisisField = document.getElementById('nroAnalisis');
-        const codigoInternoField = document.getElementById('codigoInterno');
+        const codigoInternoLoteField = document.getElementById('codigoInternoLote');
 
         var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ [];
         if (fechaRealizadoAnalisisDTO) {
@@ -139,7 +139,7 @@
 
         function actualizarInfo(loteDTO) {
             let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
-            html += '<p><strong>Código Interno:</strong> ' + (loteDTO.codigoInterno || 'N/D') + '</p>';
+            html += '<p><strong>Código Interno:</strong> ' + (loteDTO.codigoInternoLote || 'N/D') + '</p>';
             html += '<p><strong>Producto:</strong> ' + (loteDTO.nombreProducto || 'N/D') + '</p>';
             html += '<p><strong>Fecha ingreso:</strong> ' + (loteDTO.fechaIngreso || 'N/D') + '</p>';
             html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (loteDTO.fechaReanalisisProveedor || 'N/D') + '</p>';
@@ -164,7 +164,7 @@
         loteSelector.addEventListener('change', function () {
             analisisSelector.value = ""; // se resetea el otro select
             nroAnalisisField.value = this.value;
-            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('lote-codigoInterno') || '';
+            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('attr-codigoInternoLote') || '';
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {
@@ -187,7 +187,7 @@
         analisisSelector.addEventListener('change', function () {
             loteSelector.value = ""; // se resetea el select de Lote
             nroAnalisisField.value = this.value;
-            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('lote-codigoInterno') || '';
+            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('attr-codigoInternoLote') || '';
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {

@@ -110,7 +110,7 @@ public class ComprasController {
         final List<Lote> lotesList = new ArrayList<>();
         if (!(populateLoteListByCodigoInterno(
             lotesList,
-            movimientoDTO.getCodigoInterno(),
+            movimientoDTO.getCodigoInternoLote(),
             bindingResult,
             loteService) &&
             validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult))) {
@@ -134,7 +134,7 @@ public class ComprasController {
         final List<Lote> lotesList,
         final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.persistirDevolucionCompra(
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.bajaDevolucionCompra(
             movimientoDTO,
             lotesList));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
@@ -147,7 +147,7 @@ public class ComprasController {
 
     private void ingresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.ingresarStockPorCompra(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.altaStockPorCompra(loteDTO));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",

@@ -7,6 +7,7 @@ public enum MotivoEnum {
     ANALISIS("Analisis"),
     CONSUMO_PRODUCCION("Consumo produccion"),
     PRODUCCION_PROPIA("Produccion propia"),
+    LIBERACION("Liberacion"),
     VENTA("Venta"),
     EXPIRACION_ANALISIS("Expiracion analisis"),
     VENCIMIENTO("Vencimiento"),

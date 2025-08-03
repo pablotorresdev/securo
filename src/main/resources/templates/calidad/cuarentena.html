@@ -18,15 +18,15 @@
 
         <!-- Select de Lotes disponibles para Cuarentena -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInterno">Lote:</label>
-            <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
+            <label class="form-label" for="codigoInternoLote">Lote:</label>
+            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${lotesForCuarentena}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
-                         + ' | Codigo Interno: ' + ${loteDTO.codigoInterno}
+                         + ' | Codigo Interno: ' + ${loteDTO.codigoInternoLote}
                          + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
-                        th:value="${loteDTO.codigoInterno}"
+                        th:value="${loteDTO.codigoInternoLote}"
                         th:data-dictamen="${loteDTO.dictamen.valor}"
                         th:data-nroanalisis="${loteDTO.getNroUltimoAnalisisDto()}"
                         th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}">
@@ -96,7 +96,7 @@
 </footer>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        const loteSelect = document.getElementById('codigoInterno');
+        const loteSelect = document.getElementById('codigoInternoLote');
         const grupoEditable = document.getElementById('grupoNroAnalisisEditable');
         const grupoReadonly = document.getElementById('grupoNroAnalisisSoloLectura');
         const grupoReanalisis = document.getElementById('grupoNroReanalisis');

@@ -38,6 +38,9 @@ public class Movimiento {
     @JsonBackReference
     private Lote lote;
 
+    @Column(name = "codigo_interno", length = 100, nullable = false)
+    private String codigoInterno;
+
     //TODO: unificar con fecha de movimiento
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaYHoraCreacion;

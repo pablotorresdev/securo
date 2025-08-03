@@ -68,15 +68,17 @@ public class MovimientoDTO {
 
     private String motivo;
 
-    private Long loteId; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
+    private Long loteId;
 
-    private String codigoInterno; // Id del registro del lote => Idem a (codigoInterno + nroBulto) o (loteProveedor + nroBulto) o (nroAnalisis + nroBulto)
+    private String codigoInternoLote;
 
     @Size(max = 20, message = "El número de re analisis no debe superar 30 caracteres")
     private String nroReanalisis;
 
+    private String codigoInternoMovimiento;
+
     // Campos no usados aun
-    private Movimiento movimientoOrigen;
+    private String movimientoOrigenId;
 
     private String ordenProduccion;
 

@@ -19,19 +19,19 @@
 
         <!-- Select de Lotes Devolvibles -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInterno">Lote a Devolver:</label>
-            <select class="form-select" id="codigoInterno" required th:field="*{codigoInterno}">
+            <label class="form-label" for="codigoInternoLote">Lote a Devolver:</label>
+            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
                 <option value="">-- Seleccione un lote --</option>
                 <option th:each="loteDTO : ${lotesDevolvibles}"
-                        th:text="'Codigo Interno: ' + ${loteDTO.codigoInterno}
+                        th:text="'Codigo Interno: ' + ${loteDTO.codigoInternoLote}
                     + ' | Proveedor: ' + ${loteDTO.nombreProveedor}
                     + ' | Producto: ' + ${loteDTO.nombreProducto}
                     + ' | Dictamen: ' + ${loteDTO.dictamen}"
-                        th:value="${loteDTO.codigoInterno}">
+                        th:value="${loteDTO.codigoInternoLote}">
                 </option>
             </select>
-            <div class="text-danger" th:errors="*{codigoInterno}"
-                 th:if="${#fields.hasErrors('codigoInterno')}"></div>
+            <div class="text-danger" th:errors="*{codigoInternoLote}"
+                 th:if="${#fields.hasErrors('codigoInternoLote')}"></div>
         </div>
 
         <!-- Fecha de la Devolución -->

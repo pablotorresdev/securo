@@ -31,7 +31,7 @@ public class LoteDTO {
     protected LocalDateTime fechaYHoraCreacion;
 
     @NotNull(message = "Debe seleccionar un lote", groups = { BajaProduccion.class })
-    protected String codigoInterno;
+    protected String codigoInternoLote;
 
     //Datos de ALTA obligatorios
     @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })

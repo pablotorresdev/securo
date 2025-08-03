@@ -1,6 +1,7 @@
 package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,7 @@ import com.mb.conitrack.repository.MovimientoRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
+import static com.mb.conitrack.entity.EntityUtils.createMovimientoAltaDevolucionVenta;
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoAltaIngresoCompra;
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoAltaIngresoProduccion;
 import static com.mb.conitrack.entity.EntityUtils.createMovimientoModificacion;
@@ -38,6 +40,7 @@ import static com.mb.conitrack.enums.DictamenEnum.VENCIDO;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.EXPIRACION_ANALISIS;
+import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
 import static com.mb.conitrack.enums.MotivoEnum.VENTA;
@@ -48,6 +51,7 @@ public class MovimientoService {
 
     @Autowired
     private final TrazaService trazaService;
+
     @Autowired
     private final AnalisisService analisisService;
 
@@ -58,10 +62,13 @@ public class MovimientoService {
         final MovimientoDTO dto,
         final Lote lote,
         final Analisis ultimoAnalisis) {
-        final Movimiento movimientoPorMuestreo = createMovimientoPorMuestreo(dto);
-        movimientoPorMuestreo.setLote(lote);
-        movimientoPorMuestreo.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
-        return movimientoPorMuestreo;
+        final Movimiento movimiento = createMovimientoPorMuestreo(dto);
+        String timestampLoteDTO = dto.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-B_" + lote.getNroBulto() + "-" + timestampLoteDTO);
+        movimiento.setLote(lote);
+        movimiento.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
+        return movimiento;
     }
 
     public List<Movimiento> findAll() {
@@ -143,6 +150,9 @@ public class MovimientoService {
         movimiento.setMotivo(DEVOLUCION_COMPRA);
 
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        String timestampLoteDTO = dto.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-B_" + lote.getNroBulto() + "-" + timestampLoteDTO);
         movimiento.setCantidad(lote.getCantidadActual());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
 
@@ -184,6 +194,9 @@ public class MovimientoService {
         movimiento.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
 
         movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-B_" + bulto.getNroBulto() + "-" + timestampLoteDTO);
         movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
         movimiento.setFecha(loteDTO.getFechaEgreso());
         movimiento.setLote(bulto);
@@ -192,12 +205,10 @@ public class MovimientoService {
         return movimientoRepository.save(movimiento);
     }
 
-
     //***********CU9: VENTA PRODUCTO PROPIO***********
     @Transactional
     public Movimiento persistirMovimientoBajaVenta(final LoteDTO loteDTO, final Lote bulto) {
         final Movimiento movimiento = new Movimiento();
-
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(VENTA);
 
@@ -207,27 +218,31 @@ public class MovimientoService {
 
         boolean unidadVenta = bulto.getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
 
-        if (unidadVenta) {
-            final BigDecimal cantidad = movimiento.getCantidad();
-            if (movimiento.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
-                throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
-            }
-
-            if (cantidad.stripTrailingZeros().scale() > 0) {
-                throw new IllegalStateException("La cantidad de Unidades debe ser entero");
-            }
-
-            final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantidad.intValue());
-
-            for (Traza traza : trazas) {
-                traza.setEstado(EstadoEnum.CONSUMIDO);
-                traza.getMovimientos().add(movimiento);
-            }
-            trazaService.save(trazas);
-            movimiento.setTrazas(trazas);
+        if (!unidadVenta) {
+            throw new IllegalStateException("La venta solo puede realizarse en producto terminado");
+        }
+        final BigDecimal cantidad = movimiento.getCantidad();
+        if (movimiento.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+            throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
         }
 
+        if (cantidad.stripTrailingZeros().scale() > 0) {
+            throw new IllegalStateException("La cantidad de Unidades debe ser entero");
+        }
+
+        final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantidad.intValue());
+
+        for (Traza traza : trazas) {
+            traza.setEstado(EstadoEnum.VENDIDO);
+            traza.getMovimientos().add(movimiento);
+        }
+        trazaService.save(trazas);
+        movimiento.setTrazas(trazas);
+
         movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-B_" + bulto.getNroBulto() + "-" + timestampLoteDTO);
         movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
         movimiento.setFecha(loteDTO.getFechaEgreso());
         movimiento.setLote(bulto);
@@ -244,8 +259,6 @@ public class MovimientoService {
         movimientoAltaIngresoProduccion.setLote(lote);
         return movimientoRepository.save(movimientoAltaIngresoProduccion);
     }
-
-
 
     //***********CU9 MODIFICACION: VENCIDO***********
     @Transactional
@@ -264,7 +277,6 @@ public class MovimientoService {
     @Transactional
     public Movimiento persistirMovimientoProductoVencido(final MovimientoDTO dto, Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
-
         movimiento.setMotivo(VENCIMIENTO);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(VENCIDO);
@@ -277,13 +289,20 @@ public class MovimientoService {
     @Transactional
     public Movimiento persistirMovimientoLiberacionProducto(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
-
-        movimiento.setMotivo(VENTA);
+        movimiento.setMotivo(LIBERACION);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(LIBERADO);
 
         movimiento.setObservaciones("_CU11_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
+    }
+
+    //***********CU13 ALTA: Devolucion***********
+    @Transactional
+    public Movimiento persistirMovimientoAltaDevolucionVenta(Lote lote) {
+        final Movimiento movimientoAltaDevolucionVenta = createMovimientoAltaDevolucionVenta(lote);
+        movimientoAltaDevolucionVenta.setLote(lote);
+        return movimientoRepository.save(movimientoAltaDevolucionVenta);
     }
 
     private Movimiento crearMovimientoConAnalisisEnCurso(

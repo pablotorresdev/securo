@@ -22,7 +22,7 @@
         <tr th:each="traza : ${trazas}">
             <td th:text="${traza.nroTraza}"></td>
             <td th:text="${traza.producto.nombreGenerico}"></td>
-            <td th:text="${traza.lote.codigoInterno}"></td>
+            <td th:text="${traza.lote.codigoInternoLote}"></td>
             <td th:text="${traza.estado}"></td>
             <td th:text="${traza.observaciones}"></td>
         </tr>
