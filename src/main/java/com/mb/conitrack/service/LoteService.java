@@ -588,9 +588,10 @@ public class LoteService {
 
     //***********CU13 ALTA: DEVOLUCION VENTA***********
     public List<Lote> findAllForDevolucionVenta() {
-        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
-        for (Lote lote : allSortByDateAndNroBulto) {
+        final List<Lote> result = new ArrayList<>();
+        for (Lote lote : findAllSortByDateAndNroBulto()) {
             if (lote.getEstado() == EstadoEnum.VENDIDO) {
+                result.add(lote);
                 continue;
             }
             boolean containsVenta = false;
@@ -602,11 +603,10 @@ public class LoteService {
                 }
             }
             if (containsVenta) {
-                continue;
+                result.add(lote);
             }
-            allSortByDateAndNroBulto.remove(lote);
         }
-        return allSortByDateAndNroBulto;
+        return result;
     }
 
     //***********CU13 ALTA: DEVOLUCION VENTA***********

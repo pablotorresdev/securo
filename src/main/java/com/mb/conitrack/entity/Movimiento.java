@@ -33,6 +33,9 @@ public class Movimiento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //TODO: Normalizar Lote y Bulto
+    //TODO: los movimientos de ALTA/BAJA deben asociarse con Lote y NroBulto
+    //TODO: los movimientos de MODIFICACION deben asociarse con Lote
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference

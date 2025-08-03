@@ -39,10 +39,10 @@
             <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
             <select class="form-select" id="analisisSelector">
                 <option value="">-- Seleccione un Análisis --</option>
-                <option th:attr="attr-codigoInternoLote=${anal.lotes.get(0).codigoInternoLote}"
+                <option th:attr="attr-codigoInternoLote=${anal.lotes.get(0).codigoInterno}"
                         th:each="anal : ${analisisEnCurso}"
                         th:selected="${anal.nroAnalisis} == *{nroAnalisis}"
-                        th:text="'Nro Análisis: ' + ${anal.nroAnalisis} + ' | Producto: ' + ${anal.lotes.get(0).producto.nombreGenerico} + ' | Código Lote: ' + ${anal.lotes.get(0).codigoInternoLote}"
+                        th:text="'Nro Análisis: ' + ${anal.nroAnalisis} + ' | Producto: ' + ${anal.lotes.get(0).producto.nombreGenerico} + ' | Código Lote: ' + ${anal.lotes.get(0).codigoInterno}"
                         th:value="${anal.nroAnalisis}">
                 </option>
             </select>
@@ -118,7 +118,7 @@
         const analisisSelector = document.getElementById('analisisSelector');
         const infoSection = document.getElementById('infoSection');
         const nroAnalisisField = document.getElementById('nroAnalisis');
-        const codigoInternoLoteField = document.getElementById('codigoInternoLote');
+        const codIntLoteField = document.getElementById('codigoInternoLote');
 
         var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ [];
         if (fechaRealizadoAnalisisDTO) {
@@ -164,7 +164,7 @@
         loteSelector.addEventListener('change', function () {
             analisisSelector.value = ""; // se resetea el otro select
             nroAnalisisField.value = this.value;
-            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('attr-codigoInternoLote') || '';
+            codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoInternoLote') || '';
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {
@@ -187,7 +187,7 @@
         analisisSelector.addEventListener('change', function () {
             loteSelector.value = ""; // se resetea el select de Lote
             nroAnalisisField.value = this.value;
-            codigoInternoField.value = this.options[this.selectedIndex].getAttribute('attr-codigoInternoLote') || '';
+            codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoInternoLote') || '';
 
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {
