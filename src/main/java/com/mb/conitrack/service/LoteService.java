@@ -17,6 +17,7 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
@@ -32,8 +33,8 @@ import com.mb.conitrack.repository.LoteRepository;
 
 import lombok.AllArgsConstructor;
 
+import static com.mb.conitrack.entity.EntityUtils.createBultoIngreso;
 import static com.mb.conitrack.entity.EntityUtils.createLoteIngreso;
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @AllArgsConstructor
 @Service
@@ -257,46 +258,23 @@ public class LoteService {
 
     //***********CU1 ALTA: COMPRA***********
     @Transactional
-    public List<Lote> altaStockPorCompra(LoteDTO loteDTO) {
-        List<Lote> result = new ArrayList<>();
+    public Lote altaStockPorCompra(LoteDTO loteDTO) {
         Proveedor proveedor = proveedorService.findById(loteDTO.getProveedorId())
             .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
         Producto producto = productoService.findById(loteDTO.getProductoId())
             .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
-        int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
         String timestamp = loteDTO.getFechaYHoraCreacion().format(formatter);
 
-        for (int i = 0; i < bultosTotales; i++) {
-            Lote bultoLote = createLoteIngreso(loteDTO);
-            bultoLote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
+        Lote lote = createLoteIngreso(loteDTO);
+        populateLote(loteDTO, lote, producto, timestamp, proveedor);
 
-            Optional<Proveedor> fabricante = Optional.empty();
-            if (loteDTO.getFabricanteId() != null) {
-                fabricante = proveedorService.findById(loteDTO.getFabricanteId());
-                fabricante.ifPresent(bultoLote::setFabricante);
-            }
+        Lote bultoGuardado = loteRepository.save(lote);
+        final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(bultoGuardado);
+        bultoGuardado.getMovimientos().add(movimiento);
 
-            bultoLote.setProducto(producto);
-            bultoLote.setProveedor(proveedor);
-
-            if (StringUtils.isEmpty(loteDTO.getPaisOrigen())) {
-                if (fabricante.isPresent()) {
-                    bultoLote.setPaisOrigen(fabricante.get().getPais());
-                } else {
-                    bultoLote.setPaisOrigen(proveedor.getPais());
-                }
-            }
-
-            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
-
-            Lote bultoGuardado = loteRepository.save(bultoLote);
-            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(bultoGuardado);
-            bultoGuardado.getMovimientos().add(movimiento);
-            result.add(bultoGuardado);
-        }
-        return result;
+        return bultoGuardado;
     }
 
     //***********CU2 MODIFICACION: CUARENTENA***********
@@ -326,7 +304,7 @@ public class LoteService {
 
             if (newAnalisis != null) {
                 loteBulto.getAnalisisList().add(newAnalisis);
-                newAnalisis.getLotes().add(loteBulto);
+                newAnalisis.setLote(loteBulto);
             }
 
             result.add(loteRepository.save(loteBulto));
@@ -365,7 +343,7 @@ public class LoteService {
                 newAnalisis.getNroAnalisis());
             loteBulto.getMovimientos().add(movimiento);
             loteBulto.getAnalisisList().add(newAnalisis);
-            newAnalisis.getLotes().add(loteBulto);
+            newAnalisis.setLote(loteBulto);
             result.add(loteRepository.save(loteBulto));
         }
         return result;
@@ -440,12 +418,11 @@ public class LoteService {
     public List<Lote> persistirResultadoAnalisis(final MovimientoDTO dto) {
         final Analisis analisis = analisisService.addResultadoAnalisis(dto);
         List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : analisis.getLotes()) {
-            final Movimiento movimiento = movimientoService.persistirMovimientoResultadoAnalisis(dto, loteBulto);
-            loteBulto.setDictamen(movimiento.getDictamenFinal());
-            loteBulto.getMovimientos().add(movimiento);
-            result.add(loteRepository.save(loteBulto));
-        }
+        final Lote lote = analisis.getLote();
+        final Movimiento movimiento = movimientoService.persistirMovimientoResultadoAnalisis(dto, lote);
+        lote.setDictamen(movimiento.getDictamenFinal());
+        lote.getMovimientos().add(movimiento);
+        result.add(loteRepository.save(lote));
         return result;
     }
 
@@ -618,53 +595,55 @@ public class LoteService {
 
         Lote loteDevolucion = createLoteDevolucionVenta(lote);
         loteDevolucion.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        loteDevolucion.setCodigoInterno("L-" + loteDevolucion.getProducto().getTipoProducto() + "-" + loteDevolucion.getFechaYHoraCreacion());
+        loteDevolucion.setCodigoInterno("L-" +
+            loteDevolucion.getProducto().getTipoProducto() +
+            "-" +
+            loteDevolucion.getFechaYHoraCreacion());
 
-//
-//        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
-//            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-//        final BigDecimal cantidadInicialLote = loteDTO.getCantidadInicial();
-//
-//        boolean unidadVenta = producto.getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
-//
-//        List<Traza> trazas = createTrazas(loteDTO, producto, cantidadInicialLote, unidadVenta);
-//
-//        int idxTrazaActual = 0;
-//
-//        for (int i = 0; i < bultosTotales; i++) {
-//
-//            Lote bultoLote = createLoteIngreso(loteDTO);
-//            populateInfoProduccion(bultoLote, producto, timestampLoteDTO, conifarma);
-//
-//            //seteo cantidades y unidades de medida para cada bulto del lote
-//            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
-//
-//            List<Traza> trazasLocales = new ArrayList<>();
-//            if (unidadVenta) {
-//                final int indexTrazaFinal = bultoLote.getCantidadInicial().intValue();
-//                trazasLocales = new ArrayList<>(trazas.subList(idxTrazaActual, idxTrazaActual + indexTrazaFinal));
-//                bultoLote.getTrazas().addAll(trazasLocales);
-//                idxTrazaActual += indexTrazaFinal;
-//            }
-//
-//            Lote bultoGuardado = loteRepository.save(bultoLote);
-//            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoProduccion(bultoGuardado);
-//            bultoGuardado.getMovimientos().add(movimiento);
-//
-//            if (!trazasLocales.isEmpty()) {
-//                for (Traza traza : trazasLocales) {
-//                    traza.getMovimientos().add(movimiento);
-//                    traza.setLote(bultoGuardado);
-//                }
-//                bultoGuardado.getTrazas().addAll(trazasLocales);
-//                trazaService.save(trazasLocales);
-//            }
-//            result.add(bultoGuardado);
-//        }
+        //
+        //        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
+        //            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        //        final BigDecimal cantidadInicialLote = loteDTO.getCantidadInicial();
+        //
+        //        boolean unidadVenta = producto.getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
+        //
+        //        List<Traza> trazas = createTrazas(loteDTO, producto, cantidadInicialLote, unidadVenta);
+        //
+        //        int idxTrazaActual = 0;
+        //
+        //        for (int i = 0; i < bultosTotales; i++) {
+        //
+        //            Lote bultoLote = createLoteIngreso(loteDTO);
+        //            populateInfoProduccion(bultoLote, producto, timestampLoteDTO, conifarma);
+        //
+        //            //seteo cantidades y unidades de medida para cada bulto del lote
+        //            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
+        //
+        //            List<Traza> trazasLocales = new ArrayList<>();
+        //            if (unidadVenta) {
+        //                final int indexTrazaFinal = bultoLote.getCantidadInicial().intValue();
+        //                trazasLocales = new ArrayList<>(trazas.subList(idxTrazaActual, idxTrazaActual + indexTrazaFinal));
+        //                bultoLote.getTrazas().addAll(trazasLocales);
+        //                idxTrazaActual += indexTrazaFinal;
+        //            }
+        //
+        //            Lote bultoGuardado = loteRepository.save(bultoLote);
+        //            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoProduccion(bultoGuardado);
+        //            bultoGuardado.getMovimientos().add(movimiento);
+        //
+        //            if (!trazasLocales.isEmpty()) {
+        //                for (Traza traza : trazasLocales) {
+        //                    traza.getMovimientos().add(movimiento);
+        //                    traza.setLote(bultoGuardado);
+        //                }
+        //                bultoGuardado.getTrazas().addAll(trazasLocales);
+        //                trazaService.save(trazasLocales);
+        //            }
+        //            result.add(bultoGuardado);
+        //        }
         result.add(loteDevolucion);
         return result;
     }
-
 
     private Lote createLoteDevolucionVenta(final Lote lote) {
         Lote clone = new Lote();
@@ -690,7 +669,6 @@ public class LoteService {
         clone.setActivo(true);
         return clone;
     }
-
 
     private List<Traza> createTrazas(
         final LoteDTO loteDTO,
@@ -724,6 +702,23 @@ public class LoteService {
         return trazas;
     }
 
+    private void populateCantidadUdeMBulto(
+        final LoteDTO loteDTO,
+        final int bultosTotales,
+        final Bulto bulto,
+        final int i) {
+        if (bultosTotales == 1) {
+            bulto.setCantidadInicial(loteDTO.getCantidadInicial());
+            bulto.setCantidadActual(loteDTO.getCantidadInicial());
+            bulto.setUnidadMedida(loteDTO.getUnidadMedida());
+        } else {
+            bulto.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
+            bulto.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
+            bulto.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
+        }
+        bulto.setNroBulto(i + 1);
+    }
+
     private void populateCantidadUdeMLote(
         final LoteDTO loteDTO,
         final int bultosTotales,
@@ -739,6 +734,37 @@ public class LoteService {
             bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
         }
         bultoLote.setNroBulto(i + 1);
+    }
+
+    private void populateLote(
+        final LoteDTO loteDTO,
+        final Lote lote,
+        final Producto producto,
+        final String timestamp,
+        final Proveedor proveedor) {
+        lote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
+        Optional<Proveedor> fabricante = Optional.empty();
+        if (loteDTO.getFabricanteId() != null) {
+            fabricante = proveedorService.findById(loteDTO.getFabricanteId());
+            fabricante.ifPresent(lote::setFabricante);
+        }
+
+        lote.setProducto(producto);
+        lote.setProveedor(proveedor);
+
+        if (StringUtils.isEmpty(loteDTO.getPaisOrigen())) {
+            if (fabricante.isPresent()) {
+                lote.setPaisOrigen(fabricante.get().getPais());
+            } else {
+                lote.setPaisOrigen(proveedor.getPais());
+            }
+        }
+        int bultosTotales = Math.max(loteDTO.getBultosTotales(), 1);
+        for (int i = 0; i < bultosTotales; i++) {
+            Bulto bulto = createBultoIngreso(loteDTO);
+            populateCantidadUdeMBulto(loteDTO, bultosTotales, bulto, i);
+            lote.getBultos().add(bulto);
+        }
     }
 
 }

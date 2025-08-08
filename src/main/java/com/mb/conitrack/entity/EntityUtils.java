@@ -15,6 +15,17 @@ import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 
 public class EntityUtils {
 
+
+    public static Bulto createBultoIngreso(final LoteDTO loteDTO) {
+        Bulto bulto = new Bulto();
+
+        //Datos CU1
+        bulto.setEstado(EstadoEnum.NUEVO);
+        bulto.setActivo(Boolean.TRUE);
+
+        return bulto;
+    }
+
     public static Lote createLoteIngreso(final LoteDTO loteDTO) {
         Lote lote = new Lote();
 
@@ -36,7 +47,6 @@ public class EntityUtils {
         lote.setNroRemito(loteDTO.getNroRemito());
         lote.setDetalleConservacion(loteDTO.getDetalleConservacion());
         lote.setObservaciones(loteDTO.getObservaciones());
-        lote.setActivo(true);
 
         return lote;
     }
@@ -64,6 +74,7 @@ public class EntityUtils {
         movimiento.setUnidadMedida(lote.getUnidadMedida());
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setLote(lote);
+        movimiento.getBultos().addAll(lote.getBultos());
         movimiento.setActivo(true);
 
         movimiento.setObservaciones("_CU1_\n" + lote.getObservaciones());

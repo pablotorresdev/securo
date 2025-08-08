@@ -3,6 +3,7 @@ package com.mb.conitrack.service;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -237,7 +238,8 @@ public class MovimientoService {
             traza.getMovimientos().add(movimiento);
         }
         trazaService.save(trazas);
-        movimiento.setTrazas(trazas);
+
+        movimiento.setTrazas(new LinkedHashSet<>(trazas));
 
         movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
         String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()

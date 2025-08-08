@@ -109,15 +109,19 @@ public class Lote {
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
     @JsonManagedReference
+    private List<Bulto> bultos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
+    @JsonManagedReference
     private List<Movimiento> movimientos = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(
-        name = "lote_analisis",
-        joinColumns = @JoinColumn(name = "lote_id"),
-        inverseJoinColumns = @JoinColumn(name = "analisis_id")
+    @OneToMany(
+        mappedBy     = "lote",
+        cascade      = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch        = FetchType.LAZY
     )
-    @JsonBackReference
+    @JsonManagedReference
     private List<Analisis> analisisList = new ArrayList<>();
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)

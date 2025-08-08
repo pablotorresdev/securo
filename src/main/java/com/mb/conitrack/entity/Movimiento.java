@@ -3,12 +3,13 @@ package com.mb.conitrack.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.SQLDelete;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
@@ -40,6 +41,15 @@ public class Movimiento {
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
     private Lote lote;
+
+    @ManyToMany
+    @JoinTable(
+        name = "movimientos_bulto",
+        joinColumns = @JoinColumn(name = "movimiento_id"),
+        inverseJoinColumns = @JoinColumn(name = "bulto_id")
+    )
+    @JsonManagedReference
+    private Set<Bulto> bultos = new HashSet<>();
 
     @Column(name = "codigo_interno", length = 100, nullable = false)
     private String codigoInterno;
@@ -88,10 +98,13 @@ public class Movimiento {
     private Movimiento movimientoOrigen;
 
     @ManyToMany
-    @JoinTable(name = "trazas_movimientos",
-        joinColumns        = @JoinColumn(name = "movimiento_id"),
-        inverseJoinColumns = @JoinColumn(name = "traza_id"))
-    private List<Traza> trazas = new ArrayList<>();
+    @JoinTable(
+        name = "trazas_movimientos",
+        joinColumns = @JoinColumn(name = "movimiento_id"),
+        inverseJoinColumns = @JoinColumn(name = "traza_id")
+    )
+    @JsonManagedReference
+    private Set<Traza> trazas = new HashSet<>();
 
     @Column(nullable = false)
     private Boolean activo;

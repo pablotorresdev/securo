@@ -46,7 +46,8 @@ public class AnalisisController {
         if (analisis == null) {
             return new LoteDTO();
         }
-        return DTOUtils.mergeEntities(analisis.getLotes());
+        return null;
+       // return DTOUtils.mergeEntities(analisis.getLotes());
     }
 
     @GetMapping("/loteId/{loteId}")

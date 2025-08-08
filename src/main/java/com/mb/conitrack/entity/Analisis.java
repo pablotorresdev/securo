@@ -3,23 +3,13 @@ package com.mb.conitrack.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mb.conitrack.enums.DictamenEnum;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.PastOrPresent;
@@ -47,9 +37,10 @@ public class Analisis {
     @Column(name = "nro_analisis", length = 30, nullable = false)
     private String nroAnalisis;
 
-    @ManyToMany(mappedBy = "analisisList")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
-    private List<Lote> lotes = new ArrayList<>();
+    private Lote lote;
 
     @Column(name = "fecha_realizado")
     @PastOrPresent(message = "La fecha de análisis no puede ser futura")

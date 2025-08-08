@@ -15,6 +15,10 @@ import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
  */
 public class UnidadMedidaUtils {
 
+    private UnidadMedidaUtils() {
+        // Constructor privado para evitar instanciación
+    }
+
     /**
      * Convierte una cantidad desde una unidad de origen a una unidad de destino compatible.
      *

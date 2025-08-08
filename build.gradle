@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'com.mb'
@@ -12,6 +13,23 @@ java {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
+
+jacoco {
+	toolVersion = "0.8.11" // Usa la versión más reciente
+	reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+// Configuración para tests
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport // Genera el reporte después de los tests
+}
+
 
 repositories {
 	mavenCentral()
@@ -36,12 +54,33 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.mockito:mockito-core'
 	testCompileOnly 'org.projectlombok:lombok:1.18.36'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
 
+
+jacocoTestReport {
+	dependsOn test // Asegura que los tests se ejecuten primero
+
+	reports {
+		xml.required = true // Necesario para integración con CI/CD
+		html.required = true // Reporte HTML legible
+		csv.required = false
+	}
+
+	// Opcional: excluir clases/configuraciones que no quieras medir
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					'**/config/**',
+					'**/entity/**',
+					'**/dto/**',
+					'**/exception/**',
+					'**/Application.class'
+			])
+		}))
+	}
+}

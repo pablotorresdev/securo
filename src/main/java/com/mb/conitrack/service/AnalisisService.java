@@ -38,7 +38,7 @@ public class AnalisisService {
             .filter(Analisis::getActivo)
             .filter(analisis -> analisis.getDictamen() == null)
             .filter(analisis -> analisis.getFechaRealizado() == null)
-            .filter(analisis -> analisis.getLotes().stream().anyMatch(lote -> lote.getDictamen() == CUARENTENA))
+            .filter(analisis -> analisis.getLote().getDictamen() == CUARENTENA)
             .sorted(Comparator.comparing(
                 Analisis::getFechaYHoraCreacion,
                 Comparator.nullsLast(Comparator.reverseOrder())))

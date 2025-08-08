@@ -40,6 +40,11 @@ public class Traza {
     @JsonBackReference
     private Lote lote;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bulto_id", nullable = false)
+    @JsonBackReference
+    private Bulto bulto;
+
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaYHoraCreacion;
 
