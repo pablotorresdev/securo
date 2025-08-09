@@ -97,7 +97,6 @@ CREATE TABLE lotes
     bultos_totales       INT            NOT NULL,
     cantidad_inicial     NUMERIC(12, 4),
     cantidad_actual      NUMERIC(12, 4),
-    unidad_medida        VARCHAR(50),
 
     lote_proveedor       TEXT           NOT NULL,
     fecha_reanal_prov    DATE,

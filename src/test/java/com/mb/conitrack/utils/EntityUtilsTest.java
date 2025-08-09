@@ -124,9 +124,6 @@ class EntityUtilsTest {
         Lote lote = new Lote();
         lote.setFechaYHoraCreacion(fch);
         lote.setCodigoInterno("L-API-XYZ");
-        lote.setNroBulto(7);
-        lote.setCantidadInicial(new java.math.BigDecimal("12.345"));
-        lote.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
         lote.setDictamen(DictamenEnum.RECIBIDO);
         lote.setObservaciones("Obs lote");
 
@@ -134,9 +131,11 @@ class EntityUtilsTest {
         Bulto b1 = new Bulto();
         b1.setCantidadInicial(BigDecimal.TEN);
         b1.setCantidadActual(BigDecimal.TEN);
+        b1.setUnidadMedida(UnidadMedidaEnum.GRAMO);
         Bulto b2 = new Bulto();
         b2.setCantidadInicial(BigDecimal.ONE);
         b2.setCantidadActual(BigDecimal.ONE);
+        b2.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
         lote.getBultos().add(b1);
         lote.getBultos().add(b2);
 

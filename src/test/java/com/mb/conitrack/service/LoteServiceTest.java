@@ -1,188 +1,74 @@
 package com.mb.conitrack.service;
 
-import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.entity.Bulto;
-import com.mb.conitrack.utils.EntityUtils;
-import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.maestro.Producto;
-import com.mb.conitrack.entity.maestro.Proveedor;
-import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.repository.LoteRepository;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.entity.maestro.Proveedor;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.repository.LoteRepository;
+import com.mb.conitrack.utils.EntityUtils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LoteServiceTest {
 
-    @Mock LoteRepository loteRepository;
-    @Mock ProveedorService proveedorService;
-    @Mock ProductoService productoService;
-    @Mock BultoService bultoService;
-    @Mock MovimientoService movimientoService;
-    @Mock AnalisisService analisisService;
-    @Mock TrazaService trazaService;
+    @Mock
+    LoteRepository loteRepository;
+
+    @Mock
+    ProveedorService proveedorService;
+
+    @Mock
+    ProductoService productoService;
+
+    @Mock
+    BultoService bultoService;
+
+    @Mock
+    MovimientoService movimientoService;
+
+    @Mock
+    AnalisisService analisisService;
+
+    @Mock
+    TrazaService trazaService;
 
     @InjectMocks
     LoteService service;
 
     @Test
-    void findLoteBultoByCodigoAndBulto() {
-    }
-
-    @Test
-    void findLoteBultoById() {
-    }
-
-    @Test
-    void findLoteListByCodigoInterno() {
-    }
-
-    @Test
-    void findAllSortByDateAndNroBultoAudit() {
-    }
-
-    @Test
-    void findAllSortByDateAndNroBulto() {
-    }
-
-    @Test
-    void findAllLotesDictaminados() {
-    }
-
-    @Test
-    void findAllLotesVencidos() {
-    }
-
-    @Test
-    void findAllLotesAnalisisExpirado() {
-    }
-
-    @Test
-    void save() {
-    }
-
-    @Test
     void altaStockPorCompra() {
-    }
-
-    @Test
-    void findAllForCuarentena() {
-    }
-
-    @Test
-    void persistirDictamenCuarentena() {
-    }
-
-    @Test
-    void findAllForReanalisisProducto() {
-    }
-
-    @Test
-    void findAllForMuestreo() {
-    }
-
-    @Test
-    void findAllForDevolucionCompra() {
-    }
-
-    @Test
-    void findAllForResultadoAnalisis() {
-    }
-
-    @Test
-    void findAllForConsumoProduccion() {
-    }
-
-    @Test
-    void findAllForLiberacionProducto() {
-    }
-
-    @Test
-    void findAllForVentaProducto() {
-    }
-
-    @Test
-    void findMaxNroTraza() {
-    }
-
-    @Test
-    void persistirLiberacionProducto() {
-    }
-
-    @Test
-    void persistirReanalisisProducto() {
-    }
-
-    @Test
-    void bajaMuestreo() {
-    }
-
-    @Test
-    void bajaDevolucionCompra() {
-    }
-
-    @Test
-    void persistirResultadoAnalisis() {
-    }
-
-    @Test
-    void bajaConsumoProduccion() {
-    }
-
-    @Test
-    void altaStockPorProduccion() {
-    }
-
-    @Test
-    void persistirProductosVencidos() {
-    }
-
-    @Test
-    void persistirExpiracionAnalisis() {
-    }
-
-    @Test
-    void bajaVentaProducto() {
-    }
-
-    @Test
-    void findAllForDevolucionVenta() {
-    }
-
-    private LoteDTO dtoBase() {
-        LoteDTO dto = new LoteDTO();
-        dto.setProveedorId(1L);
-        dto.setProductoId(2L);
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        dto.setBultosTotales(1);
-        dto.setCantidadInicial(new BigDecimal("5"));
-        dto.setUnidadMedida(UnidadMedidaEnum.GRAMO);
-        return dto;
-    }
-
-    @BeforeEach
-    void setup() {
-        service = new LoteService(
-            loteRepository, proveedorService, productoService,
-            bultoService, movimientoService, analisisService, trazaService
-        );
     }
 
     @Test
@@ -190,10 +76,12 @@ class LoteServiceTest {
         // given
         LoteDTO dto = dtoBase();
 
-        Proveedor prov = new Proveedor(); prov.setPais("AR");
+        Proveedor prov = new Proveedor();
+        prov.setPais("AR");
         when(proveedorService.findById(1L)).thenReturn(Optional.of(prov));
 
-        Producto prod = new Producto(); prod.setCodigoInterno("P-123");
+        Producto prod = new Producto();
+        prod.setCodigoInterno("P-123");
         when(productoService.findById(2L)).thenReturn(Optional.of(prod));
 
         when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -231,25 +119,6 @@ class LoteServiceTest {
         }
     }
 
-
-
-    @Test
-    @DisplayName("altaStockPorCompra - proveedor inexistente -> IllegalArgumentException")
-    void altaStockPorCompra_sinProveedor() {
-        // given
-        LoteDTO dto = dtoBase();
-        when(proveedorService.findById(1L)).thenReturn(Optional.empty());
-
-        // when / then
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-            () -> service.altaStockPorCompra(dto));
-        assertEquals("El proveedor no existe.", ex.getMessage());
-
-        // No debería avanzar a producto ni a guardar
-        verify(proveedorService).findById(1L);
-        verifyNoInteractions(productoService, loteRepository, bultoService, movimientoService);
-    }
-
     @Test
     @DisplayName("altaStockPorCompra - producto inexistente -> IllegalArgumentException")
     void altaStockPorCompra_sinProducto() {
@@ -262,7 +131,8 @@ class LoteServiceTest {
         when(productoService.findById(2L)).thenReturn(Optional.empty());
 
         // when / then
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
             () -> service.altaStockPorCompra(dto));
         assertEquals("El producto no existe.", ex.getMessage());
 
@@ -271,15 +141,42 @@ class LoteServiceTest {
         verifyNoInteractions(loteRepository, bultoService, movimientoService);
     }
 
+    @Test
+    @DisplayName("altaStockPorCompra - proveedor inexistente -> IllegalArgumentException")
+    void altaStockPorCompra_sinProveedor() {
+        // given
+        LoteDTO dto = dtoBase();
+        when(proveedorService.findById(1L)).thenReturn(Optional.empty());
 
+        // when / then
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.altaStockPorCompra(dto));
+        assertEquals("El proveedor no existe.", ex.getMessage());
 
+        // No debería avanzar a producto ni a guardar
+        verify(proveedorService).findById(1L);
+        verifyNoInteractions(productoService, loteRepository, bultoService, movimientoService);
+    }
 
-    private void callPopulateLote(LoteDTO dto, Lote lote, Producto producto, String ts, Proveedor prov) throws Exception {
-        Method m = LoteService.class.getDeclaredMethod(
-            "populateLote", LoteDTO.class, Lote.class, Producto.class, String.class, Proveedor.class
-        );
-        m.setAccessible(true);
-        m.invoke(service, dto, lote, producto, ts, prov);
+    @Test
+    void altaStockPorProduccion() {
+    }
+
+    @Test
+    void bajaConsumoProduccion() {
+    }
+
+    @Test
+    void bajaDevolucionCompra() {
+    }
+
+    @Test
+    void bajaMuestreo() {
+    }
+
+    @Test
+    void bajaVentaProducto() {
     }
 
     @Test
@@ -291,7 +188,10 @@ class LoteServiceTest {
         dto.setPaisOrigen(null); // dispara seteo de país
         dto.setBultosTotales(3);
         dto.setCantidadesBultos(java.util.List.of(new BigDecimal("1"), new BigDecimal("2"), new BigDecimal("3")));
-        dto.setUnidadMedidaBultos(java.util.List.of(UnidadMedidaEnum.GRAMO, UnidadMedidaEnum.GRAMO, UnidadMedidaEnum.GRAMO));
+        dto.setUnidadMedidaBultos(java.util.List.of(
+            UnidadMedidaEnum.GRAMO,
+            UnidadMedidaEnum.GRAMO,
+            UnidadMedidaEnum.GRAMO));
         dto.setFechaIngreso(LocalDate.now());
         dto.setFechaYHoraCreacion(LocalDateTime.now());
 
@@ -372,6 +272,78 @@ class LoteServiceTest {
     }
 
     @Test
+    void findAllForConsumoProduccion() {
+    }
+
+    @Test
+    void findAllForCuarentena() {
+    }
+
+    @Test
+    void findAllForDevolucionCompra() {
+    }
+
+    @Test
+    void findAllForDevolucionVenta() {
+    }
+
+    @Test
+    void findAllForLiberacionProducto() {
+    }
+
+    @Test
+    void findAllForMuestreo() {
+    }
+
+    @Test
+    void findAllForReanalisisProducto() {
+    }
+
+    @Test
+    void findAllForResultadoAnalisis() {
+    }
+
+    @Test
+    void findAllForVentaProducto() {
+    }
+
+    @Test
+    void findAllLotesAnalisisExpirado() {
+    }
+
+    @Test
+    void findAllLotesDictaminados() {
+    }
+
+    @Test
+    void findAllLotesVencidos() {
+    }
+
+    @Test
+    void findAllSortByDateAndNroBulto() {
+    }
+
+    @Test
+    void findAllSortByDateAndNroBultoAudit() {
+    }
+
+    @Test
+    void findLoteBultoByCodigoAndBulto() {
+    }
+
+    @Test
+    void findLoteBultoById() {
+    }
+
+    @Test
+    void findLoteListByCodigoInterno() {
+    }
+
+    @Test
+    void findMaxNroTraza() {
+    }
+
+    @Test
     @DisplayName("paisOrigen en DTO NO vacío -> no se pisa; fabricanteId nulo -> no consulta proveedorService")
     void paisOrigenNoVacio_noOverride_yNoConsultaFabricante() throws Exception {
         // given
@@ -410,6 +382,66 @@ class LoteServiceTest {
         }
 
         verifyNoInteractions(proveedorService);
+    }
+
+    @Test
+    void persistirDictamenCuarentena() {
+    }
+
+    @Test
+    void persistirExpiracionAnalisis() {
+    }
+
+    @Test
+    void persistirLiberacionProducto() {
+    }
+
+    @Test
+    void persistirProductosVencidos() {
+    }
+
+    @Test
+    void persistirReanalisisProducto() {
+    }
+
+    @Test
+    void persistirResultadoAnalisis() {
+    }
+
+    @Test
+    void save() {
+    }
+
+    @BeforeEach
+    void setup() {
+        service = new LoteService(
+            loteRepository, proveedorService, productoService,
+            bultoService, movimientoService, analisisService, trazaService
+        );
+    }
+
+    private void callPopulateLote(
+        LoteDTO dto,
+        Lote lote,
+        Producto producto,
+        String ts,
+        Proveedor prov) throws Exception {
+        Method m = LoteService.class.getDeclaredMethod(
+            "populateLote", LoteDTO.class, Lote.class, Producto.class, String.class, Proveedor.class
+        );
+        m.setAccessible(true);
+        m.invoke(service, dto, lote, producto, ts, prov);
+    }
+
+    private LoteDTO dtoBase() {
+        LoteDTO dto = new LoteDTO();
+        dto.setProveedorId(1L);
+        dto.setProductoId(2L);
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        dto.setBultosTotales(1);
+        dto.setCantidadInicial(new BigDecimal("5"));
+        dto.setUnidadMedida(UnidadMedidaEnum.GRAMO);
+        return dto;
     }
 
 }

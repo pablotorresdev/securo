@@ -28,12 +28,6 @@ import com.mb.conitrack.repository.MovimientoRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaDevolucionVenta;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoCompra;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoProduccion;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoModificacion;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoPorMuestreo;
-import static com.mb.conitrack.utils.EntityUtils.getAnalisisEnCurso;
 import static com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO;
 import static com.mb.conitrack.enums.DictamenEnum.CUARENTENA;
 import static com.mb.conitrack.enums.DictamenEnum.LIBERADO;
@@ -45,6 +39,12 @@ import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
 import static com.mb.conitrack.enums.MotivoEnum.VENTA;
+import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaDevolucionVenta;
+import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoCompra;
+import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoProduccion;
+import static com.mb.conitrack.utils.EntityUtils.createMovimientoModificacion;
+import static com.mb.conitrack.utils.EntityUtils.createMovimientoPorMuestreo;
+import static com.mb.conitrack.utils.EntityUtils.getAnalisisEnCurso;
 
 @AllArgsConstructor
 @Service

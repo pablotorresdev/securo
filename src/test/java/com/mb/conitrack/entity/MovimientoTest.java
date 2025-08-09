@@ -12,8 +12,8 @@ import static com.mb.conitrack.enums.UnidadMedidaEnum.LITRO;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.MILIGRAMO;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.MILILITRO;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
-import static com.mb.conitrack.enums.UnidadMedidaUtils.convertirCantidadEntreUnidades;
-import static com.mb.conitrack.enums.UnidadMedidaUtils.sugerirUnidadParaCantidad;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.sugerirUnidadParaCantidad;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

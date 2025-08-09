@@ -174,7 +174,11 @@ public class ProduccionController {
         }
         //TODO: caso donde el lote 2/3 se haya usado, pero el 1/3 no ni el 3/3
         final List<Lote> lotes = new ArrayList<>();
-        return populateAvailableLoteListByCodigoInterno(lotes, loteDTO.getCodigoInternoLote(), bindingResult, loteService)
+        return populateAvailableLoteListByCodigoInterno(
+            lotes,
+            loteDTO.getCodigoInternoLote(),
+            bindingResult,
+            loteService)
             && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
             && validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
     }

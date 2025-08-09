@@ -15,9 +15,8 @@ public interface BultoRepository extends JpaRepository<Bulto, Long> {
     List<Bulto> findAllByActivoTrue();
 
     /**
-     * Spring Data compondrá la siguiente consulta: SELECT l FROM Lote l WHERE
-     *      l.lote = ?1 AND l.nroBulto = ?2
-     *      AND l.activo = true LIMIT 1
+     * Spring Data compondrá la siguiente consulta: SELECT l FROM Lote l WHERE l.lote = ?1 AND l.nroBulto = ?2 AND
+     * l.activo = true LIMIT 1
      */
     Optional<Bulto> findFirstByLoteAndNroBultoAndActivoTrue(Lote lote, int nroBulto);
 

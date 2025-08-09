@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mb.conitrack.entity.Bulto;
-import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.repository.BultoRepository;
 
 @Service

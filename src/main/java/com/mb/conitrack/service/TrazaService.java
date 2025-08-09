@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.repository.TrazaRepository;
 
-import jakarta.transaction.Transactional;
-
 @Service
 public class TrazaService {
 

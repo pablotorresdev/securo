@@ -21,5 +21,4 @@ public class TrazaDTO {
 
     private String observaciones;
 
-
 }

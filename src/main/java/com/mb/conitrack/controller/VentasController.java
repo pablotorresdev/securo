@@ -24,7 +24,6 @@ import jakarta.validation.Valid;
 
 import static com.mb.conitrack.controller.ControllerUtils.populateAvailableLoteListByCodigoInterno;
 import static com.mb.conitrack.controller.ControllerUtils.populateLoteListByCodigoInterno;
-import static com.mb.conitrack.controller.ControllerUtils.validarBultos;
 import static com.mb.conitrack.controller.ControllerUtils.validarCantidadesPorMedidas;
 import static com.mb.conitrack.controller.ControllerUtils.validarFechaEgresoLoteDtoPosteriorLote;
 import static com.mb.conitrack.controller.ControllerUtils.validarFechaMovimientoPosteriorLote;
@@ -43,8 +42,8 @@ public class VentasController {
         return "redirect:/";
     }
 
-    //***************************** CU3 Muestreo************************************
-    // CU2: Dictamen Lote a liberacion
+    //***************************** CU1 LIBERACION************************************
+    // CU11: Dictamen Lote a liberacion
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_ventas')")
     @GetMapping("/liberacion-producto")
     public String showLiberacionProductoForm(
@@ -85,30 +84,8 @@ public class VentasController {
         return "ventas/liberacion-producto-ok";
     }
 
-    private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForLiberacionProducto());
-        //TODO: unificar nombres de atributos
-        model.addAttribute("lotesDtos", lotesDtos);
-        model.addAttribute("movimientoDTO", movimientoDTO);
-    }
-
-    private void liberacionProducto(
-        final MovimientoDTO dto,
-        final List<Lote> lotesList,
-        final RedirectAttributes redirectAttributes) {
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final List<Lote> lotes = loteService.persistirLiberacionProducto(dto, lotesList);
-        final LoteDTO loteDTO = DTOUtils.mergeEntities(lotes);
-        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
-        redirectAttributes.addFlashAttribute(
-            loteDTO != null ? "success" : "error",
-            loteDTO != null
-                ? "Liberación de Producto exitosa"
-                : "Hubo un error con la liberación del Producto");
-    }
-
     //***************************** CU12 Venta de Producto Propio************************************
-    // CU2: Venta de Producto Propio
+    // CU12: Venta de Producto Propio
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/venta-producto")
     public String showVentaProductoForm(
@@ -139,37 +116,6 @@ public class VentasController {
         return "ventas/venta-producto-ok";
     }
 
-    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> lotesVenta = getLotesDtosByCodigoInterno(loteService.findAllForVentaProducto());
-        model.addAttribute("lotesVenta", lotesVenta);
-        model.addAttribute("loteDTO", loteDTO);
-    }
-
-    private boolean validarVentaProductoInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        //TODO: analizar validacion para ventas, ahora se copio la de consumo produccion
-        final List<Lote> lotes = new ArrayList<>();
-        return populateAvailableLoteListByCodigoInterno(lotes, loteDTO.getCodigoInternoLote(), bindingResult, loteService)
-            && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
-            && validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
-    }
-
-    private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
-        loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.bajaVentaProducto(loteDTO));
-
-        //TODO: se puede remover esto?
-        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
-        redirectAttributes.addFlashAttribute("trazasMuestreo", loteDTO.getTrazaDTOs());
-        redirectAttributes.addFlashAttribute(
-            resultDTO != null ? "success" : "error",
-            resultDTO != null
-                ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
-                : "Hubo un error en la venta de producto.");
-    }
-
     //***************************** CU3 Muestreo************************************
     // CU13: Devolución de cliente
     // @PreAuthorize("hasAuthority('ROLE_GERENTE_GARANTIA')")
@@ -179,12 +125,6 @@ public class VentasController {
         //TODO: implementar el filtro correcto en base a ventas y Analisis (Fecha, ventas)
         initModelDevolucionVenta(movimientoDTO, model);
         return "ventas/devolucion-venta";
-    }
-
-    private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
-        List<LoteDTO> lotesDevolucion = getLotesDtosByCodigoInterno(loteService.findAllForDevolucionVenta());
-        model.addAttribute("lotesDevolucion", lotesDevolucion);
-        model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
     @PostMapping("/devolucion-venta")
@@ -205,11 +145,15 @@ public class VentasController {
         return "redirect:/ventas/devolucion-venta-ok";
     }
 
-    private boolean validateCantidadDevolucion(final @Valid MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
-        return true;
+    @GetMapping("/devolucion-venta-ok")
+    public String exitoDevolucionVenta(
+        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
+        return "ventas/devolucion-venta-ok";
     }
 
-    private void devolucionVenta(final @Valid MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {
+    private void devolucionVenta(
+        final @Valid MovimientoDTO movimientoDTO,
+        final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
         final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.altaStockDevolucionVenta(movimientoDTO));
@@ -222,11 +166,73 @@ public class VentasController {
                 : "Hubo un error en el ingreso de stock por  devolución.");
     }
 
-    @GetMapping("/devolucion-venta-ok")
-    public String exitoDevolucionVenta(
-        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
-        return "ventas/devolucion-venta-ok";
+    private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
+        List<LoteDTO> lotesDevolucion = getLotesDtosByCodigoInterno(loteService.findAllForDevolucionVenta());
+        model.addAttribute("lotesDevolucion", lotesDevolucion);
+        model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
+    private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
+        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForLiberacionProducto());
+        //TODO: unificar nombres de atributos
+        model.addAttribute("lotesDtos", lotesDtos);
+        model.addAttribute("movimientoDTO", movimientoDTO);
+    }
+
+    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
+        List<LoteDTO> lotesVenta = getLotesDtosByCodigoInterno(loteService.findAllForVentaProducto());
+        model.addAttribute("lotesVenta", lotesVenta);
+        model.addAttribute("loteDTO", loteDTO);
+    }
+
+    private void liberacionProducto(
+        final MovimientoDTO dto,
+        final List<Lote> lotesList,
+        final RedirectAttributes redirectAttributes) {
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        final List<Lote> lotes = loteService.persistirLiberacionProducto(dto, lotesList);
+        final LoteDTO loteDTO = DTOUtils.mergeEntities(lotes);
+        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+        redirectAttributes.addFlashAttribute(
+            loteDTO != null ? "success" : "error",
+            loteDTO != null
+                ? "Liberación de Producto exitosa"
+                : "Hubo un error con la liberación del Producto");
+    }
+
+    private boolean validarVentaProductoInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        //TODO: analizar validacion para ventas, ahora se copio la de consumo produccion
+        final List<Lote> lotes = new ArrayList<>();
+        return populateAvailableLoteListByCodigoInterno(
+            lotes,
+            loteDTO.getCodigoInternoLote(),
+            bindingResult,
+            loteService)
+            && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
+            && validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
+    }
+
+    private boolean validateCantidadDevolucion(
+        final @Valid MovimientoDTO movimientoDTO,
+        final BindingResult bindingResult) {
+        return true;
+    }
+
+    private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+        loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.bajaVentaProducto(loteDTO));
+
+        //TODO: se puede remover esto?
+        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute("trazasMuestreo", loteDTO.getTrazaDTOs());
+        redirectAttributes.addFlashAttribute(
+            resultDTO != null ? "success" : "error",
+            resultDTO != null
+                ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
+                : "Hubo un error en la venta de producto.");
+    }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
@@ -47,7 +46,7 @@ public class AnalisisController {
             return new LoteDTO();
         }
         return null;
-       // return DTOUtils.mergeEntities(analisis.getLotes());
+        // return DTOUtils.mergeEntities(analisis.getLotes());
     }
 
     @GetMapping("/loteId/{loteId}")

@@ -50,7 +50,9 @@ class CustomErrorControllerTest {
         // Assert the returned view name
         assertEquals("error", result);
         assertEquals("Error Message", ((Map<?, ?>)Objects.requireNonNull(model.getAttribute("error"))).get("message"));
-        assertEquals("Exception Details", ((Map<?, ?>)Objects.requireNonNull(model.getAttribute("error"))).get("exception"));
+        assertEquals(
+            "Exception Details",
+            ((Map<?, ?>)Objects.requireNonNull(model.getAttribute("error"))).get("exception"));
     }
 
 }

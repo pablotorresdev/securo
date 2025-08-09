@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -105,7 +104,6 @@ public class LoteDTO {
     protected List<BigDecimal> cantidadesBultos = new ArrayList<>();
 
     protected List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
-
 
     @PositiveOrZero(message = "La cantidad no puede ser negativa")
     private BigDecimal cantidadActual;

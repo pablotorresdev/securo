@@ -1,11 +1,13 @@
-package com.mb.conitrack.enums;
+package com.mb.conitrack.utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
@@ -92,6 +94,27 @@ public class UnidadMedidaUtils {
     public static BigDecimal restarMovimientoConvertido(final MovimientoDTO dto, final Lote lote) {
         final BigDecimal cantidadLote = lote.getCantidadActual();
         final double factorLote = lote.getUnidadMedida().getFactorConversion();
+        final double factorDto = dto.getUnidadMedida().getFactorConversion();
+
+        // Convertimos la cantidad del DTO a la unidad del lote
+        BigDecimal cantidadDtoConvertida = dto.getCantidad()
+            .multiply(BigDecimal.valueOf(factorDto / factorLote));
+
+        return cantidadLote.subtract(cantidadDtoConvertida);
+    }
+
+    /**
+     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
+     * cantidad del movimiento a la unidad del lote.
+     *
+     * @param dto   Movimiento a aplicar, expresado en su propia unidad.
+     * @param bulto Bulto afectado, con su cantidad y unidad actual.
+     *
+     * @return Nueva cantidad resultante del lote después del movimiento.
+     */
+    public static BigDecimal restarMovimientoConvertido(final MovimientoDTO dto, final Bulto bulto) {
+        final BigDecimal cantidadLote = bulto.getCantidadActual();
+        final double factorLote = bulto.getUnidadMedida().getFactorConversion();
         final double factorDto = dto.getUnidadMedida().getFactorConversion();
 
         // Convertimos la cantidad del DTO a la unidad del lote

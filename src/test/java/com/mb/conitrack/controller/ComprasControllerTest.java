@@ -132,6 +132,13 @@ class ComprasControllerTest {
     }
 
     @Test
+    @DisplayName("exitoIngresoCompra")
+    void exitoIngresoCompra() {
+        final String s = controller.exitoIngresoCompra(dto);
+        assertEquals("compras/ingreso-compra-ok", s);
+    }
+
+    @Test
     @DisplayName("Falla validateCantidadIngreso -> vuelve al form")
     void fallaPrimerValidador() {
         try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
@@ -192,34 +199,35 @@ class ComprasControllerTest {
         }
     }
 
-    @BeforeEach
-    void setUp() {
-        openMocks(this);   // inicializa @Mock y @InjectMocks
-        model = new ExtendedModelMap();
-        redirect = new RedirectAttributesModelMap();
-        dto = new LoteDTO();
-        binding = new BeanPropertyBindingResult(dto, "loteDTO");
-    }
-
     @Test
-    @DisplayName("Todos OK -> redirige y procesa")
-    void todoOk() {
-        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            mocked.when(() -> ControllerUtils.validateCantidadIngreso(dto, binding)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validateFechasProveedor(dto, binding)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validarBultos(dto, binding)).thenReturn(true);
+    @DisplayName("procesaringresoCompra: resultDTO == null -> agrega loteDTO=null y error")
+    void procesar_error() {
+        // given
+        LoteDTO entrada = new LoteDTO();
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
 
-            doNothing().when(controller).procesaringresoCompra(any(), any());
+        Lote devueltoPorService = new Lote();
 
-            String view = controller.ingresoCompra(dto, binding, model, redirect);
+        when(loteService.altaStockPorCompra(entrada)).thenReturn(devueltoPorService);
 
-            assertEquals("redirect:/compras/ingreso-compra-ok", view);
-            mocked.verify(() -> ControllerUtils.validateCantidadIngreso(dto, binding));
-            mocked.verify(() -> ControllerUtils.validateFechasProveedor(dto, binding));
-            mocked.verify(() -> ControllerUtils.validarBultos(dto, binding));
+        try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
+            // Forzamos que el merge devuelva null
+            mocked.when(() -> DTOUtils.mergeEntities(devueltoPorService)).thenReturn(null);
 
-            verify(controller, never()).initModelIngresoCompra(any(), any());
-            verify(controller).procesaringresoCompra(dto, redirect);
+            // when
+            controller.procesaringresoCompra(entrada, redirect);
+
+            // then
+            assertNotNull(entrada.getFechaYHoraCreacion(), "Debe setear fecha/hora de creación");
+
+            verify(loteService).altaStockPorCompra(entrada);
+            mocked.verify(() -> DTOUtils.mergeEntities(devueltoPorService));
+
+            Map<String, ?> flash = redirect.getFlashAttributes();
+            assertTrue(flash.containsKey("loteDTO"));  // lo agrega aunque sea null
+            assertNull(flash.get("loteDTO"));
+            assertEquals("Hubo un error en el ingreso de stock por compra.", flash.get("error"));
+            assertFalse(flash.containsKey("success"));
         }
     }
 
@@ -257,43 +265,35 @@ class ComprasControllerTest {
         }
     }
 
-    @Test
-    @DisplayName("procesaringresoCompra: resultDTO == null -> agrega loteDTO=null y error")
-    void procesar_error() {
-        // given
-        LoteDTO entrada = new LoteDTO();
-        RedirectAttributes redirect = new RedirectAttributesModelMap();
-
-        Lote devueltoPorService = new Lote();
-
-        when(loteService.altaStockPorCompra(entrada)).thenReturn(devueltoPorService);
-
-        try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            // Forzamos que el merge devuelva null
-            mocked.when(() -> DTOUtils.mergeEntities(devueltoPorService)).thenReturn(null);
-
-            // when
-            controller.procesaringresoCompra(entrada, redirect);
-
-            // then
-            assertNotNull(entrada.getFechaYHoraCreacion(), "Debe setear fecha/hora de creación");
-
-            verify(loteService).altaStockPorCompra(entrada);
-            mocked.verify(() -> DTOUtils.mergeEntities(devueltoPorService));
-
-            Map<String, ?> flash = redirect.getFlashAttributes();
-            assertTrue(flash.containsKey("loteDTO"));  // lo agrega aunque sea null
-            assertNull(flash.get("loteDTO"));
-            assertEquals("Hubo un error en el ingreso de stock por compra.", flash.get("error"));
-            assertFalse(flash.containsKey("success"));
-        }
+    @BeforeEach
+    void setUp() {
+        openMocks(this);   // inicializa @Mock y @InjectMocks
+        model = new ExtendedModelMap();
+        redirect = new RedirectAttributesModelMap();
+        dto = new LoteDTO();
+        binding = new BeanPropertyBindingResult(dto, "loteDTO");
     }
 
     @Test
-    @DisplayName("exitoIngresoCompra")
-    void exitoIngresoCompra() {
-        final String s = controller.exitoIngresoCompra(dto);
-        assertEquals("compras/ingreso-compra-ok", s);
+    @DisplayName("Todos OK -> redirige y procesa")
+    void todoOk() {
+        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
+            mocked.when(() -> ControllerUtils.validateCantidadIngreso(dto, binding)).thenReturn(true);
+            mocked.when(() -> ControllerUtils.validateFechasProveedor(dto, binding)).thenReturn(true);
+            mocked.when(() -> ControllerUtils.validarBultos(dto, binding)).thenReturn(true);
+
+            doNothing().when(controller).procesaringresoCompra(any(), any());
+
+            String view = controller.ingresoCompra(dto, binding, model, redirect);
+
+            assertEquals("redirect:/compras/ingreso-compra-ok", view);
+            mocked.verify(() -> ControllerUtils.validateCantidadIngreso(dto, binding));
+            mocked.verify(() -> ControllerUtils.validateFechasProveedor(dto, binding));
+            mocked.verify(() -> ControllerUtils.validarBultos(dto, binding));
+
+            verify(controller, never()).initModelIngresoCompra(any(), any());
+            verify(controller).procesaringresoCompra(dto, redirect);
+        }
     }
 
 }

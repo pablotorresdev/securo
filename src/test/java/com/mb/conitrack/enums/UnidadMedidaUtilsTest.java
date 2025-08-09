@@ -7,7 +7,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,6 +37,17 @@ class UnidadMedidaUtilsTest {
             UnidadMedidaEnum.KILOGRAMO, in, UnidadMedidaEnum.KILOGRAMO);
 
         assertSame(in, out);  // Devuelve exactamente la misma instancia
+    }
+
+    @Test
+    @DisplayName("Con factores iguales devuelve unidadDos (rama else)")
+    void menorUnidad_factoresIguales() {
+        // Dos unidades idénticas (o factor igual) → se toma unidadDos por diseño
+        UnidadMedidaEnum menor = UnidadMedidaUtils.obtenerMenorUnidadMedida(
+            UnidadMedidaEnum.GRAMO,
+            UnidadMedidaEnum.GRAMO);   // mismos factores
+
+        assertEquals(UnidadMedidaEnum.GRAMO, menor);
     }
 
     @Test
@@ -68,14 +80,21 @@ class UnidadMedidaUtilsTest {
     }
 
     @Test
-    @DisplayName("Con factores iguales devuelve unidadDos (rama else)")
-    void menorUnidad_factoresIguales() {
-        // Dos unidades idénticas (o factor igual) → se toma unidadDos por diseño
-        UnidadMedidaEnum menor = UnidadMedidaUtils.obtenerMenorUnidadMedida(
-            UnidadMedidaEnum.GRAMO,
-            UnidadMedidaEnum.GRAMO);   // mismos factores
+    @DisplayName("restarMovimientoConvertido: descuenta según unidades")
+    void restarMovimiento() {
+        // Lote con 10 kg
+        Bulto bulto = new Bulto();
+        bulto.setCantidadActual(new BigDecimal("10"));
+        bulto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
 
-        assertEquals(UnidadMedidaEnum.GRAMO, menor);
+        // Movimiento: 500 g  (0.5 kg)
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setCantidad(new BigDecimal("500"));
+        dto.setUnidadMedida(UnidadMedidaEnum.GRAMO);
+
+        BigDecimal result = UnidadMedidaUtils.restarMovimientoConvertido(dto, bulto);
+
+        assertEquals(new BigDecimal("9.5"), result.stripTrailingZeros());
     }
 
     @Nested
@@ -100,26 +119,17 @@ class UnidadMedidaUtilsTest {
 
     }
 
-    @Test
-    @DisplayName("restarMovimientoConvertido: descuenta según unidades")
-    void restarMovimiento() {
-        // Lote con 10 kg
-        Lote lote = new Lote();
-        lote.setCantidadActual(new BigDecimal("10"));
-        lote.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
-
-        // Movimiento: 500 g  (0.5 kg)
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setCantidad(new BigDecimal("500"));
-        dto.setUnidadMedida(UnidadMedidaEnum.GRAMO);
-
-        BigDecimal result = UnidadMedidaUtils.restarMovimientoConvertido(dto, lote);
-
-        assertEquals(new BigDecimal("9.5"), result.stripTrailingZeros());
-    }
-
     @Nested
     class SugerirUnidad {
+
+        @Test
+        @DisplayName("Cantidad y unidad nulos o UNIDAD → devuelve la misma unidad")
+        void casoBase() {
+            assertEquals(
+                UnidadMedidaEnum.UNIDAD,
+                UnidadMedidaUtils.sugerirUnidadParaCantidad(
+                    UnidadMedidaEnum.UNIDAD, new BigDecimal("5")));
+        }
 
         @Test
         @DisplayName("Cantidad es null")
@@ -136,12 +146,23 @@ class UnidadMedidaUtilsTest {
         }
 
         @Test
-        @DisplayName("Cantidad y unidad nulos o UNIDAD → devuelve la misma unidad")
-        void casoBase() {
-            assertEquals(
-                UnidadMedidaEnum.UNIDAD,
-                UnidadMedidaUtils.sugerirUnidadParaCantidad(
-                    UnidadMedidaEnum.UNIDAD, new BigDecimal("5")));
+        @DisplayName("Cantidad intermedia que NO cambia la unidad (rama final)")
+        void sinCambioDeUnidad() {
+            // 25 kg no dispara ni la rama de “muy pequeña” ni la de “muy grande”
+            UnidadMedidaEnum result = UnidadMedidaUtils.sugerirUnidadParaCantidad(
+                UnidadMedidaEnum.KILOGRAMO, new BigDecimal("25"));
+
+            assertEquals(UnidadMedidaEnum.KILOGRAMO, result); // se queda igual
+        }
+
+        @Test
+        @DisplayName("Cantidad intermedia que NO cambia la unidad (rama final)")
+        void sinCambioDeUnidad2() {
+            // 25 kg no dispara ni la rama de “muy pequeña” ni la de “muy grande”
+            UnidadMedidaEnum result = UnidadMedidaUtils.sugerirUnidadParaCantidad(
+                UnidadMedidaEnum.GRAMO, new BigDecimal("25000"));
+
+            assertEquals(UnidadMedidaEnum.KILOGRAMO, result); // se queda igual
         }
 
         @Test
@@ -178,26 +199,6 @@ class UnidadMedidaUtilsTest {
                 UnidadMedidaEnum.GRAMO, new BigDecimal("9.2"));   // 0.25 kg
 
             assertEquals(sugerida.getFactorConversion(), UnidadMedidaEnum.GRAMO.getFactorConversion());
-        }
-
-        @Test
-        @DisplayName("Cantidad intermedia que NO cambia la unidad (rama final)")
-        void sinCambioDeUnidad() {
-            // 25 kg no dispara ni la rama de “muy pequeña” ni la de “muy grande”
-            UnidadMedidaEnum result = UnidadMedidaUtils.sugerirUnidadParaCantidad(
-                UnidadMedidaEnum.KILOGRAMO, new BigDecimal("25"));
-
-            assertEquals(UnidadMedidaEnum.KILOGRAMO, result); // se queda igual
-        }
-
-        @Test
-        @DisplayName("Cantidad intermedia que NO cambia la unidad (rama final)")
-        void sinCambioDeUnidad2() {
-            // 25 kg no dispara ni la rama de “muy pequeña” ni la de “muy grande”
-            UnidadMedidaEnum result = UnidadMedidaUtils.sugerirUnidadParaCantidad(
-                UnidadMedidaEnum.GRAMO, new BigDecimal("25000"));
-
-            assertEquals(UnidadMedidaEnum.KILOGRAMO, result); // se queda igual
         }
 
         @Test

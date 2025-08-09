@@ -30,13 +30,6 @@ class LoginControllerTest {
     }
 
     @Test
-    void testLoginPage() throws Exception {
-        mockMvc.perform(get("/login"))
-            .andExpect(status().isOk()) // Expect HTTP 200
-            .andExpect(view().name("login")); // View name is "login"
-    }
-
-    @Test
     void testIndexPage() throws Exception {
         mockMvc.perform(get("/"))
             .andExpect(status().isOk()) // Expect HTTP 200
@@ -44,10 +37,18 @@ class LoginControllerTest {
     }
 
     @Test
+    void testLoginPage() throws Exception {
+        mockMvc.perform(get("/login"))
+            .andExpect(status().isOk()) // Expect HTTP 200
+            .andExpect(view().name("login")); // View name is "login"
+    }
+
+    @Test
     void testTriggerError() throws Exception {
-        assertThrows(ServletException.class, () -> {
-            mockMvc.perform(get("/error-test"));
-        });
+        assertThrows(
+            ServletException.class, () -> {
+                mockMvc.perform(get("/error-test"));
+            });
     }
 
 }

@@ -150,6 +150,21 @@ class ControllerUtilsTest {
     }
 
     @Test
+    @DisplayName("Si bindingResult.hasErrors() == true => retorna false (early return)")
+    void earlyReturnPorErrores() {
+        LoteDTO dto = new LoteDTO();
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(true);
+
+        boolean ok = validateFechasProveedor(dto, br);
+
+        assertFalse(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
+    }
+
+    @Test
     @DisplayName("Si BindingResult ya tiene errores -> false y NO llama a los otros validadores")
     void earlyReturnPorErroresBultos() {
         LoteDTO dto = new LoteDTO();
@@ -182,6 +197,21 @@ class ControllerUtilsTest {
         assertFalse(ok);
         verify(br).hasErrors();
         verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Ambas fechas nulas => true (no valida relación)")
+    void fechasAmbasNulas() {
+        LoteDTO dto = new LoteDTO(); // ambas fechas null
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = validateFechasProveedor(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
     }
 
     @Test
@@ -289,6 +319,65 @@ class ControllerUtilsTest {
     }
 
     @Test
+    @DisplayName("Reanálisis antes de vencimiento => true")
+    void reanalisisAntesDeVencimiento() {
+        LoteDTO dto = new LoteDTO();
+        dto.setFechaReanalisisProveedor(LocalDate.now().plusDays(5));
+        dto.setFechaVencimientoProveedor(LocalDate.now().plusDays(10));
+
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = validateFechasProveedor(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
+    }
+
+    @Test
+    @DisplayName("Reanálisis == Vencimiento => true (no es posterior)")
+    void reanalisisIgualVencimiento() {
+        LocalDate d = LocalDate.now().plusDays(5);
+        LoteDTO dto = new LoteDTO();
+        dto.setFechaReanalisisProveedor(d);
+        dto.setFechaVencimientoProveedor(d);
+
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = validateFechasProveedor(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
+    }
+
+    @Test
+    @DisplayName("Reanálisis posterior a vencimiento => rejectValue y false")
+    void reanalisisPosteriorAVencimiento() {
+        LoteDTO dto = new LoteDTO();
+        dto.setFechaReanalisisProveedor(LocalDate.now().plusDays(20));
+        dto.setFechaVencimientoProveedor(LocalDate.now().plusDays(10));
+
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = validateFechasProveedor(dto, br);
+
+        assertFalse(ok);
+        verify(br).hasErrors();
+        verify(br).rejectValue(
+            eq("fechaReanalisisProveedor"),
+            eq("error.fechaReanalisisProveedor"),
+            eq("La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.")
+        );
+        verifyNoMoreInteractions(br);
+    }
+
+    @Test
     @DisplayName("bultosTotales > 1, validarTipoDeDato = true y validarSuma = false -> false")
     void segundoValidadorFalse() {
         LoteDTO dto = new LoteDTO();
@@ -312,6 +401,42 @@ class ControllerUtilsTest {
             mocked.verify(() -> validarTipoDeDato(dto, br));
             mocked.verify(() -> ControllerUtils.validarSumaBultosConvertida(dto, br));
         }
+    }
+
+    @Test
+    @DisplayName("Solo reanálisis seteada, vencimiento null => true")
+    void soloReanalisisSeteada() {
+        LoteDTO dto = new LoteDTO();
+        dto.setFechaReanalisisProveedor(LocalDate.now());
+        dto.setFechaVencimientoProveedor(null);
+
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = validateFechasProveedor(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
+    }
+
+    @Test
+    @DisplayName("Solo vencimiento seteada, reanálisis null => true")
+    void soloVencimientoSeteada() {
+        LoteDTO dto = new LoteDTO();
+        dto.setFechaReanalisisProveedor(null);
+        dto.setFechaVencimientoProveedor(LocalDate.now().plusDays(10));
+
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = validateFechasProveedor(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
     }
 
     @Test
@@ -471,132 +596,6 @@ class ControllerUtilsTest {
     @Test
     void validarValorTitulo() {
     }
-
-    @Test
-    @DisplayName("Si bindingResult.hasErrors() == true => retorna false (early return)")
-    void earlyReturnPorErrores() {
-        LoteDTO dto = new LoteDTO();
-        BindingResult br = mock(BindingResult.class);
-        when(br.hasErrors()).thenReturn(true);
-
-        boolean ok = validateFechasProveedor(dto, br);
-
-        assertFalse(ok);
-        verify(br).hasErrors();
-        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
-        verifyNoMoreInteractions(br);
-    }
-
-    @Test
-    @DisplayName("Ambas fechas nulas => true (no valida relación)")
-    void fechasAmbasNulas() {
-        LoteDTO dto = new LoteDTO(); // ambas fechas null
-        BindingResult br = mock(BindingResult.class);
-        when(br.hasErrors()).thenReturn(false);
-
-        boolean ok = validateFechasProveedor(dto, br);
-
-        assertTrue(ok);
-        verify(br).hasErrors();
-        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
-        verifyNoMoreInteractions(br);
-    }
-
-    @Test
-    @DisplayName("Solo reanálisis seteada, vencimiento null => true")
-    void soloReanalisisSeteada() {
-        LoteDTO dto = new LoteDTO();
-        dto.setFechaReanalisisProveedor(LocalDate.now());
-        dto.setFechaVencimientoProveedor(null);
-
-        BindingResult br = mock(BindingResult.class);
-        when(br.hasErrors()).thenReturn(false);
-
-        boolean ok = validateFechasProveedor(dto, br);
-
-        assertTrue(ok);
-        verify(br).hasErrors();
-        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
-        verifyNoMoreInteractions(br);
-    }
-
-    @Test
-    @DisplayName("Solo vencimiento seteada, reanálisis null => true")
-    void soloVencimientoSeteada() {
-        LoteDTO dto = new LoteDTO();
-        dto.setFechaReanalisisProveedor(null);
-        dto.setFechaVencimientoProveedor(LocalDate.now().plusDays(10));
-
-        BindingResult br = mock(BindingResult.class);
-        when(br.hasErrors()).thenReturn(false);
-
-        boolean ok = validateFechasProveedor(dto, br);
-
-        assertTrue(ok);
-        verify(br).hasErrors();
-        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
-        verifyNoMoreInteractions(br);
-    }
-
-    @Test
-    @DisplayName("Reanálisis == Vencimiento => true (no es posterior)")
-    void reanalisisIgualVencimiento() {
-        LocalDate d = LocalDate.now().plusDays(5);
-        LoteDTO dto = new LoteDTO();
-        dto.setFechaReanalisisProveedor(d);
-        dto.setFechaVencimientoProveedor(d);
-
-        BindingResult br = mock(BindingResult.class);
-        when(br.hasErrors()).thenReturn(false);
-
-        boolean ok = validateFechasProveedor(dto, br);
-
-        assertTrue(ok);
-        verify(br).hasErrors();
-        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
-        verifyNoMoreInteractions(br);
-    }
-
-    @Test
-    @DisplayName("Reanálisis antes de vencimiento => true")
-    void reanalisisAntesDeVencimiento() {
-        LoteDTO dto = new LoteDTO();
-        dto.setFechaReanalisisProveedor(LocalDate.now().plusDays(5));
-        dto.setFechaVencimientoProveedor(LocalDate.now().plusDays(10));
-
-        BindingResult br = mock(BindingResult.class);
-        when(br.hasErrors()).thenReturn(false);
-
-        boolean ok = validateFechasProveedor(dto, br);
-
-        assertTrue(ok);
-        verify(br).hasErrors();
-        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
-        verifyNoMoreInteractions(br);
-    }
-
-    @Test
-    @DisplayName("Reanálisis posterior a vencimiento => rejectValue y false")
-    void reanalisisPosteriorAVencimiento() {
-        LoteDTO dto = new LoteDTO();
-        dto.setFechaReanalisisProveedor(LocalDate.now().plusDays(20));
-        dto.setFechaVencimientoProveedor(LocalDate.now().plusDays(10));
-
-        BindingResult br = mock(BindingResult.class);
-        when(br.hasErrors()).thenReturn(false);
-
-        boolean ok = validateFechasProveedor(dto, br);
-
-        assertFalse(ok);
-        verify(br).hasErrors();
-        verify(br).rejectValue(
-            eq("fechaReanalisisProveedor"),
-            eq("error.fechaReanalisisProveedor"),
-            eq("La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.")
-        );
-        verifyNoMoreInteractions(br);
-    }
-
 
 }
 

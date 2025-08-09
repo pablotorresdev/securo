@@ -12,20 +12,22 @@ import java.util.stream.Stream;
 
 import org.hibernate.annotations.SQLDelete;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -108,10 +110,10 @@ public class Lote {
     private List<Movimiento> movimientos = new ArrayList<>();
 
     @OneToMany(
-        mappedBy     = "lote",
-        cascade      = CascadeType.ALL,
+        mappedBy = "lote",
+        cascade = CascadeType.ALL,
         orphanRemoval = true,
-        fetch        = FetchType.EAGER
+        fetch = FetchType.EAGER
     )
     @JsonManagedReference
     private List<Analisis> analisisList = new ArrayList<>();
@@ -131,15 +133,90 @@ public class Lote {
     @Column(name = "cantidad_actual", precision = 12, scale = 4)
     private BigDecimal cantidadActual;
 
-
+    @Deprecated
     @Column(name = "nro_bulto")
     private Integer nroBulto;
 
-    @Deprecated
-    @Enumerated(EnumType.STRING)
-    @Column(name = "unidad_medida")
-    private UnidadMedidaEnum unidadMedida;
+    public UnidadMedidaEnum getUnidadMedida() {
 
+        UnidadMedidaEnum uMedActual = null;
+        BigDecimal cantidadActual1 = BigDecimal.ZERO;
+        BigDecimal cantidadIncial = BigDecimal.ZERO;
+
+        for (Bulto b : bultos) {
+            if (cantidadActual1.equals(BigDecimal.ZERO) && uMedActual == null) {
+                cantidadIncial = b.getCantidadInicial();
+                cantidadActual1 = b.getCantidadActual();
+                uMedActual = b.getUnidadMedida();
+            } else {
+                if (uMedActual.equals(b.getUnidadMedida())) {
+                    cantidadIncial = cantidadIncial.add(b.getCantidadInicial());
+                    cantidadActual1 = cantidadActual1.add(b.getCantidadActual());
+                } else {
+                    final UnidadMedidaEnum menorUnidadMedida = UnidadMedidaUtils.obtenerMenorUnidadMedida(
+                        uMedActual,
+                        b.getUnidadMedida());
+                    cantidadIncial = UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                        uMedActual,
+                        cantidadIncial,
+                        menorUnidadMedida).add(
+                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                            b.getUnidadMedida(),
+                            b.getCantidadInicial(),
+                            menorUnidadMedida)
+                    );
+                    cantidadActual1 = UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                        uMedActual,
+                        cantidadActual1,
+                        menorUnidadMedida).add(
+                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                            b.getUnidadMedida(),
+                            b.getCantidadActual(),
+                            menorUnidadMedida)
+                    );
+                    uMedActual = menorUnidadMedida;
+                }
+            }
+        }
+
+        return uMedActual;
+    }
+
+    public void setUnidadMedida(UnidadMedidaEnum unidadMedida) {
+        log.warn("setUnidadMedida() is deprecated, use getUnidadMedida() instead.");
+    }
+
+    public BigDecimal getCantidadInicial() {
+        UnidadMedidaEnum uMedActual = null;
+
+        BigDecimal quantIncial = BigDecimal.ZERO;
+
+        for (Bulto b : bultos) {
+            if (quantIncial.equals(BigDecimal.ZERO) && uMedActual == null) {
+                quantIncial = b.getCantidadInicial();
+                uMedActual = b.getUnidadMedida();
+            } else {
+                if (uMedActual.equals(b.getUnidadMedida())) {
+                    quantIncial = quantIncial.add(b.getCantidadInicial());
+                } else {
+                    final UnidadMedidaEnum menorUnidadMedida = UnidadMedidaUtils.obtenerMenorUnidadMedida(
+                        uMedActual,
+                        b.getUnidadMedida());
+                    quantIncial = UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                        uMedActual,
+                        quantIncial,
+                        menorUnidadMedida).add(
+                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                            b.getUnidadMedida(),
+                            b.getCantidadInicial(),
+                            menorUnidadMedida)
+                    );
+                    uMedActual = menorUnidadMedida;
+                }
+            }
+        }
+        return cantidadActual;
+    }
 
     //****** ANALISIS ******//
     public Analisis getUltimoAnalisis() {
@@ -253,7 +330,7 @@ public class Lote {
         if (trazas.size() > size) {
             stream = stream
                 .filter(Traza::getActivo)
-                .filter(t -> t.getEstado()== EstadoEnum.DISPONIBLE);
+                .filter(t -> t.getEstado() == EstadoEnum.DISPONIBLE);
         }
 
         return stream
@@ -261,7 +338,6 @@ public class Lote {
             .limit(size)                                      // máximo 'size' elementos
             .collect(Collectors.toList());
     }
-
 
     public Traza getLastActiveTraza() {
         if (this.trazas.isEmpty()) {
@@ -285,6 +361,38 @@ public class Lote {
                 .max(Comparator.comparing(Traza::getNroTraza))
                 .orElse(null);
         }
+    }
+
+    private BigDecimal getCantidadActual(
+        UnidadMedidaEnum uMedActual) {
+
+        BigDecimal quantActual = BigDecimal.ZERO;
+
+        for (Bulto b : bultos) {
+            if (quantActual.equals(BigDecimal.ZERO) && uMedActual == null) {
+                quantActual = b.getCantidadActual();
+                uMedActual = b.getUnidadMedida();
+            } else {
+                if (uMedActual.equals(b.getUnidadMedida())) {
+                    quantActual = quantActual.add(b.getCantidadActual());
+                } else {
+                    final UnidadMedidaEnum menorUnidadMedida = UnidadMedidaUtils.obtenerMenorUnidadMedida(
+                        uMedActual,
+                        b.getUnidadMedida());
+                    quantActual = UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                        uMedActual,
+                        quantActual,
+                        menorUnidadMedida).add(
+                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
+                            b.getUnidadMedida(),
+                            b.getCantidadActual(),
+                            menorUnidadMedida)
+                    );
+                    uMedActual = menorUnidadMedida;
+                }
+            }
+        }
+        return quantActual;
     }
 
 }

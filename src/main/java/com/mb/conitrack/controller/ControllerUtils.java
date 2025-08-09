@@ -20,8 +20,8 @@ import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 
-import static com.mb.conitrack.enums.UnidadMedidaUtils.convertirCantidadEntreUnidades;
-import static com.mb.conitrack.enums.UnidadMedidaUtils.obtenerMenorUnidadMedida;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMenorUnidadMedida;
 
 public class ControllerUtils {
 
@@ -453,7 +453,7 @@ public class ControllerUtils {
             return false;
         }
         List<BigDecimal> cantidades = loteDTO.getCantidadesBultos();
-        if(cantidades.isEmpty()){
+        if (cantidades.isEmpty()) {
             bindingResult.rejectValue(
                 "cantidadInicial",
                 "error.cantidadInicial",
@@ -461,7 +461,7 @@ public class ControllerUtils {
             return false;
         }
         List<UnidadMedidaEnum> unidades = loteDTO.getUnidadMedidaBultos();
-        if(unidades.isEmpty()){
+        if (unidades.isEmpty()) {
             bindingResult.rejectValue(
                 "cantidadInicial",
                 "error.cantidadInicial",
@@ -569,7 +569,5 @@ public class ControllerUtils {
         }
         return true;
     }
-
-
 
 }

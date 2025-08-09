@@ -18,9 +18,9 @@ import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
-import static com.mb.conitrack.enums.UnidadMedidaUtils.convertirCantidadEntreUnidades;
-import static com.mb.conitrack.enums.UnidadMedidaUtils.obtenerMenorUnidadMedida;
-import static com.mb.conitrack.enums.UnidadMedidaUtils.sugerirUnidadParaCantidad;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMenorUnidadMedida;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.sugerirUnidadParaCantidad;
 
 public class DTOUtils {
 
@@ -56,7 +56,6 @@ public class DTOUtils {
         return dto;
     }
 
-
     public static MovimientoDTO fromEntity(Movimiento entity) {
         if (entity == null) {
             return null;
@@ -66,7 +65,7 @@ public class DTOUtils {
         dto.setFechaMovimiento(entity.getFecha());
         if (entity.getLote() != null) {
             dto.setCodigoInternoLote(entity.getLote().getCodigoInterno());
-//            dto.setNroBulto(entity.getLote().getNroBulto().toString());
+            //            dto.setNroBulto(entity.getLote().getNroBulto().toString());
             dto.setLoteId(entity.getLote().getId());
         }
 
@@ -333,20 +332,6 @@ public class DTOUtils {
         return loteDTO;
     }
 
-
-    static void setEstadoBulto(final Bulto bultoEntity, final LoteDTO loteDTO) {
-        final Optional<EstadoEnum> estadoEnum = EstadoEnum.fromValor(loteDTO.getEstado());
-        if (estadoEnum.isPresent()) {
-            EstadoEnum estado = estadoEnum.get();
-            if (estado.getPrioridad() < bultoEntity.getEstado().getPrioridad()) {
-                loteDTO.setEstado(bultoEntity.getEstado().getValor());
-            }
-        } else {
-            // Si no se encuentra el estado, se asigna el del bulto
-            loteDTO.setEstado(bultoEntity.getEstado().getValor());
-        }
-    }
-
     static void addAnalisisDTO(final Lote entity, final LoteDTO loteDTO) {
         for (Analisis analisis : entity.getAnalisisList()) {
             if (analisis.getActivo()) {
@@ -410,6 +395,19 @@ public class DTOUtils {
         loteDTO.setDetalleConservacion(bultoEntity.getDetalleConservacion());
     }
 
+    static void setEstadoBulto(final Bulto bultoEntity, final LoteDTO loteDTO) {
+        final Optional<EstadoEnum> estadoEnum = EstadoEnum.fromValor(loteDTO.getEstado());
+        if (estadoEnum.isPresent()) {
+            EstadoEnum estado = estadoEnum.get();
+            if (estado.getPrioridad() < bultoEntity.getEstado().getPrioridad()) {
+                loteDTO.setEstado(bultoEntity.getEstado().getValor());
+            }
+        } else {
+            // Si no se encuentra el estado, se asigna el del bulto
+            loteDTO.setEstado(bultoEntity.getEstado().getValor());
+        }
+    }
+
     static void setEstadoLote(final Lote bultoEntity, final LoteDTO loteDTO) {
         final Optional<EstadoEnum> estadoEnum = EstadoEnum.fromValor(loteDTO.getEstado());
         if (estadoEnum.isPresent()) {
@@ -424,13 +422,13 @@ public class DTOUtils {
     }
 
     static void setListasBultosLote(final Lote entity, final LoteDTO loteDTO) {
-            for (Bulto bulto : entity.getBultos()) {
-                if (bulto.getActivo()) {
-                    final BultoDTO bultoDto = DTOUtils.fromEntity(bulto);
-                    loteDTO.getBultosDTOs().add(bultoDto);
-                }
+        for (Bulto bulto : entity.getBultos()) {
+            if (bulto.getActivo()) {
+                final BultoDTO bultoDto = DTOUtils.fromEntity(bulto);
+                loteDTO.getBultosDTOs().add(bultoDto);
             }
         }
+    }
 
     static void setProductoLote(final Lote loteEntity, final LoteDTO loteDTO) {
         if (loteEntity.getProducto() != null) {

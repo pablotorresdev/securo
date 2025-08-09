@@ -18,7 +18,6 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
-import com.mb.conitrack.utils.EntityUtils;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
@@ -29,8 +28,9 @@ import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.enums.UnidadMedidaUtils;
 import com.mb.conitrack.repository.LoteRepository;
+import com.mb.conitrack.utils.EntityUtils;
+import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import lombok.AllArgsConstructor;
 
@@ -476,23 +476,25 @@ public class LoteService {
 
         int idxTrazaActual = 0;
 
+        Lote lote = EntityUtils.getInstance().createLoteIngreso(loteDTO);
+        populateInfoProduccion(lote, producto, timestampLoteDTO, conifarma);
+
         for (int i = 0; i < bultosTotales; i++) {
-
-            Lote bultoLote = EntityUtils.getInstance().createLoteIngreso(loteDTO);
-            populateInfoProduccion(bultoLote, producto, timestampLoteDTO, conifarma);
-
             //seteo cantidades y unidades de medida para cada bulto del lote
-            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
+            //TODO: complete
+            final Bulto bulto = new Bulto();
+            populateCantidadUdeMLote(loteDTO, bultosTotales, bulto, i);
+            lote.getBultos().add(bulto);
 
             List<Traza> trazasLocales = new ArrayList<>();
             if (unidadVenta) {
-                final int indexTrazaFinal = bultoLote.getCantidadInicial().intValue();
+                final int indexTrazaFinal = lote.getCantidadInicial().intValue();
                 trazasLocales = new ArrayList<>(trazas.subList(idxTrazaActual, idxTrazaActual + indexTrazaFinal));
-                bultoLote.getTrazas().addAll(trazasLocales);
+                lote.getTrazas().addAll(trazasLocales);
                 idxTrazaActual += indexTrazaFinal;
             }
 
-            Lote bultoGuardado = loteRepository.save(bultoLote);
+            Lote bultoGuardado = loteRepository.save(lote);
             final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoProduccion(bultoGuardado);
             bultoGuardado.getMovimientos().add(movimiento);
 
@@ -689,9 +691,7 @@ public class LoteService {
         clone.setProveedor(lote.getProveedor());
         clone.setFabricante(lote.getFabricante());
         clone.setPaisOrigen(lote.getPaisOrigen());
-        clone.setNroBulto(lote.getNroBulto());
         clone.setBultosTotales(lote.getBultosTotales());
-        clone.setUnidadMedida(lote.getUnidadMedida());
         clone.setLoteProveedor(lote.getLoteProveedor());
         clone.setFechaReanalisisProveedor(lote.getFechaReanalisisProveedor());
         clone.setFechaVencimientoProveedor(lote.getFechaVencimientoProveedor());
@@ -757,18 +757,18 @@ public class LoteService {
     private void populateCantidadUdeMLote(
         final LoteDTO loteDTO,
         final int bultosTotales,
-        final Lote bultoLote,
+        final Bulto bulto,
         final int i) {
         if (bultosTotales == 1) {
-            bultoLote.setCantidadInicial(loteDTO.getCantidadInicial());
-            bultoLote.setCantidadActual(loteDTO.getCantidadInicial());
-            bultoLote.setUnidadMedida(loteDTO.getUnidadMedida());
+            bulto.setCantidadInicial(loteDTO.getCantidadInicial());
+            bulto.setCantidadActual(loteDTO.getCantidadInicial());
+            bulto.setUnidadMedida(loteDTO.getUnidadMedida());
         } else {
-            bultoLote.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
-            bultoLote.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
-            bultoLote.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
+            bulto.setCantidadInicial(loteDTO.getCantidadesBultos().get(i));
+            bulto.setCantidadActual(loteDTO.getCantidadesBultos().get(i));
+            bulto.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
         }
-        bultoLote.setNroBulto(i + 1);
+        bulto.setNroBulto(i + 1);
     }
 
 }

@@ -52,7 +52,7 @@ public class CalidadController {
         return "redirect:/";
     }
 
-    //***************************** CU3 Muestreo************************************
+    //***************************** CU2 Dictamen Lote a Cuarentena************************************
     // CU2: Dictamen Lote a Cuarentena
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
     @GetMapping("/cuarentena")
@@ -72,8 +72,10 @@ public class CalidadController {
 
         final List<Lote> lotesList = new ArrayList<>();
         boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
-            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
-            && validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
+            &&
+            populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
+            &&
+            validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
             initModelDictamencuarentena(movimientoDTO, model);
@@ -110,8 +112,10 @@ public class CalidadController {
 
         final List<Lote> lotesList = new ArrayList<>();
         boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
-            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
-            && validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
+            &&
+            populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
+            &&
+            validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
             initModelReanalisisProducto(movimientoDTO, model);
@@ -152,7 +156,9 @@ public class CalidadController {
             return "calidad/muestreo-bulto";
         }
 
-        Lote lote = loteService.findLoteBultoByCodigoAndBulto(movimientoDTO.getCodigoInternoLote(), Integer.parseInt(movimientoDTO.getNroBulto()));
+        Lote lote = loteService.findLoteBultoByCodigoAndBulto(
+            movimientoDTO.getCodigoInternoLote(),
+            Integer.parseInt(movimientoDTO.getNroBulto()));
         if (!(validarFechaMovimientoPosteriorLote(movimientoDTO, lote, bindingResult)
             && validarCantidadesMovimiento(movimientoDTO, lote, bindingResult))) {
             initModelMuestreoBulto(movimientoDTO, model);
@@ -297,12 +303,18 @@ public class CalidadController {
         }
         final List<Lote> lotesList = new ArrayList<>();
         return validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult)
-            && validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult)
-            && populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
-            && validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult)
-            && validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult)
-            && validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult)
-            && validarValorTitulo(movimientoDTO, lotesList, bindingResult);
+            &&
+            validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult)
+            &&
+            populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
+            &&
+            validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult)
+            &&
+            validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult)
+            &&
+            validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult)
+            &&
+            validarValorTitulo(movimientoDTO, lotesList, bindingResult);
     }
 
 }

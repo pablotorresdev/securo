@@ -1,14 +1,32 @@
 package com.mb.conitrack.enums;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class UnidadMedidaEnumTest {
+
+    /* -------------------------------------------------
+     * 3. Getters – recorremos TODAS las constantes
+     * ------------------------------------------------- */
+    @Test
+    @DisplayName("Getters devuelven datos consistentes en todas las constantes")
+    void getters() {
+        for (UnidadMedidaEnum u : UnidadMedidaEnum.values()) {
+            assertNotNull(u.getNombre());
+            assertNotNull(u.getSimbolo());
+            assertFalse(u.getNombre().isBlank());
+            assertFalse(u.getSimbolo().isBlank());
+            assertTrue(u.getFactorConversion() > 0);
+        }
+    }
 
     /* -------------------------------------------------
      * 1. getUnidadesPorTipo
@@ -33,37 +51,6 @@ class UnidadMedidaEnumTest {
     @Nested
     class UnidadesConvertibles {
 
-        // (a) index == 0  ➜ rama 1
-        @Test
-        void indexCero() {
-            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.KILOGRAMO);
-            // El primer elemento debe ser KILOGRAMO (mayor factor)
-            assertEquals(UnidadMedidaEnum.KILOGRAMO, list.get(0));
-            assertTrue(list.contains(UnidadMedidaEnum.MICROGRAMO)); // incluye extremo opuesto
-        }
-
-        // (b) index == 1  ➜ rama 2
-        @Test
-        void indexUno() {
-            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.GRAMO);
-            assertEquals(UnidadMedidaEnum.KILOGRAMO, list.get(0)); // sigue estando ordenado desc
-        }
-
-        // (c) index == size-1 ➜ rama 3
-        @Test
-        void indexUltimo() {
-            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.MICROGRAMO);
-            // Último elemento de Masa desplazado a fondo de lista convertibles
-            assertEquals(UnidadMedidaEnum.MICROGRAMO, list.get(list.size() - 1));
-        }
-
-        // (d) index == size-2 ➜ rama 4
-        @Test
-        void indexPenultimo() {
-            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.MILIGRAMO);
-            assertTrue(list.contains(UnidadMedidaEnum.GRAMO));
-        }
-
         // (e) caso “central” (else) con lista grande (Volumen, index 3 de 7)
         @Test
         void indexCentral() {
@@ -82,20 +69,38 @@ class UnidadMedidaEnumTest {
             // Rango acotado (no todas las 7 unidades)
             assertTrue(convertibles.size() < vol.size());
         }
+
+        // (a) index == 0  ➜ rama 1
+        @Test
+        void indexCero() {
+            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.KILOGRAMO);
+            // El primer elemento debe ser KILOGRAMO (mayor factor)
+            assertEquals(UnidadMedidaEnum.KILOGRAMO, list.get(0));
+            assertTrue(list.contains(UnidadMedidaEnum.MICROGRAMO)); // incluye extremo opuesto
+        }
+
+        // (d) index == size-2 ➜ rama 4
+        @Test
+        void indexPenultimo() {
+            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.MILIGRAMO);
+            assertTrue(list.contains(UnidadMedidaEnum.GRAMO));
+        }
+
+        // (c) index == size-1 ➜ rama 3
+        @Test
+        void indexUltimo() {
+            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.MICROGRAMO);
+            // Último elemento de Masa desplazado a fondo de lista convertibles
+            assertEquals(UnidadMedidaEnum.MICROGRAMO, list.get(list.size() - 1));
+        }
+
+        // (b) index == 1  ➜ rama 2
+        @Test
+        void indexUno() {
+            List<UnidadMedidaEnum> list = UnidadMedidaEnum.getUnidadesConvertibles(UnidadMedidaEnum.GRAMO);
+            assertEquals(UnidadMedidaEnum.KILOGRAMO, list.get(0)); // sigue estando ordenado desc
+        }
+
     }
 
-    /* -------------------------------------------------
-     * 3. Getters – recorremos TODAS las constantes
-     * ------------------------------------------------- */
-    @Test
-    @DisplayName("Getters devuelven datos consistentes en todas las constantes")
-    void getters() {
-        for (UnidadMedidaEnum u : UnidadMedidaEnum.values()) {
-            assertNotNull(u.getNombre());
-            assertNotNull(u.getSimbolo());
-            assertFalse(u.getNombre().isBlank());
-            assertFalse(u.getSimbolo().isBlank());
-            assertTrue(u.getFactorConversion() > 0);
-        }
-    }
 }

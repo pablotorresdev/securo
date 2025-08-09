@@ -129,6 +129,24 @@ public class ComprasController {
         return "compras/devolucion-compra-ok";
     }
 
+    void initModelDevolucionCompra(final Model model) {
+        model.addAttribute("lotesDevolvibles", getLotesDtosByCodigoInterno(loteService.findAllForDevolucionCompra()));
+    }
+
+    void initModelIngresoCompra(final LoteDTO loteDTO, final Model model) {
+        model.addAttribute("productos", productoService.getProductosExternos());
+        model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
+
+        if (loteDTO.getCantidadesBultos() == null) {
+            loteDTO.setCantidadesBultos(new ArrayList<>());
+        }
+        if (loteDTO.getUnidadMedidaBultos() == null) {
+            loteDTO.setUnidadMedidaBultos(new ArrayList<>());
+        }
+        model.addAttribute("loteDTO", loteDTO);
+        model.addAttribute("paises", getCountryList());
+    }
+
     void procesarDevolucionCompra(
         final MovimientoDTO movimientoDTO,
         final List<Lote> lotesList,
@@ -154,24 +172,6 @@ public class ComprasController {
             resultDTO != null
                 ? "Ingreso de stock por compra exitoso."
                 : "Hubo un error en el ingreso de stock por compra.");
-    }
-
-    void initModelDevolucionCompra(final Model model) {
-        model.addAttribute("lotesDevolvibles", getLotesDtosByCodigoInterno(loteService.findAllForDevolucionCompra()));
-    }
-
-    void initModelIngresoCompra(final LoteDTO loteDTO, final Model model) {
-        model.addAttribute("productos", productoService.getProductosExternos());
-        model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
-
-        if (loteDTO.getCantidadesBultos() == null) {
-            loteDTO.setCantidadesBultos(new ArrayList<>());
-        }
-        if (loteDTO.getUnidadMedidaBultos() == null) {
-            loteDTO.setUnidadMedidaBultos(new ArrayList<>());
-        }
-        model.addAttribute("loteDTO", loteDTO);
-        model.addAttribute("paises", getCountryList());
     }
 
 }
