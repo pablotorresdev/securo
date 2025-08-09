@@ -71,7 +71,7 @@ public class EntityUtils {
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-B_" + lote.getNroBulto() + "-" + timestampLoteDTO);
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setObservaciones(dto.getObservaciones());
         movimiento.setLote(lote);

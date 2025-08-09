@@ -10,7 +10,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Cambiar Dictamen a Cuarentena</h2>
-    <form method="post" th:action="@{/calidad/cuarentena}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/calidad/dictamen/cuarentena}" th:object="${movimientoDTO}">
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">

@@ -19,14 +19,10 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.controller.ControllerUtils.populateAvailableLoteListByCodigoInterno;
-import static com.mb.conitrack.controller.ControllerUtils.populateLoteListByCodigoInterno;
-import static com.mb.conitrack.controller.ControllerUtils.validarCantidadesPorMedidas;
-import static com.mb.conitrack.controller.ControllerUtils.validarFechaEgresoLoteDtoPosteriorLote;
-import static com.mb.conitrack.controller.ControllerUtils.validarFechaMovimientoPosteriorLote;
 import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 
 @Controller
@@ -61,12 +57,14 @@ public class VentasController {
         RedirectAttributes redirectAttributes) {
 
         final List<Lote> lotesList = new ArrayList<>();
-        boolean success = populateLoteListByCodigoInterno(
+        boolean success = ControllerUtils.getInstance().populateLoteListByCodigoInterno(
             lotesList,
             movimientoDTO.getCodigoInternoLote(),
             bindingResult,
             loteService)
-            && validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
+            &&
+            ControllerUtils.getInstance()
+                .validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
             initModelLiberacionProducto(movimientoDTO, model);
@@ -206,13 +204,15 @@ public class VentasController {
         }
         //TODO: analizar validacion para ventas, ahora se copio la de consumo produccion
         final List<Lote> lotes = new ArrayList<>();
-        return populateAvailableLoteListByCodigoInterno(
+        return ControllerUtils.getInstance().populateAvailableLoteListByCodigoInterno(
             lotes,
             loteDTO.getCodigoInternoLote(),
             bindingResult,
             loteService)
-            && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
-            && validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
+            &&
+            ControllerUtils.getInstance().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
+            &&
+            ControllerUtils.getInstance().validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
     }
 
     private boolean validateCantidadDevolucion(

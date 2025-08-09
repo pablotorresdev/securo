@@ -55,7 +55,7 @@ public class Traza {
     @Column(name = "nro_traza", nullable = false)
     private Long nroTraza;
 
-    @ManyToMany(mappedBy = "trazas")
+    @ManyToMany(mappedBy = "trazas", fetch = FetchType.EAGER)
     @JsonBackReference
     private Set<Movimiento> movimientos = new HashSet<>();
 

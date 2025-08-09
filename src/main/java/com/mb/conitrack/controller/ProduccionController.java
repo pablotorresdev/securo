@@ -23,12 +23,8 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
+import com.mb.conitrack.utils.ControllerUtils;
 
-import static com.mb.conitrack.controller.ControllerUtils.populateAvailableLoteListByCodigoInterno;
-import static com.mb.conitrack.controller.ControllerUtils.validarBultos;
-import static com.mb.conitrack.controller.ControllerUtils.validarCantidadesPorMedidas;
-import static com.mb.conitrack.controller.ControllerUtils.validarFechaEgresoLoteDtoPosteriorLote;
-import static com.mb.conitrack.controller.ControllerUtils.validateCantidadIngreso;
 import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 
 @Controller
@@ -174,21 +170,21 @@ public class ProduccionController {
         }
         //TODO: caso donde el lote 2/3 se haya usado, pero el 1/3 no ni el 3/3
         final List<Lote> lotes = new ArrayList<>();
-        return populateAvailableLoteListByCodigoInterno(
+        return ControllerUtils.getInstance().populateAvailableLoteListByCodigoInterno(
             lotes,
             loteDTO.getCodigoInternoLote(),
             bindingResult,
             loteService)
-            && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
-            && validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
+            && ControllerUtils.getInstance().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
+            && ControllerUtils.getInstance().validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
     }
 
     private boolean validarIngresoProduccionInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        return validateCantidadIngreso(loteDTO, bindingResult)
-            && validarBultos(loteDTO, bindingResult)
+        return ControllerUtils.getInstance().validateCantidadIngreso(loteDTO, bindingResult)
+            && ControllerUtils.getInstance().validarBultos(loteDTO, bindingResult)
             && validarTraza(loteDTO, bindingResult);
     }
 

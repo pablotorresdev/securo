@@ -30,8 +30,8 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
+import com.mb.conitrack.utils.ControllerUtils;
 
-import static com.mb.conitrack.controller.ControllerUtils.getCountryList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,11 +51,11 @@ import static org.mockito.MockitoAnnotations.openMocks;
  * Pruebas unitarias (sin contexto Spring) para: - showIngresoCompra() - initModelIngresoCompra()
  */
 @ExtendWith(MockitoExtension.class)
-class ComprasControllerTest {
+class AltaIngresoCompraControllerTest {
 
     @Spy
     @InjectMocks
-    ComprasController controller;
+    AltaIngresoCompraController controller;
 
     @Mock
     LoteService loteService;
@@ -103,7 +104,7 @@ class ComprasControllerTest {
 
         // when
         final String s = controller.showIngresoCompra(dto, model);
-        assertEquals("compras/ingreso-compra", s);
+        assertEquals("compras/alta/ingreso-compra", s);
 
         // then
         assertEquals(1, dto.getCantidadesBultos().size());
@@ -112,7 +113,7 @@ class ComprasControllerTest {
         assertSame(dto, model.getAttribute("loteDTO"));        // misma instancia
         assertSame(productosMock, model.getAttribute("productos"));        // misma instancia
         assertSame(proveedoresMock, model.getAttribute("proveedores"));        // misma instancia
-        assertEquals(getCountryList(), model.getAttribute("paises"));        // misma instancia
+        assertEquals(ControllerUtils.getCountryList(), model.getAttribute("paises"));        // misma instancia
     }
 
     @Test
@@ -135,21 +136,23 @@ class ComprasControllerTest {
     @DisplayName("exitoIngresoCompra")
     void exitoIngresoCompra() {
         final String s = controller.exitoIngresoCompra(dto);
-        assertEquals("compras/ingreso-compra-ok", s);
+        assertEquals("compras/alta/ingreso-compra-ok", s);
     }
 
     @Test
     @DisplayName("Falla validateCantidadIngreso -> vuelve al form")
     void fallaPrimerValidador() {
         try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            mocked.when(() -> ControllerUtils.validateCantidadIngreso(dto, binding)).thenReturn(false);
+            ControllerUtils utilsMock = mock(ControllerUtils.class);
+            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+            when(utilsMock.validateCantidadIngreso(dto, binding)).thenReturn(false);
 
             // Evitamos lógicas internas pesadas, solo verificamos que se llamen
             doNothing().when(controller).initModelIngresoCompra(any(), any());
             String view = controller.ingresoCompra(dto, binding, model, redirect);
 
-            assertEquals("compras/ingreso-compra", view);
-            mocked.verify(() -> ControllerUtils.validateCantidadIngreso(dto, binding));
+            assertEquals("compras/alta/ingreso-compra", view);
+            verify(utilsMock).validateCantidadIngreso(dto, binding);
 
             // Se arma el modelo y NO procesa
             verify(controller).initModelIngresoCompra(dto, model);
@@ -161,16 +164,18 @@ class ComprasControllerTest {
     @DisplayName("Pasa 1ro, falla validateFechasProveedor -> vuelve al form")
     void fallaSegundoValidador() {
         try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            mocked.when(() -> ControllerUtils.validateCantidadIngreso(dto, binding)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validateFechasProveedor(dto, binding)).thenReturn(false);
+            ControllerUtils utilsMock = mock(ControllerUtils.class);
+            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+            when(utilsMock.validateCantidadIngreso(dto, binding)).thenReturn(true);
+            when(utilsMock.validateFechasProveedor(dto, binding)).thenReturn(false);
 
             // Evitamos lógicas internas pesadas, solo verificamos que se llamen
             doNothing().when(controller).initModelIngresoCompra(any(), any());
             String view = controller.ingresoCompra(dto, binding, model, redirect);
 
-            assertEquals("compras/ingreso-compra", view);
-            mocked.verify(() -> ControllerUtils.validateCantidadIngreso(dto, binding));
-            mocked.verify(() -> ControllerUtils.validateFechasProveedor(dto, binding));
+            assertEquals("compras/alta/ingreso-compra", view);
+            verify(utilsMock).validateCantidadIngreso(dto, binding);
+            verify(utilsMock).validateFechasProveedor(dto, binding);
 
             verify(controller).initModelIngresoCompra(dto, model);
             verify(controller, never()).procesaringresoCompra(any(), any());
@@ -181,18 +186,20 @@ class ComprasControllerTest {
     @DisplayName("Pasan 1ro y 2do, falla validarBultos -> vuelve al form")
     void fallaTercerValidador() {
         try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            mocked.when(() -> ControllerUtils.validateCantidadIngreso(dto, binding)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validateFechasProveedor(dto, binding)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validarBultos(dto, binding)).thenReturn(false);
+            ControllerUtils utilsMock = mock(ControllerUtils.class);
+            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+            when(utilsMock.validateCantidadIngreso(dto, binding)).thenReturn(true);
+            when(utilsMock.validateFechasProveedor(dto, binding)).thenReturn(true);
+            when(utilsMock.validarBultos(dto, binding)).thenReturn(false);
 
             // Evitamos lógicas internas pesadas, solo verificamos que se llamen
             doNothing().when(controller).initModelIngresoCompra(any(), any());
             String view = controller.ingresoCompra(dto, binding, model, redirect);
 
-            assertEquals("compras/ingreso-compra", view);
-            mocked.verify(() -> ControllerUtils.validateCantidadIngreso(dto, binding));
-            mocked.verify(() -> ControllerUtils.validateFechasProveedor(dto, binding));
-            mocked.verify(() -> ControllerUtils.validarBultos(dto, binding));
+            assertEquals("compras/alta/ingreso-compra", view);
+            verify(utilsMock).validateCantidadIngreso(dto, binding);
+            verify(utilsMock).validateFechasProveedor(dto, binding);
+            verify(utilsMock).validarBultos(dto, binding);
 
             verify(controller).initModelIngresoCompra(dto, model);
             verify(controller, never()).procesaringresoCompra(any(), any());
@@ -278,18 +285,20 @@ class ComprasControllerTest {
     @DisplayName("Todos OK -> redirige y procesa")
     void todoOk() {
         try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            mocked.when(() -> ControllerUtils.validateCantidadIngreso(dto, binding)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validateFechasProveedor(dto, binding)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validarBultos(dto, binding)).thenReturn(true);
+            ControllerUtils utilsMock = mock(ControllerUtils.class);
+            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+            when(utilsMock.validateCantidadIngreso(dto, binding)).thenReturn(true);
+            when(utilsMock.validateFechasProveedor(dto, binding)).thenReturn(true);
+            when(utilsMock.validarBultos(dto, binding)).thenReturn(true);
 
             doNothing().when(controller).procesaringresoCompra(any(), any());
 
             String view = controller.ingresoCompra(dto, binding, model, redirect);
 
-            assertEquals("redirect:/compras/ingreso-compra-ok", view);
-            mocked.verify(() -> ControllerUtils.validateCantidadIngreso(dto, binding));
-            mocked.verify(() -> ControllerUtils.validateFechasProveedor(dto, binding));
-            mocked.verify(() -> ControllerUtils.validarBultos(dto, binding));
+            assertEquals("redirect:/compras/alta/ingreso-compra-ok", view);
+            verify(utilsMock).validateCantidadIngreso(dto, binding);
+            verify(utilsMock).validateFechasProveedor(dto, binding);
+            verify(utilsMock).validarBultos(dto, binding);
 
             verify(controller, never()).initModelIngresoCompra(any(), any());
             verify(controller).procesaringresoCompra(dto, redirect);

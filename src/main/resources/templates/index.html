@@ -24,7 +24,7 @@
         <h5 class="mb-3 text-primary">Compras</h5>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/compras/ingreso-compra}">
+               th:href="@{/compras/alta/ingreso-compra}">
                 CU1 - Ingreso de Lote por Compra [Analista de planta]
             </a>
         </li>
@@ -41,7 +41,7 @@
         <h5 class="mb-3 text-primary">Calidad</h5>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/cuarentena}">
+               th:href="@{/calidad/dictamen/cuarentena}">
                 CU2 - Dictamen: Cuarentena [Analista control de calidad]
             </a>
         </li>

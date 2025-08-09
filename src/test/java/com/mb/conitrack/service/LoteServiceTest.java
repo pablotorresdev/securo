@@ -4,23 +4,30 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
+import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.utils.EntityUtils;
@@ -31,14 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoteServiceTest {
@@ -280,6 +281,46 @@ class LoteServiceTest {
     }
 
     @Test
+    @DisplayName("findAllForCuarentena - filtra por dictámenes permitidos")
+    void findAllForCuarentena_ok() {
+        LoteService spyService = Mockito.spy(service);
+
+        Lote l1 = new Lote();
+        l1.setDictamen(DictamenEnum.RECIBIDO);
+        Lote l2 = new Lote();
+        l2.setDictamen(DictamenEnum.APROBADO);
+        Lote l3 = new Lote();
+        l3.setDictamen(DictamenEnum.ANALISIS_EXPIRADO);
+        Lote l4 = new Lote();
+        l4.setDictamen(DictamenEnum.LIBERADO);
+        Lote l5 = new Lote();
+        l5.setDictamen(DictamenEnum.DEVOLUCION_CLIENTES);
+        Lote l6 = new Lote();
+        l6.setDictamen(DictamenEnum.RETIRO_MERCADO);
+        Lote e1 = new Lote();
+        e1.setDictamen(DictamenEnum.RECHAZADO);
+        Lote e2 = new Lote();
+        e2.setDictamen(DictamenEnum.CUARENTENA);
+
+        List<Lote> preorden = List.of(l1, l2, l3, l4, l5, l6, e1, e2);
+
+        // Importante: doReturn(...) para no ejecutar el real en un spy
+        doReturn(preorden).when(spyService).findAllSortByDateAndNroBulto();
+
+        // when
+        List<Lote> out = spyService.findAllForCuarentena();
+
+        // then
+        assertEquals(List.of(l1, l2, l3, l4, l5, l6), out);
+
+        // Verificá la llamada externa y la interna
+        verify(spyService).findAllForCuarentena();
+        verify(spyService).findAllSortByDateAndNroBulto();
+
+        verifyNoMoreInteractions(spyService);
+    }
+
+    @Test
     void findAllForDevolucionCompra() {
     }
 
@@ -325,6 +366,45 @@ class LoteServiceTest {
 
     @Test
     void findAllSortByDateAndNroBultoAudit() {
+    }
+
+    @Test
+    @DisplayName("findAllSortByDateAndNroBulto - filtra activos y ordena por fecha, código y nroBulto")
+    void findAllSortByDateAndNroBulto_ok() {
+        // given: mezcla de activos e inactivos y desordenados
+        Lote a = new Lote();
+        a.setActivo(true);
+        a.setFechaIngreso(LocalDate.of(2024, 1, 10));
+        a.setCodigoInterno("L-02");
+        a.setNroBulto(2);
+
+        Lote b = new Lote();
+        b.setActivo(true);
+        b.setFechaIngreso(LocalDate.of(2024, 1, 10)); // misma fecha que 'a'
+        b.setCodigoInterno("L-01");                   // código anterior => debe ir antes que 'a'
+        b.setNroBulto(5);
+
+        Lote c = new Lote();
+        c.setActivo(true);
+        c.setFechaIngreso(LocalDate.of(2023, 12, 31)); // fecha más vieja => primero
+        c.setCodigoInterno("L-99");
+        c.setNroBulto(1);
+
+        Lote d = new Lote();
+        d.setActivo(false); // inactivo => debe ser filtrado
+        d.setFechaIngreso(LocalDate.of(2025, 5, 5));
+        d.setCodigoInterno("L-00");
+        d.setNroBulto(1);
+
+        when(loteRepository.findAll()).thenReturn(Arrays.asList(a, b, c, d));
+
+        // when
+        List<Lote> out = service.findAllSortByDateAndNroBulto();
+
+        // then: sólo activos (c, b, a) en orden por fecha/código/nro
+        assertEquals(List.of(c, b, a), out);
+        verify(loteRepository).findAll();
+        verifyNoMoreInteractions(loteRepository);
     }
 
     @Test
@@ -386,6 +466,102 @@ class LoteServiceTest {
 
     @Test
     void persistirDictamenCuarentena() {
+    }
+
+    @Test
+    @DisplayName("persistirDictamenCuarentena - análisis existente: NO crea nuevo, usa nroAnalisis de DTO")
+    void persistirDictamenCuarentena_conAnalisisExistente() {
+        // given
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("AN-001"); // nroReanalisis vacío => usa nroAnalisis
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+
+        Analisis existente = new Analisis();
+        existente.setNroAnalisis("AN-001");
+        when(analisisService.findByNroAnalisis("AN-001")).thenReturn(existente);
+
+        // 2 lotes para ejercitar el loop
+        Lote lote1 = new Lote();
+
+        Movimiento m1 = new Movimiento();
+        m1.setDictamenFinal(DictamenEnum.CUARENTENA);
+        Movimiento m2 = new Movimiento();
+        m2.setDictamenFinal(DictamenEnum.CUARENTENA);
+
+        when(movimientoService.persistirMovimientoCuarentenaPorAnalisis(eq(dto), eq(lote1), eq("AN-001")))
+            .thenReturn(m1);
+
+        when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // when
+        Lote out = service.persistirDictamenCuarentena(dto, lote1);
+
+        // then
+        assertNotNull(out);
+
+        // Se setea dictamen y se agrega el movimiento
+        assertEquals(DictamenEnum.CUARENTENA, out.getDictamen());
+        assertTrue(out.getMovimientos().contains(m1));
+        assertTrue(out.getAnalisisList().isEmpty()); // NO agrega análisis
+
+        verify(analisisService).findByNroAnalisis("AN-001");
+        verify(analisisService, never()).save(any());
+
+        verify(movimientoService).persistirMovimientoCuarentenaPorAnalisis(dto, lote1, "AN-001");
+
+        verify(loteRepository).save(lote1);
+        verifyNoMoreInteractions(loteRepository, movimientoService, analisisService);
+    }
+
+    @Test
+    @DisplayName("persistirDictamenCuarentena - sin análisis existente: crea y usa el nro del nuevo Analisis, lo agrega a los lotes")
+    void persistirDictamenCuarentena_creaNuevoAnalisis() {
+        // given
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis(null);
+        dto.setNroReanalisis("RE-009"); // no vacío => toma éste
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+
+        when(analisisService.findByNroAnalisis("RE-009")).thenReturn(null);
+
+        // El save devuelve un Analisis con nro distinto para verificar que se usa el del "save"
+        Analisis nuevoPersistido = new Analisis();
+        nuevoPersistido.setNroAnalisis("AN-SAVED");
+        when(analisisService.save(any(Analisis.class))).thenReturn(nuevoPersistido);
+
+        Lote lote1 = new Lote();
+
+        Movimiento m1 = new Movimiento();
+        m1.setDictamenFinal(DictamenEnum.CUARENTENA);
+        Movimiento m2 = new Movimiento();
+        m2.setDictamenFinal(DictamenEnum.CUARENTENA);
+
+        when(movimientoService.persistirMovimientoCuarentenaPorAnalisis(eq(dto), eq(lote1), eq("AN-SAVED")))
+            .thenReturn(m1);
+
+        when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // when
+        Lote out = service.persistirDictamenCuarentena(dto, lote1);
+
+        // then
+        assertNotNull(out);
+
+        // Se setea dictamen, agrega movimiento y agrega el mismo Analisis a ambos lotes
+        assertEquals(DictamenEnum.CUARENTENA, out.getDictamen());
+        assertTrue(out.getMovimientos().contains(m1));
+        assertTrue(out.getAnalisisList().contains(nuevoPersistido));
+
+        // Se creó con nro del DTO (RE-009) y se guardó
+        ArgumentCaptor<Analisis> analisisCaptor = ArgumentCaptor.forClass(Analisis.class);
+        verify(analisisService).save(analisisCaptor.capture());
+        assertEquals("RE-009", analisisCaptor.getValue().getNroAnalisis());
+
+        verify(analisisService).findByNroAnalisis("RE-009");
+        verify(movimientoService).persistirMovimientoCuarentenaPorAnalisis(dto, lote1, "AN-SAVED");
+
+        verify(loteRepository).save(lote1);
+        verifyNoMoreInteractions(loteRepository, movimientoService, analisisService);
     }
 
     @Test

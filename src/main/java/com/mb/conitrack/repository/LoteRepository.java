@@ -22,4 +22,6 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
         int nroBulto
     );
 
+    Optional<Lote> findByCodigoInternoAndActivoTrue(String codigoInternoLote);
+
 }

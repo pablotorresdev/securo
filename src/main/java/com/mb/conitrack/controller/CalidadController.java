@@ -22,18 +22,10 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.controller.ControllerUtils.populateLoteListByCodigoInterno;
-import static com.mb.conitrack.controller.ControllerUtils.validarCantidadesMovimiento;
-import static com.mb.conitrack.controller.ControllerUtils.validarContraFechasProveedor;
-import static com.mb.conitrack.controller.ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput;
-import static com.mb.conitrack.controller.ControllerUtils.validarDatosResultadoAnalisisAprobadoInput;
-import static com.mb.conitrack.controller.ControllerUtils.validarExisteMuestreoParaAnalisis;
-import static com.mb.conitrack.controller.ControllerUtils.validarFechaMovimientoPosteriorLote;
-import static com.mb.conitrack.controller.ControllerUtils.validarNroAnalisisNotNull;
-import static com.mb.conitrack.controller.ControllerUtils.validarValorTitulo;
 import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 
 @Controller
@@ -46,51 +38,12 @@ public class CalidadController {
     @Autowired
     private AnalisisService analisisService;
 
+    final ControllerUtils controllerUtils = ControllerUtils.getInstance();
+
     //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
-    }
-
-    //***************************** CU2 Dictamen Lote a Cuarentena************************************
-    // CU2: Dictamen Lote a Cuarentena
-    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
-    @GetMapping("/cuarentena")
-    public String showDictamenCuarentenaForm(
-        @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
-        initModelDictamencuarentena(movimientoDTO, model);
-        return "calidad/cuarentena";
-    }
-
-    @PostMapping("/cuarentena")
-    public String procesarDictamenCuarentena(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes) {
-
-        final List<Lote> lotesList = new ArrayList<>();
-        boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
-            &&
-            populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
-            &&
-            validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
-
-        if (!success) {
-            initModelDictamencuarentena(movimientoDTO, model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
-            return "calidad/cuarentena";
-        }
-
-        dictamenCuarentena(movimientoDTO, lotesList, redirectAttributes);
-        return "redirect:/calidad/cuarentena-ok";
-    }
-
-    @GetMapping("/cuarentena-ok")
-    public String exitoDictamenCuarentena(
-        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
-        return "calidad/cuarentena-ok";
     }
 
     //***************************** CUZ Reanalisis de Producto Aprobado************************************
@@ -111,11 +64,17 @@ public class CalidadController {
         RedirectAttributes redirectAttributes) {
 
         final List<Lote> lotesList = new ArrayList<>();
-        boolean success = validarNroAnalisisNotNull(movimientoDTO, bindingResult)
+        boolean success = controllerUtils.validarNroAnalisisNotNull(movimientoDTO, bindingResult)
             &&
-            populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
+            controllerUtils
+                .populateLoteListByCodigoInterno(
+                    lotesList,
+                    movimientoDTO.getCodigoInternoLote(),
+                    bindingResult,
+                    loteService)
             &&
-            validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
+            controllerUtils
+                .validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
             initModelReanalisisProducto(movimientoDTO, model);
@@ -150,7 +109,7 @@ public class CalidadController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!validarNroAnalisisNotNull(movimientoDTO, bindingResult)) {
+        if (!controllerUtils.validarNroAnalisisNotNull(movimientoDTO, bindingResult)) {
             initModelMuestreoBulto(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
             return "calidad/muestreo-bulto";
@@ -159,8 +118,8 @@ public class CalidadController {
         Lote lote = loteService.findLoteBultoByCodigoAndBulto(
             movimientoDTO.getCodigoInternoLote(),
             Integer.parseInt(movimientoDTO.getNroBulto()));
-        if (!(validarFechaMovimientoPosteriorLote(movimientoDTO, lote, bindingResult)
-            && validarCantidadesMovimiento(movimientoDTO, lote, bindingResult))) {
+        if (!(controllerUtils.validarFechaMovimientoPosteriorLote(movimientoDTO, lote, bindingResult)
+            && controllerUtils.validarCantidadesMovimiento(movimientoDTO, lote, bindingResult))) {
             initModelMuestreoBulto(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
             return "calidad/muestreo-bulto";
@@ -209,27 +168,6 @@ public class CalidadController {
     public String exitoResultadoAnalisis(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
         return "calidad/resultado-analisis-ok";
-    }
-
-    private void dictamenCuarentena(
-        final MovimientoDTO dto,
-        final List<Lote> lotesList,
-        final RedirectAttributes redirectAttributes) {
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.mergeEntities(loteService.persistirDictamenCuarentena(dto, lotesList));
-        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
-
-        redirectAttributes.addFlashAttribute(
-            loteDTO != null ? "success" : "error",
-            loteDTO != null
-                ? "Cambio de calidad a Cuarentena exitoso"
-                : "Hubo un error al realizar el cambio de calidad a Cuarentena.");
-    }
-
-    private void initModelDictamencuarentena(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForCuarentena());
-        model.addAttribute("lotesForCuarentena", lotesDtos);
-        model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
     private void initModelMuestreoBulto(final MovimientoDTO movimientoDTO, final Model model) {
@@ -302,19 +240,25 @@ public class CalidadController {
             return false;
         }
         final List<Lote> lotesList = new ArrayList<>();
-        return validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult)
+        return controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult)
             &&
-            validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult)
+            controllerUtils.validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult)
             &&
-            populateLoteListByCodigoInterno(lotesList, movimientoDTO.getCodigoInternoLote(), bindingResult, loteService)
+            controllerUtils
+                .populateLoteListByCodigoInterno(
+                    lotesList,
+                    movimientoDTO.getCodigoInternoLote(),
+                    bindingResult,
+                    loteService)
             &&
-            validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult)
+            controllerUtils.validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult)
             &&
-            validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult)
+            controllerUtils
+                .validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult)
             &&
-            validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult)
+            controllerUtils.validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult)
             &&
-            validarValorTitulo(movimientoDTO, lotesList, bindingResult);
+            controllerUtils.validarValorTitulo(movimientoDTO, lotesList, bindingResult);
     }
 
 }

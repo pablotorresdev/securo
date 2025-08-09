@@ -108,6 +108,13 @@ public class LoteService {
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 
+    public Optional<Lote> findLoteByCodigoInterno(final String codigoInternoLote) {
+        if (codigoInternoLote == null) {
+            return null;
+        }
+        return loteRepository.findByCodigoInternoAndActivoTrue(codigoInternoLote);
+    }
+
     public List<Lote> findLoteListByCodigoInterno(final String codigoInternoLote) {
         if (codigoInternoLote == null) {
             return new ArrayList<>();
@@ -124,13 +131,12 @@ public class LoteService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<Lote> findAllSortByDateAndNroBulto() {
         return loteRepository.findAll()
             .stream()
             .filter(Lote::getActivo)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso)
-                .thenComparing(Lote::getCodigoInterno)
-                .thenComparing(Lote::getNroBulto))
+            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno))
             .toList();
     }
 
@@ -191,7 +197,7 @@ public class LoteService {
     }
 
     @Transactional
-    public List<Lote> persistirDictamenCuarentena(final MovimientoDTO dto, final List<Lote> lotes) {
+    public Lote persistirDictamenCuarentena(final MovimientoDTO dto, Lote lote) {
         //TODO, eliminar NRO de Reanalisis del DTO
         final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis())
             ? dto.getNroAnalisis()
@@ -199,29 +205,23 @@ public class LoteService {
 
         Analisis currentAnalisis = analisisService.findByNroAnalisis(nroAnalisis);
         Analisis newAnalisis = null;
+
         if (currentAnalisis == null) {
-            newAnalisis = analisisService.save(DTOUtils.createAnalisis(dto));
+            final Analisis analisis = DTOUtils.createAnalisis(dto);
+            analisis.setLote(lote);
+            newAnalisis = analisisService.save(analisis);
+        }
+        if (newAnalisis != null) {
+            lote.getAnalisisList().add(newAnalisis);
         }
 
-        List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : lotes) {
-            final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
-            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(
-                dto,
-                loteBulto,
-                nroAnalisisMovimiento);
+        final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
+        Movimiento mov = movimientoService.persistirMovimientoCuarentenaPorAnalisis(dto, lote, nroAnalisisMovimiento);
 
-            loteBulto.setDictamen(movimiento.getDictamenFinal());
-            loteBulto.getMovimientos().add(movimiento);
+        lote.getMovimientos().add(mov);
+        lote.setDictamen(DictamenEnum.CUARENTENA);
 
-            if (newAnalisis != null) {
-                loteBulto.getAnalisisList().add(newAnalisis);
-                newAnalisis.setLote(loteBulto);
-            }
-
-            result.add(loteRepository.save(loteBulto));
-        }
-        return result;
+        return loteRepository.save(lote);
     }
 
     //***********CUZ MODIFICACION: Reanalisis de Producto Aprobado***********
@@ -708,7 +708,8 @@ public class LoteService {
     private List<Traza> createTrazas(
         final LoteDTO loteDTO,
         final Producto producto,
-        final BigDecimal cantidadInicialLote, boolean unidadVenta) {
+        final BigDecimal cantidadInicialLote,
+        boolean unidadVenta) {
         List<Traza> trazas = new ArrayList<>();
         if (unidadVenta) {
             if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {

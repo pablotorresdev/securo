@@ -1,4 +1,4 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.springframework.validation.BindingResult;
 import org.thymeleaf.util.StringUtils;
@@ -20,16 +21,21 @@ import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 
+import lombok.Getter;
+
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMenorUnidadMedida;
 
 public class ControllerUtils {
 
+    @Getter
+    private static final ControllerUtils Instance = new ControllerUtils();
+
     private ControllerUtils() {
         // Utility class
     }
 
-    static List<String> getCountryList() {
+    public static List<String> getCountryList() {
         String[] countryCodes = Locale.getISOCountries();
         List<String> countries = new ArrayList<>();
         for (String code : countryCodes) {
@@ -40,7 +46,7 @@ public class ControllerUtils {
         return countries;
     }
 
-    static boolean populateAvailableLoteListByCodigoInterno(
+    public static boolean populateAvailableLoteListByCodigoInterno(
         final List<Lote> lotesList,
         String codigoInternoLote,
         BindingResult bindingResult,
@@ -63,24 +69,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean populateLoteListByCodigoInterno(
-        final List<Lote> lotesList,
-        String codigoInternoLote,
-        BindingResult bindingResult,
-        final LoteService loteService) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote);
-        if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.reject("codigoInternoLote", "Lote bloqueado.");
-            return false;
-        }
-        lotesList.addAll(loteListByCodigoInterno);
-        return true;
-    }
-
-    static boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    public boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -88,7 +77,7 @@ public class ControllerUtils {
             validarSumaBultosConvertida(loteDTO, bindingResult));
     }
 
-    static boolean validarCantidadesMovimiento(
+    public static boolean validarCantidadesMovimiento(
         final MovimientoDTO dto,
         final Lote lote,
         final BindingResult bindingResult) {
@@ -118,7 +107,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validarCantidadesPorMedidas(
+    public static boolean validarCantidadesPorMedidas(
         final LoteDTO loteDTO,
         final List<Lote> lotes,
         final BindingResult bindingResult) {
@@ -189,7 +178,7 @@ public class ControllerUtils {
         return false;
     }
 
-    static boolean validarContraFechasProveedor(
+    public static boolean validarContraFechasProveedor(
         final MovimientoDTO movimientoDTO,
         Lote lote,
         final BindingResult bindingResult) {
@@ -238,7 +227,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validarDatosMandatoriosResultadoAnalisisInput(
+    public static boolean validarDatosMandatoriosResultadoAnalisisInput(
         final MovimientoDTO movimientoDTO,
         final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -267,7 +256,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validarDatosResultadoAnalisisAprobadoInput(
+    public static boolean validarDatosResultadoAnalisisAprobadoInput(
         final MovimientoDTO movimientoDTO,
         final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -308,7 +297,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validarExisteMuestreoParaAnalisis(
+    public static boolean validarExisteMuestreoParaAnalisis(
         final MovimientoDTO movimientoDTO,
         final List<Lote> lotesList,
         final BindingResult bindingResult) {
@@ -335,7 +324,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validarFechaEgresoLoteDtoPosteriorLote(
+    public static boolean validarFechaEgresoLoteDtoPosteriorLote(
         final LoteDTO dto,
         final Lote lote,
         final BindingResult bindingResult) {
@@ -352,44 +341,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validarFechaMovimientoPosteriorLote(
-        final MovimientoDTO dto,
-        final Lote lote,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        if (dto.getFechaMovimiento().isBefore(lote.getFechaIngreso())) {
-            bindingResult.rejectValue(
-                "fechaMovimiento",
-                "",
-                "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
-            return false;
-        }
-        if (dto.getFechaRealizadoAnalisis() != null &&
-            dto.getFechaRealizadoAnalisis().isBefore(lote.getFechaIngreso())) {
-            bindingResult.rejectValue(
-                "fechaRealizadoAnalisis",
-                "",
-                "La fecha de realizado el analisis no puede ser anterior a la fecha de ingreso del lote");
-            return false;
-        }
-        return true;
-    }
-
-    static boolean validarNroAnalisisNotNull(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        if (StringUtils.isEmpty(movimientoDTO.getNroAnalisis()) &&
-            StringUtils.isEmpty(movimientoDTO.getNroReanalisis())) {
-            bindingResult.rejectValue("nroAnalisis", "", "Debe ingresar un nro de Analisis/Reanalisis");
-            return false;
-        }
-        return true;
-    }
-
-    static boolean validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
+    public static boolean validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -448,7 +400,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    public static boolean validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -494,35 +446,7 @@ public class ControllerUtils {
         return result;
     }
 
-    static boolean validarValorTitulo(
-        final MovimientoDTO movimientoDTO,
-        final List<Lote> lotesList,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        // (5) El valor del título no puede ser mayor al valor del título del último análisis aprobado
-        //     (si existe un último análisis con dictamen APROBADO)
-        Analisis ultimoAprobado = lotesList.get(0)
-            .getAnalisisList()
-            .stream()
-            .filter(a -> a.getDictamen() == DictamenEnum.APROBADO && a.getTitulo() != null)
-            .max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
-            .orElse(null);
-
-        if (ultimoAprobado != null && movimientoDTO.getTitulo().compareTo(ultimoAprobado.getTitulo()) > 0) {
-            bindingResult.rejectValue(
-                "titulo",
-                "",
-                "El valor del título no puede ser mayor al del último análisis aprobado (" +
-                    ultimoAprobado.getTitulo() +
-                    ")");
-            return false;
-        }
-        return true;
-    }
-
-    static boolean validateCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    public boolean validateCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -554,7 +478,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static boolean validateFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    public boolean validateFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -566,6 +490,104 @@ public class ControllerUtils {
                     "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.");
                 return false;
             }
+        }
+        return true;
+    }
+
+    public Lote getLoteByCodigoInterno(
+        String codigoInternoLote,
+        BindingResult bindingResult,
+        final LoteService loteService) {
+        if (bindingResult.hasErrors()) {
+            return null;
+        }
+
+        final Optional<Lote> loteByCodigoInterno = loteService.findLoteByCodigoInterno(codigoInternoLote);
+        if (!loteByCodigoInterno.isPresent()) {
+            bindingResult.reject("codigoInternoLote", "Lote bloqueado.");
+            return null;
+        }
+        return loteByCodigoInterno.get();
+    }
+
+    public boolean populateLoteListByCodigoInterno(
+        final List<Lote> lotesList,
+        String codigoInternoLote,
+        BindingResult bindingResult,
+        final LoteService loteService) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote);
+        if (loteListByCodigoInterno.isEmpty()) {
+            bindingResult.reject("codigoInternoLote", "Lote bloqueado.");
+            return false;
+        }
+        lotesList.addAll(loteListByCodigoInterno);
+        return true;
+    }
+
+    public boolean validarFechaMovimientoPosteriorLote(
+        final MovimientoDTO dto,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (dto.getFechaMovimiento().isBefore(lote.getFechaIngreso())) {
+            bindingResult.rejectValue(
+                "fechaMovimiento",
+                "",
+                "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
+            return false;
+        }
+        if (dto.getFechaRealizadoAnalisis() != null &&
+            dto.getFechaRealizadoAnalisis().isBefore(lote.getFechaIngreso())) {
+            bindingResult.rejectValue(
+                "fechaRealizadoAnalisis",
+                "",
+                "La fecha de realizado el analisis no puede ser anterior a la fecha de ingreso del lote");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validarNroAnalisisNotNull(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (StringUtils.isEmpty(movimientoDTO.getNroAnalisis()) &&
+            StringUtils.isEmpty(movimientoDTO.getNroReanalisis())) {
+            bindingResult.rejectValue("nroAnalisis", "", "Debe ingresar un nro de Analisis/Reanalisis");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validarValorTitulo(
+        final MovimientoDTO movimientoDTO,
+        final List<Lote> lotesList,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // (5) El valor del título no puede ser mayor al valor del título del último análisis aprobado
+        //     (si existe un último análisis con dictamen APROBADO)
+        Analisis ultimoAprobado = lotesList.get(0)
+            .getAnalisisList()
+            .stream()
+            .filter(a -> a.getDictamen() == DictamenEnum.APROBADO && a.getTitulo() != null)
+            .max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
+            .orElse(null);
+
+        if (ultimoAprobado != null && movimientoDTO.getTitulo().compareTo(ultimoAprobado.getTitulo()) > 0) {
+            bindingResult.rejectValue(
+                "titulo",
+                "",
+                "El valor del título no puede ser mayor al del último análisis aprobado (" +
+                    ultimoAprobado.getTitulo() +
+                    ")");
+            return false;
         }
         return true;
     }

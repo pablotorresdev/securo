@@ -13,29 +13,23 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.utils.ControllerUtils;
 
-import static com.mb.conitrack.controller.ControllerUtils.validarBultos;
-import static com.mb.conitrack.controller.ControllerUtils.validarTipoDeDato;
-import static com.mb.conitrack.controller.ControllerUtils.validateCantidadIngreso;
-import static com.mb.conitrack.controller.ControllerUtils.validateFechasProveedor;
+import static com.mb.conitrack.utils.ControllerUtils.validarTipoDeDato;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.*;
 
 class ControllerUtilsTest {
 
@@ -44,6 +38,46 @@ class ControllerUtilsTest {
         d.setCantidadesBultos(cantidades);
         d.setUnidadMedidaBultos(unidades);
         return d;
+    }
+
+    @Test
+    @DisplayName("Ambos presentes → true, sin reject")
+    void ambosPresentes() {
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("A-001");
+        dto.setNroReanalisis("R-001");
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = ControllerUtils.getInstance()
+            .validarNroAnalisisNotNull(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
+    }
+
+    @Test
+    @DisplayName("Ambos nroAnalisis y nroReanalisis vacíos → rejectValue y false")
+    void ambosVacios() {
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis(null);
+        dto.setNroReanalisis(null);
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = ControllerUtils.getInstance()
+            .validarNroAnalisisNotNull(dto, br);
+
+        assertFalse(ok);
+        verify(br).hasErrors();
+        verify(br).rejectValue(
+            eq("nroAnalisis"),
+            eq(""),
+            eq("Debe ingresar un nro de Analisis/Reanalisis")
+        );
+        verifyNoMoreInteractions(br);
     }
 
     @Test
@@ -62,7 +96,7 @@ class ControllerUtilsTest {
             mocked.when(() -> validarTipoDeDato(dto, br)).thenReturn(true);
             mocked.when(() -> ControllerUtils.validarSumaBultosConvertida(dto, br)).thenReturn(true);
 
-            boolean ok = validarBultos(dto, br);
+            boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
             assertTrue(ok);
             mocked.verify(() -> validarTipoDeDato(dto, br));
@@ -81,7 +115,7 @@ class ControllerUtilsTest {
             MockedStatic<ControllerUtils> mocked =
                 mockStatic(ControllerUtils.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
 
-            boolean ok = validarBultos(dto, br);
+            boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
             assertTrue(ok);
             mocked.verify(() -> validarTipoDeDato(any(), any()), never());
@@ -139,7 +173,7 @@ class ControllerUtilsTest {
 
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        boolean ok = validateCantidadIngreso(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateCantidadIngreso(dto, br);
 
         assertFalse(ok);
         assertTrue(br.hasErrors());
@@ -150,13 +184,29 @@ class ControllerUtilsTest {
     }
 
     @Test
+    @DisplayName("hasErrors = true → retorna false sin rechazar campo")
+    void conErroresPrevios() {
+        MovimientoDTO dto = new MovimientoDTO();
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(true);
+
+        boolean ok = ControllerUtils.getInstance()
+            .validarNroAnalisisNotNull(dto, br);
+
+        assertFalse(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
+    }
+
+    @Test
     @DisplayName("Si bindingResult.hasErrors() == true => retorna false (early return)")
     void earlyReturnPorErrores() {
         LoteDTO dto = new LoteDTO();
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(true);
 
-        boolean ok = validateFechasProveedor(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateFechasProveedor(dto, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -175,7 +225,7 @@ class ControllerUtilsTest {
             MockedStatic<ControllerUtils> mocked =
                 mockStatic(ControllerUtils.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
 
-            boolean ok = validarBultos(dto, br);
+            boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
             assertFalse(ok);
             verify(br).hasErrors();
@@ -206,7 +256,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validateFechasProveedor(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateFechasProveedor(dto, br);
 
         assertTrue(ok);
         verify(br).hasErrors();
@@ -226,7 +276,7 @@ class ControllerUtilsTest {
 
         when(br.hasErrors()).thenReturn(true);
 
-        boolean ok = validateCantidadIngreso(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateCantidadIngreso(dto, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -266,7 +316,7 @@ class ControllerUtilsTest {
 
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        boolean ok = validateCantidadIngreso(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateCantidadIngreso(dto, br);
 
         assertTrue(ok);
         assertFalse(br.hasErrors());
@@ -296,6 +346,70 @@ class ControllerUtilsTest {
     }
 
     @Test
+    @DisplayName("populateLoteListByCodigoInterno: hasErrors = true => false y no llama al service")
+    void populateLoteListByCodigoInterno_hasErrorsEarlyReturn() {
+        List<Lote> salida = new ArrayList<>();
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(true);
+        LoteService service = mock(LoteService.class);
+
+        boolean ok = ControllerUtils.getInstance()
+            .populateLoteListByCodigoInterno(salida, "L-XYZ", br, service);
+
+        assertFalse(ok);
+        assertTrue(salida.isEmpty());
+        verify(br).hasErrors();
+        verifyNoInteractions(service);
+        verify(br, never()).reject(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("populateLoteListByCodigoInterno: service devuelve vacío => reject y false")
+    void populateLoteListByCodigoInterno_listaVacia() {
+        List<Lote> salida = new ArrayList<>();
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+        LoteService service = mock(LoteService.class);
+        when(service.findLoteListByCodigoInterno("L-ABC"))
+            .thenReturn(new ArrayList<>());
+
+        boolean ok = ControllerUtils.getInstance()
+            .populateLoteListByCodigoInterno(salida, "L-ABC", br, service);
+
+        assertFalse(ok);
+        assertTrue(salida.isEmpty());
+        verify(br).hasErrors();
+        verify(service).findLoteListByCodigoInterno("L-ABC");
+        verify(br).reject(eq("codigoInternoLote"), eq("Lote bloqueado."));
+        verifyNoMoreInteractions(service, br);
+    }
+
+    @Test
+    @DisplayName("populateLoteListByCodigoInterno: lista con elementos => agrega y true")
+    void populateLoteListByCodigoInterno_ok() {
+        List<Lote> salida = new ArrayList<>();
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+        LoteService service = mock(LoteService.class);
+        Lote l1 = new Lote();
+        Lote l2 = new Lote();
+        when(service.findLoteListByCodigoInterno("L-123"))
+            .thenReturn(new ArrayList<>(List.of(l1, l2)));
+
+        boolean ok = ControllerUtils.getInstance()
+            .populateLoteListByCodigoInterno(salida, "L-123", br, service);
+
+        assertTrue(ok);
+        assertEquals(2, salida.size());
+        assertSame(l1, salida.get(0));
+        assertSame(l2, salida.get(1));
+        verify(br).hasErrors();
+        verify(service).findLoteListByCodigoInterno("L-123");
+        verify(br, never()).reject(anyString(), anyString());
+        verifyNoMoreInteractions(service, br);
+    }
+
+    @Test
     @DisplayName("bultosTotales > 1 y validarTipoDeDato = false -> false; NO llama validarSuma")
     void primerValidadorFalse() {
         LoteDTO dto = new LoteDTO();
@@ -310,7 +424,7 @@ class ControllerUtilsTest {
 
             mocked.when(() -> validarTipoDeDato(dto, br)).thenReturn(false);
 
-            boolean ok = validarBultos(dto, br);
+            boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
             assertFalse(ok);
             mocked.verify(() -> validarTipoDeDato(dto, br));
@@ -328,7 +442,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validateFechasProveedor(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateFechasProveedor(dto, br);
 
         assertTrue(ok);
         verify(br).hasErrors();
@@ -347,7 +461,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validateFechasProveedor(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateFechasProveedor(dto, br);
 
         assertTrue(ok);
         verify(br).hasErrors();
@@ -365,7 +479,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validateFechasProveedor(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateFechasProveedor(dto, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -395,12 +509,47 @@ class ControllerUtilsTest {
             mocked.when(() -> validarTipoDeDato(dto, br)).thenReturn(true);
             mocked.when(() -> ControllerUtils.validarSumaBultosConvertida(dto, br)).thenReturn(false);
 
-            boolean ok = validarBultos(dto, br);
+            boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
             assertFalse(ok);
             mocked.verify(() -> validarTipoDeDato(dto, br));
             mocked.verify(() -> ControllerUtils.validarSumaBultosConvertida(dto, br));
         }
+    }
+
+    @Test
+    @DisplayName("Solo nroAnalisis presente → true, sin reject")
+    void soloNroAnalisis() {
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("A-001");
+        dto.setNroReanalisis(null);
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = ControllerUtils.getInstance()
+            .validarNroAnalisisNotNull(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
+    }
+
+    @DisplayName("Solo nroReanalisis presente → true, sin reject")
+    void soloNroReanalisis() {
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis(null);
+        dto.setNroReanalisis("R-777");
+        BindingResult br = mock(BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+
+        boolean ok = ControllerUtils.getInstance()
+            .validarNroAnalisisNotNull(dto, br);
+
+        assertTrue(ok);
+        verify(br).hasErrors();
+        verify(br, never()).rejectValue(anyString(), anyString(), anyString());
+        verifyNoMoreInteractions(br);
     }
 
     @Test
@@ -413,7 +562,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validateFechasProveedor(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateFechasProveedor(dto, br);
 
         assertTrue(ok);
         verify(br).hasErrors();
@@ -431,7 +580,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validateFechasProveedor(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateFechasProveedor(dto, br);
 
         assertTrue(ok);
         verify(br).hasErrors();
@@ -449,7 +598,7 @@ class ControllerUtilsTest {
 
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        boolean ok = validateCantidadIngreso(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateCantidadIngreso(dto, br);
 
         assertFalse(ok);
         assertTrue(br.hasErrors());
@@ -472,7 +621,7 @@ class ControllerUtilsTest {
 
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        boolean ok = validateCantidadIngreso(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateCantidadIngreso(dto, br);
 
         assertFalse(ok);
         assertTrue(br.hasErrors());
@@ -495,7 +644,7 @@ class ControllerUtilsTest {
 
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        boolean ok = validateCantidadIngreso(dto, br);
+        boolean ok = ControllerUtils.getInstance().validateCantidadIngreso(dto, br);
 
         assertTrue(ok);
         assertFalse(br.hasErrors());
@@ -587,10 +736,6 @@ class ControllerUtilsTest {
 
     @Test
     void validarFechaMovimientoPosteriorLote() {
-    }
-
-    @Test
-    void validarNroAnalisisNotNull() {
     }
 
     @Test

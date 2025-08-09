@@ -320,8 +320,6 @@ public class DTOUtils {
             loteDTO.getNroBultoList().add(index, bultoEntity.getNroBulto());
             loteDTO.getCantidadesBultos().add(index, bultoEntity.getCantidadActual());
             loteDTO.getUnidadMedidaBultos().add(index, bultoEntity.getUnidadMedida());
-
-            addMovimientosDTO(bultoEntity, loteDTO);
         }
 
         loteDTO.setTrazaInicial(trazaInicial);
