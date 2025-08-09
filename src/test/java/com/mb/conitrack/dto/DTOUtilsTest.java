@@ -1,25 +1,23 @@
 package com.mb.conitrack.dto;
 
-import static com.mb.conitrack.enums.UnidadMedidaUtils.convertirCantidadEntreUnidades;
-import static com.mb.conitrack.enums.UnidadMedidaUtils.obtenerMenorUnidadMedida;
-import static com.mb.conitrack.enums.UnidadMedidaUtils.sugerirUnidadParaCantidad;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.mb.conitrack.entity.*;
+import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
@@ -27,7 +25,15 @@ import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.enums.UnidadMedidaUtils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests con 100 % de cobertura de líneas sobre DTOUtils.
@@ -35,14 +41,14 @@ import com.mb.conitrack.enums.UnidadMedidaUtils;
 @ExtendWith(MockitoExtension.class)
 class DTOUtilsTest {
 
-    private MovimientoDTO buildDto(String nroAnalisis,
-        String nroReanalisis) {
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 10, 0));
-        dto.setObservaciones("obs");
-        dto.setNroAnalisis(nroAnalisis);
-        dto.setNroReanalisis(nroReanalisis);
-        return dto;
+    @Test
+    @DisplayName("Sin ningún número lanza IllegalArgumentException")
+    void createAnalisis_sinNumero_lanzaExcepcion() {
+        MovimientoDTO dto = buildDto(null, null);
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> DTOUtils.createAnalisis(dto));
     }
 
     @Test
@@ -68,42 +74,56 @@ class DTOUtilsTest {
         assertEquals("R-999", a.getNroAnalisis());      // se usó el re-
     }
 
+    /* ---------- caso 1: entidad nula ---------- */
     @Test
-    @DisplayName("Sin ningún número lanza IllegalArgumentException")
-    void createAnalisis_sinNumero_lanzaExcepcion() {
-        MovimientoDTO dto = buildDto(null, null);
+    @DisplayName("Devuelve null si Analisis es null")
+    void fromAnalisisEntity_entidadNull() {
+        assertNull(DTOUtils.fromEntity((Analisis)null));
+    }
 
-        assertThrows(IllegalArgumentException.class,
-            () -> DTOUtils.createAnalisis(dto));
+    /* ---------- caso 2: mapeo completo ---------- */
+    @Test
+    @DisplayName("Copia todos los campos cuando Analisis tiene datos")
+    void fromAnalisisEntity_mapeoCompleto() {
+        // Crear una entidad Analisis con todos los valores relevantes
+        Analisis entity = new Analisis();
+        entity.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 10, 30));
+        entity.setNroAnalisis("AN-001");
+        entity.setFechaRealizado(LocalDate.of(2025, 8, 1));
+        entity.setFechaReanalisis(LocalDate.of(2026, 8, 1));
+        entity.setFechaVencimiento(LocalDate.of(2027, 8, 1));
+        entity.setDictamen(DictamenEnum.APROBADO);
+        entity.setTitulo(new BigDecimal("87.5"));
+        entity.setObservaciones("ok");
+
+        // Llamamos al método a testear
+        AnalisisDTO dto = DTOUtils.fromEntity(entity);
+
+        // Verificaciones
+        assertNotNull(dto);
+        assertEquals(entity.getFechaYHoraCreacion(), dto.getFechaYHoraCreacion());
+        assertEquals("AN-001", dto.getNroAnalisis());
+        assertEquals(LocalDate.of(2025, 8, 1), dto.getFechaRealizado());
+        assertEquals(LocalDate.of(2026, 8, 1), dto.getFechaReanalisis());
+        assertEquals(LocalDate.of(2027, 8, 1), dto.getFechaVencimiento());
+        assertEquals(DictamenEnum.APROBADO, dto.getDictamen());
+        assertEquals(new BigDecimal("87.5"), dto.getTitulo());
+        assertEquals("ok", dto.getObservaciones());
     }
 
     @Test
-    @DisplayName("Devuelve null si el Movimiento es null")
-    void fromMovimientoEntity_movimientoNull() {
-        assertNull(DTOUtils.fromEntity((Movimiento) null));
+    void fromEntityAnalisis_retNullSiEsNull() {
+        assertNull(DTOUtils.fromEntity((Analisis)null));
     }
 
     @Test
-    @DisplayName("Mapea correctamente cuando lote, tipoMovimiento y motivo son null")
-    void fromMovimientoEntity_sinLoteNiEnums() {
-        Movimiento mov = new Movimiento();     // todos los campos null por defecto
-        mov.setFecha(LocalDate.of(2025, 8, 7));
-        mov.setCantidad(new BigDecimal("5"));
-        mov.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
-        mov.setObservaciones("obs");
-        mov.setNroAnalisis("N-1");
-        mov.setOrdenProduccion("OP-1");
-        mov.setDictamenInicial(DictamenEnum.DEVOLUCION_CLIENTES);
-        mov.setDictamenFinal(DictamenEnum.RECHAZADO);
+    void fromEntityMovimiento_retNullSiEsNull() {
+        assertNull(DTOUtils.fromEntity((Movimiento)null));
+    }
 
-        MovimientoDTO dto = DTOUtils.fromEntity(mov);
-
-        assertEquals(LocalDate.of(2025, 8, 7), dto.getFechaMovimiento());
-        assertNull(dto.getCodigoInternoLote());      // sin lote
-        assertEquals(new BigDecimal("5"), dto.getCantidad());
-        assertEquals(UnidadMedidaEnum.KILOGRAMO, dto.getUnidadMedida());
-        assertNull(dto.getTipoMovimiento());         // enum nulo en origen
-        assertNull(dto.getMotivo());
+    @Test
+    void fromEntityTraza_retNullSiEsNull() {
+        assertNull(DTOUtils.fromEntity((Traza)null));
     }
 
     @Test
@@ -139,48 +159,40 @@ class DTOUtilsTest {
         assertEquals(DictamenEnum.RECHAZADO, dto.getDictamenFinal());
     }
 
-    /* ---------- caso 1: entidad nula ---------- */
     @Test
-    @DisplayName("Devuelve null si Analisis es null")
-    void fromAnalisisEntity_entidadNull() {
-        assertNull(DTOUtils.fromEntity((Analisis) null));
+    @DisplayName("Devuelve null si el Movimiento es null")
+    void fromMovimientoEntity_movimientoNull() {
+        assertNull(DTOUtils.fromEntity((Movimiento)null));
     }
 
-    /* ---------- caso 2: mapeo completo ---------- */
     @Test
-    @DisplayName("Copia todos los campos cuando Analisis tiene datos")
-    void fromAnalisisEntity_mapeoCompleto() {
-        // Crear una entidad Analisis con todos los valores relevantes
-        Analisis entity = new Analisis();
-        entity.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 10, 30));
-        entity.setNroAnalisis("AN-001");
-        entity.setFechaRealizado(LocalDate.of(2025, 8, 1));
-        entity.setFechaReanalisis(LocalDate.of(2026, 8, 1));
-        entity.setFechaVencimiento(LocalDate.of(2027, 8, 1));
-        entity.setDictamen(DictamenEnum.APROBADO);
-        entity.setTitulo(new BigDecimal("87.5"));
-        entity.setObservaciones("ok");
+    @DisplayName("Mapea correctamente cuando lote, tipoMovimiento y motivo son null")
+    void fromMovimientoEntity_sinLoteNiEnums() {
+        Movimiento mov = new Movimiento();     // todos los campos null por defecto
+        mov.setFecha(LocalDate.of(2025, 8, 7));
+        mov.setCantidad(new BigDecimal("5"));
+        mov.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
+        mov.setObservaciones("obs");
+        mov.setNroAnalisis("N-1");
+        mov.setOrdenProduccion("OP-1");
+        mov.setDictamenInicial(DictamenEnum.DEVOLUCION_CLIENTES);
+        mov.setDictamenFinal(DictamenEnum.RECHAZADO);
 
-        // Llamamos al método a testear
-        AnalisisDTO dto = DTOUtils.fromEntity(entity);
+        MovimientoDTO dto = DTOUtils.fromEntity(mov);
 
-        // Verificaciones
-        assertNotNull(dto);
-        assertEquals(entity.getFechaYHoraCreacion(), dto.getFechaYHoraCreacion());
-        assertEquals("AN-001", dto.getNroAnalisis());
-        assertEquals(LocalDate.of(2025, 8, 1), dto.getFechaRealizado());
-        assertEquals(LocalDate.of(2026, 8, 1), dto.getFechaReanalisis());
-        assertEquals(LocalDate.of(2027, 8, 1), dto.getFechaVencimiento());
-        assertEquals(DictamenEnum.APROBADO, dto.getDictamen());
-        assertEquals(new BigDecimal("87.5"), dto.getTitulo());
-        assertEquals("ok", dto.getObservaciones());
+        assertEquals(LocalDate.of(2025, 8, 7), dto.getFechaMovimiento());
+        assertNull(dto.getCodigoInternoLote());      // sin lote
+        assertEquals(new BigDecimal("5"), dto.getCantidad());
+        assertEquals(UnidadMedidaEnum.KILOGRAMO, dto.getUnidadMedida());
+        assertNull(dto.getTipoMovimiento());         // enum nulo en origen
+        assertNull(dto.getMotivo());
     }
 
     /* ---------- caso 1: entidad nula ---------- */
     @Test
     @DisplayName("Devuelve null si Traza es null")
     void fromTrazaEntity_entidadNull() {
-        assertNull(DTOUtils.fromEntity((Traza) null));
+        assertNull(DTOUtils.fromEntity((Traza)null));
     }
 
     /* ---------- caso 2: mapeo completo ---------- */
@@ -211,39 +223,19 @@ class DTOUtilsTest {
         assertEquals("ok", dto.getObservaciones());
     }
 
-
-
-
-
-
-
-
-    /* -------------------------------------------------
-     *  Utils para crear mocks/objetos de prueba simples
-     * ------------------------------------------------- */
-    private Producto producto() {
-        Producto pr = mock(Producto.class);
-        when(pr.getId()).thenReturn(1L);
-        when(pr.getNombreGenerico()).thenReturn("Paracetamol");
-        when(pr.getCodigoInterno()).thenReturn("P-001");
-        when(pr.getTipoProducto()).thenReturn(TipoProductoEnum.GRANEL_MEZCLA_POLVO);
-        when(pr.getProductoDestino()).thenReturn("Tabletas");
-        return pr;
+    private MovimientoDTO buildDto(
+        String nroAnalisis,
+        String nroReanalisis) {
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 10, 0));
+        dto.setObservaciones("obs");
+        dto.setNroAnalisis(nroAnalisis);
+        dto.setNroReanalisis(nroReanalisis);
+        return dto;
     }
 
-    private EstadoEnum estado(String valor, int prioridad) {
-        EstadoEnum e = mock(EstadoEnum.class);
-        when(e.getValor()).thenReturn(valor);
-        when(e.getPrioridad()).thenReturn(prioridad);
-        return e;
-    }
-
-    private UnidadMedidaEnum um(int ordinal) {
-        // Tomamos cualquier constante real; garantiza ≠ si ordinal cambia
-        return UnidadMedidaEnum.values()[ordinal];
-    }
-
-    private Bulto bulto(int nro, BigDecimal cantIni, BigDecimal cantAct,
+    private Bulto bulto(
+        int nro, BigDecimal cantIni, BigDecimal cantAct,
         UnidadMedidaEnum um, EstadoEnum estado) {
 
         Movimiento mov = mock(Movimiento.class);
@@ -262,7 +254,19 @@ class DTOUtilsTest {
         return b;
     }
 
-    private Lote lote(String codigoInterno, int nroBulto,
+    private EstadoEnum estado(String valor, int prioridad) {
+        EstadoEnum e = mock(EstadoEnum.class);
+        when(e.getValor()).thenReturn(valor);
+        when(e.getPrioridad()).thenReturn(prioridad);
+        return e;
+    }
+
+    /* ---------------------------------
+     *          Test individuales
+     * --------------------------------- */
+
+    private Lote lote(
+        String codigoInterno, int nroBulto,
         UnidadMedidaEnum um, EstadoEnum estado) {
 
         Lote l = mock(Lote.class, RETURNS_DEEP_STUBS);
@@ -290,7 +294,8 @@ class DTOUtilsTest {
         when(l.getTrazas()).thenReturn(Collections.emptyList());
 
         // Cada lote tiene un bulto homónimo
-        Bulto b = bulto(nroBulto,
+        Bulto b = bulto(
+            nroBulto,
             new BigDecimal("10"),
             new BigDecimal("10"),
             um, estado);
@@ -307,13 +312,28 @@ class DTOUtilsTest {
         return l;
     }
 
-    /* ---------------------------------
-     *          Test individuales
-     * --------------------------------- */
+    /* -------------------------------------------------
+     *  Utils para crear mocks/objetos de prueba simples
+     * ------------------------------------------------- */
+    private Producto producto() {
+        Producto pr = mock(Producto.class);
+        when(pr.getId()).thenReturn(1L);
+        when(pr.getNombreGenerico()).thenReturn("Paracetamol");
+        when(pr.getCodigoInterno()).thenReturn("P-001");
+        when(pr.getTipoProducto()).thenReturn(TipoProductoEnum.GRANEL_MEZCLA_POLVO);
+        when(pr.getProductoDestino()).thenReturn("Tabletas");
+        return pr;
+    }
+
+    private UnidadMedidaEnum um(int ordinal) {
+        // Tomamos cualquier constante real; garantiza ≠ si ordinal cambia
+        return UnidadMedidaEnum.values()[ordinal];
+    }
 
     @Nested
     @DisplayName("createAnalisis()")
     class CreateAnalisisTests {
+
         @Test
         void cuandoHayNumeroAnalisis_devuelveEntidad() {
             MovimientoDTO dto = mock(MovimientoDTO.class);
@@ -331,39 +351,11 @@ class DTOUtilsTest {
         @Test
         void cuandoNoHayNumero_lanzaExcepcion() {
             MovimientoDTO dto = mock(MovimientoDTO.class);
-            assertThrows(IllegalArgumentException.class,
+            assertThrows(
+                IllegalArgumentException.class,
                 () -> DTOUtils.createAnalisis(dto));
         }
+
     }
-
-    @Test
-    void fromEntityMovimiento_retNullSiEsNull() {
-        assertNull(DTOUtils.fromEntity((Movimiento) null));
-    }
-
-    @Test
-    void fromEntityAnalisis_retNullSiEsNull() {
-        assertNull(DTOUtils.fromEntity((Analisis) null));
-    }
-
-    @Test
-    void fromEntityTraza_retNullSiEsNull() {
-        assertNull(DTOUtils.fromEntity((Traza) null));
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

@@ -453,7 +453,21 @@ public class ControllerUtils {
             return false;
         }
         List<BigDecimal> cantidades = loteDTO.getCantidadesBultos();
+        if(cantidades.isEmpty()){
+            bindingResult.rejectValue(
+                "cantidadInicial",
+                "error.cantidadInicial",
+                "La cantidad del Lote no puede ser nula.");
+            return false;
+        }
         List<UnidadMedidaEnum> unidades = loteDTO.getUnidadMedidaBultos();
+        if(unidades.isEmpty()){
+            bindingResult.rejectValue(
+                "cantidadInicial",
+                "error.cantidadInicial",
+                "Las unidades de medida del Lote no pueden ser nulas.");
+            return false;
+        }
         boolean result = true;
         for (int i = 0; i < cantidades.size(); i++) {
             BigDecimal cantidad = cantidades.get(i);
