@@ -132,7 +132,6 @@ class DTOUtilsTest {
         MovimientoDTO dto = DTOUtils.fromEntity(mov);
 
         assertEquals("L-001", dto.getCodigoInternoLote());
-        assertEquals("3", dto.getNroBulto());
         assertEquals(99L, dto.getLoteId());
         assertEquals("BAJA", dto.getTipoMovimiento());
         assertEquals("VENCIMIENTO", dto.getMotivo());

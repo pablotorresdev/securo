@@ -78,7 +78,7 @@ public class ComprasController {
             return "compras/ingreso-compra";
         }
 
-        ingresoCompra(loteDTO, redirectAttributes);
+        procesaringresoCompra(loteDTO, redirectAttributes);
         return "redirect:/compras/ingreso-compra-ok";
     }
 
@@ -119,7 +119,7 @@ public class ComprasController {
             return "compras/devolucion-compra";
         }
 
-        devolucionCompra(movimientoDTO, lotesList, redirectAttributes);
+        procesarDevolucionCompra(movimientoDTO, lotesList, redirectAttributes);
         return "redirect:/compras/devolucion-compra-ok";
     }
 
@@ -129,7 +129,7 @@ public class ComprasController {
         return "compras/devolucion-compra-ok";
     }
 
-    private void devolucionCompra(
+    void procesarDevolucionCompra(
         final MovimientoDTO movimientoDTO,
         final List<Lote> lotesList,
         final RedirectAttributes redirectAttributes) {
@@ -145,7 +145,7 @@ public class ComprasController {
                 : "Hubo un error en la devolucion de compra.");
     }
 
-    private void ingresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+    void procesaringresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
         final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.altaStockPorCompra(loteDTO));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
@@ -156,11 +156,11 @@ public class ComprasController {
                 : "Hubo un error en el ingreso de stock por compra.");
     }
 
-    private void initModelDevolucionCompra(final Model model) {
+    void initModelDevolucionCompra(final Model model) {
         model.addAttribute("lotesDevolvibles", getLotesDtosByCodigoInterno(loteService.findAllForDevolucionCompra()));
     }
 
-    private void initModelIngresoCompra(final LoteDTO loteDTO, final Model model) {
+    void initModelIngresoCompra(final LoteDTO loteDTO, final Model model) {
         model.addAttribute("productos", productoService.getProductosExternos());
         model.addAttribute("proveedores", proveedorService.getProveedoresExternos());
 
