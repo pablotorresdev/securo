@@ -107,6 +107,29 @@
             </tr>
             </tbody>
         </table>
+        <div th:if="${loteDTO.bultosDTOs != null and #lists.size(loteDTO.bultosDTOs) > 0}">
+            <h4>Movimientos Registrados</h4>
+            <table class="table table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>Nro Bulto</th>
+                    <th>Cantidad Inicial</th>
+                    <th>Cantidad Actual</th>
+                    <th>Unidad Medida</th>
+                    <th>Estado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="bul : ${loteDTO.bultosDTOs}">
+                    <td th:text="${bul.nroBulto}"></td>
+                    <td th:text="${bul.getCantidadInicial()}"/>
+                    <td th:text="${bul.getCantidadActual()}"/>
+                    <td th:text="${bul.getUnidadMedida()}"></td>
+                    <td th:text="${bul.getEstado()}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
 
         <!-- Movimientos Registrados tras la devolución -->
@@ -117,7 +140,6 @@
                 <tr>
                     <th>Fecha Movimiento</th>
                     <th>Codigo Lote</th>
-                    <th>Nro Bulto</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
                     <th>Tipo Movimiento</th>
@@ -130,7 +152,6 @@
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
                     <td th:text="${mov.codigoInternoLote}"/>
-                    <td th:text="${mov.nroBulto}"/>
                     <td th:text="${mov.cantidad}"></td>
                     <td th:text="${mov.unidadMedida}"></td>
                     <td th:text="${mov.tipoMovimiento}"></td>

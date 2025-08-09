@@ -39,6 +39,24 @@ public class DTOUtils {
         throw new IllegalArgumentException("El número de análisis es requerido");
     }
 
+    public static BultoDTO fromEntity(Bulto entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        BultoDTO dto = new BultoDTO();
+        dto.setNroBulto(entity.getNroBulto());
+        dto.setCantidadActual(entity.getCantidadActual());
+        dto.setCantidadInicial(entity.getCantidadInicial());
+        dto.setUnidadMedida(entity.getUnidadMedida());
+        dto.setCodigoLote(entity.getLote().getCodigoInterno());
+        //dto.setMovimientos(entity.getMovimientos());
+        dto.setEstado(entity.getEstado());
+        //dto.setTrazas(entity.getTrazas());
+        return dto;
+    }
+
+
     public static MovimientoDTO fromEntity(Movimiento entity) {
         if (entity == null) {
             return null;
@@ -48,7 +66,7 @@ public class DTOUtils {
         dto.setFechaMovimiento(entity.getFecha());
         if (entity.getLote() != null) {
             dto.setCodigoInternoLote(entity.getLote().getCodigoInterno());
-            dto.setNroBulto(entity.getLote().getNroBulto().toString());
+//            dto.setNroBulto(entity.getLote().getNroBulto().toString());
             dto.setLoteId(entity.getLote().getId());
         }
 
@@ -245,7 +263,7 @@ public class DTOUtils {
 
         BigDecimal cantidadInicialLote = BigDecimal.ZERO;
         BigDecimal cantidadActualLote = BigDecimal.ZERO;
-        UnidadMedidaEnum uMedActual = loteDTO.getUnidadMedidaBultos().get(0);
+        UnidadMedidaEnum uMedActual = loteDTO.getBultosDTOs().get(0).getUnidadMedida();
 
         for (Bulto bultoEntity : loteEntity.getBultos()) {
             if (!bultoEntity.getActivo()) {
@@ -405,11 +423,14 @@ public class DTOUtils {
         }
     }
 
-    static void setListasBultosLote(final Lote bultoEntity, final LoteDTO loteDTO) {
-        loteDTO.getNroBultoList().add(bultoEntity.getNroBulto());
-        loteDTO.getCantidadesBultos().add(bultoEntity.getCantidadActual());
-        loteDTO.getUnidadMedidaBultos().add(bultoEntity.getUnidadMedida());
-    }
+    static void setListasBultosLote(final Lote entity, final LoteDTO loteDTO) {
+            for (Bulto bulto : entity.getBultos()) {
+                if (bulto.getActivo()) {
+                    final BultoDTO bultoDto = DTOUtils.fromEntity(bulto);
+                    loteDTO.getBultosDTOs().add(bultoDto);
+                }
+            }
+        }
 
     static void setProductoLote(final Lote loteEntity, final LoteDTO loteDTO) {
         if (loteEntity.getProducto() != null) {

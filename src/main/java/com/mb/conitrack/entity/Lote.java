@@ -24,6 +24,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -31,6 +32,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "lotes")
 @SQLDelete(sql = "UPDATE lotes SET activo = false WHERE id = ?")
+@ToString(exclude = {
+    "producto", "proveedor", "fabricante", "loteOrigen",
+    "bultos", "movimientos", "analisisList", "trazas"   // ⬅️ agregar
+})
 public class Lote {
 
     @Id
@@ -61,21 +66,8 @@ public class Lote {
     @Column(name = "fecha_ingreso", nullable = false)
     private LocalDate fechaIngreso;
 
-    @Column(name = "nro_bulto", nullable = false)
-    private Integer nroBulto;
-
     @Column(name = "bultos_totales", nullable = false)
     private Integer bultosTotales;
-
-    @Column(name = "cantidad_inicial", nullable = false, precision = 12, scale = 4)
-    private BigDecimal cantidadInicial;
-
-    @Column(name = "cantidad_actual", nullable = false, precision = 12, scale = 4)
-    private BigDecimal cantidadActual;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "unidad_medida", nullable = false)
-    private UnidadMedidaEnum unidadMedida;
 
     @Column(name = "lote_proveedor", nullable = false)
     private String loteProveedor;
@@ -119,7 +111,7 @@ public class Lote {
         mappedBy     = "lote",
         cascade      = CascadeType.ALL,
         orphanRemoval = true,
-        fetch        = FetchType.LAZY
+        fetch        = FetchType.EAGER
     )
     @JsonManagedReference
     private List<Analisis> analisisList = new ArrayList<>();
@@ -130,6 +122,23 @@ public class Lote {
 
     @Column(nullable = false)
     private Boolean activo;
+
+    @Deprecated
+    @Column(name = "cantidad_inicial", precision = 12, scale = 4)
+    private BigDecimal cantidadInicial;
+
+    @Deprecated
+    @Column(name = "cantidad_actual", precision = 12, scale = 4)
+    private BigDecimal cantidadActual;
+
+
+    @Column(name = "nro_bulto")
+    private Integer nroBulto;
+
+    @Deprecated
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unidad_medida")
+    private UnidadMedidaEnum unidadMedida;
 
 
     //****** ANALISIS ******//

@@ -19,6 +19,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 
+import static com.mb.conitrack.controller.ControllerUtils.getCountryList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -28,7 +29,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 /**
  * Pruebas unitarias (sin contexto Spring) para: - showIngresoCompra() - initModelIngresoCompra()
  */
-class ComprasControllerUnitTest {
+class ComprasControllerTest {
 
     @Mock
     ProductoService productoService;
@@ -36,12 +37,23 @@ class ComprasControllerUnitTest {
     @Mock
     ProveedorService proveedorService;
 
+
     @InjectMocks
     ComprasController controller;
 
-    private final List<Proveedor> proveedoresMock = null;
+    @Mock
+    List<Proveedor> proveedoresMock;
 
-    private final List<Producto> productosMock = null;
+    @Mock
+    List<Producto> productosMock;
+
+    @BeforeEach
+    void setUp() {
+        openMocks(this);   // inicializa @Mock y @InjectMocks
+
+        given(proveedorService.getProveedoresExternos()).willReturn(proveedoresMock);
+        given(productoService.getProductosExternos()).willReturn(productosMock);
+    }
 
     /* -------------------------------------------------
      * Caso 2: LoteDTO con listas ya inicializadas
@@ -51,64 +63,36 @@ class ComprasControllerUnitTest {
     void dtoConListas_noSeSobrescribe() {
         // given
         LoteDTO dto = new LoteDTO();
-        dto.setCantidadesBultos(new ArrayList<>(List.of(BigDecimal.ONE)));
-        dto.setUnidadMedidaBultos(new ArrayList<>(List.of(UnidadMedidaEnum.KILOGRAMO)));
+        dto.setCantidadesBultos(new ArrayList<BigDecimal>(List.of(BigDecimal.ONE)));
+        dto.setUnidadMedidaBultos(new ArrayList<UnidadMedidaEnum>(List.of(UnidadMedidaEnum.KILOGRAMO)));
         Model model = new ExtendedModelMap();
 
         // when
-        controller.showIngresoCompra(dto, model);
+        final String s = controller.showIngresoCompra(dto, model);
+        assertEquals("compras/ingreso-compra", s);
 
         // then
         assertEquals(1, dto.getCantidadesBultos().size());
-        assertEquals(1, dto.getUnidadMedidaBultos().size());
+        assertEquals(1, dto.getCantidadesBultos().get(0).intValue());
+        assertEquals(UnidadMedidaEnum.KILOGRAMO.getNombre(), dto.getUnidadMedidaBultos().get(0).getNombre());
         assertSame(dto, model.getAttribute("loteDTO"));        // misma instancia
+        assertSame(productosMock, model.getAttribute("productos"));        // misma instancia
+        assertSame(proveedoresMock, model.getAttribute("proveedores"));        // misma instancia
+        assertEquals(getCountryList(), model.getAttribute("paises"));        // misma instancia
     }
 
     @Test
     @DisplayName("showIngresoCompra inicializa listas si vienen nulas")
     void dtoConListas_null() {
-        // given
         LoteDTO dto = new LoteDTO();
         dto.setCantidadesBultos(null);
         dto.setUnidadMedidaBultos(null);
-        Model model = new ExtendedModelMap();
-        // when
-        controller.showIngresoCompra(dto, model);
 
-        // then
-        assertNotNull(dto.getCantidadesBultos());
-        assertNotNull(dto.getUnidadMedidaBultos());
-        assertSame(dto, model.getAttribute("loteDTO"));        // misma instancia
-    }
+        controller.showIngresoCompra(dto, new ExtendedModelMap());
 
-    /* -------------------------------------------------
-     * Caso 1: LoteDTO con listas nulas
-     * ------------------------------------------------- */
-    @Test
-    @DisplayName("showIngresoCompra crea las listas cuando vienen nulas")
-    void dtoNuevo_creaListas() {
-        // given
-        LoteDTO dto = new LoteDTO();      // listas = null
-        Model model = new ExtendedModelMap();
-
-        // when
-        String vista = controller.showIngresoCompra(dto, model);
-
-        // then
-        assertEquals("compras/ingreso-compra", vista);
-        assertSame(dto, model.getAttribute("loteDTO"));
-        assertEquals(productosMock, model.getAttribute("productos"));
-        assertEquals(proveedoresMock, model.getAttribute("proveedores"));
         assertNotNull(dto.getCantidadesBultos());
         assertNotNull(dto.getUnidadMedidaBultos());
     }
 
-    @BeforeEach
-    void setUp() {
-        openMocks(this);   // inicializa @Mock y @InjectMocks
-
-        given(proveedorService.getProveedoresExternos()).willReturn(proveedoresMock);
-        given(productoService.getProductosExternos()).willReturn(productosMock);
-    }
 
 }

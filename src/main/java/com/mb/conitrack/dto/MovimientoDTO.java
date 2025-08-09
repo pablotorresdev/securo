@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -81,6 +80,8 @@ public class MovimientoDTO {
     private String movimientoOrigenId;
 
     private String ordenProduccion;
+
+    protected List<BultoDTO> bultoDTOS = new ArrayList<>();
 
     protected List<TrazaDTO> trazaDTOs = new ArrayList<>();
 

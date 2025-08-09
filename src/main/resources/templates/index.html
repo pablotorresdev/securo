@@ -140,6 +140,12 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/bultos/list-bultos}">
+                Lista de Bultos
+            </a>
+        </li>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/movimientos/list-movimientos}">
                 Lista de Movimientos
             </a>

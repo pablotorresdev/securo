@@ -28,7 +28,7 @@ import lombok.ToString;
     )
 )
 @SQLDelete(sql = "UPDATE traza SET activo = false WHERE id = ?")
-@ToString(exclude = { "lote" , "movimientos" })
+@ToString(exclude = { "lote", "bulto", "movimientos" }) // ⬅️ agregar "bulto"
 public class Traza {
 
     @Id
@@ -40,7 +40,7 @@ public class Traza {
     @JsonBackReference
     private Lote lote;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bulto_id", nullable = false)
     @JsonBackReference
     private Bulto bulto;

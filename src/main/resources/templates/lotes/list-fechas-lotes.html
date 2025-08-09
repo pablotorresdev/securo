@@ -13,7 +13,6 @@
         <tr>
             <th>Producto</th>
             <th>Código Interno</th>
-            <th>Nro Bulto</th>
             <th>Cantidad Actual</th>
             <th>Unidad Medida</th>
             <th>Días hasta Reanálisis Vigente</th>
@@ -29,7 +28,6 @@
         <tr th:each="lote : ${lotes}">
             <td th:text="${lote.producto.nombreGenerico}">Producto</td>
             <td th:text="${lote.codigoInternoLote}">Código Interno</td>
-            <td th:text="${lote.nroBulto}">Nro Bulto</td>
             <td th:text="${lote.cantidadActual}">Cantidad Actual</td>
             <td th:text="${lote.unidadMedida}">Unidad Medida</td>
             <!-- Días hasta Reanálisis Vigente -->

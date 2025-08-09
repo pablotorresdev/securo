@@ -46,6 +46,8 @@ public class LoteService {
 
     private final ProductoService productoService;
 
+    private final BultoService bultoService;
+
     private final MovimientoService movimientoService;
 
     private final AnalisisService analisisService;
@@ -152,6 +154,30 @@ public class LoteService {
         //        return Optional.of(nuevoLote);
     }
 
+
+    //***********CU1 ALTA: COMPRA***********
+    @Transactional
+    public Lote altaStockPorCompra(LoteDTO loteDTO) {
+        Proveedor proveedor = proveedorService.findById(loteDTO.getProveedorId())
+            .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
+        Producto producto = productoService.findById(loteDTO.getProductoId())
+            .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
+        String timestamp = loteDTO.getFechaYHoraCreacion().format(formatter);
+
+        Lote lote = createLoteIngreso(loteDTO);
+        populateLote(loteDTO, lote, producto, timestamp, proveedor);
+
+        Lote loteGuardado = loteRepository.save(lote);     // ✔ ahora el Lote ya está “managed”
+        bultoService.save(loteGuardado.getBultos());       // ✔ ahora los Bultos referencian un Lote persistido
+
+        Movimiento mov = movimientoService.persistirMovimientoAltaIngresoCompra(loteGuardado);
+        loteGuardado.getMovimientos().add(mov);
+
+        return loteGuardado;
+    }
+
     //***********CU2 MODIFICACION: CUARENTENA***********
     public List<Lote> findAllForCuarentena() {
         //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
@@ -163,6 +189,41 @@ public class LoteService {
             DictamenEnum.LIBERADO,
             DictamenEnum.DEVOLUCION_CLIENTES,
             DictamenEnum.RETIRO_MERCADO).contains(l.getDictamen())).toList();
+    }
+
+
+    @Transactional
+    public List<Lote> persistirDictamenCuarentena(final MovimientoDTO dto, final List<Lote> lotes) {
+        //TODO, eliminar NRO de Reanalisis del DTO
+        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis())
+            ? dto.getNroAnalisis()
+            : dto.getNroReanalisis();
+
+        Analisis currentAnalisis = analisisService.findByNroAnalisis(nroAnalisis);
+        Analisis newAnalisis = null;
+        if (currentAnalisis == null) {
+            newAnalisis = analisisService.save(DTOUtils.createAnalisis(dto));
+        }
+
+        List<Lote> result = new ArrayList<>();
+        for (Lote loteBulto : lotes) {
+            final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
+            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(
+                dto,
+                loteBulto,
+                nroAnalisisMovimiento);
+
+            loteBulto.setDictamen(movimiento.getDictamenFinal());
+            loteBulto.getMovimientos().add(movimiento);
+
+            if (newAnalisis != null) {
+                loteBulto.getAnalisisList().add(newAnalisis);
+                newAnalisis.setLote(loteBulto);
+            }
+
+            result.add(loteRepository.save(loteBulto));
+        }
+        return result;
     }
 
     //***********CUZ MODIFICACION: Reanalisis de Producto Aprobado***********
@@ -256,61 +317,6 @@ public class LoteService {
         return trazaService.findMaxNroTraza(idProducto);
     }
 
-    //***********CU1 ALTA: COMPRA***********
-    @Transactional
-    public Lote altaStockPorCompra(LoteDTO loteDTO) {
-        Proveedor proveedor = proveedorService.findById(loteDTO.getProveedorId())
-            .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
-        Producto producto = productoService.findById(loteDTO.getProductoId())
-            .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss");
-        String timestamp = loteDTO.getFechaYHoraCreacion().format(formatter);
-
-        Lote lote = createLoteIngreso(loteDTO);
-        populateLote(loteDTO, lote, producto, timestamp, proveedor);
-
-        Lote bultoGuardado = loteRepository.save(lote);
-        final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoCompra(bultoGuardado);
-        bultoGuardado.getMovimientos().add(movimiento);
-
-        return bultoGuardado;
-    }
-
-    //***********CU2 MODIFICACION: CUARENTENA***********
-    @Transactional
-    public List<Lote> persistirDictamenCuarentena(final MovimientoDTO dto, final List<Lote> lotes) {
-        //TODO, eliminar NRO de Reanalisis del DTO
-        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis())
-            ? dto.getNroAnalisis()
-            : dto.getNroReanalisis();
-
-        Analisis currentAnalisis = analisisService.findByNroAnalisis(nroAnalisis);
-        Analisis newAnalisis = null;
-        if (currentAnalisis == null) {
-            newAnalisis = analisisService.save(DTOUtils.createAnalisis(dto));
-        }
-
-        List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : lotes) {
-            final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
-            final Movimiento movimiento = movimientoService.persistirMovimientoCuarentenaPorAnalisis(
-                dto,
-                loteBulto,
-                nroAnalisisMovimiento);
-
-            loteBulto.setDictamen(movimiento.getDictamenFinal());
-            loteBulto.getMovimientos().add(movimiento);
-
-            if (newAnalisis != null) {
-                loteBulto.getAnalisisList().add(newAnalisis);
-                newAnalisis.setLote(loteBulto);
-            }
-
-            result.add(loteRepository.save(loteBulto));
-        }
-        return result;
-    }
 
     //***********CU11 MODIFICACION: LIBERACION DE PRODUCTO***********
     @Transactional
@@ -742,7 +748,7 @@ public class LoteService {
         final Producto producto,
         final String timestamp,
         final Proveedor proveedor) {
-        lote.setCodigoInterno("L-" + producto.getTipoProducto() + "-" + timestamp);
+        lote.setCodigoInterno("L-" + producto.getCodigoInterno() + "-" + timestamp);
         Optional<Proveedor> fabricante = Optional.empty();
         if (loteDTO.getFabricanteId() != null) {
             fabricante = proveedorService.findById(loteDTO.getFabricanteId());
@@ -764,6 +770,7 @@ public class LoteService {
             Bulto bulto = createBultoIngreso(loteDTO);
             populateCantidadUdeMBulto(loteDTO, bultosTotales, bulto, i);
             lote.getBultos().add(bulto);
+            bulto.setLote(lote);
         }
     }
 

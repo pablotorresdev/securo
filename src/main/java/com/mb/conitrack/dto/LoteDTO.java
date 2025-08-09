@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -105,6 +106,7 @@ public class LoteDTO {
 
     protected List<UnidadMedidaEnum> unidadMedidaBultos = new ArrayList<>();
 
+
     @PositiveOrZero(message = "La cantidad no puede ser negativa")
     private BigDecimal cantidadActual;
 
@@ -112,6 +114,8 @@ public class LoteDTO {
 
     //Esto junto con cantidad de unidades total, dara el rango de traza para ese lote
     protected Long trazaInicial;
+
+    protected List<BultoDTO> bultosDTOs = new ArrayList<>();
 
     protected List<MovimientoDTO> movimientoDTOs = new ArrayList<>();
 

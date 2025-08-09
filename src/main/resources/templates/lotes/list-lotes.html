@@ -63,6 +63,7 @@
             <td th:text="${lote.activo}"></td>
             <td>
                 <a class="btn btn-primary btn-sm" th:href="@{'/movimientos/loteId/' + ${lote.id}}">Ver Movimientos</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/bultos/loteId/' + ${lote.id}}">Ver Bultos</a>
                 <a class="btn btn-primary btn-sm" th:href="@{'/analisis/loteId/' + ${lote.id}}">Ver Analisis</a>
                 <a class="btn btn-primary btn-sm" th:href="@{'/trazas/loteId/' + ${lote.id}}">Ver Trazas</a>
             </td>

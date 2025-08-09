@@ -20,6 +20,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -27,6 +28,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "bultos")
 @SQLDelete(sql = "UPDATE bultos SET activo = false WHERE id = ?")
+@ToString(exclude = { "lote", "movimientos", "trazas" }) // ⬅️ agregar
 public class Bulto {
 
     @Id

@@ -86,18 +86,18 @@ CREATE TABLE lotes
 (
     id                   BIGSERIAL PRIMARY KEY,
     fecha_creacion       TIMESTAMP      NOT NULL,
-    codigo_interno       VARCHAR(50)    NOT NULL,
+    codigo_interno       VARCHAR(70)    NOT NULL,
     producto_id          BIGINT         NOT NULL,
     proveedor_id         BIGINT         NOT NULL,
     fabricante_id        BIGINT,
     pais_origen          TEXT           NOT NULL,
 
     fecha_ingreso        DATE           NOT NULL,
-    nro_bulto            INT            NOT NULL,
+    nro_bulto            INT,
     bultos_totales       INT            NOT NULL,
-    cantidad_inicial     NUMERIC(12, 4) NOT NULL,
-    cantidad_actual      NUMERIC(12, 4) NOT NULL,
-    unidad_medida        VARCHAR(50)    NOT NULL,
+    cantidad_inicial     NUMERIC(12, 4),
+    cantidad_actual      NUMERIC(12, 4),
+    unidad_medida        VARCHAR(50),
 
     lote_proveedor       TEXT           NOT NULL,
     fecha_reanal_prov    DATE,

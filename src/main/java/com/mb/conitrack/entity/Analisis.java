@@ -24,7 +24,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "analisis")
 @SQLDelete(sql = "UPDATE analisis SET activo = false WHERE id = ?")
-@ToString(exclude = { "lotes" })
+@ToString(exclude = { "lote" }) // ⬅️ antes decía "lotes"
 public class Analisis {
 
     @Id
@@ -37,7 +37,7 @@ public class Analisis {
     @Column(name = "nro_analisis", length = 30, nullable = false)
     private String nroAnalisis;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
     private Lote lote;
