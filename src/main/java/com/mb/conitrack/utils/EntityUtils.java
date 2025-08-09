@@ -1,4 +1,4 @@
-package com.mb.conitrack.entity;
+package com.mb.conitrack.utils;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -6,49 +6,25 @@ import java.util.Optional;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 
+import lombok.Getter;
+
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 
 public class EntityUtils {
 
+    @Getter
+    private static final EntityUtils Instance = new EntityUtils();
 
-    public static Bulto createBultoIngreso(final LoteDTO loteDTO) {
-        Bulto bulto = new Bulto();
-
-        //Datos CU1
-        bulto.setEstado(EstadoEnum.NUEVO);
-        bulto.setActivo(Boolean.TRUE);
-
-        return bulto;
-    }
-
-    public static Lote createLoteIngreso(final LoteDTO loteDTO) {
-        Lote lote = new Lote();
-
-        //Datos CU1
-        lote.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
-        lote.setEstado(EstadoEnum.NUEVO);
-        lote.setDictamen(DictamenEnum.RECIBIDO);
-        lote.setActivo(Boolean.TRUE);
-
-        //Datos obligatorios comunes
-        lote.setPaisOrigen(loteDTO.getPaisOrigen());
-        lote.setFechaIngreso(loteDTO.getFechaIngreso());
-        lote.setBultosTotales(loteDTO.getBultosTotales());
-        lote.setLoteProveedor(loteDTO.getLoteProveedor());
-
-        //Datos opcionales comunes
-        lote.setFechaReanalisisProveedor(loteDTO.getFechaReanalisisProveedor());
-        lote.setFechaVencimientoProveedor(loteDTO.getFechaVencimientoProveedor());
-        lote.setNroRemito(loteDTO.getNroRemito());
-        lote.setDetalleConservacion(loteDTO.getDetalleConservacion());
-        lote.setObservaciones(loteDTO.getObservaciones());
-
-        return lote;
+    private EntityUtils() {
     }
 
     public static Movimiento createMovimientoAltaDevolucionVenta(final Lote lote) {
@@ -152,6 +128,41 @@ public class EntityUtils {
         movimiento.getTrazas().addAll(lote.getTrazas());
         movimiento.setActivo(true);
         return movimiento;
+    }
+
+    public Bulto createBultoIngreso(final LoteDTO loteDTO) {
+        Bulto bulto = new Bulto();
+
+        //Datos CU1
+        bulto.setEstado(EstadoEnum.NUEVO);
+        bulto.setActivo(Boolean.TRUE);
+
+        return bulto;
+    }
+
+    public Lote createLoteIngreso(final LoteDTO loteDTO) {
+        Lote lote = new Lote();
+
+        //Datos CU1
+        lote.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+        lote.setEstado(EstadoEnum.NUEVO);
+        lote.setDictamen(DictamenEnum.RECIBIDO);
+        lote.setActivo(Boolean.TRUE);
+
+        //Datos obligatorios comunes
+        lote.setPaisOrigen(loteDTO.getPaisOrigen());
+        lote.setFechaIngreso(loteDTO.getFechaIngreso());
+        lote.setBultosTotales(loteDTO.getBultosTotales());
+        lote.setLoteProveedor(loteDTO.getLoteProveedor());
+
+        //Datos opcionales comunes
+        lote.setFechaReanalisisProveedor(loteDTO.getFechaReanalisisProveedor());
+        lote.setFechaVencimientoProveedor(loteDTO.getFechaVencimientoProveedor());
+        lote.setNroRemito(loteDTO.getNroRemito());
+        lote.setDetalleConservacion(loteDTO.getDetalleConservacion());
+        lote.setObservaciones(loteDTO.getObservaciones());
+
+        return lote;
     }
 
 }

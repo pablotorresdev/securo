@@ -3,6 +3,7 @@ package com.mb.conitrack.controller;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,17 +21,23 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 
 import static com.mb.conitrack.controller.ControllerUtils.getCountryList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
@@ -48,6 +55,9 @@ class ComprasControllerTest {
     @Spy
     @InjectMocks
     ComprasController controller;
+
+    @Mock
+    LoteService loteService;
 
     @Mock
     ProductoService productoService;
@@ -84,8 +94,8 @@ class ComprasControllerTest {
     void dtoConListas_noSeSobrescribe() {
         // given
         LoteDTO dto = new LoteDTO();
-        dto.setCantidadesBultos(new ArrayList<BigDecimal>(List.of(BigDecimal.ONE)));
-        dto.setUnidadMedidaBultos(new ArrayList<UnidadMedidaEnum>(List.of(UnidadMedidaEnum.KILOGRAMO)));
+        dto.setCantidadesBultos(new ArrayList<>(List.of(BigDecimal.ONE)));
+        dto.setUnidadMedidaBultos(new ArrayList<>(List.of(UnidadMedidaEnum.KILOGRAMO)));
         Model model = new ExtendedModelMap();
 
         when(proveedorService.getProveedoresExternos()).thenReturn(proveedoresMock);
@@ -210,6 +220,72 @@ class ComprasControllerTest {
 
             verify(controller, never()).initModelIngresoCompra(any(), any());
             verify(controller).procesaringresoCompra(dto, redirect);
+        }
+    }
+
+    @Test
+    @DisplayName("procesaringresoCompra: resultDTO != null -> agrega loteDTO y success")
+    void procesar_ok() {
+        // given
+        LoteDTO entrada = new LoteDTO();
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        Lote devueltoPorService = new Lote();
+        LoteDTO resultDTO = new LoteDTO();
+
+        when(loteService.altaStockPorCompra(entrada)).thenReturn(devueltoPorService);
+
+        try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
+            mocked.when(() -> DTOUtils.mergeEntities(devueltoPorService)).thenReturn(resultDTO);
+
+            // when
+            controller.procesaringresoCompra(entrada, redirect);
+
+            // then
+            // 1) Se setea fecha y hora de creación
+            assertNotNull(entrada.getFechaYHoraCreacion(), "Debe setear fecha/hora de creación");
+
+            // 2) Se llamó al servicio y al DTOUtils
+            verify(loteService).altaStockPorCompra(entrada);
+            mocked.verify(() -> DTOUtils.mergeEntities(devueltoPorService));
+
+            // 3) Flash attributes correctos
+            Map<String, ?> flash = redirect.getFlashAttributes();
+            assertSame(resultDTO, flash.get("loteDTO"));
+            assertEquals("Ingreso de stock por compra exitoso.", flash.get("success"));
+            assertFalse(flash.containsKey("error"));
+        }
+    }
+
+    @Test
+    @DisplayName("procesaringresoCompra: resultDTO == null -> agrega loteDTO=null y error")
+    void procesar_error() {
+        // given
+        LoteDTO entrada = new LoteDTO();
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        Lote devueltoPorService = new Lote();
+
+        when(loteService.altaStockPorCompra(entrada)).thenReturn(devueltoPorService);
+
+        try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
+            // Forzamos que el merge devuelva null
+            mocked.when(() -> DTOUtils.mergeEntities(devueltoPorService)).thenReturn(null);
+
+            // when
+            controller.procesaringresoCompra(entrada, redirect);
+
+            // then
+            assertNotNull(entrada.getFechaYHoraCreacion(), "Debe setear fecha/hora de creación");
+
+            verify(loteService).altaStockPorCompra(entrada);
+            mocked.verify(() -> DTOUtils.mergeEntities(devueltoPorService));
+
+            Map<String, ?> flash = redirect.getFlashAttributes();
+            assertTrue(flash.containsKey("loteDTO"));  // lo agrega aunque sea null
+            assertNull(flash.get("loteDTO"));
+            assertEquals("Hubo un error en el ingreso de stock por compra.", flash.get("error"));
+            assertFalse(flash.containsKey("success"));
         }
     }
 
