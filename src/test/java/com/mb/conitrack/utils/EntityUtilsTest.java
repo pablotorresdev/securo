@@ -129,10 +129,15 @@ class EntityUtilsTest {
 
         // bultos en el lote para verificar que se copian
         Bulto b1 = new Bulto();
+        b1.setNroBulto(1);
+        b1.setLote(lote);
         b1.setCantidadInicial(BigDecimal.TEN);
         b1.setCantidadActual(BigDecimal.TEN);
         b1.setUnidadMedida(UnidadMedidaEnum.GRAMO);
+
         Bulto b2 = new Bulto();
+        b2.setNroBulto(2);
+        b2.setLote(lote);
         b2.setCantidadInicial(BigDecimal.ONE);
         b2.setCantidadActual(BigDecimal.ONE);
         b2.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);

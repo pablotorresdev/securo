@@ -627,25 +627,21 @@ class LoteServiceTest {
         a.setActivo(true);
         a.setFechaIngreso(LocalDate.of(2024, 1, 10));
         a.setCodigoInterno("L-02");
-        a.setNroBulto(2);
 
         Lote b = new Lote();
         b.setActivo(true);
         b.setFechaIngreso(LocalDate.of(2024, 1, 10)); // misma fecha que 'a'
         b.setCodigoInterno("L-01");                   // código anterior => debe ir antes que 'a'
-        b.setNroBulto(5);
 
         Lote c = new Lote();
         c.setActivo(true);
         c.setFechaIngreso(LocalDate.of(2023, 12, 31)); // fecha más vieja => primero
         c.setCodigoInterno("L-99");
-        c.setNroBulto(1);
 
         Lote d = new Lote();
         d.setActivo(false); // inactivo => debe ser filtrado
         d.setFechaIngreso(LocalDate.of(2025, 5, 5));
         d.setCodigoInterno("L-00");
-        d.setNroBulto(1);
 
         when(loteRepository.findAll()).thenReturn(Arrays.asList(a, b, c, d));
 

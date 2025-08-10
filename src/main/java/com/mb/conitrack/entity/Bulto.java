@@ -29,20 +29,22 @@ import lombok.ToString;
 @Entity
 @Table(name = "bultos")
 @SQLDelete(sql = "UPDATE bultos SET activo = false WHERE id = ?")
-@EqualsAndHashCode(exclude = {"lote", "movimientos", "trazas"})
-@ToString(exclude = { "lote", "movimientos", "trazas" }) // ⬅️ agregar
+@ToString(exclude = { "lote", "movimientos", "trazas", "detalles" }) // ⬅️ agregar
 public class Bulto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
+    @EqualsAndHashCode.Include
     private Lote lote;
 
     @Column(name = "nro_bulto", nullable = false)
+    @EqualsAndHashCode.Include
     private Integer nroBulto;
 
     @Column(name = "cantidad_inicial", nullable = false, precision = 12, scale = 4)
@@ -61,10 +63,16 @@ public class Bulto {
 
     @ManyToMany(mappedBy = "bultos")
     @JsonBackReference
+    @EqualsAndHashCode.Exclude
     private Set<Movimiento> movimientos = new HashSet<>();
+
+    @OneToMany(mappedBy = "bulto", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
+    private Set<DetalleMovimiento> detalles = new HashSet<>();
 
     @OneToMany(mappedBy = "bulto", fetch = FetchType.EAGER)
     @JsonManagedReference
+    @EqualsAndHashCode.Exclude
     private List<Traza> trazas = new ArrayList<>();
 
     @Column(nullable = false)

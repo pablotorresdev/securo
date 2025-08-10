@@ -20,6 +20,7 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
@@ -81,12 +82,15 @@ public class LoteService {
         populateLoteAltaStockCompra(lote, loteDTO, producto, proveedor);
 
         Lote loteGuardado = loteRepository.save(lote);     // ✔ ahora el Lote ya está “managed”
-        bultoService.save(loteGuardado.getBultos());       // ✔ ahora los Bultos referencian un Lote persistido
+        final List<Bulto> bultosGuardados = loteGuardado.getBultos();
+        bultoService.save(bultosGuardados);       // ✔ ahora los Bultos referencian un Lote persistido
 
         final Movimiento movimientoAltaIngresoCompra = createMovimientoAltaIngresoCompra(loteDTO);
         addLoteInfoToMovimiento(loteGuardado, movimientoAltaIngresoCompra);
 
-        loteGuardado.getMovimientos().add(movimientoService.save(movimientoAltaIngresoCompra));
+        final Movimiento movimientoGuardado = movimientoService.save(movimientoAltaIngresoCompra);
+        loteGuardado.getMovimientos().add(movimientoGuardado);
+
         return loteGuardado;
     }
 
@@ -156,7 +160,7 @@ public class LoteService {
         final Movimiento movimiento = movimientoService.persistirMovimientoMuestreo(dto, bulto);
 
         bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(dto, bulto));
-        bulto.getLote().setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(dto, bulto.getLote()));
+        lote.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(dto, lote));
 
         boolean unidadVenta = lote.getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
 
@@ -235,13 +239,23 @@ public class LoteService {
             dto.setDictamenInicial(lote.getDictamen());
 
             final Movimiento movimiento = crearMovimientoDevolucionCompra(dto);
-            movimiento.getBultos().add(bulto);
             movimiento.setLote(lote);
-            final Movimiento savedMovimiento = movimientoService.save(movimiento);
+            movimiento.getBultos().add(bulto);
 
-            bulto.setEstado(EstadoEnum.DEVUELTO);
+            DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimiento)
+                .bulto(bulto)
+                .cantidad(bulto.getCantidadActual())
+                .unidadMedida(bulto.getUnidadMedida())
+                .build();
+            movimiento.getDetalles().add(det);
+
+            bulto.getDetalles().add(det);
             bulto.setCantidadActual(BigDecimal.ZERO);
-            bulto.getMovimientos().add(savedMovimiento);
+            bulto.setEstado(EstadoEnum.DEVUELTO);
+            bulto.getMovimientos().add(movimiento);
+
+            final Movimiento savedMovimiento = movimientoService.save(movimiento);
             bultoService.save(bulto);
 
             lote.getMovimientos().add(savedMovimiento);
@@ -747,7 +761,7 @@ public class LoteService {
         }
         lote.setBultosTotales(bultosTotales);
         lote.setCantidadInicial(loteDTO.getCantidadInicial());
-        lote.setCantidadActual(loteDTO.getCantidadActual());
+        lote.setCantidadActual(loteDTO.getCantidadInicial());
         lote.setUnidadMedida(loteDTO.getUnidadMedida());
     }
 

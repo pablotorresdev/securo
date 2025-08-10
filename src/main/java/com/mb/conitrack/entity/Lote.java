@@ -50,6 +50,7 @@ public class Lote {
     private LocalDateTime fechaYHoraCreacion;
 
     @Column(name = "codigo_interno", length = 50, nullable = false)
+    @EqualsAndHashCode.Include
     private String codigoInterno;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -105,10 +106,12 @@ public class Lote {
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
     @JsonManagedReference
+    @EqualsAndHashCode.Exclude
     private List<Bulto> bultos = new ArrayList<>();
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
     @JsonManagedReference
+    @EqualsAndHashCode.Exclude
     private List<Movimiento> movimientos = new ArrayList<>();
 
     @OneToMany(
@@ -118,10 +121,12 @@ public class Lote {
         fetch = FetchType.EAGER
     )
     @JsonManagedReference
+    @EqualsAndHashCode.Exclude
     private List<Analisis> analisisList = new ArrayList<>();
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
     @JsonManagedReference
+    @EqualsAndHashCode.Exclude
     private List<Traza> trazas = new ArrayList<>();
 
     @Column(nullable = false)
@@ -133,90 +138,13 @@ public class Lote {
     @Column(name = "cantidad_actual", precision = 12, scale = 4)
     private BigDecimal cantidadActual;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unidad_medida", nullable = false)
+    private UnidadMedidaEnum unidadMedida;
+
     @Deprecated
     @Column(name = "nro_bulto")
     private Integer nroBulto;
-
-    public UnidadMedidaEnum getUnidadMedida() {
-
-        UnidadMedidaEnum uMedActual = null;
-        BigDecimal cantidadActual1 = BigDecimal.ZERO;
-        BigDecimal cantidadIncial = BigDecimal.ZERO;
-
-        for (Bulto b : bultos) {
-            if (cantidadActual1.equals(BigDecimal.ZERO) && uMedActual == null) {
-                cantidadIncial = b.getCantidadInicial();
-                cantidadActual1 = b.getCantidadActual();
-                uMedActual = b.getUnidadMedida();
-            } else {
-                if (uMedActual.equals(b.getUnidadMedida())) {
-                    cantidadIncial = cantidadIncial.add(b.getCantidadInicial());
-                    cantidadActual1 = cantidadActual1.add(b.getCantidadActual());
-                } else {
-                    final UnidadMedidaEnum menorUnidadMedida = UnidadMedidaUtils.obtenerMenorUnidadMedida(
-                        uMedActual,
-                        b.getUnidadMedida());
-                    cantidadIncial = UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                        uMedActual,
-                        cantidadIncial,
-                        menorUnidadMedida).add(
-                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                            b.getUnidadMedida(),
-                            b.getCantidadInicial(),
-                            menorUnidadMedida)
-                    );
-                    cantidadActual1 = UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                        uMedActual,
-                        cantidadActual1,
-                        menorUnidadMedida).add(
-                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                            b.getUnidadMedida(),
-                            b.getCantidadActual(),
-                            menorUnidadMedida)
-                    );
-                    uMedActual = menorUnidadMedida;
-                }
-            }
-        }
-
-        return uMedActual;
-    }
-
-    public void setUnidadMedida(UnidadMedidaEnum unidadMedida) {
-        log.warn("setUnidadMedida() is deprecated, use getUnidadMedida() instead.");
-    }
-
-    public BigDecimal getCantidadInicial() {
-        UnidadMedidaEnum uMedActual = null;
-
-        BigDecimal quantIncial = BigDecimal.ZERO;
-
-        for (Bulto b : bultos) {
-            if (quantIncial.equals(BigDecimal.ZERO) && uMedActual == null) {
-                quantIncial = b.getCantidadInicial();
-                uMedActual = b.getUnidadMedida();
-            } else {
-                if (uMedActual.equals(b.getUnidadMedida())) {
-                    quantIncial = quantIncial.add(b.getCantidadInicial());
-                } else {
-                    final UnidadMedidaEnum menorUnidadMedida = UnidadMedidaUtils.obtenerMenorUnidadMedida(
-                        uMedActual,
-                        b.getUnidadMedida());
-                    quantIncial = UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                        uMedActual,
-                        quantIncial,
-                        menorUnidadMedida).add(
-                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                            b.getUnidadMedida(),
-                            b.getCantidadInicial(),
-                            menorUnidadMedida)
-                    );
-                    uMedActual = menorUnidadMedida;
-                }
-            }
-        }
-        return cantidadActual;
-    }
 
     //****** ANALISIS ******//
     public Analisis getUltimoAnalisis() {
@@ -361,38 +289,6 @@ public class Lote {
                 .max(Comparator.comparing(Traza::getNroTraza))
                 .orElse(null);
         }
-    }
-
-    private BigDecimal getCantidadActual(
-        UnidadMedidaEnum uMedActual) {
-
-        BigDecimal quantActual = BigDecimal.ZERO;
-
-        for (Bulto b : bultos) {
-            if (quantActual.equals(BigDecimal.ZERO) && uMedActual == null) {
-                quantActual = b.getCantidadActual();
-                uMedActual = b.getUnidadMedida();
-            } else {
-                if (uMedActual.equals(b.getUnidadMedida())) {
-                    quantActual = quantActual.add(b.getCantidadActual());
-                } else {
-                    final UnidadMedidaEnum menorUnidadMedida = UnidadMedidaUtils.obtenerMenorUnidadMedida(
-                        uMedActual,
-                        b.getUnidadMedida());
-                    quantActual = UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                        uMedActual,
-                        quantActual,
-                        menorUnidadMedida).add(
-                        UnidadMedidaUtils.convertirCantidadEntreUnidades(
-                            b.getUnidadMedida(),
-                            b.getCantidadActual(),
-                            menorUnidadMedida)
-                    );
-                    uMedActual = menorUnidadMedida;
-                }
-            }
-        }
-        return quantActual;
     }
 
 }

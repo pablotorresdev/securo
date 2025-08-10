@@ -133,7 +133,6 @@ class DTOUtilsTest {
         Lote lote = new Lote();
         lote.setId(99L);
         lote.setCodigoInterno("L-001");
-        lote.setNroBulto(3);
 
         // --- movimiento completo ---
         Movimiento mov = new Movimiento();
@@ -273,7 +272,6 @@ class DTOUtilsTest {
         when(l.getActivo()).thenReturn(true);
         when(l.getCodigoInterno()).thenReturn(codigoInterno);
         when(l.getId()).thenReturn(99L);
-        when(l.getNroBulto()).thenReturn(nroBulto);
         when(l.getFechaYHoraCreacion()).thenReturn(LocalDateTime.now());
         when(l.getFechaIngreso()).thenReturn(LocalDate.now());
         when(l.getBultosTotales()).thenReturn(1);

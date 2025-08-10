@@ -34,14 +34,17 @@ public class Analisis {
     private Long id;
 
     @Column(name = "fecha_creacion", nullable = false)
+    @EqualsAndHashCode.Include
     private LocalDateTime fechaYHoraCreacion;
 
     @Column(name = "nro_analisis", length = 30, nullable = false)
+    @EqualsAndHashCode.Include
     private String nroAnalisis;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
+    @EqualsAndHashCode.Include
     private Lote lote;
 
     @Column(name = "fecha_realizado")

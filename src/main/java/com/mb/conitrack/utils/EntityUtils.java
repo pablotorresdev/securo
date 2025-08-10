@@ -1,5 +1,6 @@
 package com.mb.conitrack.utils;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -10,10 +11,12 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import lombok.Getter;
 
@@ -42,7 +45,16 @@ public class EntityUtils {
         movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
         movimiento.getBultos().addAll(lote.getBultos());
         movimiento.setLote(lote);
-        movimiento.getBultos().addAll(lote.getBultos());
+        for (Bulto bulto: lote.getBultos()){
+            DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimiento)
+                .bulto(bulto)
+                .cantidad(bulto.getCantidadInicial())
+                .unidadMedida(bulto.getUnidadMedida())
+                .build();
+            movimiento.getDetalles().add(det);
+            bulto.getDetalles().add(det);
+        }
     }
 
     public static Movimiento createMovimientoAltaIngresoCompra(LoteDTO loteDTO) {
@@ -236,6 +248,28 @@ public class EntityUtils {
         lote.setObservaciones(loteDTO.getObservaciones());
 
         return lote;
+    }
+
+    public void addDetalle(Movimiento mov, Bulto bulto, BigDecimal cantidad, UnidadMedidaEnum unidad) {
+        DetalleMovimiento det = DetalleMovimiento.builder()
+            .movimiento(mov)
+            .bulto(bulto)
+            .cantidad(cantidad)
+            .unidadMedida(unidad)
+            .build();
+
+        mov.getDetalles().add(det);
+        bulto.getDetalles().add(det);
+
+        // mientras mantengas el ManyToMany, sincronizalo:
+        mov.getBultos().add(bulto);
+    }
+
+    public void removeDetalle(Movimiento mov, DetalleMovimiento det) {
+        mov.getDetalles().remove(det);
+        det.getBulto().getDetalles().remove(det);
+        det.setMovimiento(null);
+        det.setBulto(null);
     }
 
 }

@@ -15,6 +15,7 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
@@ -24,6 +25,7 @@ import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.repository.DetalleMovimientoRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
 
 import jakarta.transaction.Transactional;
@@ -59,6 +61,9 @@ public class MovimientoService {
 
     @Autowired
     private final MovimientoRepository movimientoRepository;
+
+    @Autowired
+    private DetalleMovimientoRepository detalleMovimientoRepository;
 
     Movimiento createMovimientoConAnalisis(
         final MovimientoDTO dto,

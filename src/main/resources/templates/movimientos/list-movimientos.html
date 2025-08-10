@@ -14,7 +14,6 @@
             <th>Tipo Movimiento</th>
             <th>Producto</th>
             <th>Código Interno Lote</th>
-            <th>Bulto</th>
             <th>Bultos Totales</th>
             <th>Cantidad</th>
             <th>Unidad Medida</th>
@@ -32,7 +31,6 @@
             <td th:text="${mov.tipoMovimiento}"></td>
             <td th:text="${mov.lote.producto.nombreGenerico}"></td>
             <td th:text="${mov.lote.codigoInterno}"></td>
-            <td th:text="${mov.lote.nroBulto}"></td>
             <td th:text="${mov.lote.bultosTotales}"></td>
             <td th:text="${mov.cantidad}"></td>
             <td th:text="${mov.unidadMedida}"></td>

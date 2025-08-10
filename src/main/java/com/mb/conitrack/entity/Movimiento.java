@@ -28,17 +28,18 @@ import lombok.ToString;
 @Entity
 @Table(name = "movimientos")
 @SQLDelete(sql = "UPDATE movimientos SET activo = false WHERE id = ?")
-@EqualsAndHashCode(exclude = {"lote", "bultos", "trazas", "movimientoOrigen"})
-@ToString(exclude = { "lote" })
+@ToString(exclude = { "lote", "bultos", "trazas", "movimientoOrigen", "detalles" })
 public class Movimiento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
-    //TODO: Normalizar Lote y Bulto
-    //TODO: los movimientos de ALTA/BAJA deben asociarse con Lote y NroBulto
-    //TODO: los movimientos de MODIFICACION deben asociarse con Lote
+    @Column(name = "codigo_interno", length = 100, nullable = false)
+    @EqualsAndHashCode.Include
+    private String codigoInterno;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
@@ -51,10 +52,14 @@ public class Movimiento {
         inverseJoinColumns = @JoinColumn(name = "bulto_id")
     )
     @JsonManagedReference
+    @EqualsAndHashCode.Exclude
     private Set<Bulto> bultos = new HashSet<>();
 
-    @Column(name = "codigo_interno", length = 100, nullable = false)
-    private String codigoInterno;
+    @OneToMany(
+        mappedBy = "movimiento",
+        fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
+    private Set<DetalleMovimiento> detalles = new HashSet<>();
 
     //TODO: unificar con fecha de movimiento
     @Column(name = "fecha_creacion", nullable = false)
@@ -97,6 +102,7 @@ public class Movimiento {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "movimiento_origen_id")
+    @EqualsAndHashCode.Exclude
     private Movimiento movimientoOrigen;
 
     @ManyToMany
@@ -106,6 +112,7 @@ public class Movimiento {
         inverseJoinColumns = @JoinColumn(name = "traza_id")
     )
     @JsonManagedReference
+    @EqualsAndHashCode.Exclude
     private Set<Traza> trazas = new HashSet<>();
 
     @Column(nullable = false)

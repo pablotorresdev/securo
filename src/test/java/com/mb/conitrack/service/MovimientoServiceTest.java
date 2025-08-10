@@ -29,6 +29,7 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.repository.DetalleMovimientoRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
 import com.mb.conitrack.utils.EntityUtils;
 
@@ -60,6 +61,8 @@ class MovimientoServiceTest {
 
     @Mock
     MovimientoRepository movimientoRepository;
+    @Mock
+    DetalleMovimientoRepository detalleMovimientoRepository;
 
     @Spy
     @InjectMocks
@@ -353,7 +356,7 @@ class MovimientoServiceTest {
     void persistirMovimientoAltaIngresoCompra_ok() {
         // Servicio con dependencias mockeadas
         MovimientoService service = new MovimientoService(
-            trazaService, analisisService, movimientoRepository
+            trazaService, analisisService, movimientoRepository, detalleMovimientoRepository
         );
 
         Lote lote = new Lote();

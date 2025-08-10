@@ -7,13 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.repository.BultoRepository;
+import com.mb.conitrack.repository.DetalleMovimientoRepository;
 
 @Service
 public class BultoService {
 
     @Autowired
     private BultoRepository bultoRepository;
+
+    @Autowired
+    private DetalleMovimientoRepository detalleMovimientoRepository;
 
     public List<Bulto> save(final List<Bulto> bultos) {
         return bultoRepository.saveAll(bultos);
@@ -33,5 +38,7 @@ public class BultoService {
         return bultoRepository.findAllByLoteIdAndActivoTrueOrderByNroBultoAsc(loteId);
     }
 
-
+    public DetalleMovimiento save(final DetalleMovimiento detalle) {
+        return detalleMovimientoRepository.save(detalle);
+    }
 }

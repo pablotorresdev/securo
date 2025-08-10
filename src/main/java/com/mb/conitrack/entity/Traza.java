@@ -40,11 +40,13 @@ public class Traza {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
+    @EqualsAndHashCode.Include
     private Lote lote;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bulto_id", nullable = false)
     @JsonBackReference
+    @EqualsAndHashCode.Include
     private Bulto bulto;
 
     @Column(name = "fecha_creacion", nullable = false)
@@ -52,13 +54,16 @@ public class Traza {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "producto_id", nullable = false)
+    @EqualsAndHashCode.Include
     private Producto producto;
 
     @Column(name = "nro_traza", nullable = false)
+    @EqualsAndHashCode.Include
     private Long nroTraza;
 
     @ManyToMany(mappedBy = "trazas", fetch = FetchType.EAGER)
     @JsonBackReference
+    @EqualsAndHashCode.Exclude
     private Set<Movimiento> movimientos = new HashSet<>();
 
     @Enumerated(EnumType.STRING)

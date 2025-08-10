@@ -222,7 +222,7 @@ public class DTOUtils {
                 loteDTO.setUnidadMedida(unidadMedida);
 
                 final int index = loteDTO.getCantidadesBultos().size();
-                loteDTO.getNroBultoList().add(index, bultoEntity.getNroBulto());
+                //loteDTO.getNroBultoList().add(index, bultoEntity.getNroBulto());
                 loteDTO.getCantidadesBultos().add(index, bultoEntity.getCantidadActual());
                 loteDTO.getUnidadMedidaBultos().add(index, bultoEntity.getUnidadMedida());
 
@@ -352,7 +352,7 @@ public class DTOUtils {
         for (Movimiento movimiento : entity.getMovimientos()) {
             if (movimiento.getActivo()) {
                 final MovimientoDTO movimientoDTO = DTOUtils.fromEntity(movimiento);
-                movimientoDTO.setNroBulto(String.valueOf(entity.getNroBulto()));
+                //movimientoDTO.setNroBulto(String.valueOf(entity.getNroBulto()));
                 loteDTO.getMovimientoDTOs().add(movimientoDTO);
             }
         }

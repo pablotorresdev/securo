@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS detalle_movimientos CASCADE;
 DROP TABLE IF EXISTS trazas_movimientos CASCADE;
 DROP TABLE IF EXISTS movimientos_bulto CASCADE;
 DROP TABLE IF EXISTS lote_bultos CASCADE;
@@ -97,6 +98,7 @@ CREATE TABLE lotes
     bultos_totales       INT            NOT NULL,
     cantidad_inicial     NUMERIC(12, 4),
     cantidad_actual      NUMERIC(12, 4),
+    unidad_medida        VARCHAR(50)    NOT NULL,
 
     lote_proveedor       TEXT           NOT NULL,
     fecha_reanal_prov    DATE,
@@ -171,6 +173,22 @@ CREATE TABLE movimientos_bulto
     CONSTRAINT fk_bulto_movimientos
         FOREIGN KEY (bulto_id) REFERENCES bultos (id)
 );
+
+CREATE TABLE detalle_movimientos (
+   id             BIGSERIAL PRIMARY KEY,
+   movimiento_id  BIGINT       NOT NULL,
+   bulto_id       BIGINT       NOT NULL,
+   cantidad       NUMERIC(12,4) NOT NULL,
+   unidad_medida  VARCHAR(50)   NOT NULL,
+
+   CONSTRAINT uk_mov_bulto UNIQUE (movimiento_id, bulto_id),
+
+   CONSTRAINT fk_mov_bulto_det_mov
+       FOREIGN KEY (movimiento_id) REFERENCES movimientos (id),
+   CONSTRAINT fk_mov_bulto_det_bul
+       FOREIGN KEY (bulto_id) REFERENCES bultos (id)
+);
+
 
 CREATE TABLE analisis
 (
