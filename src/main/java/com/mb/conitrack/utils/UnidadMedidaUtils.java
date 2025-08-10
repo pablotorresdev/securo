@@ -97,8 +97,7 @@ public class UnidadMedidaUtils {
         final double factorDto = dto.getUnidadMedida().getFactorConversion();
 
         // Convertimos la cantidad del DTO a la unidad del lote
-        BigDecimal cantidadDtoConvertida = dto.getCantidad()
-            .multiply(BigDecimal.valueOf(factorDto / factorLote));
+        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
 
         return cantidadLote.subtract(cantidadDtoConvertida);
     }
@@ -118,8 +117,7 @@ public class UnidadMedidaUtils {
         final double factorDto = dto.getUnidadMedida().getFactorConversion();
 
         // Convertimos la cantidad del DTO a la unidad del lote
-        BigDecimal cantidadDtoConvertida = dto.getCantidad()
-            .multiply(BigDecimal.valueOf(factorDto / factorLote));
+        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
 
         return cantidadLote.subtract(cantidadDtoConvertida);
     }
