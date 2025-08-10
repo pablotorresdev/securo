@@ -17,6 +17,7 @@ import com.mb.conitrack.enums.TipoMovimientoEnum;
 
 import lombok.Getter;
 
+import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 
 public class EntityUtils {
@@ -32,6 +33,54 @@ public class EntityUtils {
 
         movimiento.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
         movimiento.setObservaciones("_CU13_\n" + lote.getObservaciones());
+        return movimiento;
+    }
+
+    public static  void addLoteInfoToMovimiento(final Lote lote, final Movimiento movimiento) {
+        String timestampLoteDTO = lote.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.getBultos().addAll(lote.getBultos());
+        movimiento.setLote(lote);
+        movimiento.getBultos().addAll(lote.getBultos());
+    }
+
+    public static Movimiento createMovimientoAltaIngresoCompra(LoteDTO loteDTO) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setMotivo(MotivoEnum.COMPRA);
+
+        movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+        movimiento.setFecha(loteDTO.getFechaYHoraCreacion().toLocalDate());
+        movimiento.setCantidad(loteDTO.getCantidadInicial());
+        movimiento.setUnidadMedida(loteDTO.getUnidadMedida());
+        movimiento.setDictamenFinal(loteDTO.getDictamen());
+        movimiento.setActivo(true);
+
+        movimiento.setObservaciones("_CU1_\n" + loteDTO.getObservaciones());
+        return movimiento;
+    }
+
+    public static Movimiento createMovimientoAltaIngresoCompra(final Lote lote, LoteDTO loteDTO) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setMotivo(MotivoEnum.COMPRA);
+
+        movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setFecha(loteDTO.getFechaYHoraCreacion().toLocalDate());
+        movimiento.setCantidad(loteDTO.getCantidadInicial());
+        movimiento.setUnidadMedida(loteDTO.getUnidadMedida());
+        movimiento.setDictamenFinal(loteDTO.getDictamen());
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.getBultos().addAll(lote.getBultos());
+        movimiento.setLote(lote);
+        movimiento.setActivo(true);
+
+        movimiento.setObservaciones("_CU1_\n" + lote.getObservaciones());
         return movimiento;
     }
 
@@ -77,6 +126,30 @@ public class EntityUtils {
         movimiento.setLote(lote);
         movimiento.setActivo(true);
 
+        return movimiento;
+    }
+
+
+    public static Movimiento crearMovimientoDevolucionCompra(final MovimientoDTO dto) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(DEVOLUCION_COMPRA);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        String timestampLoteDTO = dto.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoInterno(dto.getCodigoInternoLote() + "-" + timestampLoteDTO);
+        movimiento.setCantidad(dto.getCantidad());
+        movimiento.setUnidadMedida(dto.getUnidadMedida());
+
+        movimiento.setDictamenInicial(dto.getDictamenInicial());
+        movimiento.setDictamenFinal(DictamenEnum.RECHAZADO);
+
+        movimiento.setFecha(dto.getFechaMovimiento());
+
+        movimiento.setActivo(true);
+        movimiento.setObservaciones("_CU4_\n" + dto.getObservaciones());
         return movimiento;
     }
 

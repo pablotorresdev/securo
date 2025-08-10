@@ -50,8 +50,7 @@ public class CalidadController {
     // CUZ: Reanalisis de Producto Aprobado
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
     @GetMapping("/reanalisis-producto")
-    public String showReanalisisProductoForm(
-        @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
+    public String showReanalisisProductoForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
         initModelReanalisisProducto(movimientoDTO, model);
         return "calidad/reanalisis-producto";
     }
@@ -64,17 +63,14 @@ public class CalidadController {
         RedirectAttributes redirectAttributes) {
 
         final List<Lote> lotesList = new ArrayList<>();
-        boolean success = controllerUtils.validarNroAnalisisNotNull(movimientoDTO, bindingResult)
-            &&
-            controllerUtils
-                .populateLoteListByCodigoInterno(
-                    lotesList,
-                    movimientoDTO.getCodigoInternoLote(),
-                    bindingResult,
-                    loteService)
-            &&
-            controllerUtils
-                .validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
+        boolean success = controllerUtils.validarNroAnalisisNotNull(movimientoDTO, bindingResult) &&
+            controllerUtils.populateLoteListByCodigoInterno(
+                lotesList,
+                movimientoDTO.getCodigoInternoLote(),
+                bindingResult,
+                loteService) &&
+            controllerUtils.validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult) &&
+            controllerUtils.validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
             initModelReanalisisProducto(movimientoDTO, model);
@@ -92,56 +88,12 @@ public class CalidadController {
         return "calidad/reanalisis-producto-ok";
     }
 
-    //***************************** CU3 Muestreo************************************
-    // CU3: Baja por Muestreo
-    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
-    @GetMapping("/muestreo-bulto")
-    public String showMuestreoBultoForm(
-        @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        initModelMuestreoBulto(movimientoDTO, model);
-        return "calidad/muestreo-bulto";
-    }
-
-    @PostMapping("/muestreo-bulto")
-    public String procesarMuestreoBulto(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes) {
-
-        if (!controllerUtils.validarNroAnalisisNotNull(movimientoDTO, bindingResult)) {
-            initModelMuestreoBulto(movimientoDTO, model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
-            return "calidad/muestreo-bulto";
-        }
-
-        Lote lote = loteService.findLoteBultoByCodigoAndBulto(
-            movimientoDTO.getCodigoInternoLote(),
-            Integer.parseInt(movimientoDTO.getNroBulto()));
-        if (!(controllerUtils.validarFechaMovimientoPosteriorLote(movimientoDTO, lote, bindingResult)
-            && controllerUtils.validarCantidadesMovimiento(movimientoDTO, lote, bindingResult))) {
-            initModelMuestreoBulto(movimientoDTO, model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
-            return "calidad/muestreo-bulto";
-        }
-
-        muestreoBulto(movimientoDTO, lote, redirectAttributes);
-        return "redirect:/calidad/muestreo-bulto-ok";
-    }
-
-    @GetMapping("/muestreo-bulto-ok")
-    public String exitoMuestreo(
-        @ModelAttribute LoteDTO loteDTO) {
-        return "calidad/muestreo-bulto-ok";
-    }
-
     //***************************** CU5/6 Resultado Analisis************************************
     // CU5: Resultado QA Aprobado
     // CU6: Resultado QA Rechazado
     // @PreAuthorize("hasAuthority('ROLE_CONTROL_CALIDAD')")
     @GetMapping("/resultado-analisis")
-    public String showResultadoAnalisisForm(
-        @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
+    public String showResultadoAnalisisForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
         //TODO: implementar el filtro correcto en base a Dictamen y Analisis (Fecha, Dictamen)
         //TODO: pasar a DTO
         initModelResultadoAnalisis(movimientoDTO, model);
@@ -170,12 +122,6 @@ public class CalidadController {
         return "calidad/resultado-analisis-ok";
     }
 
-    private void initModelMuestreoBulto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForMuestreo());
-        model.addAttribute("lotesMuestreables", lotesDtos);
-        model.addAttribute("movimientoDTO", movimientoDTO);
-    }
-
     private void initModelReanalisisProducto(final MovimientoDTO movimientoDTO, final Model model) {
         //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
         final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForReanalisisProducto());
@@ -191,20 +137,6 @@ public class CalidadController {
         model.addAttribute("lotesForResultado", lotesDtos);
         model.addAttribute("analisisEnCurso", analisis);
         model.addAttribute("resultados", List.of(DictamenEnum.APROBADO, DictamenEnum.RECHAZADO));
-    }
-
-    private void muestreoBulto(
-        final MovimientoDTO movimientoDTO,
-        final Lote lote,
-        final RedirectAttributes redirectAttributes) {
-        movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        LoteDTO loteDTO = DTOUtils.mergeEntities(List.of(loteService.bajaMuestreo(movimientoDTO, lote)));
-
-        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
-        redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());
-        redirectAttributes.addFlashAttribute(
-            loteDTO != null ? "success" : "error",
-            loteDTO != null ? "Muestreo registrado correctamente." : "Hubo un error persistiendo el muestreo.");
     }
 
     private void reanalisisProducto(
@@ -240,24 +172,17 @@ public class CalidadController {
             return false;
         }
         final List<Lote> lotesList = new ArrayList<>();
-        return controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult)
-            &&
-            controllerUtils.validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult)
-            &&
-            controllerUtils
-                .populateLoteListByCodigoInterno(
-                    lotesList,
-                    movimientoDTO.getCodigoInternoLote(),
-                    bindingResult,
-                    loteService)
-            &&
-            controllerUtils.validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult)
-            &&
-            controllerUtils
-                .validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult)
-            &&
-            controllerUtils.validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult)
-            &&
+        return controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult) &&
+            controllerUtils.validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult) &&
+            controllerUtils.populateLoteListByCodigoInterno(
+                lotesList,
+                movimientoDTO.getCodigoInternoLote(),
+                bindingResult,
+                loteService) &&
+            controllerUtils.validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult) &&
+            controllerUtils.validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult) &&
+            controllerUtils.validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult) &&
+            controllerUtils.validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult) &&
             controllerUtils.validarValorTitulo(movimientoDTO, lotesList, bindingResult);
     }
 

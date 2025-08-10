@@ -23,6 +23,7 @@ import com.mb.conitrack.utils.UnidadMedidaUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class Lote {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "fecha_creacion", nullable = false)
@@ -125,11 +127,9 @@ public class Lote {
     @Column(nullable = false)
     private Boolean activo;
 
-    @Deprecated
     @Column(name = "cantidad_inicial", precision = 12, scale = 4)
     private BigDecimal cantidadInicial;
 
-    @Deprecated
     @Column(name = "cantidad_actual", precision = 12, scale = 4)
     private BigDecimal cantidadActual;
 

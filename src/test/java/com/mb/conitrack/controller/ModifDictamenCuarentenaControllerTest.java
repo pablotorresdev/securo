@@ -236,7 +236,7 @@ class ModifDictamenCuarentenaControllerTest {
                     return new Lote();                   // el estático debe devolver boolean
                 });
             // 3° falla
-            when(utilsMock.validarFechaMovimientoPosteriorLote(eq(dto), any(Lote.class), eq(br)))
+            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
                 .thenReturn(false);
 
             String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
@@ -244,7 +244,46 @@ class ModifDictamenCuarentenaControllerTest {
             assertEquals("calidad/dictamen/cuarentena", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
             verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
-            verify(utilsMock).validarFechaMovimientoPosteriorLote(eq(dto), any(Lote.class), eq(br));
+            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
+            verify(controller).initModelDictamencuarentena(dto, model);
+            verify(controller, never()).dictamenCuarentena(any(), any(), any());
+            assertSame(dto, model.getAttribute("movimientoDTO"));
+        }
+    }
+
+    @Test
+    @DisplayName("Pasan 1°, 2°, 3° falla 4° -> vuelve al form")
+    void fallaCuartoValidador() {
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setCodigoInternoLote("X");
+        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
+        Model model = new ExtendedModelMap();
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        doNothing().when(controller).initModelDictamencuarentena(any(), any());
+
+        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
+
+            ControllerUtils utilsMock = mock(ControllerUtils.class);
+            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
+            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
+                .thenAnswer(inv -> {
+                    return new Lote();                   // el estático debe devolver boolean
+                });
+            // 3° falla
+            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
+                .thenReturn(true);
+            when(utilsMock.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
+                .thenReturn(false);
+
+            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
+
+            assertEquals("calidad/dictamen/cuarentena", view);
+            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
+            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
+            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
+            verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(controller).initModelDictamencuarentena(dto, model);
             verify(controller, never()).dictamenCuarentena(any(), any(), any());
             assertSame(dto, model.getAttribute("movimientoDTO"));
@@ -365,7 +404,9 @@ class ModifDictamenCuarentenaControllerTest {
                 .thenAnswer(inv -> {
                     return new Lote();                   // el estático debe devolver boolean
                 });
-            when(utilsMock.validarFechaMovimientoPosteriorLote(eq(dto), any(Lote.class), eq(br)))
+            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
+                .thenReturn(true);
+            when(utilsMock.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
                 .thenReturn(true);
 
             String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
@@ -373,7 +414,8 @@ class ModifDictamenCuarentenaControllerTest {
             assertEquals("redirect:/calidad/dictamen/cuarentena-ok", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
             verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
-            verify(utilsMock).validarFechaMovimientoPosteriorLote(eq(dto), any(Lote.class), eq(br));
+            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
+            verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(controller, never()).initModelDictamencuarentena(any(), any());
             verify(controller).dictamenCuarentena(eq(dto), any(Lote.class), eq(redirect));
         }

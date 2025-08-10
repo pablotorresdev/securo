@@ -61,9 +61,9 @@ public class AltaIngresoCompraController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        final boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult)
-            && controllerUtils().validateFechasProveedor(loteDTO, bindingResult)
-            && controllerUtils().validarBultos(loteDTO, bindingResult);
+        boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
+        success = success && controllerUtils().validateFechasProveedor(loteDTO, bindingResult);
+        success = success && controllerUtils().validarBultos(loteDTO, bindingResult);
 
         if (!success) {
             initModelIngresoCompra(loteDTO, model);

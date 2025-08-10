@@ -14,6 +14,7 @@ import org.thymeleaf.util.StringUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
@@ -77,7 +78,37 @@ public class ControllerUtils {
             validarSumaBultosConvertida(loteDTO, bindingResult));
     }
 
-    public static boolean validarCantidadesMovimiento(
+    public boolean validarCantidadesMovimiento(
+        final MovimientoDTO dto,
+        final Bulto bulto,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(bulto.getUnidadMedida());
+
+        if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
+            bindingResult.rejectValue("unidadMedida", "", "Unidad no compatible con el producto.");
+            return false;
+        }
+
+        if (dto.getCantidad() == null || dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
+            bindingResult.rejectValue("cantidad", "", "La cantidad debe ser mayor a 0.");
+            return false;
+        }
+
+        BigDecimal cantidadConvertida = dto.getCantidad()
+            .multiply(BigDecimal.valueOf(dto.getUnidadMedida().getFactorConversion() /
+                bulto.getUnidadMedida().getFactorConversion()));
+
+        if (cantidadConvertida.compareTo(bulto.getCantidadActual()) > 0) {
+            bindingResult.rejectValue("cantidad", "", "La cantidad excede el stock disponible del bulto.");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validarCantidadesMovimiento(
         final MovimientoDTO dto,
         final Lote lote,
         final BindingResult bindingResult) {
@@ -527,7 +558,25 @@ public class ControllerUtils {
         return true;
     }
 
-    public boolean validarFechaMovimientoPosteriorLote(
+    public boolean validarFechaAnalisisPosteriorIngresoLote(
+        final MovimientoDTO dto,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (dto.getFechaRealizadoAnalisis() != null &&
+            dto.getFechaRealizadoAnalisis().isBefore(lote.getFechaIngreso())) {
+            bindingResult.rejectValue(
+                "fechaRealizadoAnalisis",
+                "",
+                "La fecha de realizado el analisis no puede ser anterior a la fecha de ingreso del lote");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validarFechaMovimientoPosteriorIngresoLote(
         final MovimientoDTO dto,
         final Lote lote,
         final BindingResult bindingResult) {
@@ -539,14 +588,6 @@ public class ControllerUtils {
                 "fechaMovimiento",
                 "",
                 "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
-            return false;
-        }
-        if (dto.getFechaRealizadoAnalisis() != null &&
-            dto.getFechaRealizadoAnalisis().isBefore(lote.getFechaIngreso())) {
-            bindingResult.rejectValue(
-                "fechaRealizadoAnalisis",
-                "",
-                "La fecha de realizado el analisis no puede ser anterior a la fecha de ingreso del lote");
             return false;
         }
         return true;

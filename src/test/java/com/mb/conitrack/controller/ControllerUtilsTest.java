@@ -735,7 +735,7 @@ class ControllerUtilsTest {
     }
 
     @Test
-    void validarFechaMovimientoPosteriorLote() {
+    void validarFechaAnalisisPosteriorIngresoLote() {
     }
 
     @Test

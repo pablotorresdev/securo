@@ -1,14 +1,11 @@
 package com.mb.conitrack.controller;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,25 +15,24 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.dto.validation.AltaCompra;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.ProductoService;
-import com.mb.conitrack.service.ProveedorService;
 import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromEntities;
 
 @Controller
 @RequestMapping("/compras/baja")
-public class ComprasController {
+public class BajaDevolucionCompraController {
 
     @Autowired
     private LoteService loteService;
 
-    final ControllerUtils controllerUtils = ControllerUtils.getInstance();
+    private static ControllerUtils controllerUtils() {
+        return ControllerUtils.getInstance();
+    }
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -52,7 +48,7 @@ public class ComprasController {
     public String showDevolucionCompraForm(
         @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
         initModelDevolucionCompra(model);
-        return "compras/devolucion-compra";
+        return "compras/baja/devolucion-compra";
     }
 
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
@@ -63,41 +59,45 @@ public class ComprasController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        final List<Lote> lotesList = new ArrayList<>();
-        if (!(controllerUtils.populateLoteListByCodigoInterno(
-            lotesList,
+        final Lote loteByCodigoInterno = controllerUtils().getLoteByCodigoInterno(
             movimientoDTO.getCodigoInternoLote(),
             bindingResult,
-            loteService) &&
-            controllerUtils
-                .validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult))) {
+            loteService);
+
+        boolean success = loteByCodigoInterno != null;
+        success = success && controllerUtils()
+            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, loteByCodigoInterno, bindingResult);
+        success = success && controllerUtils()
+            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, loteByCodigoInterno, bindingResult);
+
+        if (!success) {
             initModelDevolucionCompra(model);
             model.addAttribute("movimientoDTO", movimientoDTO);
-            return "compras/devolucion-compra";
+            return "compras/baja/devolucion-compra";
         }
 
-        procesarDevolucionCompra(movimientoDTO, lotesList, redirectAttributes);
-        return "redirect:/compras/devolucion-compra-ok";
+        procesarDevolucionCompra(movimientoDTO, loteByCodigoInterno, redirectAttributes);
+        return "redirect:/compras/baja/devolucion-compra-ok";
     }
 
     @GetMapping("/devolucion-compra-ok")
     public String exitoDevolucionCompra(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
-        return "compras/devolucion-compra-ok";
+        return "compras/baja/devolucion-compra-ok";
     }
 
     void initModelDevolucionCompra(final Model model) {
-        model.addAttribute("lotesDevolvibles", getLotesDtosByCodigoInterno(loteService.findAllForDevolucionCompra()));
+        model.addAttribute("lotesDevolvibles", fromEntities(loteService.findAllForDevolucionCompra()));
     }
 
     void procesarDevolucionCompra(
         final MovimientoDTO movimientoDTO,
-        final List<Lote> lotesList,
+        Lote lote,
         final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.bajaDevolucionCompra(
+        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.bajaBultosDevolucionCompra(
             movimientoDTO,
-            lotesList));
+            lote));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",

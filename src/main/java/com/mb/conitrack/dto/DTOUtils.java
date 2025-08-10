@@ -439,4 +439,12 @@ public class DTOUtils {
         }
     }
 
+    public static List<LoteDTO> fromEntities(final List<Lote> loteList) {
+        final List<LoteDTO> lotesDtos = new ArrayList<>();
+        for (Lote entity : loteList) {
+            lotesDtos.add(DTOUtils.mergeEntities(entity));
+        }
+        return lotesDtos;
+    }
+
 }

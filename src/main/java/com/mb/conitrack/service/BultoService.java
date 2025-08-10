@@ -33,4 +33,5 @@ public class BultoService {
         return bultoRepository.findAllByLoteIdAndActivoTrueOrderByNroBultoAsc(loteId);
     }
 
+
 }

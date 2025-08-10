@@ -10,7 +10,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Retiro por Muestreo</h2>
-    <form method="post" th:action="@{/calidad/muestreo-bulto}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/calidad/baja/muestreo-bulto}" th:object="${movimientoDTO}">
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
         <input id="nroAnalisis" th:field="*{nroAnalisis}" type="hidden"/>
 
@@ -41,20 +41,20 @@
                     th:field="*{codigoInternoLote}"
                     th:classappend="${#fields.hasErrors('codigoInternoLote')} ? ' error-field'">
                 <option value="">-- Seleccione el lote a muestrear --</option>
-                <!-- Iteramos sobre todos los lotes “muestreables”
-                     Pero solo mostramos en el combo aquellos con nroBulto = 1
-                     (los “representantes”). -->
+                <!-- Opciones de LoteDTO; agregamos data con último análisis y dictamen -->
                 <option th:each="loteDTO : ${lotesMuestreables}"
+                        th:value="${loteDTO.codigoInternoLote}"
+                        th:data-nroanalisis="${loteDTO.nroUltimoAnalisisDto}"
+                        th:data-dictamen="${loteDTO.dictamen}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto}
                          + ' | ID Lote: ' + ${loteDTO.loteProveedor}
                          + ' | Nro Análisis: ' + ${loteDTO.nroUltimoAnalisisDto}
-                         + ' | Dictamen: ' + ${loteDTO.dictamen}"
-                        th:value="${loteDTO.codigoInternoLote}">
+                         + ' | Dictamen: ' + ${loteDTO.dictamen}">
                 </option>
             </select>
         </div>
 
-        <!-- 2do Selector: Bultos por lote (segundo combo) -->
+        <!-- Bultos del lote -->
         <div class="row mb-3 align-items-end">
             <div class="col-md-4">
                 <label class="form-label" for="nroBultoMuestreo">Número del Bulto:</label>
@@ -64,18 +64,16 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label">Cantidad del Bulto:</label>
-                <!-- Campo deshabilitado para mostrar la cantidad -->
                 <input class="form-control" disabled id="refCantBulto" type="text">
             </div>
             <div class="col-md-4">
                 <label class="form-label">Unidad:</label>
-                <!-- Campo deshabilitado para mostrar la unidad -->
                 <input class="form-control" disabled id="refUniMedBulto" type="text">
             </div>
-            <div class="error" th:errors="*{nroBulto}" th:if="${#fields.hasErrors('nroBulto')}"></div>
+            <div class="text-danger fw-bold" th:errors="*{nroBulto}" th:if="${#fields.hasErrors('nroBulto')}"></div>
         </div>
 
-        <!-- Cantidad + Unidad que se usarán para el muestreo real -->
+        <!-- Cantidad + Unidad para el muestreo real -->
         <div class="row mb-3 align-items-end">
             <div class="col-md-6 d-flex flex-column">
                 <label class="form-label" for="cantidadBultoElegido">Cantidad:</label>
@@ -95,13 +93,13 @@
             </div>
         </div>
 
-        <!-- N° de Análisis -->
+        <!-- N° de Análisis (lote) -->
         <div class="mb-2">
             <label class="form-label">N° de Análisis (último):</label>
             <p class="form-control-plaintext bg-light ps-2 rounded border" id="nroAnalisisInfo"></p>
         </div>
 
-        <!-- Dictamen del análisis -->
+        <!-- Dictamen del análisis (lote) -->
         <div class="mb-2">
             <label class="form-label">Dictamen del Análisis:</label>
             <p class="form-control-plaintext bg-light ps-2 rounded border fw-bold" id="dictamenAnalisisInfo"></p>
@@ -126,17 +124,17 @@
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
-        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
+        const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
-        const loteSel     = document.getElementById('loteMuestreo');
-        const bultoSel    = document.getElementById('nroBultoMuestreo');
-        const cantRef     = document.getElementById('refCantBulto');
-        const uniRef      = document.getElementById('refUniMedBulto');
-        const analInfo    = document.getElementById('nroAnalisisInfo');
-        const dictInfo    = document.getElementById('dictamenAnalisisInfo');
-        const uniSel      = document.getElementById('uniMedBultoElegido');
+        const loteSel   = document.getElementById('loteMuestreo');
+        const bultoSel  = document.getElementById('nroBultoMuestreo');
+        const cantRef   = document.getElementById('refCantBulto');
+        const uniRef    = document.getElementById('refUniMedBulto');
+        const analInfo  = document.getElementById('nroAnalisisInfo');
+        const dictInfo  = document.getElementById('dictamenAnalisisInfo');
+        const uniSel    = document.getElementById('uniMedBultoElegido');
 
-        /* -------- valores del DTO (en caso de volver con errores) -------- */
+        /* -------- valores del DTO (cuando volvemos con errores) -------- */
         const dto = {
             codigoInternoLote: /*[[${movimientoDTO.codigoInternoLote}]]*/ null,
             nroBulto         : /*[[${movimientoDTO.nroBulto}]]*/ null,
@@ -144,33 +142,28 @@
             fechaMovimiento  : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
         };
 
-        /* -------- helper -------- */
         const setFechaMovimiento = () => {
             const campo = document.getElementById('fechaMovimiento');
             campo.value = dto.fechaMovimiento || new Date().toISOString().split('T')[0];
         };
 
-        /* -------- carga de bultos -------- */
-        const cargarBultos = codigoInterno => {
-            bultoSel.innerHTML =
-                '<option value="">-- Seleccione el bulto a muestrear --</option>';
+        /* -------- carga Bultos (BultoDTO) por Lote -------- */
+        const cargarBultos = (codigoInterno) => {
+            bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
 
             fetch(`/lotes/codigoInterno/muestreo/${codigoInterno}`, {
                 headers: { [csrfHeader]: csrfToken }
             })
                 .then(r => r.json())
-                .then(data => {
+                .then((data /* List<BultoDTO> */) => {
                     data.forEach(b => {
-                        const o       = document.createElement('option');
-                        o.value       = b.nroBulto;                 // viaja al DTO
+                        const o = document.createElement('option');
+                        o.value = b.nroBulto; // viaja al DTO
                         o.textContent = `Bulto: ${b.nroBulto} - Disponible: ${b.cantidadActual} ${b.unidadMedida}`;
 
-                        // extras para la UI
-                        o.dataset.id            = b.id;
-                        o.dataset.cant          = b.cantidadActual;
-                        o.dataset.uni           = b.unidadMedida;
-                        o.dataset.nroAnalisis   = b.ultimoAnalisis?.nroAnalisis || '';
-                        o.dataset.dictamen      = b.ultimoAnalisis?.dictamen     || '';
+                        // extras para la UI desde BultoDTO
+                        o.dataset.cant = b.cantidadActual;
+                        o.dataset.uni  = b.unidadMedida;
 
                         bultoSel.appendChild(o);
                     });
@@ -183,40 +176,49 @@
                 .catch(err => console.error('Error al cargar bultos:', err));
         };
 
-        /* -------- cambio lote -------- */
+        /* -------- cuando cambia el Lote -------- */
         loteSel.addEventListener('change', () => {
             limpiarInfoBulto();
+
+            const opt = loteSel.selectedOptions[0];
             const codigo = loteSel.value;
-            if (codigo) cargarBultos(codigo);
+            if (!codigo) return;
+
+            // Info de análisis/dictamen viene del Lote (data-* en option)
+            const nroAnalisis = opt?.dataset?.nroanalisis || '';
+            const dictamen    = opt?.dataset?.dictamen    || 'EN_CURSO';
+
+            analInfo.textContent = nroAnalisis;
+            document.getElementById('nroAnalisis').value = nroAnalisis;
+
+            dictInfo.textContent = dictamen;
+            dictInfo.className = 'form-control-plaintext bg-light ps-2 rounded border fw-bold ' +
+                (dictamen === 'APROBADO'   ? 'text-success' :
+                    dictamen === 'RECHAZADO'  ? 'text-danger'  : 'text-warning');
+
+            // cargar bultos del lote
+            cargarBultos(codigo);
         });
 
-        /* -------- cambio bulto -------- */
+        /* -------- cuando cambia el Bulto -------- */
         bultoSel.addEventListener('change', () => {
-            limpiarInfoBulto();
-
+            // No tocamos el nro de análisis/dictamen (son del lote)
             const opt = bultoSel.selectedOptions[0];
-            if (!opt?.value) return;
+            if (!opt?.value) {
+                limpiarInfoBulto();
+                return;
+            }
 
-            cantRef.value      = opt.dataset.cant || '';
-            uniRef.value       = opt.dataset.uni  || '';
+            cantRef.value = opt.dataset.cant || '';
+            uniRef.value  = opt.dataset.uni  || '';
 
-            analInfo.textContent = opt.dataset.nroAnalisis || '';
-            document.getElementById('nroAnalisis').value = opt.dataset.nroAnalisis || '';
-
-            const dict = opt.dataset.dictamen || 'EN CURSO';
-            dictInfo.textContent = dict;
-            dictInfo.className   = 'form-control-plaintext bg-light ps-2 rounded border fw-bold ' +
-                (dict === 'APROBADO'  ? 'text-success' :
-                    dict === 'RECHAZADO' ? 'text-danger'  : 'text-warning');
-
+            // cargar subunidades tomando como base la unidad del bulto
             if (uniRef.value) cargarSubunidades(uniRef.value);
         });
 
         /* -------- sub-unidades -------- */
-        const cargarSubunidades = base => {
-            fetch(`/enums/subunidades?unidad=${base}`, {
-                headers: {[csrfHeader]: csrfToken }
-            })
+        const cargarSubunidades = (base) => {
+            fetch(`/enums/subunidades?unidad=${base}`, { headers: { [csrfHeader]: csrfToken } })
                 .then(r => r.json())
                 .then(subs => {
                     uniSel.innerHTML = '<option value="">-- Seleccione unidad --</option>';
@@ -225,15 +227,16 @@
                         o.value = o.textContent = u;
                         uniSel.appendChild(o);
                     });
+                    // por defecto dejamos la base o lo que haya en el DTO
                     uniSel.value = dto.unidadMedida || base;
                 })
                 .catch(err => console.error('Error al cargar sub-unidades:', err));
         };
 
-        /* -------- util -------- */
         const limpiarInfoBulto = () => {
-            cantRef.value = uniRef.value = analInfo.textContent = dictInfo.textContent = '';
-            dictInfo.className = 'form-control-plaintext bg-light ps-2 rounded border';
+            bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
+            cantRef.value = '';
+            uniRef.value  = '';
         };
 
         /* -------- init -------- */
@@ -244,12 +247,9 @@
             loteSel.dispatchEvent(new Event('change'));
         }
 
-        /* foco al primer error */
+        // foco al primer error
         document.querySelector('.error-field')?.focus();
     });
 </script>
-
-
-
 </body>
 </html>

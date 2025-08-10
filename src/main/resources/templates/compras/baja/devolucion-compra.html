@@ -11,7 +11,7 @@
 <div class="container mt-5">
     <h2 class="mb-4">Devolución de Compra</h2>
 
-    <form method="post" th:action="@{/compras/devolucion-compra}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/compras/baja/devolucion-compra}" th:object="${movimientoDTO}">
         <!-- Token CSRF -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
@@ -60,7 +60,7 @@
 
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/compras/cancelar}">Cancelar</a>
+            <a class="btn btn-secondary" th:href="@{/compras/baja/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Devolver</button>
         </div>
     </form>

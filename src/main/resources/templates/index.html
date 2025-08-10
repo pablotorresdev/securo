@@ -32,7 +32,7 @@
         <!-- NUEVO: CU4 Devolución de Compra -->
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/compras/devolucion-compra}">
+               th:href="@{/compras/baja/devolucion-compra}">
                 CU4 - Devolución de Compra [Analista de planta]
             </a>
         </li>
@@ -49,7 +49,7 @@
         <!-- CU3 Retiro por Muestreo -->
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/muestreo-bulto}">
+               th:href="@{/calidad/baja/muestreo-bulto}">
                 CU3 - Retiro por Muestreo [Analista control de calidad]
             </a>
         </li>

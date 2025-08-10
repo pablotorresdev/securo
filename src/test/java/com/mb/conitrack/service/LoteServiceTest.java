@@ -19,18 +19,24 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.enums.EstadoEnum;
+import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.utils.EntityUtils;
+import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -69,8 +75,49 @@ class LoteServiceTest {
     LoteService service;
 
     @Test
-    void altaStockPorCompra() {
+    void altaStockPorProduccion() {
     }
+
+    @Test
+    void bajaConsumoProduccion() {
+    }
+
+    @Test
+    void bajaDevolucionCompra() {
+    }
+
+    @Test
+    void persistirExpiracionAnalisis() {
+    }
+
+    @Test
+    void persistirLiberacionProducto() {
+    }
+
+    @Test
+    void persistirProductosVencidos() {
+    }
+
+    @Test
+    void persistirReanalisisProducto() {
+    }
+
+    @Test
+    void persistirResultadoAnalisis() {
+    }
+
+    @BeforeEach
+    void setup() {
+        service = new LoteService(
+            loteRepository,
+            proveedorService,
+            productoService,
+            bultoService,
+            movimientoService,
+            analisisService,
+            trazaService);
+    }
+
 
     @Test
     void altaStockPorCompra_ok() {
@@ -88,8 +135,6 @@ class LoteServiceTest {
         when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Movimiento movimiento = new Movimiento();
-        when(movimientoService.persistirMovimientoAltaIngresoCompra(any(Lote.class)))
-            .thenReturn(movimiento);
 
         // mock static getInstance() -> returns our instance mock
         try (MockedStatic<EntityUtils> mockedStatic = mockStatic(EntityUtils.class)) {
@@ -112,7 +157,7 @@ class LoteServiceTest {
 
             verify(loteRepository).save(loteCreado);
             verify(bultoService).save(result.getBultos());
-            verify(movimientoService).persistirMovimientoAltaIngresoCompra(result);
+            verify(movimientoService).save(any());
 
             // Verify instance methods were actually used
             verify(utilsMock).createLoteIngreso(dto);
@@ -160,20 +205,228 @@ class LoteServiceTest {
         verifyNoInteractions(productoService, loteRepository, bultoService, movimientoService);
     }
 
+
     @Test
-    void altaStockPorProduccion() {
+    @DisplayName("bajaMuestreo - nroAnalisis no coincide con el del lote -> IllegalArgumentException")
+    void bajaMuestreo_nroAnalisisMismatch() {
+        // given
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("AN-DTO");
+
+        Lote lote = Mockito.spy(new Lote());
+        doReturn("AN-LOTE").when(lote).getUltimoNroAnalisis(); // difiere
+
+        Producto prod = new Producto();
+        prod.setTipoProducto(TipoProductoEnum.API);
+        lote.setProducto(prod);
+
+        Bulto b = new Bulto();
+        b.setLote(lote);
+        lote.getBultos().add(b);
+
+        // when / then
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.bajaMuestreo(dto, b));
+        assertEquals("El número de análisis no coincide con el análisis en curso", ex.getMessage());
+
+        verifyNoInteractions(movimientoService, trazaService, loteRepository);
     }
 
     @Test
-    void bajaConsumoProduccion() {
+    @DisplayName("bajaMuestreo - producto NO UNIDAD_VENTA -> no usa traza; estados y guardado")
+    void bajaMuestreo_productoNoUnidadVenta() {
+        // given
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("AN-OK");
+
+        Lote lote = Mockito.spy(new Lote());
+        doReturn("AN-OK").when(lote).getUltimoNroAnalisis();
+
+        Producto prod = new Producto();
+        prod.setTipoProducto(TipoProductoEnum.API); // != UNIDAD_VENTA
+        lote.setProducto(prod);
+
+        Bulto b = new Bulto();
+        b.setLote(lote);
+        b.setCantidadActual(new BigDecimal("10"));
+        lote.getBultos().add(b);
+
+        Movimiento mov = new Movimiento();
+        mov.setCantidad(new BigDecimal("3.00"));
+        mov.setUnidadMedida(UnidadMedidaEnum.GRAMO);
+
+        when(movimientoService.persistirMovimientoMuestreo(dto, b)).thenReturn(mov);
+
+        // restarMovimientoConvertido -> deja 4 (no consumido)
+        try (MockedStatic<UnidadMedidaUtils> ms = mockStatic(UnidadMedidaUtils.class)) {
+            ms.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b)).thenReturn(new BigDecimal("4.0000"));
+
+            when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            // when
+            Lote out = service.bajaMuestreo(dto, b);
+
+            // then
+            assertSame(lote, out);
+            assertEquals(new BigDecimal("4.0000"), b.getCantidadActual());
+            assertEquals(EstadoEnum.EN_USO, b.getEstado());   // >0 => EN_USO
+            assertEquals(EstadoEnum.EN_USO, out.getEstado()); // no todos consumidos
+            assertTrue(out.getMovimientos().contains(mov));
+
+            verify(movimientoService).persistirMovimientoMuestreo(dto, b);
+            ms.verify(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b));
+            verify(loteRepository).save(out);
+            verifyNoInteractions(trazaService);
+        }
     }
 
     @Test
-    void bajaDevolucionCompra() {
+    @DisplayName("bajaMuestreo - UNIDAD_VENTA con UNIDAD y cantidad entera -> consume trazas, estados y guardado")
+    void bajaMuestreo_unidadVenta_ok() {
+        // given
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("AN-OK");
+
+        // spy para stubear getUltimoNroAnalisis() y getFirstAvailableTrazaList()
+        Lote lote = Mockito.spy(new Lote());
+        doReturn("AN-OK").when(lote).getUltimoNroAnalisis();
+
+        Producto prod = new Producto();
+        prod.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
+        lote.setProducto(prod);
+
+        Bulto b = new Bulto();
+        b.setLote(lote);
+        b.setCantidadActual(new BigDecimal("2")); // va a quedar en 0 para probar CONSUMIDO
+        lote.getBultos().add(b);
+
+        Movimiento mov = new Movimiento();
+        mov.setCantidad(new BigDecimal("2"));           // entero
+        mov.setUnidadMedida(UnidadMedidaEnum.UNIDAD);   // unidad correcta
+        when(movimientoService.persistirMovimientoMuestreo(dto, b)).thenReturn(mov);
+
+        // dos trazas a consumir
+        Traza t1 = new Traza();
+        t1.setEstado(EstadoEnum.DISPONIBLE);
+        Traza t2 = new Traza();
+        t2.setEstado(EstadoEnum.DISPONIBLE);
+        List<Traza> trazas = List.of(t1, t2);
+        doReturn(trazas).when(lote).getFirstAvailableTrazaList(2);
+
+        try (
+            MockedStatic<UnidadMedidaUtils> ms = mockStatic(UnidadMedidaUtils.class);
+            MockedStatic<DTOUtils> msDto = mockStatic(DTOUtils.class)) {
+
+            // restar -> 0 -> bulto CONSUMIDO
+            ms.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b)).thenReturn(BigDecimal.ZERO);
+
+            // mockeamos el mapping a DTO para poblar dto.trazaDTOs
+            msDto.when(() -> DTOUtils.fromEntity(any(Traza.class))).thenAnswer(inv -> new TrazaDTO());
+
+            when(trazaService.save(trazas)).thenReturn(trazas);
+            when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            // when
+            Lote out = service.bajaMuestreo(dto, b);
+
+            // then
+            assertSame(lote, out);
+
+            // trazas consumidas y vinculadas al movimiento
+            assertEquals(EstadoEnum.CONSUMIDO, t1.getEstado());
+            assertEquals(EstadoEnum.CONSUMIDO, t2.getEstado());
+            assertTrue(t1.getMovimientos().contains(mov));
+            assertTrue(t2.getMovimientos().contains(mov));
+            verify(trazaService).save(trazas);
+
+            // dto recibió DTOs de traza
+            assertNotNull(dto.getTrazaDTOs());
+            assertEquals(2, dto.getTrazaDTOs().size());
+
+            // estados bulto/lote
+            assertEquals(BigDecimal.ZERO, b.getCantidadActual());
+            assertEquals(EstadoEnum.CONSUMIDO, b.getEstado());
+            assertEquals(EstadoEnum.CONSUMIDO, out.getEstado()); // único bulto => todos consumidos
+
+            // persistencias y vínculos
+            assertTrue(out.getMovimientos().contains(mov));
+            verify(movimientoService).persistirMovimientoMuestreo(dto, b);
+            ms.verify(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b));
+            verify(loteRepository).save(out);
+        }
     }
 
     @Test
-    void bajaMuestreo() {
+    @DisplayName("bajaMuestreo - UNIDAD_VENTA con unidad ≠ UNIDAD -> IllegalStateException")
+    void bajaMuestreo_unidadVenta_unidadIncorrecta() {
+        // given
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("AN-OK");
+
+        Lote lote = Mockito.spy(new Lote());
+        doReturn("AN-OK").when(lote).getUltimoNroAnalisis();
+
+        Producto prod = new Producto();
+        prod.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
+        lote.setProducto(prod);
+
+        Bulto b = new Bulto();
+        b.setLote(lote);
+        b.setCantidadActual(new BigDecimal("5"));
+        lote.getBultos().add(b);
+
+        Movimiento mov = new Movimiento();
+        mov.setCantidad(BigDecimal.ONE);
+        mov.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO); // != UNIDAD
+
+        when(movimientoService.persistirMovimientoMuestreo(dto, b)).thenReturn(mov);
+
+        try (MockedStatic<UnidadMedidaUtils> ms = mockStatic(UnidadMedidaUtils.class)) {
+            ms.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b)).thenReturn(new BigDecimal("4"));
+
+            IllegalStateException ex = assertThrows(IllegalStateException.class, () -> service.bajaMuestreo(dto, b));
+            assertEquals("La traza solo es aplicable a UNIDADES", ex.getMessage());
+
+            verify(movimientoService).persistirMovimientoMuestreo(dto, b);
+            ms.verify(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b));
+            verifyNoInteractions(trazaService, loteRepository);
+        }
+    }
+
+    @Test
+    @DisplayName("bajaMuestreo - UNIDAD_VENTA con UNIDAD pero cantidad no-entera -> IllegalStateException")
+    void bajaMuestreo_unidadVenta_unidadValida_cantidadNoEntera() {
+        // given
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setNroAnalisis("AN-OK");
+
+        Lote lote = Mockito.spy(new Lote());
+        doReturn("AN-OK").when(lote).getUltimoNroAnalisis();
+
+        Producto prod = new Producto();
+        prod.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
+        lote.setProducto(prod);
+
+        Bulto b = new Bulto();
+        b.setLote(lote);
+        b.setCantidadActual(new BigDecimal("5"));
+        lote.getBultos().add(b);
+
+        Movimiento mov = new Movimiento();
+        mov.setCantidad(new BigDecimal("1.50"));       // no entero
+        mov.setUnidadMedida(UnidadMedidaEnum.UNIDAD);  // unidad válida
+
+        when(movimientoService.persistirMovimientoMuestreo(dto, b)).thenReturn(mov);
+
+        try (MockedStatic<UnidadMedidaUtils> ms = mockStatic(UnidadMedidaUtils.class)) {
+            ms.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b)).thenReturn(new BigDecimal("3.5"));
+
+            IllegalStateException ex = assertThrows(IllegalStateException.class, () -> service.bajaMuestreo(dto, b));
+            assertEquals("La cantidad de Unidades debe ser entero", ex.getMessage());
+
+            verify(movimientoService).persistirMovimientoMuestreo(dto, b);
+            ms.verify(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b));
+            verifyNoInteractions(trazaService, loteRepository);
+        }
     }
 
     @Test
@@ -194,7 +447,7 @@ class LoteServiceTest {
             UnidadMedidaEnum.GRAMO,
             UnidadMedidaEnum.GRAMO));
         dto.setFechaIngreso(LocalDate.now());
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 1, 1, 12, 0, 0));
 
         Producto producto = new Producto();
         producto.setCodigoInterno("P-123");
@@ -209,11 +462,10 @@ class LoteServiceTest {
 
         Lote lote = new Lote();
 
-        // when
-        callPopulateLote(dto, lote, producto, "TS", proveedor);
+        service.populateLoteAltaStockCompra(lote, dto, producto, proveedor);
 
         // then
-        assertEquals("L-P-123-TS", lote.getCodigoInterno());
+        assertEquals("L-P-123-25.01.01_12.00.00", lote.getCodigoInterno());
         assertSame(producto, lote.getProducto());
         assertSame(proveedor, lote.getProveedor());
         assertSame(fabricante, lote.getFabricante()); // fabricante seteado
@@ -241,7 +493,7 @@ class LoteServiceTest {
         dto.setCantidadInicial(new BigDecimal("10"));
         dto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
         dto.setFechaIngreso(LocalDate.now());
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 1, 1, 12, 0, 0));
 
         Producto producto = new Producto();
         producto.setCodigoInterno("P-XYZ");
@@ -254,10 +506,9 @@ class LoteServiceTest {
         Lote lote = new Lote();
 
         // when
-        callPopulateLote(dto, lote, producto, "STAMP", proveedor);
-
+        service.populateLoteAltaStockCompra(lote, dto, producto, proveedor);
         // then
-        assertEquals("L-P-XYZ-STAMP", lote.getCodigoInterno());
+        assertEquals("L-P-XYZ-25.01.01_12.00.00", lote.getCodigoInterno());
         assertSame(producto, lote.getProducto());
         assertSame(proveedor, lote.getProveedor());
         assertNull(lote.getFabricante());         // no presente
@@ -434,7 +685,7 @@ class LoteServiceTest {
         dto.setCantidadesBultos(java.util.List.of(BigDecimal.ONE, BigDecimal.TEN));
         dto.setUnidadMedidaBultos(java.util.List.of(UnidadMedidaEnum.GRAMO, UnidadMedidaEnum.GRAMO));
         dto.setFechaIngreso(LocalDate.now());
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 1, 1, 12, 0, 0));
 
         Producto producto = new Producto();
         producto.setCodigoInterno("P-999");
@@ -446,10 +697,10 @@ class LoteServiceTest {
         lote.setPaisOrigen("MX"); // valor previo que NO debe ser sobreescrito
 
         // when
-        callPopulateLote(dto, lote, producto, "T", proveedor);
+        service.populateLoteAltaStockCompra(lote, dto, producto, proveedor);
 
         // then
-        assertEquals("L-P-999-T", lote.getCodigoInterno());
+        assertEquals("L-P-999-25.01.01_12.00.00", lote.getCodigoInterno());
         assertSame(producto, lote.getProducto());
         assertSame(proveedor, lote.getProveedor());
         assertEquals("MX", lote.getPaisOrigen()); // NO pisado
@@ -488,8 +739,10 @@ class LoteServiceTest {
         Movimiento m2 = new Movimiento();
         m2.setDictamenFinal(DictamenEnum.CUARENTENA);
 
-        when(movimientoService.persistirMovimientoCuarentenaPorAnalisis(eq(dto), eq(lote1), eq("AN-001")))
-            .thenReturn(m1);
+        when(movimientoService.persistirMovimientoCuarentenaPorAnalisis(
+            eq(dto),
+            eq(lote1),
+            eq("AN-001"))).thenReturn(m1);
 
         when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -536,8 +789,8 @@ class LoteServiceTest {
         Movimiento m2 = new Movimiento();
         m2.setDictamenFinal(DictamenEnum.CUARENTENA);
 
-        when(movimientoService.persistirMovimientoCuarentenaPorAnalisis(eq(dto), eq(lote1), eq("AN-SAVED")))
-            .thenReturn(m1);
+        when(movimientoService.persistirMovimientoCuarentenaPorAnalisis(eq(dto), eq(lote1), eq("AN-SAVED"))).thenReturn(
+            m1);
 
         when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -564,50 +817,6 @@ class LoteServiceTest {
         verifyNoMoreInteractions(loteRepository, movimientoService, analisisService);
     }
 
-    @Test
-    void persistirExpiracionAnalisis() {
-    }
-
-    @Test
-    void persistirLiberacionProducto() {
-    }
-
-    @Test
-    void persistirProductosVencidos() {
-    }
-
-    @Test
-    void persistirReanalisisProducto() {
-    }
-
-    @Test
-    void persistirResultadoAnalisis() {
-    }
-
-    @Test
-    void save() {
-    }
-
-    @BeforeEach
-    void setup() {
-        service = new LoteService(
-            loteRepository, proveedorService, productoService,
-            bultoService, movimientoService, analisisService, trazaService
-        );
-    }
-
-    private void callPopulateLote(
-        LoteDTO dto,
-        Lote lote,
-        Producto producto,
-        String ts,
-        Proveedor prov) throws Exception {
-        Method m = LoteService.class.getDeclaredMethod(
-            "populateLote", LoteDTO.class, Lote.class, Producto.class, String.class, Proveedor.class
-        );
-        m.setAccessible(true);
-        m.invoke(service, dto, lote, producto, ts, prov);
-    }
 
     private LoteDTO dtoBase() {
         LoteDTO dto = new LoteDTO();

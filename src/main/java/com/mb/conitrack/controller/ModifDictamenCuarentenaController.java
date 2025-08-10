@@ -64,12 +64,12 @@ public class ModifDictamenCuarentenaController {
                 movimientoDTO.getCodigoInternoLote(),
                 bindingResult,
                 loteService);
-            success = lote != null;
         }
-        if (success) {
-            success = controllerUtils()
-                .validarFechaMovimientoPosteriorLote(movimientoDTO, lote, bindingResult);
-        }
+        success = success && lote != null;
+        success = success && controllerUtils()
+            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
+        success = success && controllerUtils()
+            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
 
         if (!success) {
             initModelDictamencuarentena(movimientoDTO, model);

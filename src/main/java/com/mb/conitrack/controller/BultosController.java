@@ -1,5 +1,7 @@
 package com.mb.conitrack.controller;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +10,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.mb.conitrack.dto.BultoDTO;
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.BultoService;
 
 /**
@@ -42,6 +48,7 @@ public class BultosController {
         model.addAttribute("bultos", bultos);
         return "bultos/list-bultos"; // Corresponde a bultos-lote.html
     }
+
 
 }
 

@@ -62,9 +62,10 @@ public class VentasController {
             movimientoDTO.getCodigoInternoLote(),
             bindingResult,
             loteService)
-            &&
-            ControllerUtils.getInstance()
-                .validarFechaMovimientoPosteriorLote(movimientoDTO, lotesList.get(0), bindingResult);
+            && ControllerUtils.getInstance()
+            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult)
+            && ControllerUtils.getInstance()
+            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
 
         if (!success) {
             initModelLiberacionProducto(movimientoDTO, model);
