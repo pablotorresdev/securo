@@ -1,8 +1,6 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.controller.cu;
 
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class BajaDevolucionCompraControllerTest {
 

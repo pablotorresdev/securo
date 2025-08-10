@@ -1,4 +1,4 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.controller.cu;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

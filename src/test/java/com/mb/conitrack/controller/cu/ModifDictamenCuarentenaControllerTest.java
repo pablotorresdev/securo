@@ -1,4 +1,4 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.controller.cu;
 
 import java.util.Collections;
 import java.util.List;
