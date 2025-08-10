@@ -1,4 +1,4 @@
-package com.mb.conitrack.controller;
+package com.mb.conitrack.utils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,7 +17,6 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.utils.ControllerUtils;
 
 import static com.mb.conitrack.utils.ControllerUtils.validarTipoDeDato;
 import static org.junit.jupiter.api.Assertions.assertEquals;

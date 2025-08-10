@@ -27,16 +27,16 @@ public class MovimientosController {
     @Autowired
     private MovimientoService movimientoService;
 
-    @GetMapping("/list-muestreos")
-    public String listMuestreos(Model model) {
-        model.addAttribute("movimientos", movimientoService.findAllMuestreos());
-        return "movimientos/list-movimientos"; //
-    }
-
     //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
+    }
+
+    @GetMapping("/list-muestreos")
+    public String listMuestreos(Model model) {
+        model.addAttribute("movimientos", movimientoService.findAllMuestreos());
+        return "movimientos/list-movimientos"; //
     }
 
     @GetMapping("/list-movimientos")

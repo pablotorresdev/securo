@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Analisis asignado - Confirmación</title>
+    <title>Liberación Unidad de Venta - Confirmación</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet"/>
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="mb-4">Nuevo análisis asignado al lote - Confirmación</h2>
+    <h2 class="mb-4">Liberación Unidad de Venta - Confirmación</h2>
 
     <!-- Mensaje de éxito (si se pasó como Flash Attribute 'success') -->
     <div class="alert alert-success fw-bold mb-4"
@@ -18,7 +18,7 @@
 
     <!-- Bloque que muestra el LoteDTO si existe en el modelo -->
     <div th:if="${loteDTO != null}">
-        <h4>Detalles del Lote en Cuarentena</h4>
+        <h4>Detalles del Lote Liberado para Venta</h4>
         <table class="table table-bordered table-sm">
             <tbody>
             <tr>
@@ -62,6 +62,14 @@
                 <td th:text="${loteDTO.dictamen}"></td>
             </tr>
             <tr>
+                <th>Traza inicial:</th>
+                <td th:text="${loteDTO.trazaInicial}"></td>
+            </tr>
+            <tr>
+                <th>Traza final:</th>
+                <td th:text="${loteDTO.trazaFinal}"></td>
+            </tr>
+            <tr>
                 <th>Observaciones:</th>
                 <td th:text="${loteDTO.observaciones}"></td>
             </tr>
@@ -76,7 +84,7 @@
             </tbody>
         </table>
 
-        <!-- Movimientos del LoteDTO tras la cuarentena -->
+        <!-- Movimientos del LoteDTO-->
         <div th:if="${loteDTO.movimientoDTOs != null and #lists.size(loteDTO.movimientoDTOs) > 0}">
             <h4>Movimientos Registrados</h4>
             <table class="table table-striped table-sm">
@@ -110,36 +118,23 @@
                 </tbody>
             </table>
         </div>
-        <div th:if="${loteDTO.analisisDTOs != null and #lists.size(loteDTO.analisisDTOs) > 0}">
-            <table class="table table-bordered table-sm">
-                <thead>
-                <tr>
-                    <th>Número de Análisis</th>
-                    <th>Fecha de Realizado</th>
-                    <th>Fecha de ReAnálisis</th>
-                    <th>Fecha de Vencimiento</th>
-                    <th>Dictamen</th>
-                    <th>Titulo %</th>
-                    <th>Observaciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="analis : ${loteDTO.analisisDTOs}">
-                    <td th:text="${analis.nroAnalisis}"/>
-                    <td th:text="${analis.fechaRealizado}"/>
-                    <td th:text="${analis.fechaReanalisis}"/>
-                    <td th:text="${analis.fechaVencimiento}"/>
-                    <td th:text="${analis.dictamen != null ? analis.dictamen : 'EN CURSO'}"></td>
-                    <td th:text="${analis.titulo}"/>
-                    <td th:text="${analis.observaciones}"/>
-                </tr>
-                </tbody>
-            </table>
-    </div>
 
+    </div>
+    <!-- Cartel de unidades a retirar -->
+    <div class="alert alert-warning display-6 fw-bold text-center"
+         th:if="${trazasMuestreo != null and !#lists.isEmpty(trazasMuestreo)}">
+
+        <span class="text-danger">¡ATENCIÓN!</span>
+        Retirar del stock las unidades con el siguiente numero de traza, del bulto indicado arriba para su venta:
+
+        <span th:each="t, iterStat : ${trazasMuestreo}">
+        <span th:text="|[${t.nroTraza}]|"></span>
+        <span th:if="${!iterStat.last}">,&nbsp;</span>
+    </span>
+    </div>
     <!-- Botón para volver al menú principal -->
     <div class="mt-4">
-        <a class="btn btn-primary" th:href="@{/calidad/cancelar}">Continuar</a>
+        <a class="btn btn-primary" th:href="@{/ventas/baja/cancelar}">Continuar</a>
     </div>
 </div>
 </body>

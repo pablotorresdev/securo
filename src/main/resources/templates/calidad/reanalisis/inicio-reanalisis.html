@@ -11,7 +11,7 @@
 <div class="container mt-5">
     <h2 class="mb-4">Reanalizar un Lote Aprobado</h2>
 
-    <form method="post" th:action="@{/calidad/reanalisis-producto}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/calidad/reanalisis/inicio-reanalisis}" th:object="${movimientoDTO}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
         <hr class="my-4">
@@ -66,7 +66,7 @@
 
 
         <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/calidad/cancelar}">Cancelar</a>
+            <a class="btn btn-secondary" th:href="@{/calidad/reanalisis/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Guardar Reanálisis</button>
         </div>
     </form>

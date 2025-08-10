@@ -1,0 +1,114 @@
+package com.mb.conitrack.controller.cu;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.mb.conitrack.dto.DTOUtils;
+import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.utils.ControllerUtils;
+
+import jakarta.validation.Valid;
+
+import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+
+@Controller
+@RequestMapping("/calidad/reanalisis")
+public class ModifReanalisisProductoController {
+
+    @Autowired
+    private LoteService loteService;
+
+    private static ControllerUtils controllerUtils() {
+        return ControllerUtils.getInstance();
+    }
+
+    //Salida del CU
+    @GetMapping("/cancelar")
+    public String cancelar() {
+        return "redirect:/";
+    }
+
+    //***************************** CUZ Reanalisis de Producto Aprobado************************************
+    // CUZ: Reanalisis de Producto Aprobado
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
+    @GetMapping("/inicio-reanalisis")
+    public String showReanalisisProductoForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
+        initModelReanalisisProducto(movimientoDTO, model);
+        return "calidad/reanalisis/inicio-reanalisis";
+    }
+
+    @PostMapping("/inicio-reanalisis")
+    public String procesarReanalisisProducto(
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
+
+        final List<Lote> lotesList = new ArrayList<>();
+        boolean success = controllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
+        success = success &&
+            controllerUtils().populateLoteListByCodigoInterno(
+                lotesList,
+                movimientoDTO.getCodigoInternoLote(),
+                bindingResult,
+                loteService);
+        success = success &&
+            controllerUtils().validarFechaMovimientoPosteriorIngresoLote(
+                movimientoDTO,
+                lotesList.get(0),
+                bindingResult);
+        success = success &&
+            controllerUtils().validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
+
+        if (!success) {
+            initModelReanalisisProducto(movimientoDTO, model);
+            model.addAttribute("movimientoDTO", movimientoDTO);
+            return "calidad/reanalisis/inicio-reanalisis";
+        }
+
+        reanalisisProducto(movimientoDTO, lotesList, redirectAttributes);
+        return "redirect:/calidad/reanalisis/inicio-reanalisis-ok";
+    }
+
+    @GetMapping("/inicio-reanalisis-ok")
+    public String exitoReanalisisProducto(
+        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
+        return "calidad/reanalisis/inicio-reanalisis-ok";
+    }
+
+    private void initModelReanalisisProducto(final MovimientoDTO movimientoDTO, final Model model) {
+        //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
+        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForReanalisisProducto());
+        model.addAttribute("lotesForReanalisis", lotesDtos);
+        model.addAttribute("movimientoDTO", movimientoDTO);
+    }
+
+    private void reanalisisProducto(
+        final MovimientoDTO dto,
+        final List<Lote> lotesList,
+        final RedirectAttributes redirectAttributes) {
+        dto.setFechaYHoraCreacion(LocalDateTime.now());
+        final LoteDTO loteDTO = DTOUtils.mergeEntities(loteService.persistirReanalisisProducto(dto, lotesList));
+        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+        redirectAttributes.addFlashAttribute(
+            loteDTO != null ? "success" : "error",
+            loteDTO != null
+                ? "Anilisis asignado con éxito: " + loteDTO.getUltimoNroAnalisisDto()
+                : "Hubo un error al asignar el analisis.");
+    }
+
+}

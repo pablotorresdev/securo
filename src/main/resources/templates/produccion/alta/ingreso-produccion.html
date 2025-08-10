@@ -15,7 +15,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Ingreso de Stock por Produccion</h2>
-    <form method="post" th:action="@{/produccion/ingreso-produccion}" th:object="${loteDTO}">
+    <form method="post" th:action="@{/produccion/alta/ingreso-produccion}" th:object="${loteDTO}">
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
@@ -114,7 +114,7 @@
         <!-- Botones: Cancelar y Guardar -->
         <!-- ========================================================= -->
         <div class="d-flex justify-content-between mt-3">
-            <a class="btn btn-secondary" th:href="@{/produccion/cancelar}">Cancelar</a>
+            <a class="btn btn-secondary" th:href="@{/produccion/alta/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Guardar</button>
         </div>
     </form>

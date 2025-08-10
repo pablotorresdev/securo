@@ -55,13 +55,13 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/resultado-analisis}">
+               th:href="@{/calidad/analisis/resultado-analisis}">
                 CU5/CU6. Resultado QA: Aprobado/Rechazado [Gerente control de calidad]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/reanalisis-producto}">
+               th:href="@{/calidad/reanalisis/inicio-reanalisis}">
                 CUZ. Reanalisis de Producto Aprobado [Gerente control de calidad]
             </a>
         </li>
@@ -76,13 +76,13 @@
         <h5 class="mb-3 text-primary">Produccion</h5>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/produccion/consumo-produccion}">
+               th:href="@{/produccion/baja/consumo-produccion}">
                 CU7. Consumo de Producción [Supervisor de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/produccion/ingreso-produccion}">
+               th:href="@{/produccion/alta/ingreso-produccion}">
                 CU10. Ingreso de stock por Producción Interna [Supervisor de planta]
             </a>
         </li>
@@ -90,19 +90,19 @@
         <h5 class="mb-3 text-primary">Ventas</h5>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/ventas/liberacion-producto}">
+               th:href="@{/ventas/liberacion/inicio-liberacion}">
                 CU11. Liberación Unidad de venta [Gerente garantía de calidad/DT]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/ventas/venta-producto}">
+               th:href="@{/ventas/baja/venta-producto}">
                 CU12. Venta de Producto Propio [Analista de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/ventas/devolucion-venta}">
+               th:href="@{/ventas/alta/devolucion-venta}">
                 CU13. Devolución de cliente [Gerente garantía de calidad]
             </a>
         </li>

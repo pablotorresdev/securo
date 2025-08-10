@@ -10,7 +10,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Cargar Resultado de Análisis en Curso</h2>
-    <form method="post" th:action="@{/calidad/resultado-analisis}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/calidad/analisis/resultado-analisis}" th:object="${movimientoDTO}">
         <!-- Campo oculto para CSRF -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
         <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}" type="hidden"/>
@@ -97,7 +97,7 @@
         </div>
 
         <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/calidad/cancelar}">Cancelar</a>
+            <a class="btn btn-secondary" th:href="@{/calidad/analisis/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Enviar Resultado</button>
         </div>
     </form>
