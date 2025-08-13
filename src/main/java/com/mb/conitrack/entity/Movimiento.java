@@ -45,16 +45,6 @@ public class Movimiento {
     @JsonBackReference
     private Lote lote;
 
-    @ManyToMany
-    @JoinTable(
-        name = "movimientos_bulto",
-        joinColumns = @JoinColumn(name = "movimiento_id"),
-        inverseJoinColumns = @JoinColumn(name = "bulto_id")
-    )
-    @JsonManagedReference
-    @EqualsAndHashCode.Exclude
-    private Set<Bulto> bultos = new HashSet<>();
-
     @OneToMany(
         mappedBy = "movimiento",
         fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -93,11 +83,11 @@ public class Movimiento {
     private String ordenProduccion;
 
     @Enumerated(EnumType.STRING)
-    @JoinColumn(name = "dictamen_inicial", nullable = false)
+    @Column(name = "dictamen_inicial", nullable = false)
     private DictamenEnum dictamenInicial;
 
     @Enumerated(EnumType.STRING)
-    @JoinColumn(name = "dictamen_final", nullable = false)
+    @Column(name = "dictamen_final", nullable = false)
     private DictamenEnum dictamenFinal;
 
     @ManyToOne(fetch = FetchType.EAGER)

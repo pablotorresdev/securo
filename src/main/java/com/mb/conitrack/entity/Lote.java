@@ -142,10 +142,6 @@ public class Lote {
     @Column(name = "unidad_medida", nullable = false)
     private UnidadMedidaEnum unidadMedida;
 
-    @Deprecated
-    @Column(name = "nro_bulto")
-    private Integer nroBulto;
-
     //****** ANALISIS ******//
     public Analisis getUltimoAnalisis() {
         if (this.analisisList.isEmpty()) {

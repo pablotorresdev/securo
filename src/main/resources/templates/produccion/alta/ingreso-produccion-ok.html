@@ -120,7 +120,6 @@
                 <thead>
                 <tr>
                     <th>Fecha Movimiento</th>
-                    <th>Nro Bulto</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
                     <th>Observaciones</th>
@@ -132,7 +131,6 @@
                 <tbody>
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.nroBulto}"></td>
                     <td th:text="${mov.cantidad}"></td>
                     <td th:text="${mov.unidadMedida}"></td>
                     <td th:text="${mov.observaciones}"></td>

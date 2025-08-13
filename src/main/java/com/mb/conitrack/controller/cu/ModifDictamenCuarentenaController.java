@@ -16,7 +16,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.utils.ControllerUtils;
 
@@ -30,6 +32,9 @@ public class ModifDictamenCuarentenaController {
 
     @Autowired
     private LoteService loteService;
+
+    @Autowired
+    private AnalisisService analisisService;
 
     private static ControllerUtils controllerUtils() {
         return ControllerUtils.getInstance();
@@ -59,6 +64,8 @@ public class ModifDictamenCuarentenaController {
         RedirectAttributes redirectAttributes) {
         Lote lote = null;
         boolean success = controllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
+        success = success && controllerUtils()
+            .validarNroAnalisisUnico(movimientoDTO, bindingResult, analisisService);
         if (success) {
             lote = controllerUtils().getLoteByCodigoInterno(
                 movimientoDTO.getCodigoInternoLote(),

@@ -61,11 +61,6 @@ public class Bulto {
     @Column(name = "estado", nullable = false)
     private EstadoEnum estado;
 
-    @ManyToMany(mappedBy = "bultos")
-    @JsonBackReference
-    @EqualsAndHashCode.Exclude
-    private Set<Movimiento> movimientos = new HashSet<>();
-
     @OneToMany(mappedBy = "bulto", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();

@@ -25,6 +25,7 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
+import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
@@ -57,6 +58,9 @@ class ModifDictamenCuarentenaControllerTest {
 
     @Mock
     LoteService loteService;
+
+    @Mock
+    AnalisisService analisisService;;
 
     @Mock
     ProductoService productoService;
@@ -199,16 +203,15 @@ class ModifDictamenCuarentenaControllerTest {
         try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
             ControllerUtils utilsMock = mock(ControllerUtils.class);
             mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
-                .thenAnswer(inv -> {
-                    return null;                   // el estático debe devolver boolean
-                });
+            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(false);
+
             String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
 
             assertEquals("calidad/dictamen/cuarentena", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
+            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
             verify(controller).initModelDictamencuarentena(dto, model);
             verify(controller, never()).dictamenCuarentena(any(), any(), any());
             assertSame(dto, model.getAttribute("movimientoDTO"));
@@ -227,24 +230,22 @@ class ModifDictamenCuarentenaControllerTest {
         doNothing().when(controller).initModelDictamencuarentena(any(), any());
 
         try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-
             ControllerUtils utilsMock = mock(ControllerUtils.class);
             mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
+            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
             when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
                 .thenAnswer(inv -> {
-                    return new Lote();                   // el estático debe devolver boolean
+                    return null;                   // el estático debe devolver boolean
                 });
-            // 3° falla
-            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
-                .thenReturn(false);
 
             String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
 
             assertEquals("calidad/dictamen/cuarentena", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
+            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
             verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
-            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(controller).initModelDictamencuarentena(dto, model);
             verify(controller, never()).dictamenCuarentena(any(), any(), any());
             assertSame(dto, model.getAttribute("movimientoDTO"));
@@ -266,7 +267,47 @@ class ModifDictamenCuarentenaControllerTest {
 
             ControllerUtils utilsMock = mock(ControllerUtils.class);
             mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
+            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
+            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
+                .thenAnswer(inv -> {
+                    return new Lote();                   // el estático debe devolver boolean
+                });
+            // 3° falla
+            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
+                .thenReturn(false);
+
+            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
+
+            assertEquals("calidad/dictamen/cuarentena", view);
+            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
+            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
+            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
+            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
+            verify(controller).initModelDictamencuarentena(dto, model);
+            verify(controller, never()).dictamenCuarentena(any(), any(), any());
+            assertSame(dto, model.getAttribute("movimientoDTO"));
+        }
+    }
+
+    @Test
+    @DisplayName("Pasan 1°, 2°, 3°, 4° falla 5° -> vuelve al form")
+    void fallaQuintoValidador() {
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setCodigoInternoLote("X");
+        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
+        Model model = new ExtendedModelMap();
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        doNothing().when(controller).initModelDictamencuarentena(any(), any());
+
+        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
+
+            ControllerUtils utilsMock = mock(ControllerUtils.class);
+            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
+            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
+            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
             when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
                 .thenAnswer(inv -> {
                     return new Lote();                   // el estático debe devolver boolean
@@ -281,6 +322,7 @@ class ModifDictamenCuarentenaControllerTest {
 
             assertEquals("calidad/dictamen/cuarentena", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
+            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
             verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
             verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
@@ -400,6 +442,7 @@ class ModifDictamenCuarentenaControllerTest {
             ControllerUtils utilsMock = mock(ControllerUtils.class);
             mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
+            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
             when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
                 .thenAnswer(inv -> {
                     return new Lote();                   // el estático debe devolver boolean
@@ -413,6 +456,7 @@ class ModifDictamenCuarentenaControllerTest {
 
             assertEquals("redirect:/calidad/dictamen/cuarentena-ok", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
+            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
             verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
             verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));

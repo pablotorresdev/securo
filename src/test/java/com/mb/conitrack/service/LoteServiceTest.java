@@ -1,6 +1,5 @@
 package com.mb.conitrack.service;
 
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -556,7 +555,7 @@ class LoteServiceTest {
         List<Lote> preorden = List.of(l1, l2, l3, l4, l5, l6, e1, e2);
 
         // Importante: doReturn(...) para no ejecutar el real en un spy
-        doReturn(preorden).when(spyService).findAllSortByDateAndNroBulto();
+        doReturn(preorden).when(spyService).findAllSortByDate();
 
         // when
         List<Lote> out = spyService.findAllForCuarentena();
@@ -566,7 +565,7 @@ class LoteServiceTest {
 
         // Verificá la llamada externa y la interna
         verify(spyService).findAllForCuarentena();
-        verify(spyService).findAllSortByDateAndNroBulto();
+        verify(spyService).findAllSortByDate();
 
         verifyNoMoreInteractions(spyService);
     }
@@ -612,16 +611,16 @@ class LoteServiceTest {
     }
 
     @Test
-    void findAllSortByDateAndNroBulto() {
+    void findAllSortByDate() {
     }
 
     @Test
-    void findAllSortByDateAndNroBultoAudit() {
+    void findAllSortByDateAudit() {
     }
 
     @Test
     @DisplayName("findAllSortByDateAndNroBulto - filtra activos y ordena por fecha, código y nroBulto")
-    void findAllSortByDateAndNroBulto_ok() {
+    void findAllSortByDate_ok() {
         // given: mezcla de activos e inactivos y desordenados
         Lote a = new Lote();
         a.setActivo(true);
@@ -646,7 +645,7 @@ class LoteServiceTest {
         when(loteRepository.findAll()).thenReturn(Arrays.asList(a, b, c, d));
 
         // when
-        List<Lote> out = service.findAllSortByDateAndNroBulto();
+        List<Lote> out = service.findAllSortByDate();
 
         // then: sólo activos (c, b, a) en orden por fecha/código/nro
         assertEquals(List.of(c, b, a), out);

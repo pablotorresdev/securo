@@ -101,7 +101,6 @@
                 <tr>
                     <th>Fecha</th>
                     <th>Lote ID</th>
-                    <th>Nro Bulto</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
                     <th>Fecha Realizado Análisis</th>
@@ -121,7 +120,6 @@
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
                     <td th:text="${mov.loteId}"></td>
-                    <td th:text="${mov.nroBulto}"></td>
                     <td th:text="${mov.cantidad}"></td>
                     <td th:text="${mov.unidadMedida}"></td>
 

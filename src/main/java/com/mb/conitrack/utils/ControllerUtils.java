@@ -20,8 +20,10 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
 
+import jakarta.validation.Valid;
 import lombok.Getter;
 
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
@@ -59,11 +61,10 @@ public class ControllerUtils {
             .stream()
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
             .sorted(Comparator.comparing(Lote::getFechaIngreso)
-                .thenComparing(Lote::getCodigoInterno)
-                .thenComparing(Lote::getNroBulto))
+                .thenComparing(Lote::getCodigoInterno))
             .toList();
         if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.reject("codigoInternoLote", "Lote inexistente.");
+            bindingResult.rejectValue("codigoInternoLote", "Lote inexistente.");
             return false;
         }
         lotesList.addAll(loteListByCodigoInterno);
@@ -181,7 +182,7 @@ public class ControllerUtils {
             }
             final Integer nroBulto = nroBultoList.get(i);
             final Lote lote = lotes.stream()
-                .filter(l -> l.getNroBulto().equals(nroBulto))
+                //.filter(l -> l.getNroBulto().equals(nroBulto))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado para el número de bulto: " +
                     nroBulto));
@@ -535,7 +536,7 @@ public class ControllerUtils {
 
         final Optional<Lote> loteByCodigoInterno = loteService.findLoteByCodigoInterno(codigoInternoLote);
         if (!loteByCodigoInterno.isPresent()) {
-            bindingResult.reject("codigoInternoLote", "Lote bloqueado.");
+            bindingResult.rejectValue("codigoInternoLote", "","Lote bloqueado.");
             return null;
         }
         return loteByCodigoInterno.get();
@@ -551,7 +552,7 @@ public class ControllerUtils {
         }
         final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote);
         if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.reject("codigoInternoLote", "Lote bloqueado.");
+            bindingResult.rejectValue("codigoInternoLote", "","Lote bloqueado.");
             return false;
         }
         lotesList.addAll(loteListByCodigoInterno);
@@ -597,9 +598,9 @@ public class ControllerUtils {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        if (StringUtils.isEmpty(movimientoDTO.getNroAnalisis()) &&
-            StringUtils.isEmpty(movimientoDTO.getNroReanalisis())) {
-            bindingResult.rejectValue("nroAnalisis", "", "Debe ingresar un nro de Analisis/Reanalisis");
+
+        if (movimientoDTO.getNroAnalisis()==null) {
+            bindingResult.rejectValue("nroAnalisis", "nroAnalisis.nulo","Nro de analisis no puede ser nulo");
             return false;
         }
         return true;
@@ -631,6 +632,20 @@ public class ControllerUtils {
             return false;
         }
         return true;
+    }
+
+    public boolean validarNroAnalisisUnico(final @Valid MovimientoDTO movimientoDTO, final BindingResult bindingResult, AnalisisService analisisService) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+
+        final Analisis analisis = analisisService.findByNroAnalisis(movimientoDTO.getNroAnalisis());
+        if (analisis!=null) {
+            bindingResult.rejectValue("nroAnalisis", "nroAnalisis.duplicado","Nro de analisis ya registrado.");
+            return false;
+        }
+        return true;
+
     }
 
 }

@@ -19,6 +19,7 @@ import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -157,7 +158,7 @@ class EntityUtilsTest {
         // Fechas y código interno
         assertEquals(fch, mov.getFechaYHoraCreacion());
         assertEquals(fch.toLocalDate(), mov.getFecha());  // toLocalDate()
-        String esperadoCodigo = lote.getCodigoInterno() + "-B_" + lote.getNroBulto() + "-" + timestamp;
+        String esperadoCodigo = lote.getCodigoInterno() + "-" + timestamp;
         assertEquals(esperadoCodigo, mov.getCodigoInterno());
 
         // Cantidad, UM, dictamen final
@@ -167,9 +168,7 @@ class EntityUtilsTest {
 
         // Lote y bultos copiados
         assertSame(lote, mov.getLote());
-        assertEquals(2, mov.getBultos().size());
-        assertTrue(mov.getBultos().contains(b1));
-        assertTrue(mov.getBultos().contains(b2));
+        assertTrue(mov.getDetalles().isEmpty());
 
         // Activo y observaciones
         assertTrue(mov.getActivo());

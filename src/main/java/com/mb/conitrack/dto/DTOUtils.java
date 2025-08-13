@@ -338,16 +338,6 @@ public class DTOUtils {
         }
     }
 
-    static void addMovimientosDTO(final Bulto entity, final LoteDTO loteDTO) {
-        for (Movimiento movimiento : entity.getMovimientos()) {
-            if (movimiento.getActivo()) {
-                final MovimientoDTO movimientoDTO = DTOUtils.fromEntity(movimiento);
-                movimientoDTO.setNroBulto(String.valueOf(entity.getNroBulto()));
-                loteDTO.getMovimientoDTOs().add(movimientoDTO);
-            }
-        }
-    }
-
     static void addMovimientosDTO(final Lote entity, final LoteDTO loteDTO) {
         for (Movimiento movimiento : entity.getMovimientos()) {
             if (movimiento.getActivo()) {

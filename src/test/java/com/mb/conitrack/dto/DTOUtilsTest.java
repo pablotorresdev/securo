@@ -249,7 +249,6 @@ class DTOUtilsTest {
         when(b.getCantidadActual()).thenReturn(cantAct);
         when(b.getUnidadMedida()).thenReturn(um);
         when(b.getEstado()).thenReturn(estado);
-        when(b.getMovimientos()).thenReturn(Set.of(mov));
         return b;
     }
 

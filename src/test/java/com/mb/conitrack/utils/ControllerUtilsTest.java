@@ -73,8 +73,8 @@ class ControllerUtilsTest {
         verify(br).hasErrors();
         verify(br).rejectValue(
             eq("nroAnalisis"),
-            eq(""),
-            eq("Debe ingresar un nro de Analisis/Reanalisis")
+            eq("nroAnalisis.nulo"),
+            eq("Nro de analisis no puede ser nulo")
         );
         verifyNoMoreInteractions(br);
     }
@@ -379,7 +379,11 @@ class ControllerUtilsTest {
         assertTrue(salida.isEmpty());
         verify(br).hasErrors();
         verify(service).findLoteListByCodigoInterno("L-ABC");
-        verify(br).reject(eq("codigoInternoLote"), eq("Lote bloqueado."));
+        verify(br).rejectValue(
+            eq("codigoInternoLote"),
+            eq(""),
+            eq("Lote bloqueado.")
+        );
         verifyNoMoreInteractions(service, br);
     }
 

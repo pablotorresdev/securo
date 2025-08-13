@@ -3,7 +3,6 @@ package com.mb.conitrack.controller;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -39,7 +38,7 @@ public class LotesController {
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
-        model.addAttribute("lotes", loteService.findAllSortByDateAndNroBultoAudit());
+        model.addAttribute("lotes", loteService.findAllSortByDateAndCodigoInternoAudit());
         return "lotes/list-lotes";
     }
 

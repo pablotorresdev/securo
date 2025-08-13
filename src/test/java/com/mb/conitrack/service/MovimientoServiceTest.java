@@ -35,6 +35,7 @@ import com.mb.conitrack.utils.EntityUtils;
 
 import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoCompra;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -91,7 +92,7 @@ class MovimientoServiceTest {
 
             doReturn(esperado)
                 .when(service)
-                .crearMovimientoConAnalisisEnCurso(eq(dto), eq(b), eq(Optional.of(a)));
+                .crearMovimientoMuestreoConAnalisisEnCurso(eq(dto), eq(b), eq(Optional.of(a)));
 
             // when
             Movimiento out = service.persistirMovimientoMuestreo(dto, b);
@@ -101,9 +102,9 @@ class MovimientoServiceTest {
             ms.verify(() -> EntityUtils.getAnalisisEnCurso(lista));
         }
 
-        verify(service).crearMovimientoConAnalisisEnCurso(eq(dto), eq(b), eq(Optional.of(a)));
-        verify(service, never()).crearMovimientoConPrimerAnalisis(any(), any());
-        verify(service, never()).crearMovmimientoConAnalisisDictaminado(any(), any());
+        verify(service).crearMovimientoMuestreoConAnalisisEnCurso(eq(dto), eq(b), eq(Optional.of(a)));
+        verify(service, never()).crearMovimientoMuestreoConPrimerAnalisis(any(), any());
+        verify(service, never()).crearMovmimientoMuestreoConAnalisisDictaminado(any(), any());
     }
 
     @Test
@@ -127,7 +128,7 @@ class MovimientoServiceTest {
         try (MockedStatic<EntityUtils> ms = mockStatic(EntityUtils.class)) {
             ms.when(() -> EntityUtils.getAnalisisEnCurso(lista)).thenReturn(Optional.empty());
 
-            doReturn(esperado).when(service).crearMovmimientoConAnalisisDictaminado(dto, b);
+            doReturn(esperado).when(service).crearMovmimientoMuestreoConAnalisisDictaminado(dto, b);
 
             // when
             Movimiento out = service.persistirMovimientoMuestreo(dto, b);
@@ -137,9 +138,9 @@ class MovimientoServiceTest {
             ms.verify(() -> EntityUtils.getAnalisisEnCurso(lista));
         }
 
-        verify(service).crearMovmimientoConAnalisisDictaminado(dto, b);
-        verify(service, never()).crearMovimientoConPrimerAnalisis(any(), any());
-        verify(service, never()).crearMovimientoConAnalisisEnCurso(any(), any(), any());
+        verify(service).crearMovmimientoMuestreoConAnalisisDictaminado(dto, b);
+        verify(service, never()).crearMovimientoMuestreoConPrimerAnalisis(any(), any());
+        verify(service, never()).crearMovimientoMuestreoConAnalisisEnCurso(any(), any(), any());
     }
 
     @Test
@@ -159,7 +160,7 @@ class MovimientoServiceTest {
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> service.crearMovmimientoConAnalisisDictaminado(dto, b)
+            () -> service.crearMovmimientoMuestreoConAnalisisDictaminado(dto, b)
         );
         assertEquals("El número de análisis no coincide con el análisis en curso", ex.getMessage());
 
@@ -188,13 +189,13 @@ class MovimientoServiceTest {
             .thenAnswer(inv -> inv.getArgument(0));
 
         // when
-        Movimiento out = service.crearMovmimientoConAnalisisDictaminado(dto, b);
+        Movimiento out = service.crearMovmimientoMuestreoConAnalisisDictaminado(dto, b);
 
         // then
         assertNotNull(out);
         assertEquals("AN-9", out.getNroAnalisis());
         assertSame(loteMock, out.getLote());
-        assertTrue(out.getBultos().contains(b));
+        assertFalse(out.getDetalles().isEmpty());
         assertTrue(out.getCodigoInterno().startsWith("L-COD-B_5-"));
 
         verify(loteMock).getUltimoAnalisis();
@@ -213,7 +214,7 @@ class MovimientoServiceTest {
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> service.crearMovimientoConAnalisisEnCurso(dto, b, Optional.of(enCurso))
+            () -> service.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.of(enCurso))
         );
         assertEquals("El número de análisis no coincide con el análisis en curso", ex.getMessage());
 
@@ -235,13 +236,13 @@ class MovimientoServiceTest {
             .thenAnswer(inv -> inv.getArgument(0));
 
         // when
-        Movimiento out = service.crearMovimientoConAnalisisEnCurso(dto, b, Optional.of(enCurso));
+        Movimiento out = service.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.of(enCurso));
 
         // then
         assertNotNull(out);
         assertEquals("AN-1", out.getNroAnalisis());
         assertSame(b.getLote(), out.getLote());
-        assertTrue(out.getBultos().contains(b));
+        assertFalse(out.getDetalles().isEmpty());
         // formato del código (prefijo chequeado)
         assertTrue(out.getCodigoInterno().startsWith("L-XYZ-B_2-"));
 
@@ -257,7 +258,7 @@ class MovimientoServiceTest {
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> service.crearMovimientoConAnalisisEnCurso(dto, b, Optional.empty())
+            () -> service.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.empty())
         );
         assertEquals("El número de análisis esta vacio", ex.getMessage());
 
@@ -283,14 +284,14 @@ class MovimientoServiceTest {
             ms.when(() -> DTOUtils.createAnalisis(dto)).thenReturn(analisisFromDto);
 
             // when
-            Movimiento out = service.crearMovimientoConPrimerAnalisis(dto, b);
+            Movimiento out = service.crearMovimientoMuestreoConPrimerAnalisis(dto, b);
 
             // then
             assertNotNull(out);
             // Debe usar el nro del Analisis persistido
             assertEquals("AN-SAVED", out.getNroAnalisis());
             assertSame(b.getLote(), out.getLote());
-            assertTrue(out.getBultos().contains(b));
+            assertFalse(out.getDetalles().isEmpty());
 
             // verify: se creó analisis a partir de DTO, se guardó y luego se guardó el movimiento
             ms.verify(() -> DTOUtils.createAnalisis(dto));
@@ -338,9 +339,9 @@ class MovimientoServiceTest {
         }
 
         // no debe llamar a ningún creador
-        verify(service, never()).crearMovimientoConPrimerAnalisis(any(), any());
-        verify(service, never()).crearMovimientoConAnalisisEnCurso(any(), any(), any());
-        verify(service, never()).crearMovmimientoConAnalisisDictaminado(any(), any());
+        verify(service, never()).crearMovimientoMuestreoConPrimerAnalisis(any(), any());
+        verify(service, never()).crearMovimientoMuestreoConAnalisisEnCurso(any(), any(), any());
+        verify(service, never()).crearMovmimientoMuestreoConAnalisisDictaminado(any(), any());
     }
 
     @Test
@@ -540,16 +541,16 @@ class MovimientoServiceTest {
         b.setLote(lote);
 
         Movimiento esperado = new Movimiento();
-        doReturn(esperado).when(service).crearMovimientoConPrimerAnalisis(dto, b);
+        doReturn(esperado).when(service).crearMovimientoMuestreoConPrimerAnalisis(dto, b);
 
         // when
         Movimiento out = service.persistirMovimientoMuestreo(dto, b);
 
         // then
         assertSame(esperado, out);
-        verify(service).crearMovimientoConPrimerAnalisis(dto, b);
-        verify(service, never()).crearMovimientoConAnalisisEnCurso(any(), any(), any());
-        verify(service, never()).crearMovmimientoConAnalisisDictaminado(any(), any());
+        verify(service).crearMovimientoMuestreoConPrimerAnalisis(dto, b);
+        verify(service, never()).crearMovimientoMuestreoConAnalisisEnCurso(any(), any(), any());
+        verify(service, never()).crearMovmimientoMuestreoConAnalisisDictaminado(any(), any());
     }
 
     private Bulto bultoConLote(String codLote, int nroBulto) {
@@ -578,15 +579,14 @@ class MovimientoServiceTest {
         return dto;
     }
 
-
     @Test
     @DisplayName("createMovimientoConAnalisis arma código, setea lote/bulto y usa el movimiento base")
     void createMovimientoConAnalisis_ok() throws Exception {
         // DTO con fecha/hora conocida para validar el timestamp
-        MovimientoDTO dto = new MovimientoDTO();
+        MovimientoDTO movDto = new MovimientoDTO();
         LocalDateTime now = LocalDateTime.of(2025, 1, 2, 3, 4, 5);
-        dto.setFechaYHoraCreacion(now);
-        dto.setNroAnalisis("IGNORADO_PORQUE_SE_SOBRESCRIBE");
+        movDto.setFechaYHoraCreacion(now);
+        movDto.setNroAnalisis("IGNORADO_PORQUE_SE_SOBRESCRIBE");
 
         // Lote y Bulto
         Lote lote = new Lote();
@@ -596,29 +596,30 @@ class MovimientoServiceTest {
         bulto.setNroBulto(3);
 
         // Analisis “último”
-        Analisis ultimo = new Analisis();
-        ultimo.setNroAnalisis("AN-77");
+        Analisis analisis = new Analisis();
+        analisis.setNroAnalisis("AN-77");
 
-        // Movimiento base que debería devolver EntityUtils.createMovimientoPorMuestreo(dto)
-        Movimiento base = new Movimiento();
-        base.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        base.setMotivo(MotivoEnum.MUESTREO);
+        // Movimiento base que debería devolver EntityUtils.createMovimientoPorMuestreo(movDto)
+        Movimiento movimiento = new Movimiento();
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(MotivoEnum.MUESTREO);
 
         // Mock al método estático que el helper usa internamente
         try (MockedStatic<EntityUtils> ms = mockStatic(EntityUtils.class)) {
-            ms.when(() -> EntityUtils.createMovimientoPorMuestreo(dto)).thenReturn(base);
+            ms.when(() -> EntityUtils.createMovimientoPorMuestreo(movDto)).thenReturn(movimiento);
+            ms.when(() -> EntityUtils.populateDetalleMovimiento(movimiento,bulto)).thenCallRealMethod();
 
             // Invocamos por reflection (por si el método no es público)
             Method m = MovimientoService.class.getDeclaredMethod(
-                "createMovimientoConAnalisis",
+                "createMovimientoMuestreoConAnalisis",
                 MovimientoDTO.class, Bulto.class, Analisis.class
             );
             m.setAccessible(true);
 
-            Movimiento out = (Movimiento) m.invoke(service, dto, bulto, ultimo);
+            Movimiento out = (Movimiento) m.invoke(service, movDto, bulto, analisis);
 
             // --- then: misma instancia que la creada por EntityUtils ---
-            assertSame(base, out, "Debe reutilizar el movimiento base retornado por createMovimientoPorMuestreo");
+            assertSame(movimiento, out, "Debe reutilizar el movimiento base retornado por createMovimientoPorMuestreo");
 
             // Código interno con timestamp formateado
             String ts = now.format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
@@ -626,7 +627,7 @@ class MovimientoServiceTest {
 
             // Seteo de lote y agregado del bulto
             assertSame(lote, out.getLote());
-            assertTrue(out.getBultos().contains(bulto), "Debe contener el bulto asociado");
+            assertFalse(out.getDetalles().isEmpty());
 
             // Nro de análisis del 'ultimoAnalisis' (sobrescribe lo que viniera del DTO)
             assertEquals("AN-77", out.getNroAnalisis());
@@ -635,7 +636,7 @@ class MovimientoServiceTest {
             assertEquals(TipoMovimientoEnum.BAJA, out.getTipoMovimiento());
             assertEquals(MotivoEnum.MUESTREO, out.getMotivo());
 
-            ms.verify(() -> EntityUtils.createMovimientoPorMuestreo(dto));
+            ms.verify(() -> EntityUtils.createMovimientoPorMuestreo(movDto));
         }
     }
 }

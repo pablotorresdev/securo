@@ -33,7 +33,7 @@ public class BajaMuestreoBultoController {
     @Autowired
     private LoteService loteService;
 
-    private static ControllerUtils getControllerUtils() {
+    private static ControllerUtils controllerUtils() {
         return ControllerUtils.getInstance();
     }
 
@@ -61,17 +61,16 @@ public class BajaMuestreoBultoController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        boolean success = getControllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
+        boolean success = controllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
+        Lote lote = success
+            ? loteService.findLoteByCodigoInterno(movimientoDTO.getCodigoInternoLote()).orElse(null)
+            : null;
 
-        Lote lote = null;
-        if (success) {
-            lote = loteService.findLoteByCodigoInterno(movimientoDTO.getCodigoInternoLote()).orElse(null);
-        }
         success = success && lote != null;
-        success = success && getControllerUtils()
-            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-        success = success && getControllerUtils()
-            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
+        success = success &&
+            controllerUtils().validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
+        success = success &&
+            controllerUtils().validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
 
         final int nroBulto = Integer.parseInt(movimientoDTO.getNroBulto());
         Bulto bulto = null;
@@ -79,10 +78,10 @@ public class BajaMuestreoBultoController {
             final List<Bulto> bultos = lote.getBultos().stream()
                 .sorted(Comparator.comparing(Bulto::getNroBulto))
                 .toList();
-            bulto =bultos.get(nroBulto - 1);
+            bulto = bultos.get(nroBulto - 1);
         }
         success = success && bulto != null;
-        success = success && getControllerUtils()
+        success = success && controllerUtils()
             .validarCantidadesMovimiento(movimientoDTO, bulto, bindingResult);
 
         if (!success) {

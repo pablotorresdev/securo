@@ -1,6 +1,5 @@
 package com.mb.conitrack.utils;
 
-import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -9,14 +8,13 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
-import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import lombok.Getter;
 
@@ -39,22 +37,36 @@ public class EntityUtils {
         return movimiento;
     }
 
-    public static  void addLoteInfoToMovimiento(final Lote lote, final Movimiento movimiento) {
+    public static  void addLoteInfoToMovimientoAlta(final Lote lote, final Movimiento movimiento) {
         String timestampLoteDTO = lote.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
         movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
-        movimiento.getBultos().addAll(lote.getBultos());
         movimiento.setLote(lote);
         for (Bulto bulto: lote.getBultos()){
-            DetalleMovimiento det = DetalleMovimiento.builder()
-                .movimiento(movimiento)
-                .bulto(bulto)
-                .cantidad(bulto.getCantidadInicial())
-                .unidadMedida(bulto.getUnidadMedida())
-                .build();
-            movimiento.getDetalles().add(det);
-            bulto.getDetalles().add(det);
+            populateDetalleMovimientoAlta(movimiento, bulto);
         }
+    }
+
+    public static void populateDetalleMovimientoAlta(final Movimiento movimiento, final Bulto bulto) {
+        DetalleMovimiento det = DetalleMovimiento.builder()
+            .movimiento(movimiento)
+            .bulto(bulto)
+            .cantidad(bulto.getCantidadInicial())
+            .unidadMedida(bulto.getUnidadMedida())
+            .build();
+        movimiento.getDetalles().add(det);
+        bulto.getDetalles().add(det);
+    }
+
+    public static void populateDetalleMovimiento(final Movimiento movimiento, final Bulto bulto) {
+        DetalleMovimiento det = DetalleMovimiento.builder()
+            .movimiento(movimiento)
+            .bulto(bulto)
+            .cantidad(movimiento.getCantidad())
+            .unidadMedida(movimiento.getUnidadMedida())
+            .build();
+        movimiento.getDetalles().add(det);
+        bulto.getDetalles().add(det);
     }
 
     public static Movimiento createMovimientoAltaIngresoCompra(LoteDTO loteDTO) {
@@ -88,7 +100,6 @@ public class EntityUtils {
         movimiento.setUnidadMedida(loteDTO.getUnidadMedida());
         movimiento.setDictamenFinal(loteDTO.getDictamen());
         movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
-        movimiento.getBultos().addAll(lote.getBultos());
         movimiento.setLote(lote);
         movimiento.setActivo(true);
 
@@ -105,13 +116,12 @@ public class EntityUtils {
         movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
         String timestampLoteDTO = lote.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-B_" + lote.getNroBulto() + "-" + timestampLoteDTO);
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
         movimiento.setFecha(lote.getFechaYHoraCreacion().toLocalDate());
         movimiento.setCantidad(lote.getCantidadInicial());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setLote(lote);
-        movimiento.getBultos().addAll(lote.getBultos());
         movimiento.setActivo(true);
 
         movimiento.setObservaciones("_CU1_\n" + lote.getObservaciones());
@@ -204,7 +214,7 @@ public class EntityUtils {
         movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
         String timestampLoteDTO = lote.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-B_" + lote.getNroBulto() + "-" + timestampLoteDTO);
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
         movimiento.setFecha(lote.getFechaIngreso());
         movimiento.setCantidad(lote.getCantidadInicial());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
@@ -248,28 +258,6 @@ public class EntityUtils {
         lote.setObservaciones(loteDTO.getObservaciones());
 
         return lote;
-    }
-
-    public void addDetalle(Movimiento mov, Bulto bulto, BigDecimal cantidad, UnidadMedidaEnum unidad) {
-        DetalleMovimiento det = DetalleMovimiento.builder()
-            .movimiento(mov)
-            .bulto(bulto)
-            .cantidad(cantidad)
-            .unidadMedida(unidad)
-            .build();
-
-        mov.getDetalles().add(det);
-        bulto.getDetalles().add(det);
-
-        // mientras mantengas el ManyToMany, sincronizalo:
-        mov.getBultos().add(bulto);
-    }
-
-    public void removeDetalle(Movimiento mov, DetalleMovimiento det) {
-        mov.getDetalles().remove(det);
-        det.getBulto().getDetalles().remove(det);
-        det.setMovimiento(null);
-        det.setBulto(null);
     }
 
 }

@@ -57,6 +57,9 @@
                    th:field="*{nroAnalisis}"
                    type="text"
                    maxlength="30">
+            <div style="color: red; font-weight: bold;"
+                 th:errors="*{nroAnalisis}"
+                 th:if="${#fields.hasErrors('nroAnalisis')}"></div>
         </div>
 
         <!-- Campo de solo lectura + campo de ReAnálisis -->

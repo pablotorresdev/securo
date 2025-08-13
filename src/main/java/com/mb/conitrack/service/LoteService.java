@@ -20,7 +20,6 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
@@ -35,9 +34,10 @@ import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import lombok.AllArgsConstructor;
 
-import static com.mb.conitrack.utils.EntityUtils.addLoteInfoToMovimiento;
+import static com.mb.conitrack.utils.EntityUtils.addLoteInfoToMovimientoAlta;
 import static com.mb.conitrack.utils.EntityUtils.crearMovimientoDevolucionCompra;
 import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoCompra;
+import static com.mb.conitrack.utils.EntityUtils.populateDetalleMovimiento;
 
 @AllArgsConstructor
 @Service
@@ -86,7 +86,7 @@ public class LoteService {
         bultoService.save(bultosGuardados);       // ✔ ahora los Bultos referencian un Lote persistido
 
         final Movimiento movimientoAltaIngresoCompra = createMovimientoAltaIngresoCompra(loteDTO);
-        addLoteInfoToMovimiento(loteGuardado, movimientoAltaIngresoCompra);
+        addLoteInfoToMovimientoAlta(loteGuardado, movimientoAltaIngresoCompra);
 
         final Movimiento movimientoGuardado = movimientoService.save(movimientoAltaIngresoCompra);
         loteGuardado.getMovimientos().add(movimientoGuardado);
@@ -97,7 +97,7 @@ public class LoteService {
     //***********CU2 MODIFICACION: CUARENTENA***********
     public List<Lote> findAllForCuarentena() {
         //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
-        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDate();
         return allSortByDateAndNroBulto.stream().filter(l -> EnumSet.of(
             DictamenEnum.RECIBIDO,
             DictamenEnum.APROBADO,
@@ -137,7 +137,7 @@ public class LoteService {
 
     //***********CU3 BAJA: MUESTREO***********
     public List<Lote> findAllForMuestreo() {
-        return findAllSortByDateAndNroBulto().stream()
+        return findAllSortByDate().stream()
             .filter(l -> l.getDictamen() != DictamenEnum.RECIBIDO)
             .filter(l -> l.getAnalisisList().stream().anyMatch(a -> a.getNroAnalisis() != null))
             .filter(l -> l.getBultos().stream()
@@ -210,7 +210,7 @@ public class LoteService {
 
     //***********CU4 BAJA: DEVOLUCION COMPRA***********
     public List<Lote> findAllForDevolucionCompra() {
-        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDate();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> EnumSet.of(
                     DictamenEnum.RECIBIDO,
@@ -240,20 +240,10 @@ public class LoteService {
 
             final Movimiento movimiento = crearMovimientoDevolucionCompra(dto);
             movimiento.setLote(lote);
-            movimiento.getBultos().add(bulto);
+            populateDetalleMovimiento(movimiento, bulto);
 
-            DetalleMovimiento det = DetalleMovimiento.builder()
-                .movimiento(movimiento)
-                .bulto(bulto)
-                .cantidad(bulto.getCantidadActual())
-                .unidadMedida(bulto.getUnidadMedida())
-                .build();
-            movimiento.getDetalles().add(det);
-
-            bulto.getDetalles().add(det);
             bulto.setCantidadActual(BigDecimal.ZERO);
             bulto.setEstado(EstadoEnum.DEVUELTO);
-            bulto.getMovimientos().add(movimiento);
 
             final Movimiento savedMovimiento = movimientoService.save(movimiento);
             bultoService.save(bulto);
@@ -307,7 +297,7 @@ public class LoteService {
         return loteRepository.findAllByCodigoInternoAndActivoTrue(codigoInternoLote);
     }
 
-    public List<Lote> findAllSortByDateAndNroBultoAudit() {
+    public List<Lote> findAllSortByDateAndCodigoInternoAudit() {
         return loteRepository.findAll()
             .stream()
             .sorted(Comparator.comparing(Lote::getFechaIngreso)
@@ -316,7 +306,7 @@ public class LoteService {
     }
 
     @Transactional(readOnly = true)
-    public List<Lote> findAllSortByDateAndNroBulto() {
+    public List<Lote> findAllSortByDate() {
         return loteRepository.findAll()
             .stream()
             .filter(Lote::getActivo)
@@ -370,7 +360,7 @@ public class LoteService {
     //***********CUZ MODIFICACION: Reanalisis de Producto Aprobado***********
     public List<Lote> findAllForReanalisisProducto() {
         //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
-        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDate();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> l.getDictamen() == DictamenEnum.APROBADO)
             .filter(l -> l.getAnalisisList()
@@ -395,7 +385,7 @@ public class LoteService {
 
     //***********CU7 BAJA: CONSUMO PRODUCCION***********
     public List<Lote> findAllForConsumoProduccion() {
-        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDate();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> DictamenEnum.APROBADO == l.getDictamen())
             .filter(l -> TipoProductoEnum.UNIDAD_VENTA != l.getProducto().getTipoProducto())
@@ -406,7 +396,7 @@ public class LoteService {
 
     //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
     public List<Lote> findAllForLiberacionProducto() {
-        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDate();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> DictamenEnum.APROBADO == l.getDictamen())
             .filter(l -> TipoProductoEnum.UNIDAD_VENTA == l.getProducto().getTipoProducto())
@@ -417,7 +407,7 @@ public class LoteService {
 
     //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
     public List<Lote> findAllForVentaProducto() {
-        final List<Lote> allSortByDateAndNroBulto = findAllSortByDateAndNroBulto();
+        final List<Lote> allSortByDateAndNroBulto = findAllSortByDate();
         return allSortByDateAndNroBulto.stream()
             .filter(l -> DictamenEnum.LIBERADO == l.getDictamen())
             .filter(l -> TipoProductoEnum.UNIDAD_VENTA == l.getProducto().getTipoProducto())
@@ -487,9 +477,9 @@ public class LoteService {
     public List<Lote> bajaConsumoProduccion(final LoteDTO loteDTO) {
         List<Lote> result = new ArrayList<>();
         for (int nroBulto : loteDTO.getNroBultoList()) {
-            final Lote lote = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(
-                    loteDTO.getCodigoInternoLote(),
-                    nroBulto)
+            //TODO: Fix
+            final Lote lote = loteRepository.findFirstByCodigoInternoAndActivoTrue(
+                    loteDTO.getCodigoInternoLote())
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
             final Movimiento movimiento = movimientoService.persistirMovimientoBajaConsumoProduccion(loteDTO, lote);
@@ -598,9 +588,9 @@ public class LoteService {
         List<Lote> result = new ArrayList<>();
 
         for (int nroBulto : loteDTO.getNroBultoList()) {
-            final Lote bulto = loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(
-                    loteDTO.getCodigoInternoLote(),
-                    nroBulto)
+            //TODO: Fix
+            final Lote bulto = loteRepository.findFirstByCodigoInternoAndActivoTrue(
+                    loteDTO.getCodigoInternoLote())
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
             final Movimiento movimiento = movimientoService.persistirMovimientoBajaVenta(loteDTO, bulto);
@@ -624,7 +614,7 @@ public class LoteService {
     //***********CU13 ALTA: DEVOLUCION VENTA***********
     public List<Lote> findAllForDevolucionVenta() {
         final List<Lote> result = new ArrayList<>();
-        for (Lote lote : findAllSortByDateAndNroBulto()) {
+        for (Lote lote : findAllSortByDate()) {
             if (lote.getEstado() == EstadoEnum.VENDIDO) {
                 result.add(lote);
                 continue;
@@ -724,7 +714,8 @@ public class LoteService {
         if (codigoInternoLote == null) {
             throw new IllegalArgumentException("El Codigo Interno no puede ser nulo.");
         }
-        return loteRepository.findFirstByCodigoInternoAndNroBultoAndActivoTrue(codigoInternoLote, nroBulto)
+        //TODO: Fix
+        return loteRepository.findFirstByCodigoInternoAndActivoTrue(codigoInternoLote)
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
     }
 

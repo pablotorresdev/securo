@@ -15,7 +15,6 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
-import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
@@ -48,6 +47,8 @@ import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoProd
 import static com.mb.conitrack.utils.EntityUtils.createMovimientoModificacion;
 import static com.mb.conitrack.utils.EntityUtils.createMovimientoPorMuestreo;
 import static com.mb.conitrack.utils.EntityUtils.getAnalisisEnCurso;
+import static com.mb.conitrack.utils.EntityUtils.populateDetalleMovimiento;
+import static com.mb.conitrack.utils.EntityUtils.populateDetalleMovimientoAlta;
 
 @AllArgsConstructor
 @Service
@@ -65,29 +66,16 @@ public class MovimientoService {
     @Autowired
     private DetalleMovimientoRepository detalleMovimientoRepository;
 
-    Movimiento createMovimientoConAnalisis(
+    Movimiento createMovimientoMuestreoConAnalisis(
         final MovimientoDTO dto,
         final Bulto bulto,
         final Analisis ultimoAnalisis) {
         final Movimiento movimiento = createMovimientoPorMuestreo(dto);
+        populateDetalleMovimiento(movimiento, bulto);
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
         movimiento.setCodigoInterno(bulto.getLote().getCodigoInterno() + "-B_" + bulto.getNroBulto() + "-" + timestampLoteDTO);
         movimiento.setLote(bulto.getLote());
-        movimiento.getBultos().add(bulto);
-        movimiento.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
-        return movimiento;
-    }
-
-     Movimiento createMovimientoConAnalisis(
-        final MovimientoDTO dto,
-        final Lote lote,
-        final Analisis ultimoAnalisis) {
-        final Movimiento movimiento = createMovimientoPorMuestreo(dto);
-        String timestampLoteDTO = dto.getFechaYHoraCreacion()
-            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-B_" + "-" + timestampLoteDTO);
-        movimiento.setLote(lote);
         movimiento.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
         return movimiento;
     }
@@ -151,13 +139,13 @@ public class MovimientoService {
     public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Bulto bulto) {
         final List<Analisis> analisisList = bulto.getLote().getAnalisisList();
         if (analisisList.isEmpty()) {
-            return crearMovimientoConPrimerAnalisis(dto,  bulto);
+            return crearMovimientoMuestreoConPrimerAnalisis(dto,  bulto);
         } else {
             final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
             if (analisisEnCurso.isPresent()) {
-                return crearMovimientoConAnalisisEnCurso(dto,  bulto, analisisEnCurso);
+                return crearMovimientoMuestreoConAnalisisEnCurso(dto,  bulto, analisisEnCurso);
             } else {
-                return crearMovmimientoConAnalisisDictaminado(dto, bulto);
+                return crearMovmimientoMuestreoConAnalisisDictaminado(dto, bulto);
             }
         }
     }
@@ -181,7 +169,6 @@ public class MovimientoService {
         movimiento.setDictamenFinal(DictamenEnum.RECHAZADO);
 
         movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.getBultos().add(bulto);
         movimiento.setActivo(true);
 
         movimiento.setObservaciones("_CU4_\n" + dto.getObservaciones());
@@ -198,7 +185,7 @@ public class MovimientoService {
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-B_" + lote.getNroBulto() + "-" + timestampLoteDTO);
+        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
         movimiento.setCantidad(lote.getCantidadActual());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
 
@@ -235,14 +222,15 @@ public class MovimientoService {
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(MotivoEnum.CONSUMO_PRODUCCION);
 
-        final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
+        //final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
+        final int i = -1;
         movimiento.setCantidad(loteDTO.getCantidadesBultos().get(i));
         movimiento.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
 
         movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
         String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-B_" + bulto.getNroBulto() + "-" + timestampLoteDTO);
+        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-" + timestampLoteDTO);
         movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
         movimiento.setFecha(loteDTO.getFechaEgreso());
         movimiento.setLote(bulto);
@@ -258,7 +246,8 @@ public class MovimientoService {
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(VENTA);
 
-        final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
+       //final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
+        final int i = -1;
         movimiento.setCantidad(loteDTO.getCantidadesBultos().get(i));
         movimiento.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
 
@@ -289,7 +278,7 @@ public class MovimientoService {
         movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
         String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-B_" + bulto.getNroBulto() + "-" + timestampLoteDTO);
+        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-" + timestampLoteDTO);
         movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
         movimiento.setFecha(loteDTO.getFechaEgreso());
         movimiento.setLote(bulto);
@@ -353,7 +342,7 @@ public class MovimientoService {
     }
 
     @Transactional
-    public Movimiento crearMovimientoConAnalisisEnCurso(
+    public Movimiento crearMovimientoMuestreoConAnalisisEnCurso(
         final MovimientoDTO dto,
         final Bulto bulto,
         final Optional<Analisis> analisisEnCurso) {
@@ -362,28 +351,28 @@ public class MovimientoService {
         if (dto.getNroAnalisis()
             .equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio"))
                 .getNroAnalisis())) {
-            return movimientoRepository.save(createMovimientoConAnalisis(dto, bulto, analisisEnCurso.get()));
+            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, analisisEnCurso.get()));
         } else {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
         }
     }
 
     @Transactional
-    public Movimiento crearMovmimientoConAnalisisDictaminado(final MovimientoDTO dto, final Bulto bulto) {
+    public Movimiento crearMovmimientoMuestreoConAnalisisDictaminado(final MovimientoDTO dto, final Bulto bulto) {
         //Si el lote tiene n analisis realizados, se guarda el movimiento y se asocia al ultimo analisis realizado
         Analisis ultimoAnalisis = bulto.getLote().getUltimoAnalisis();
         if (dto.getNroAnalisis().equals(ultimoAnalisis.getNroAnalisis())) {
-            return movimientoRepository.save(createMovimientoConAnalisis(dto, bulto, ultimoAnalisis));
+            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, ultimoAnalisis));
         } else {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
         }
     }
 
     @Transactional
-    public Movimiento crearMovimientoConPrimerAnalisis(final MovimientoDTO dto, final Bulto bulto) {
+    public Movimiento crearMovimientoMuestreoConPrimerAnalisis(final MovimientoDTO dto, final Bulto bulto) {
         //Si el lote no tiene analisis realizado (Recibido), se crea uno nuevo y se guarda el movimiento
         final Analisis newAnalisis = analisisService.save(DTOUtils.createAnalisis(dto));
-        return movimientoRepository.save(createMovimientoConAnalisis(dto, bulto, newAnalisis));
+        return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, newAnalisis));
     }
 
 }

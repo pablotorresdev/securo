@@ -1,6 +1,5 @@
 DROP TABLE IF EXISTS detalle_movimientos CASCADE;
 DROP TABLE IF EXISTS trazas_movimientos CASCADE;
-DROP TABLE IF EXISTS movimientos_bulto CASCADE;
 DROP TABLE IF EXISTS lote_bultos CASCADE;
 DROP TABLE IF EXISTS trazas CASCADE;
 DROP TABLE IF EXISTS lote_analisis CASCADE;
@@ -94,7 +93,6 @@ CREATE TABLE lotes
     pais_origen          TEXT           NOT NULL,
 
     fecha_ingreso        DATE           NOT NULL,
-    nro_bulto            INT,
     bultos_totales       INT            NOT NULL,
     cantidad_inicial     NUMERIC(12, 4),
     cantidad_actual      NUMERIC(12, 4),
@@ -161,17 +159,6 @@ CREATE TABLE movimientos
         FOREIGN KEY (lote_id) REFERENCES lotes (id),
     CONSTRAINT fk_movimiento_origen_movimiento
         FOREIGN KEY (movimiento_origen_id) REFERENCES movimientos (id)
-);
-
-CREATE TABLE movimientos_bulto
-(
-    movimiento_id BIGINT NOT NULL,
-    bulto_id      BIGINT NOT NULL,
-    PRIMARY KEY (movimiento_id, bulto_id),
-    CONSTRAINT fk_movimientos_bulto
-        FOREIGN KEY (movimiento_id) REFERENCES movimientos (id),
-    CONSTRAINT fk_bulto_movimientos
-        FOREIGN KEY (bulto_id) REFERENCES bultos (id)
 );
 
 CREATE TABLE detalle_movimientos (
