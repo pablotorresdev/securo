@@ -31,6 +31,7 @@ import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 import com.mb.conitrack.utils.ControllerUtils;
 
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -374,7 +375,7 @@ class ModifDictamenCuarentenaControllerTest {
 
         // mock estático de DTOUtils.getLotesDtosByCodigoInterno(...)
         try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> DTOUtils.getLotesDtosByCodigoInterno(anyList()))
+            mocked.when(() -> fromLoteEntities(anyList()))
                 .thenReturn(fakeDtos);
 
             // when
@@ -386,7 +387,7 @@ class ModifDictamenCuarentenaControllerTest {
             assertSame(dto, model.getAttribute("movimientoDTO"));
 
             // Verificamos que se haya llamado al método estático con alguna lista
-            mocked.verify(() -> DTOUtils.getLotesDtosByCodigoInterno(anyList()));
+            mocked.verify(() -> fromLoteEntities(anyList()));
         }
     }
 

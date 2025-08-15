@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 import jakarta.validation.Valid;
 
 import static com.mb.conitrack.dto.DTOUtils.fromAnalisisEntities;
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/calidad/analisis")
@@ -67,7 +66,6 @@ public class ModifResultadoAnalisisController {
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
-        // Validar throw new IllegalStateException("Hay más de un análisis activo con fecha de vencimiento");
         if (!validarResultadoAnalisisInput(movimientoDTO, bindingResult)) {
             initModelResultadoAnalisis(movimientoDTO, model);
             return "calidad/analisis/resultado-analisis";
@@ -84,7 +82,7 @@ public class ModifResultadoAnalisisController {
     }
 
     private void initModelResultadoAnalisis(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDTOs = getLotesDtosByCodigoInterno(loteService.findAllForResultadoAnalisis());
+        final List<LoteDTO> lotesDTOs = fromLoteEntities(loteService.findAllForResultadoAnalisis());
         List<AnalisisDTO> analisisDTOs = fromAnalisisEntities(analisisService.findAllEnCursoForLotesCuarentena());
         movimientoDTO.setFechaMovimiento(LocalDateTime.now().toLocalDate());
         model.addAttribute("movimientoDTO", movimientoDTO);
@@ -111,29 +109,28 @@ public class ModifResultadoAnalisisController {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        final List<Lote> lotesList = new ArrayList<>();
+        Lote lote = null;
+        boolean success = controllerUtils().validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult);
+        success = success && controllerUtils().validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult);
 
-        boolean success = ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult);
-        success = success && ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult);
-
-        //TODO: fix loteList and validate titulo % when rechazado
-        success = success &&
-            controllerUtils().populateLoteListByCodigoInterno(
-                lotesList,
+        if (success) {
+            lote = controllerUtils().getLoteByCodigoInterno(
                 movimientoDTO.getCodigoInternoLote(),
                 bindingResult,
                 loteService);
-        success = success && ControllerUtils.validarExisteMuestreoParaAnalisis(movimientoDTO, lotesList, bindingResult);
+        }
+        success = success && lote != null;
+        success = success && controllerUtils().validarExisteMuestreoParaAnalisis(movimientoDTO, lote, bindingResult);
         success = success &&
             controllerUtils()
-                .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
+                .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
         success = success &&
             controllerUtils()
-                .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
+                .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
         success = success &&
-            ControllerUtils.validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult);
+            controllerUtils().validarContraFechasProveedor(movimientoDTO, lote, bindingResult);
         if (DictamenEnum.RECHAZADO != movimientoDTO.getDictamenFinal()) {
-            success = success && controllerUtils().validarValorTitulo(movimientoDTO, lotesList, bindingResult);
+            success = success && controllerUtils().validarValorTitulo(movimientoDTO, lote, bindingResult);
         }
         return success;
     }

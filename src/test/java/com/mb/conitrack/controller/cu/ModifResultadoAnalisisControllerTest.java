@@ -34,7 +34,7 @@ import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.utils.ControllerUtils;
 
 import static com.mb.conitrack.dto.DTOUtils.fromAnalisisEntities;
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
@@ -112,37 +113,37 @@ class ModifResultadoAnalisisControllerTest {
     void fallaContraFechasProveedor() {
         when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
-
+        Lote lote = new Lote();
         try (
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
-                .thenReturn(true);
-
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
 
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
-                .thenReturn(true);
-            when(utils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenReturn(lote);
+
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
 
-            cu.when(() -> ControllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+                .thenReturn(true);
+            when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+                .thenReturn(true);
+
+            when(controllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(false);
 
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -160,12 +161,15 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(false);
 
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -185,9 +189,12 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(eq(dto), eq(binding)))
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(eq(dto), eq(binding)))
                 .thenReturn(false);
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -205,24 +212,22 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
-
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenAnswer(inv -> new Lote());
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(false);
 
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -240,29 +245,29 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
-                .thenReturn(true);
-
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
 
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenAnswer(inv -> new Lote());
+
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+                .thenReturn(true);
+            when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(false);
 
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -280,27 +285,24 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
-
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenAnswer(inv -> new Lote());
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(false);
 
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -318,19 +320,20 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenAnswer(inv -> new Lote());
 
-            // Usar nullable(String.class) por si el código fuese null
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenReturn(false);
-
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -348,33 +351,29 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
-                .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
-                .thenReturn(true);
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
 
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
                 .thenReturn(true);
-
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
-            when(utils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenAnswer(inv -> new Lote());
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
+            when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+                .thenReturn(true);
+            when(controllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
+                .thenReturn(true);
+            when(controllerUtils.validarValorTitulo(eq(dto), any(Lote.class), eq(binding))).thenReturn(false);
 
-            when(utils.validarValorTitulo(eq(dto), anyList(), eq(binding))).thenReturn(false);
-
-            du.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -390,7 +389,7 @@ class ModifResultadoAnalisisControllerTest {
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
-            ms.when(() -> getLotesDtosByCodigoInterno(anyList())).thenReturn(Collections.emptyList());
+            ms.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
             ms.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
 
             String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
@@ -411,23 +410,23 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenAnswer(inv -> new Lote());
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
 
             Lote persistido = new Lote();
@@ -444,7 +443,7 @@ class ModifResultadoAnalisisControllerTest {
                 "Cambio de dictamen a RECHAZADO exitoso",
                 flash.get("success"));
             assertTrue(flash.containsKey("success"));
-            verify(utils, never()).validarValorTitulo(any(), anyList(), any());
+            verify(controllerUtils, never()).validarValorTitulo(any(), any(Lote.class), any());
         }
     }
 
@@ -457,25 +456,25 @@ class ModifResultadoAnalisisControllerTest {
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenAnswer(inv -> new Lote());
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarValorTitulo(eq(dto), anyList(), eq(binding))).thenReturn(true);
+            when(controllerUtils.validarValorTitulo(eq(dto), any(Lote.class), eq(binding))).thenReturn(true);
 
             Lote persistido = new Lote();
             when(loteService.persistirResultadoAnalisis(dto)).thenReturn(persistido);
@@ -498,30 +497,31 @@ class ModifResultadoAnalisisControllerTest {
     @DisplayName("Todos OK -> redirige y setea success (merge OK)")
     void procesar_ResultadoAnalisis_ok_success() {
         dto.setDictamenFinal(DictamenEnum.APROBADO);
+        Lote lote = new Lote();
 
         try (
             MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
             MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            cu.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            cu.when(() -> ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
-            cu.when(() -> ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
-            when(utils.populateLoteListByCodigoInterno(anyList(), nullable(String.class), eq(binding), eq(loteService)))
-                .thenAnswer(inv -> {
-                    ((List<Lote>)inv.getArgument(0)).add(new Lote());
-                    return true;
-                });
-            cu.when(() -> ControllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), anyList(), eq(binding)))
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+                .thenReturn(lote);
+            when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            cu.when(() -> ControllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
+            when(controllerUtils.validarContraFechasProveedor(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
-            when(utils.validarValorTitulo(eq(dto), anyList(), eq(binding))).thenReturn(true);
+            when(controllerUtils.validarValorTitulo(eq(dto), any(Lote.class), eq(binding))).thenReturn(true);
 
             Lote persistido = new Lote();
             LoteDTO merged = new LoteDTO();
@@ -567,7 +567,7 @@ class ModifResultadoAnalisisControllerTest {
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(entradaAnalisis);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
-            ms.when(() -> getLotesDtosByCodigoInterno(entradaLotes)).thenReturn(salidaLotes);
+            ms.when(() -> fromLoteEntities(entradaLotes)).thenReturn(salidaLotes);
             ms.when(() -> fromAnalisisEntities(entradaAnalisis)).thenReturn(salidaAnalisis);
 
             String view = controller.showResultadoAnalisisForm(dto, model);
@@ -590,7 +590,7 @@ class ModifResultadoAnalisisControllerTest {
 
             verify(loteService).findAllForResultadoAnalisis();
             verify(analisisService).findAllEnCursoForLotesCuarentena();
-            ms.verify(() -> getLotesDtosByCodigoInterno(entradaLotes));
+            ms.verify(() -> fromLoteEntities(entradaLotes));
             ms.verify(() -> fromAnalisisEntities(entradaAnalisis));
         }
     }

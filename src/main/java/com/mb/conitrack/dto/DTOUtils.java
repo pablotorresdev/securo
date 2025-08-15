@@ -3,9 +3,7 @@ package com.mb.conitrack.dto;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.thymeleaf.util.StringUtils;
 
@@ -18,11 +16,20 @@ import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
+import lombok.Getter;
+
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMenorUnidadMedida;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.sugerirUnidadParaCantidad;
 
 public class DTOUtils {
+
+    @Getter
+    private static final DTOUtils Instance = new DTOUtils();
+
+    private DTOUtils() {
+        // Utility class
+    }
 
     public static Analisis createAnalisis(final MovimientoDTO dto) {
         final String nroAnalisis = StringUtils.isEmptyOrWhitespace(dto.getNroReanalisis())
@@ -37,6 +44,31 @@ public class DTOUtils {
             return analisis;
         }
         throw new IllegalArgumentException("El número de análisis es requerido");
+    }
+
+    public static List<AnalisisDTO> fromAnalisisEntities(final List<Analisis> analisisList) {
+        final List<AnalisisDTO> analisisDtos = new ArrayList<>();
+        for (Analisis entity : analisisList) {
+            analisisDtos.add(DTOUtils.fromAnalisisEntity(entity));
+        }
+        return analisisDtos;
+    }
+
+    public static AnalisisDTO fromAnalisisEntity(Analisis entity) {
+        if (entity == null) {
+            return null;
+        }
+        AnalisisDTO dto = new AnalisisDTO();
+        dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
+        dto.setNroAnalisis(entity.getNroAnalisis());
+        dto.setCodigoInternoLote(entity.getLote().getCodigoInterno());
+        dto.setFechaRealizado(entity.getFechaRealizado());
+        dto.setFechaReanalisis(entity.getFechaReanalisis());
+        dto.setFechaVencimiento(entity.getFechaVencimiento());
+        dto.setDictamen(entity.getDictamen());
+        dto.setTitulo(entity.getTitulo());
+        dto.setObservaciones(entity.getObservaciones());
+        return dto;
     }
 
     public static BultoDTO fromBultoEntity(Bulto entity) {
@@ -54,6 +86,107 @@ public class DTOUtils {
         dto.setEstado(entity.getEstado());
         //dto.setTrazas(entity.getTrazas());
         return dto;
+    }
+
+    public static List<LoteDTO> fromLoteEntities(final List<Lote> loteList) {
+        final List<LoteDTO> lotesDtos = new ArrayList<>();
+        for (Lote entity : loteList) {
+            lotesDtos.add(DTOUtils.fromLoteEntity(entity));
+        }
+        return lotesDtos;
+    }
+
+    public static LoteDTO fromLoteEntity(Lote loteEntity) {
+        if (loteEntity == null) {
+            return null;
+        }
+
+        LoteDTO loteDTO = new LoteDTO();
+
+        loteDTO.setFechaYHoraCreacion(loteEntity.getFechaYHoraCreacion());
+
+        setProductoLote(loteEntity, loteDTO);
+        setDatosProveedorLote(loteEntity, loteDTO);
+        setDatosDerivadosLote(loteEntity, loteDTO);
+        setListasBultosLote(loteEntity, loteDTO);
+        addMovimientosDTO(loteEntity, loteDTO);
+        addAnalisisDTO(loteEntity, loteDTO);
+        addTrazaDTO(loteEntity, loteDTO);
+
+        Long trazaInicial = null;
+        if (loteEntity.getFirstActiveTraza() != null) {
+            trazaInicial = loteEntity.getFirstActiveTraza().getNroTraza();
+        }
+
+        BigDecimal cantidadInicialLote = BigDecimal.ZERO;
+        BigDecimal cantidadActualLote = BigDecimal.ZERO;
+        UnidadMedidaEnum uMedActual = loteDTO.getBultosDTOs().get(0).getUnidadMedida();
+
+        for (int i = 1; i <= loteEntity.getBultos().size(); i++) {
+            final Bulto bultoEntity = loteEntity.getBultoByNro(i);
+            if (!bultoEntity.getActivo()) {
+                continue;
+            }
+
+            // Si el estado de alguno de los bultos es diferente, se asigna el de mayor prioridad
+            setEstadoBulto(bultoEntity, loteDTO);
+
+            if (bultoEntity.getUnidadMedida() == uMedActual) {
+                //La unidad de medida del bulto coincide con la del DTO
+                cantidadActualLote = bultoEntity.getCantidadActual().add(cantidadActualLote);
+                cantidadInicialLote = bultoEntity.getCantidadInicial().add(cantidadInicialLote);
+
+                UnidadMedidaEnum uMedSugerida = sugerirUnidadParaCantidad(uMedActual, cantidadActualLote);
+                cantidadActualLote = convertirCantidadEntreUnidades(uMedActual, cantidadActualLote, uMedSugerida);
+                cantidadInicialLote = convertirCantidadEntreUnidades(uMedActual, cantidadInicialLote, uMedSugerida);
+
+                uMedActual = uMedSugerida;
+            } else {
+                //Distitnas unidades de medida
+                UnidadMedidaEnum menorUMed = obtenerMenorUnidadMedida(bultoEntity.getUnidadMedida(), uMedActual);
+                BigDecimal cantidadActualLoteTemp = convertirCantidadEntreUnidades(
+                    uMedActual,
+                    cantidadActualLote,
+                    menorUMed);
+                cantidadActualLoteTemp = cantidadActualLoteTemp.add(convertirCantidadEntreUnidades(
+                    bultoEntity.getUnidadMedida(),
+                    bultoEntity.getCantidadActual(),
+                    menorUMed));
+
+                UnidadMedidaEnum uMedSugerida = sugerirUnidadParaCantidad(menorUMed, cantidadActualLoteTemp);
+                cantidadActualLote = convertirCantidadEntreUnidades(menorUMed, cantidadActualLoteTemp, uMedSugerida);
+
+                BigDecimal cantidadInicialTemp = convertirCantidadEntreUnidades(
+                    uMedActual,
+                    cantidadInicialLote,
+                    uMedSugerida);
+                cantidadInicialLote = cantidadInicialTemp.add(convertirCantidadEntreUnidades(
+                    bultoEntity.getUnidadMedida(),
+                    bultoEntity.getCantidadInicial(),
+                    uMedSugerida));
+                uMedActual = uMedSugerida;
+            }
+            if (bultoEntity.getFirstActiveTraza() != null) {
+                if (trazaInicial == null) {
+                    trazaInicial = bultoEntity.getFirstActiveTraza().getNroTraza();
+                } else {
+                    trazaInicial = Math.min(trazaInicial, bultoEntity.getFirstActiveTraza().getNroTraza());
+                }
+            }
+
+            //Add at the end of the lists
+            final int index = loteDTO.getCantidadesBultos().size();
+            loteDTO.getNroBultoList().add(index, bultoEntity.getNroBulto());
+            loteDTO.getCantidadesBultos().add(index, bultoEntity.getCantidadActual());
+            loteDTO.getUnidadMedidaBultos().add(index, bultoEntity.getUnidadMedida());
+        }
+
+        loteDTO.setTrazaInicial(trazaInicial);
+        loteDTO.setBultosActuales(loteEntity.getBultos().size());
+        loteDTO.setCantidadInicial(cantidadInicialLote);
+        loteDTO.setCantidadActual(cantidadActualLote);
+        loteDTO.setUnidadMedida(uMedActual);
+        return loteDTO;
     }
 
     public static MovimientoDTO fromMovimientoEntity(Movimiento entity) {
@@ -88,23 +221,6 @@ public class DTOUtils {
         return dto;
     }
 
-    public static AnalisisDTO fromAnalisisEntity(Analisis entity) {
-        if (entity == null) {
-            return null;
-        }
-        AnalisisDTO dto = new AnalisisDTO();
-        dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
-        dto.setNroAnalisis(entity.getNroAnalisis());
-        dto.setCodigoInternoLote(entity.getLote().getCodigoInterno());
-        dto.setFechaRealizado(entity.getFechaRealizado());
-        dto.setFechaReanalisis(entity.getFechaReanalisis());
-        dto.setFechaVencimiento(entity.getFechaVencimiento());
-        dto.setDictamen(entity.getDictamen());
-        dto.setTitulo(entity.getTitulo());
-        dto.setObservaciones(entity.getObservaciones());
-        return dto;
-    }
-
     public static TrazaDTO fromTrazaEntity(Traza entity) {
         if (entity == null) {
             return null;
@@ -116,18 +232,6 @@ public class DTOUtils {
         dto.setNroTraza(entity.getNroTraza());
         dto.setObservaciones(entity.getObservaciones());
         return dto;
-    }
-
-    public static List<LoteDTO> getLotesDtosByCodigoInterno(final List<Lote> loteList) {
-        Map<String, List<Lote>> lotesByCodigoInterno = loteList.stream()
-            .collect(Collectors.groupingBy(Lote::getCodigoInterno));
-        final List<LoteDTO> lotesDtos = new ArrayList<>();
-
-        for (Map.Entry<String, List<Lote>> entry : lotesByCodigoInterno.entrySet()) {
-            List<Lote> lotes = entry.getValue();
-            lotesDtos.add(DTOUtils.mergeLoteEntities(lotes));
-        }
-        return lotesDtos;
     }
 
     public static LoteDTO mergeLoteEntities(List<Lote> entities) {
@@ -239,98 +343,6 @@ public class DTOUtils {
         return loteDTO;
     }
 
-    public static LoteDTO fromLoteEntity(Lote loteEntity) {
-        if (loteEntity == null) {
-            return null;
-        }
-
-        LoteDTO loteDTO = new LoteDTO();
-
-        loteDTO.setFechaYHoraCreacion(loteEntity.getFechaYHoraCreacion());
-
-        setProductoLote(loteEntity, loteDTO);
-        setDatosProveedorLote(loteEntity, loteDTO);
-        setDatosDerivadosLote(loteEntity, loteDTO);
-        setListasBultosLote(loteEntity, loteDTO);
-        addMovimientosDTO(loteEntity, loteDTO);
-        addAnalisisDTO(loteEntity, loteDTO);
-        addTrazaDTO(loteEntity, loteDTO);
-
-        Long trazaInicial = null;
-        if (loteEntity.getFirstActiveTraza() != null) {
-            trazaInicial = loteEntity.getFirstActiveTraza().getNroTraza();
-        }
-
-        BigDecimal cantidadInicialLote = BigDecimal.ZERO;
-        BigDecimal cantidadActualLote = BigDecimal.ZERO;
-        UnidadMedidaEnum uMedActual = loteDTO.getBultosDTOs().get(0).getUnidadMedida();
-
-        for (Bulto bultoEntity : loteEntity.getBultos()) {
-            if (!bultoEntity.getActivo()) {
-                continue;
-            }
-
-            // Si el estado de alguno de los bultos es diferente, se asigna el de mayor prioridad
-            setEstadoBulto(bultoEntity, loteDTO);
-
-            if (bultoEntity.getUnidadMedida() == uMedActual) {
-                //La unidad de medida del bulto coincide con la del DTO
-                cantidadActualLote = bultoEntity.getCantidadActual().add(cantidadActualLote);
-                cantidadInicialLote = bultoEntity.getCantidadInicial().add(cantidadInicialLote);
-
-                UnidadMedidaEnum uMedSugerida = sugerirUnidadParaCantidad(uMedActual, cantidadActualLote);
-                cantidadActualLote = convertirCantidadEntreUnidades(uMedActual, cantidadActualLote, uMedSugerida);
-                cantidadInicialLote = convertirCantidadEntreUnidades(uMedActual, cantidadInicialLote, uMedSugerida);
-
-                uMedActual = uMedSugerida;
-            } else {
-                //Distitnas unidades de medida
-                UnidadMedidaEnum menorUMed = obtenerMenorUnidadMedida(bultoEntity.getUnidadMedida(), uMedActual);
-                BigDecimal cantidadActualLoteTemp = convertirCantidadEntreUnidades(
-                    uMedActual,
-                    cantidadActualLote,
-                    menorUMed);
-                cantidadActualLoteTemp = cantidadActualLoteTemp.add(convertirCantidadEntreUnidades(
-                    bultoEntity.getUnidadMedida(),
-                    bultoEntity.getCantidadActual(),
-                    menorUMed));
-
-                UnidadMedidaEnum uMedSugerida = sugerirUnidadParaCantidad(menorUMed, cantidadActualLoteTemp);
-                cantidadActualLote = convertirCantidadEntreUnidades(menorUMed, cantidadActualLoteTemp, uMedSugerida);
-
-                BigDecimal cantidadInicialTemp = convertirCantidadEntreUnidades(
-                    uMedActual,
-                    cantidadInicialLote,
-                    uMedSugerida);
-                cantidadInicialLote = cantidadInicialTemp.add(convertirCantidadEntreUnidades(
-                    bultoEntity.getUnidadMedida(),
-                    bultoEntity.getCantidadInicial(),
-                    uMedSugerida));
-                uMedActual = uMedSugerida;
-            }
-            if (bultoEntity.getFirstActiveTraza() != null) {
-                if (trazaInicial == null) {
-                    trazaInicial = bultoEntity.getFirstActiveTraza().getNroTraza();
-                } else {
-                    trazaInicial = Math.min(trazaInicial, bultoEntity.getFirstActiveTraza().getNroTraza());
-                }
-            }
-
-            //Add at the end of the lists
-            final int index = loteDTO.getCantidadesBultos().size();
-            loteDTO.getNroBultoList().add(index, bultoEntity.getNroBulto());
-            loteDTO.getCantidadesBultos().add(index, bultoEntity.getCantidadActual());
-            loteDTO.getUnidadMedidaBultos().add(index, bultoEntity.getUnidadMedida());
-        }
-
-        loteDTO.setTrazaInicial(trazaInicial);
-        loteDTO.setBultosActuales(loteEntity.getBultos().size());
-        loteDTO.setCantidadInicial(cantidadInicialLote);
-        loteDTO.setCantidadActual(cantidadActualLote);
-        loteDTO.setUnidadMedida(uMedActual);
-        return loteDTO;
-    }
-
     static void addAnalisisDTO(final Lote entity, final LoteDTO loteDTO) {
         for (Analisis analisis : entity.getAnalisisList()) {
             if (analisis.getActivo()) {
@@ -428,22 +440,6 @@ public class DTOUtils {
             loteDTO.setTipoProducto(producto.getTipoProducto());
             loteDTO.setProductoDestino(producto.getProductoDestino() != null ? producto.getProductoDestino() : null);
         }
-    }
-
-    public static List<LoteDTO> fromLoteEntities(final List<Lote> loteList) {
-        final List<LoteDTO> lotesDtos = new ArrayList<>();
-        for (Lote entity : loteList) {
-            lotesDtos.add(DTOUtils.fromLoteEntity(entity));
-        }
-        return lotesDtos;
-    }
-
-    public static List<AnalisisDTO> fromAnalisisEntities(final List<Analisis> analisisList) {
-        final List<AnalisisDTO> analisisDtos = new ArrayList<>();
-        for (Analisis entity : analisisList) {
-            analisisDtos.add(DTOUtils.fromAnalisisEntity(entity));
-        }
-        return analisisDtos;
     }
 
 }

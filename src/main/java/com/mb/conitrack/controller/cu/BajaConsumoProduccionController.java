@@ -22,7 +22,7 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.utils.ControllerUtils;
 
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/produccion/baja")
@@ -33,7 +33,7 @@ public class BajaConsumoProduccionController {
     @Autowired
     private LoteService loteService;
 
-    private static ControllerUtils xontrollerUtils() {
+    private static ControllerUtils controllerUtils() {
         return ControllerUtils.getInstance();
     }
 
@@ -86,7 +86,7 @@ public class BajaConsumoProduccionController {
     }
 
     private void initModelConsumoProduccion(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> lotesProduccion = getLotesDtosByCodigoInterno(loteService.findAllForConsumoProduccion());
+        List<LoteDTO> lotesProduccion = fromLoteEntities(loteService.findAllForConsumoProduccion());
         model.addAttribute("lotesProduccion", lotesProduccion);
         model.addAttribute("loteDTO", loteDTO); //  ← mantiene lo que el usuario ingresó
     }
@@ -96,16 +96,16 @@ public class BajaConsumoProduccionController {
             return false;
         }
         //TODO: caso donde el lote 2/3 se haya usado, pero el 1/3 no ni el 3/3
-        final List<Lote> lotes = new ArrayList<>();
-        boolean success = xontrollerUtils().populateAvailableLoteListByCodigoInterno(
-            lotes,
+        Lote lote = controllerUtils().getLoteByCodigoInterno(
             loteDTO.getCodigoInternoLote(),
             bindingResult,
             loteService);
+
+        boolean success = lote != null;
         success = success &&
-            xontrollerUtils().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult);
+            controllerUtils().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote, bindingResult);
         success = success &&
-            xontrollerUtils().validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
+            controllerUtils().validarCantidadesPorMedidas(loteDTO, lote, bindingResult);
         return success;
     }
 

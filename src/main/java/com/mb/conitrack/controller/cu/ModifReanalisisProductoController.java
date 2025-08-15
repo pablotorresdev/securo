@@ -23,7 +23,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/calidad/reanalisis")
@@ -98,7 +98,7 @@ public class ModifReanalisisProductoController {
 
     private void initModelReanalisisProducto(final MovimientoDTO movimientoDTO, final Model model) {
         //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
-        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForReanalisisProducto());
+        final List<LoteDTO> lotesDtos = fromLoteEntities(loteService.findAllForReanalisisProducto());
         model.addAttribute("loteDTOs", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }

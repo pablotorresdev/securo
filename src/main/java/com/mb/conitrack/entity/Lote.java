@@ -142,6 +142,23 @@ public class Lote {
     @Column(name = "unidad_medida", nullable = false)
     private UnidadMedidaEnum unidadMedida;
 
+
+    //****** BULTOS ******//
+    public Bulto getBultoByNro(int nroBulto) {
+        if (this.bultos == null || this.bultos.isEmpty()) {
+            return null;
+        }
+        if (this.bultos.size() == 1) {
+            Bulto unico = this.bultos.get(0);
+            return (nroBulto == 1 && unico.getActivo()) ? unico : null;
+        }
+        return this.bultos.stream()
+            .filter(Bulto::getActivo)
+            .filter(b -> b.getNroBulto() == nroBulto)
+            .findFirst()
+            .orElse(null);
+    }
+
     //****** ANALISIS ******//
     public Analisis getUltimoAnalisis() {
         if (this.analisisList.isEmpty()) {

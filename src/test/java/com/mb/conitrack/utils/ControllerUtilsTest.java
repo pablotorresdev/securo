@@ -382,7 +382,7 @@ class ControllerUtilsTest {
         verify(br).rejectValue(
             eq("codigoInternoLote"),
             eq(""),
-            eq("Lote bloqueado.")
+            eq("Lote no encontrado.")
         );
         verifyNoMoreInteractions(service, br);
     }

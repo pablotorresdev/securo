@@ -20,7 +20,7 @@ import com.mb.conitrack.service.LoteService;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/alta")
@@ -86,7 +86,7 @@ public class AltaDevolucionVentaController {
     }
 
     private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
-        List<LoteDTO> lotesDevolucion = getLotesDtosByCodigoInterno(loteService.findAllForDevolucionVenta());
+        List<LoteDTO> lotesDevolucion = fromLoteEntities(loteService.findAllForDevolucionVenta());
         model.addAttribute("lotesDevolucion", lotesDevolucion);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }

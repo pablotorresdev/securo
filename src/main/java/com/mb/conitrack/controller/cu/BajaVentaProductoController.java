@@ -22,7 +22,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/baja")
@@ -30,6 +30,10 @@ public class BajaVentaProductoController {
 
     @Autowired
     private LoteService loteService;
+
+    private static ControllerUtils controllerUtils() {
+        return ControllerUtils.getInstance();
+    }
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -70,7 +74,7 @@ public class BajaVentaProductoController {
     }
 
     private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> lotesVenta = getLotesDtosByCodigoInterno(loteService.findAllForVentaProducto());
+        List<LoteDTO> lotesVenta = fromLoteEntities(loteService.findAllForVentaProducto());
         model.addAttribute("lotesVenta", lotesVenta);
         model.addAttribute("loteDTO", loteDTO);
     }
@@ -81,15 +85,19 @@ public class BajaVentaProductoController {
         }
         //TODO: analizar validacion para ventas, ahora se copio la de consumo produccion
         final List<Lote> lotes = new ArrayList<>();
-        return ControllerUtils.populateAvailableLoteListByCodigoInterno(
+
+
+
+
+        return controllerUtils().populateAvailableLoteListByCodigoInterno(
             lotes,
             loteDTO.getCodigoInternoLote(),
             bindingResult,
             loteService)
             &&
-            ControllerUtils.validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
+            controllerUtils().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
             &&
-            ControllerUtils.validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
+            controllerUtils().validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
     }
 
     private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {

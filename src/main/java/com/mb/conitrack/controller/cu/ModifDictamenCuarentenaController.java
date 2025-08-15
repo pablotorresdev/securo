@@ -23,7 +23,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/calidad/dictamen")
@@ -109,7 +109,7 @@ public class ModifDictamenCuarentenaController {
     }
 
     void initModelDictamencuarentena(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForCuarentena());
+        final List<LoteDTO> lotesDtos = fromLoteEntities(loteService.findAllForCuarentena());
         model.addAttribute("lotesForCuarentena", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }

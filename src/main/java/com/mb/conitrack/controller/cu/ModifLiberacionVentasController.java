@@ -23,7 +23,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/liberacion")
@@ -84,7 +84,7 @@ public class ModifLiberacionVentasController {
     }
 
     private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForLiberacionProducto());
+        final List<LoteDTO> lotesDtos = fromLoteEntities(loteService.findAllForLiberacionProducto());
         //TODO: unificar nombres de atributos
         model.addAttribute("lotesDtos", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);

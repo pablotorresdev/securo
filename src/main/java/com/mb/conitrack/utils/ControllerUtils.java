@@ -49,261 +49,6 @@ public class ControllerUtils {
         return countries;
     }
 
-    public static boolean populateAvailableLoteListByCodigoInterno(
-        final List<Lote> lotesList,
-        String codigoInternoLote,
-        BindingResult bindingResult,
-        final LoteService loteService) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote)
-            .stream()
-            .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno))
-            .toList();
-        if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.rejectValue("codigoInternoLote", "Lote inexistente.");
-            return false;
-        }
-        lotesList.addAll(loteListByCodigoInterno);
-        return true;
-    }
-
-    public static boolean validarCantidadesPorMedidas(
-        final LoteDTO loteDTO,
-        final List<Lote> lotes,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        // Debe venir al menos un movimiento
-        final List<Integer> nroBultoList = loteDTO.getNroBultoList();
-        final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
-        final List<UnidadMedidaEnum> unidadMedidaBultos = loteDTO.getUnidadMedidaBultos();
-
-        if (cantidadesBultos == null || cantidadesBultos.isEmpty()) {
-            bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las cantidades a consumir");
-            return true;
-        }
-
-        if (unidadMedidaBultos == null || unidadMedidaBultos.isEmpty()) {
-            bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las unidades de medida");
-            return true;
-        }
-
-        for (int i = 0; i < nroBultoList.size(); i++) {
-            final BigDecimal cantidadBulto = cantidadesBultos.get(i);
-            if (cantidadBulto == null) {
-                bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede ser nula");
-                return true;
-            }
-            if (BigDecimal.ZERO.compareTo(cantidadBulto) == 0) {
-                continue;
-            }
-            if (BigDecimal.ZERO.compareTo(cantidadBulto) <= 0) {
-                bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede ser negativa");
-                return true;
-            }
-
-            final UnidadMedidaEnum uniMedidaBulto = unidadMedidaBultos.get(i);
-            if (uniMedidaBulto == null) {
-                bindingResult.rejectValue("cantidadesBultos", "", "Debe indicar la unidad");
-                return true;
-            }
-            final Integer nroBulto = nroBultoList.get(i);
-            final Lote lote = lotes.stream()
-                //.filter(l -> l.getNroBulto().equals(nroBulto))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado para el número de bulto: " +
-                    nroBulto));
-            if (lote.getUnidadMedida() == uniMedidaBulto) {
-                if (cantidadBulto.compareTo(lote.getCantidadActual()) > 0) {
-                    bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede superar el stock actual");
-                    return true;
-                }
-            } else {
-                UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(lote.getUnidadMedida(), uniMedidaBulto);
-                BigDecimal cantidadBultoNormalizada = convertirCantidadEntreUnidades(
-                    uniMedidaBulto,
-                    cantidadBulto,
-                    menorUnidadMedida);
-                BigDecimal cantidadLoteNormalizada = convertirCantidadEntreUnidades(
-                    lote.getUnidadMedida(),
-                    lote.getCantidadActual(),
-                    menorUnidadMedida);
-                if (cantidadBultoNormalizada.compareTo(cantidadLoteNormalizada) > 0) {
-                    bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede superar el stock actual");
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static boolean validarContraFechasProveedor(
-        final MovimientoDTO movimientoDTO,
-        Lote lote,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        // 1 La fecha de vencimiento de QC no puede ser posterior a la fecha de vencimiento del proveedor
-        if (movimientoDTO.getFechaVencimiento() != null &&
-            lote.getFechaVencimientoProveedor() != null &&
-            movimientoDTO.getFechaVencimiento().isAfter(lote.getFechaVencimientoProveedor())) {
-            bindingResult.rejectValue(
-                "fechaVencimiento",
-                "",
-                "La fecha de vencimiento no puede ser posterior a la fecha de vencimiento del proveedor");
-            return false;
-        }
-
-        if (movimientoDTO.getFechaReanalisis() != null) {
-            long analisisAprobados = lote.getAnalisisList()
-                .stream()
-                .filter(a -> a.getDictamen() == DictamenEnum.APROBADO)
-                .count();
-            if (lote.getFechaVencimientoProveedor() != null &&
-                movimientoDTO.getFechaReanalisis().isAfter(lote.getFechaVencimientoProveedor())) {
-                bindingResult.rejectValue(
-                    "fechaReanalisis",
-                    "",
-                    "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento del proveedor: " +
-                        lote.getFechaVencimientoProveedor());
-                return false;
-            }
-            if (analisisAprobados == 0) {
-                // - Si el Lote NO fue analizado antes con dictamen APROBADO => la fechaReanálisis no puede pasar la fechaReanálisisProveedor NI la fechaVencimientoProveedor
-                if (lote.getFechaReanalisisProveedor() != null &&
-                    movimientoDTO.getFechaReanalisis().isAfter(lote.getFechaReanalisisProveedor())) {
-                    bindingResult.rejectValue(
-                        "fechaReanalisis",
-                        "",
-                        "La primera fecha de reanálisis no puede ser posterior a la fecha de reanálisis del proveedor: " +
-                            lote.getFechaReanalisisProveedor());
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    public static boolean validarDatosMandatoriosResultadoAnalisisInput(
-        final MovimientoDTO movimientoDTO,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        // Verificamos que nroAnalisis no sea vacío
-        if (StringUtils.isEmptyOrWhitespace(movimientoDTO.getNroAnalisis())) {
-            bindingResult.rejectValue("nroAnalisis", "", "El Nro de Análisis es obligatorio");
-            return false;
-        }
-
-        // Dictamen Final no nulo
-        if (movimientoDTO.getDictamenFinal() == null) {
-            bindingResult.rejectValue("dictamenFinal", "", "Debe ingresar un Resultado");
-            return false;
-        }
-
-        // Fecha Realizado Análisis no nula
-        if (movimientoDTO.getFechaRealizadoAnalisis() == null) {
-            bindingResult.rejectValue(
-                "fechaRealizadoAnalisis",
-                "",
-                "Debe ingresar la fecha en la que se realizó el análisis");
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean validarDatosResultadoAnalisisAprobadoInput(
-        final MovimientoDTO movimientoDTO,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        if (DictamenEnum.APROBADO != movimientoDTO.getDictamenFinal()) {
-            return true;
-        }
-        // Al menos una de las fechas de reanálisis o vencimiento debe ser ingresada
-        if (movimientoDTO.getFechaVencimiento() == null && movimientoDTO.getFechaReanalisis() == null) {
-            bindingResult.rejectValue("fechaVencimiento", "", "Debe ingresar una fecha de Re Análisis o Vencimiento");
-            return false;
-        }
-
-        // La fecha de reanálisis no puede ser posterior a la fecha de vencimiento
-        if (movimientoDTO.getFechaVencimiento() != null &&
-            movimientoDTO.getFechaReanalisis() != null &&
-            movimientoDTO.getFechaReanalisis().isAfter(movimientoDTO.getFechaVencimiento())) {
-            bindingResult.rejectValue(
-                "fechaReanalisis",
-                "",
-                "La fecha de reanalisis no puede ser posterior a la fecha de vencimiento");
-            return false;
-        }
-
-        // El título es obligatorio y no puede ser mayor al 100%
-        if (movimientoDTO.getTitulo() == null) {
-            bindingResult.rejectValue("titulo", "", "Debe ingresar el valor de título del Análisis");
-            return false;
-        } else if (movimientoDTO.getTitulo().compareTo(BigDecimal.valueOf(100)) > 0) {
-            bindingResult.rejectValue("titulo", "", "El título no puede ser mayor al 100%");
-            return false;
-        }
-        if (movimientoDTO.getTitulo().compareTo(BigDecimal.valueOf(0)) <= 0) {
-            bindingResult.rejectValue("titulo", "", "El título no puede ser menor o igual a 0");
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean validarExisteMuestreoParaAnalisis(
-        final MovimientoDTO movimientoDTO,
-        final List<Lote> lotesList,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        boolean existeMuestreo = false;
-        //Al menos necesitamos haber hecho un muestreo para poder hacer un análisis
-        for (Lote lote : lotesList) {
-            existeMuestreo |= lote.getMovimientos()
-                .stream()
-                .anyMatch(m -> m.getTipoMovimiento() == TipoMovimientoEnum.BAJA &&
-                    m.getMotivo() == MotivoEnum.MUESTREO &&
-                    movimientoDTO.getNroAnalisis().equals(m.getNroAnalisis()));
-        }
-
-        if (!existeMuestreo) {
-            bindingResult.rejectValue(
-                "nroAnalisis",
-                "",
-                "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis());
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean validarFechaEgresoLoteDtoPosteriorLote(
-        final LoteDTO dto,
-        final Lote lote,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        if (dto.getFechaEgreso() != null && dto.getFechaEgreso().isBefore(lote.getFechaIngreso())) {
-            bindingResult.rejectValue(
-                "fechaMovimiento",
-                "",
-                "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
-            return false;
-        }
-        return true;
-    }
-
     public static boolean validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
@@ -409,6 +154,358 @@ public class ControllerUtils {
         return result;
     }
 
+    public boolean validarContraFechasProveedor(
+        final MovimientoDTO movimientoDTO,
+        Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // 1 La fecha de vencimiento de QC no puede ser posterior a la fecha de vencimiento del proveedor
+        if (movimientoDTO.getFechaVencimiento() != null &&
+            lote.getFechaVencimientoProveedor() != null &&
+            movimientoDTO.getFechaVencimiento().isAfter(lote.getFechaVencimientoProveedor())) {
+            bindingResult.rejectValue(
+                "fechaVencimiento",
+                "",
+                "La fecha de vencimiento no puede ser posterior a la fecha de vencimiento del proveedor");
+            return false;
+        }
+
+        if (movimientoDTO.getFechaReanalisis() != null) {
+            long analisisAprobados = lote.getAnalisisList()
+                .stream()
+                .filter(a -> a.getDictamen() == DictamenEnum.APROBADO)
+                .count();
+            if (lote.getFechaVencimientoProveedor() != null &&
+                movimientoDTO.getFechaReanalisis().isAfter(lote.getFechaVencimientoProveedor())) {
+                bindingResult.rejectValue(
+                    "fechaReanalisis",
+                    "",
+                    "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento del proveedor: " +
+                        lote.getFechaVencimientoProveedor());
+                return false;
+            }
+            if (analisisAprobados == 0) {
+                // - Si el Lote NO fue analizado antes con dictamen APROBADO => la fechaReanálisis no puede pasar la fechaReanálisisProveedor NI la fechaVencimientoProveedor
+                if (lote.getFechaReanalisisProveedor() != null &&
+                    movimientoDTO.getFechaReanalisis().isAfter(lote.getFechaReanalisisProveedor())) {
+                    bindingResult.rejectValue(
+                        "fechaReanalisis",
+                        "",
+                        "La primera fecha de reanálisis no puede ser posterior a la fecha de reanálisis del proveedor: " +
+                            lote.getFechaReanalisisProveedor());
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public boolean validarDatosMandatoriosResultadoAnalisisInput(
+        final MovimientoDTO movimientoDTO,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // Verificamos que nroAnalisis no sea vacío
+        if (StringUtils.isEmptyOrWhitespace(movimientoDTO.getNroAnalisis())) {
+            bindingResult.rejectValue("nroAnalisis", "", "El Nro de Análisis es obligatorio");
+            return false;
+        }
+
+        // Dictamen Final no nulo
+        if (movimientoDTO.getDictamenFinal() == null) {
+            bindingResult.rejectValue("dictamenFinal", "", "Debe ingresar un Resultado");
+            return false;
+        }
+
+        // Fecha Realizado Análisis no nula
+        if (movimientoDTO.getFechaRealizadoAnalisis() == null) {
+            bindingResult.rejectValue(
+                "fechaRealizadoAnalisis",
+                "",
+                "Debe ingresar la fecha en la que se realizó el análisis");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validarDatosResultadoAnalisisAprobadoInput(
+        final MovimientoDTO movimientoDTO,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (DictamenEnum.APROBADO != movimientoDTO.getDictamenFinal()) {
+            return true;
+        }
+        // Al menos una de las fechas de reanálisis o vencimiento debe ser ingresada
+        if (movimientoDTO.getFechaVencimiento() == null && movimientoDTO.getFechaReanalisis() == null) {
+            bindingResult.rejectValue("fechaVencimiento", "", "Debe ingresar una fecha de Re Análisis o Vencimiento");
+            return false;
+        }
+
+        // La fecha de reanálisis no puede ser posterior a la fecha de vencimiento
+        if (movimientoDTO.getFechaVencimiento() != null &&
+            movimientoDTO.getFechaReanalisis() != null &&
+            movimientoDTO.getFechaReanalisis().isAfter(movimientoDTO.getFechaVencimiento())) {
+            bindingResult.rejectValue(
+                "fechaReanalisis",
+                "",
+                "La fecha de reanalisis no puede ser posterior a la fecha de vencimiento");
+            return false;
+        }
+
+        // El título es obligatorio y no puede ser mayor al 100%
+        if (movimientoDTO.getTitulo() == null) {
+            bindingResult.rejectValue("titulo", "", "Debe ingresar el valor de título del Análisis");
+            return false;
+        } else if (movimientoDTO.getTitulo().compareTo(BigDecimal.valueOf(100)) > 0) {
+            bindingResult.rejectValue("titulo", "", "El título no puede ser mayor al 100%");
+            return false;
+        }
+        if (movimientoDTO.getTitulo().compareTo(BigDecimal.valueOf(0)) <= 0) {
+            bindingResult.rejectValue("titulo", "", "El título no puede ser menor o igual a 0");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validarExisteMuestreoParaAnalisis(
+        final MovimientoDTO movimientoDTO,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        //Al menos necesitamos haber hecho un muestreo para poder hacer un análisis
+        boolean existeMuestreo = lote.getMovimientos()
+            .stream()
+            .anyMatch(m -> m.getTipoMovimiento() == TipoMovimientoEnum.BAJA &&
+                m.getMotivo() == MotivoEnum.MUESTREO &&
+                movimientoDTO.getNroAnalisis().equals(m.getNroAnalisis()));
+
+        if (!existeMuestreo) {
+            bindingResult.rejectValue(
+                "nroAnalisis",
+                "",
+                "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis());
+            return false;
+        }
+        return true;
+    }
+
+    public boolean populateAvailableLoteListByCodigoInterno(
+        final List<Lote> lotesList,
+        String codigoInternoLote,
+        BindingResult bindingResult,
+        final LoteService loteService) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote)
+            .stream()
+            .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
+            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno))
+            .toList();
+        if (loteListByCodigoInterno.isEmpty()) {
+            bindingResult.rejectValue("codigoInternoLote", "Lote inexistente.");
+            return false;
+        }
+        lotesList.addAll(loteListByCodigoInterno);
+        return true;
+    }
+
+    public boolean validarCantidadesPorMedidas(
+        final LoteDTO loteDTO,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // Debe venir al menos un movimiento
+        final List<Integer> nroBultoList = loteDTO.getNroBultoList();
+        final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
+        final List<UnidadMedidaEnum> unidadMedidaBultos = loteDTO.getUnidadMedidaBultos();
+
+        if (cantidadesBultos == null || cantidadesBultos.isEmpty()) {
+            bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las cantidades a consumir");
+            return false;
+        }
+
+        if (unidadMedidaBultos == null || unidadMedidaBultos.isEmpty()) {
+            bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las unidades de medida");
+            return false;
+        }
+
+        for (int i = 0; i < nroBultoList.size(); i++) {
+            final BigDecimal cantidaConsumoBulto = cantidadesBultos.get(i);
+            if (cantidaConsumoBulto == null) {
+                bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede ser nula");
+                return false;
+            }
+            if (BigDecimal.ZERO.compareTo(cantidaConsumoBulto) == 0) {
+                continue;
+            }
+            if (BigDecimal.ZERO.compareTo(cantidaConsumoBulto) > 0) {
+                bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede ser negativa");
+                return false;
+            }
+
+            final UnidadMedidaEnum uniMedidaConsumoBulto = unidadMedidaBultos.get(i);
+            if (uniMedidaConsumoBulto == null) {
+                bindingResult.rejectValue("cantidadesBultos", "", "Debe indicar la unidad");
+                return false;
+            }
+
+            Bulto bultoEntity = lote.getBultoByNro(nroBultoList.get(i));
+
+            if (bultoEntity == null) {
+                bindingResult.rejectValue("cantidadesBultos", "", "Bulto no encontrado");
+                return false;
+            }
+
+            if (bultoEntity.getUnidadMedida() == uniMedidaConsumoBulto) {
+                if (cantidaConsumoBulto.compareTo(bultoEntity.getCantidadActual()) > 0) {
+                    bindingResult.rejectValue(
+                        "cantidadesBultos", "",
+                        "La cantidad ingresada (" +
+                            cantidaConsumoBulto +
+                            " " +
+                            uniMedidaConsumoBulto +
+                            ") no puede superar el stock actual del bulto " +
+                            bultoEntity.getNroBulto() +
+                            " (" +
+                            bultoEntity.getCantidadActual() +
+                            " " +
+                            bultoEntity.getUnidadMedida() +
+                            ")");
+                    return false;
+                }
+            } else {
+                UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(
+                    bultoEntity.getUnidadMedida(),
+                    uniMedidaConsumoBulto);
+                BigDecimal cantidadBultoNormalizada = convertirCantidadEntreUnidades(
+                    uniMedidaConsumoBulto,
+                    cantidaConsumoBulto,
+                    menorUnidadMedida);
+                BigDecimal cantidadLoteNormalizada = convertirCantidadEntreUnidades(
+                    bultoEntity.getUnidadMedida(),
+                    bultoEntity.getCantidadActual(),
+                    menorUnidadMedida);
+                if (cantidadBultoNormalizada.compareTo(cantidadLoteNormalizada) > 0) {
+                    bindingResult.rejectValue(
+                        "cantidadesBultos",
+                        "",
+                        "La cantidad ingresada (" +
+                            cantidaConsumoBulto +
+                            " " +
+                            uniMedidaConsumoBulto +
+                            ") no puede superar el stock actual del bulto " +
+                            bultoEntity.getNroBulto() +
+                            " (" +
+                            bultoEntity.getCantidadActual() +
+                            " " +
+                            bultoEntity.getUnidadMedida() +
+                            ")");
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean validarCantidadesPorMedidas(
+        final LoteDTO loteDTO,
+        final List<Lote> lotes,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // Debe venir al menos un movimiento
+        final List<Integer> nroBultoList = loteDTO.getNroBultoList();
+        final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
+        final List<UnidadMedidaEnum> unidadMedidaBultos = loteDTO.getUnidadMedidaBultos();
+
+        if (cantidadesBultos == null || cantidadesBultos.isEmpty()) {
+            bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las cantidades a consumir");
+            return true;
+        }
+
+        if (unidadMedidaBultos == null || unidadMedidaBultos.isEmpty()) {
+            bindingResult.rejectValue("cantidadesBultos", "", "Debe ingresar las unidades de medida");
+            return true;
+        }
+
+        for (int i = 0; i < nroBultoList.size(); i++) {
+            final BigDecimal cantidadBulto = cantidadesBultos.get(i);
+            if (cantidadBulto == null) {
+                bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede ser nula");
+                return true;
+            }
+            if (BigDecimal.ZERO.compareTo(cantidadBulto) == 0) {
+                continue;
+            }
+            if (BigDecimal.ZERO.compareTo(cantidadBulto) <= 0) {
+                bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede ser negativa");
+                return true;
+            }
+
+            final UnidadMedidaEnum uniMedidaBulto = unidadMedidaBultos.get(i);
+            if (uniMedidaBulto == null) {
+                bindingResult.rejectValue("cantidadesBultos", "", "Debe indicar la unidad");
+                return true;
+            }
+            final Integer nroBulto = nroBultoList.get(i);
+            final Lote lote = lotes.stream()
+                //.filter(l -> l.getNroBulto().equals(nroBulto))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado para el número de bulto: " +
+                    nroBulto));
+            if (lote.getUnidadMedida() == uniMedidaBulto) {
+                if (cantidadBulto.compareTo(lote.getCantidadActual()) > 0) {
+                    bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede superar el stock actual");
+                    return true;
+                }
+            } else {
+                UnidadMedidaEnum menorUnidadMedida = obtenerMenorUnidadMedida(lote.getUnidadMedida(), uniMedidaBulto);
+                BigDecimal cantidadBultoNormalizada = convertirCantidadEntreUnidades(
+                    uniMedidaBulto,
+                    cantidadBulto,
+                    menorUnidadMedida);
+                BigDecimal cantidadLoteNormalizada = convertirCantidadEntreUnidades(
+                    lote.getUnidadMedida(),
+                    lote.getCantidadActual(),
+                    menorUnidadMedida);
+                if (cantidadBultoNormalizada.compareTo(cantidadLoteNormalizada) > 0) {
+                    bindingResult.rejectValue("cantidadesBultos", "", "La cantidad no puede superar el stock actual");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean validarFechaEgresoLoteDtoPosteriorLote(
+        final LoteDTO dto,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (dto.getFechaEgreso() != null && dto.getFechaEgreso().isBefore(lote.getFechaIngreso())) {
+            bindingResult.rejectValue(
+                "fechaMovimiento",
+                "",
+                "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
+            return false;
+        }
+        return true;
+    }
+
     public boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
@@ -442,36 +539,6 @@ public class ControllerUtils {
 
         if (cantidadConvertida.compareTo(bulto.getCantidadActual()) > 0) {
             bindingResult.rejectValue("cantidad", "", "La cantidad excede el stock disponible del bulto.");
-            return false;
-        }
-        return true;
-    }
-
-    public boolean validarCantidadesMovimiento(
-        final MovimientoDTO dto,
-        final Lote lote,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(lote.getUnidadMedida());
-
-        if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
-            bindingResult.rejectValue("unidadMedida", "", "Unidad no compatible con el producto.");
-            return false;
-        }
-
-        if (dto.getCantidad() == null || dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
-            bindingResult.rejectValue("cantidad", "", "La cantidad debe ser mayor a 0.");
-            return false;
-        }
-
-        BigDecimal cantidadConvertida = dto.getCantidad()
-            .multiply(BigDecimal.valueOf(dto.getUnidadMedida().getFactorConversion() /
-                lote.getUnidadMedida().getFactorConversion()));
-
-        if (cantidadConvertida.compareTo(lote.getCantidadActual()) > 0) {
-            bindingResult.rejectValue("cantidad", "", "La cantidad excede el stock disponible del lote.");
             return false;
         }
         return true;
@@ -534,8 +601,8 @@ public class ControllerUtils {
         }
 
         final Optional<Lote> loteByCodigoInterno = loteService.findLoteByCodigoInterno(codigoInternoLote);
-        if (!loteByCodigoInterno.isPresent()) {
-            bindingResult.rejectValue("codigoInternoLote", "", "Lote bloqueado.");
+        if (loteByCodigoInterno.isEmpty()) {
+            bindingResult.rejectValue("codigoInternoLote", "", "Lote no encontrado.");
             return null;
         }
         return loteByCodigoInterno.get();
@@ -551,7 +618,7 @@ public class ControllerUtils {
         }
         final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote);
         if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.rejectValue("codigoInternoLote", "", "Lote bloqueado.");
+            bindingResult.rejectValue("codigoInternoLote", "", "Lote no encontrado.");
             return false;
         }
         lotesList.addAll(loteListByCodigoInterno);
@@ -606,8 +673,6 @@ public class ControllerUtils {
         return true;
     }
 
-
-
     public boolean validarValorTitulo(
         final MovimientoDTO movimientoDTO,
         final Lote lote,
@@ -615,37 +680,7 @@ public class ControllerUtils {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        // (5) El valor del título no puede ser mayor al valor del título del último análisis aprobado
-        //     (si existe un último análisis con dictamen APROBADO)
         Analisis ultimoAprobado = lote
-            .getAnalisisList()
-            .stream()
-            .filter(a -> a.getDictamen() == DictamenEnum.APROBADO && a.getTitulo() != null)
-            .max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
-            .orElse(null);
-
-        if (ultimoAprobado != null && movimientoDTO.getTitulo().compareTo(ultimoAprobado.getTitulo()) > 0) {
-            bindingResult.rejectValue(
-                "titulo",
-                "",
-                "El valor del título no puede ser mayor al del último análisis aprobado (" +
-                    ultimoAprobado.getTitulo() +
-                    ")");
-            return false;
-        }
-        return true;
-    }
-
-    public boolean validarValorTitulo(
-        final MovimientoDTO movimientoDTO,
-        final List<Lote> lotesList,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        // (5) El valor del título no puede ser mayor al valor del título del último análisis aprobado
-        //     (si existe un último análisis con dictamen APROBADO)
-        Analisis ultimoAprobado = lotesList.get(0)
             .getAnalisisList()
             .stream()
             .filter(a -> a.getDictamen() == DictamenEnum.APROBADO && a.getTitulo() != null)
