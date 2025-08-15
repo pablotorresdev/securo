@@ -24,8 +24,6 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.fromEntities;
-
 @Controller
 @RequestMapping("/calidad/baja")
 public class BajaMuestreoBultoController {
@@ -101,7 +99,7 @@ public class BajaMuestreoBultoController {
     }
 
     void initModelMuestreoBulto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = fromEntities(loteService.findAllForMuestreo());
+        final List<LoteDTO> lotesDtos = DTOUtils.fromLoteEntities(loteService.findAllForMuestreo());
         model.addAttribute("lotesMuestreables", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
@@ -111,7 +109,7 @@ public class BajaMuestreoBultoController {
         final Bulto bulto,
         final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        LoteDTO loteDTO = DTOUtils.mergeEntities(List.of(loteService.bajaMuestreo(movimientoDTO, bulto)));
+        LoteDTO loteDTO = DTOUtils.mergeLoteEntities(List.of(loteService.bajaMuestreo(movimientoDTO, bulto)));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());

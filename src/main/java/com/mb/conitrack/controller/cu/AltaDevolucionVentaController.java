@@ -75,7 +75,7 @@ public class AltaDevolucionVentaController {
         final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.altaStockDevolucionVenta(movimientoDTO));
+        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.altaStockDevolucionVenta(movimientoDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(

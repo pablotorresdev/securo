@@ -39,7 +39,6 @@ public class AltaIngresoCompraController {
         return ControllerUtils.getInstance();
     }
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
@@ -61,17 +60,20 @@ public class AltaIngresoCompraController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
-        success = success && controllerUtils().validateFechasProveedor(loteDTO, bindingResult);
-        success = success && controllerUtils().validarBultos(loteDTO, bindingResult);
-
-        if (!success) {
+        if (!validarIngresoCompra(loteDTO, bindingResult)) {
             initModelIngresoCompra(loteDTO, model);
             return "compras/alta/ingreso-compra";
         }
 
         procesaringresoCompra(loteDTO, redirectAttributes);
         return "redirect:/compras/alta/ingreso-compra-ok";
+    }
+
+    private static boolean validarIngresoCompra(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
+        success = success && controllerUtils().validateFechasProveedor(loteDTO, bindingResult);
+        success = success && controllerUtils().validarBultos(loteDTO, bindingResult);
+        return success;
     }
 
     @GetMapping("/ingreso-compra-ok")
@@ -96,7 +98,7 @@ public class AltaIngresoCompraController {
 
     void procesaringresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.altaStockPorCompra(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.altaStockPorCompra(loteDTO));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",

@@ -108,7 +108,7 @@ class BajaMuestreoBultoControllerTest {
         when(loteService.findAllForMuestreo()).thenReturn(entrada);
 
         try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> DTOUtils.fromEntities(entrada)).thenReturn(salidaDtos);
+            mocked.when(() -> DTOUtils.fromLoteEntities(entrada)).thenReturn(salidaDtos);
 
             String view = controller.showMuestreoBultoForm(dto, model);
 
@@ -116,7 +116,7 @@ class BajaMuestreoBultoControllerTest {
             assertSame(dto, model.getAttribute("movimientoDTO"));
             assertSame(salidaDtos, model.getAttribute("lotesMuestreables"));
             verify(loteService).findAllForMuestreo();
-            mocked.verify(() -> DTOUtils.fromEntities(entrada));
+            mocked.verify(() -> DTOUtils.fromLoteEntities(entrada));
         }
     }
 
@@ -290,7 +290,7 @@ class BajaMuestreoBultoControllerTest {
             when(utils.validarCantidadesMovimiento(dto, bulto, binding)).thenReturn(true);
 
             when(loteService.bajaMuestreo(dto, bulto)).thenReturn(persistido);
-            msDto.when(() -> DTOUtils.mergeEntities(List.of(persistido))).thenReturn(resultDTO);
+            msDto.when(() -> DTOUtils.mergeLoteEntities(List.of(persistido))).thenReturn(resultDTO);
 
             String view = controller.procesarMuestreoBulto(dto, binding, model, redirect);
 
@@ -300,7 +300,7 @@ class BajaMuestreoBultoControllerTest {
             assertTrue(dto.getFechaYHoraCreacion().isBefore(LocalDateTime.now().plusSeconds(2)));
 
             verify(loteService).bajaMuestreo(dto, bulto);
-            msDto.verify(() -> DTOUtils.mergeEntities(List.of(persistido)));
+            msDto.verify(() -> DTOUtils.mergeLoteEntities(List.of(persistido)));
 
             Map<String, ?> flash = redirect.getFlashAttributes();
             assertSame(resultDTO, flash.get("loteDTO"));
@@ -330,7 +330,7 @@ class BajaMuestreoBultoControllerTest {
             when(utils.validarCantidadesMovimiento(dto, bulto, binding)).thenReturn(true);
 
             when(loteService.bajaMuestreo(dto, bulto)).thenReturn(persistido);
-            msDto.when(() -> DTOUtils.mergeEntities(List.of(persistido))).thenReturn(null);
+            msDto.when(() -> DTOUtils.mergeLoteEntities(List.of(persistido))).thenReturn(null);
 
             String view = controller.procesarMuestreoBulto(dto, binding, model, redirect);
 

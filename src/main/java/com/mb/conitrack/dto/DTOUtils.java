@@ -25,7 +25,7 @@ import static com.mb.conitrack.utils.UnidadMedidaUtils.sugerirUnidadParaCantidad
 public class DTOUtils {
 
     public static Analisis createAnalisis(final MovimientoDTO dto) {
-        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis())
+        final String nroAnalisis = StringUtils.isEmptyOrWhitespace(dto.getNroReanalisis())
             ? dto.getNroAnalisis()
             : dto.getNroReanalisis();
         if (nroAnalisis != null) {
@@ -39,7 +39,7 @@ public class DTOUtils {
         throw new IllegalArgumentException("El número de análisis es requerido");
     }
 
-    public static BultoDTO fromEntity(Bulto entity) {
+    public static BultoDTO fromBultoEntity(Bulto entity) {
         if (entity == null) {
             return null;
         }
@@ -56,7 +56,7 @@ public class DTOUtils {
         return dto;
     }
 
-    public static MovimientoDTO fromEntity(Movimiento entity) {
+    public static MovimientoDTO fromMovimientoEntity(Movimiento entity) {
         if (entity == null) {
             return null;
         }
@@ -88,13 +88,14 @@ public class DTOUtils {
         return dto;
     }
 
-    public static AnalisisDTO fromEntity(Analisis entity) {
+    public static AnalisisDTO fromAnalisisEntity(Analisis entity) {
         if (entity == null) {
             return null;
         }
         AnalisisDTO dto = new AnalisisDTO();
         dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
         dto.setNroAnalisis(entity.getNroAnalisis());
+        dto.setCodigoInternoLote(entity.getLote().getCodigoInterno());
         dto.setFechaRealizado(entity.getFechaRealizado());
         dto.setFechaReanalisis(entity.getFechaReanalisis());
         dto.setFechaVencimiento(entity.getFechaVencimiento());
@@ -104,7 +105,7 @@ public class DTOUtils {
         return dto;
     }
 
-    public static TrazaDTO fromEntity(Traza entity) {
+    public static TrazaDTO fromTrazaEntity(Traza entity) {
         if (entity == null) {
             return null;
         }
@@ -124,12 +125,12 @@ public class DTOUtils {
 
         for (Map.Entry<String, List<Lote>> entry : lotesByCodigoInterno.entrySet()) {
             List<Lote> lotes = entry.getValue();
-            lotesDtos.add(DTOUtils.mergeEntities(lotes));
+            lotesDtos.add(DTOUtils.mergeLoteEntities(lotes));
         }
         return lotesDtos;
     }
 
-    public static LoteDTO mergeEntities(List<Lote> entities) {
+    public static LoteDTO mergeLoteEntities(List<Lote> entities) {
         if (entities == null || entities.isEmpty()) {
             return null;
         }
@@ -238,7 +239,7 @@ public class DTOUtils {
         return loteDTO;
     }
 
-    public static LoteDTO mergeEntities(Lote loteEntity) {
+    public static LoteDTO fromLoteEntity(Lote loteEntity) {
         if (loteEntity == null) {
             return null;
         }
@@ -333,7 +334,7 @@ public class DTOUtils {
     static void addAnalisisDTO(final Lote entity, final LoteDTO loteDTO) {
         for (Analisis analisis : entity.getAnalisisList()) {
             if (analisis.getActivo()) {
-                loteDTO.getAnalisisDTOs().add(DTOUtils.fromEntity(analisis));
+                loteDTO.getAnalisisDTOs().add(DTOUtils.fromAnalisisEntity(analisis));
             }
         }
     }
@@ -341,7 +342,7 @@ public class DTOUtils {
     static void addMovimientosDTO(final Lote entity, final LoteDTO loteDTO) {
         for (Movimiento movimiento : entity.getMovimientos()) {
             if (movimiento.getActivo()) {
-                final MovimientoDTO movimientoDTO = DTOUtils.fromEntity(movimiento);
+                final MovimientoDTO movimientoDTO = DTOUtils.fromMovimientoEntity(movimiento);
                 //movimientoDTO.setNroBulto(String.valueOf(entity.getNroBulto()));
                 loteDTO.getMovimientoDTOs().add(movimientoDTO);
             }
@@ -351,7 +352,7 @@ public class DTOUtils {
     static void addTrazaDTO(final Lote entity, final LoteDTO loteDTO) {
         for (Traza traza : entity.getTrazas()) {
             if (traza.getActivo()) {
-                loteDTO.getTrazaDTOs().add(DTOUtils.fromEntity(traza));
+                loteDTO.getTrazaDTOs().add(DTOUtils.fromTrazaEntity(traza));
             }
         }
     }
@@ -412,7 +413,7 @@ public class DTOUtils {
     static void setListasBultosLote(final Lote entity, final LoteDTO loteDTO) {
         for (Bulto bulto : entity.getBultos()) {
             if (bulto.getActivo()) {
-                final BultoDTO bultoDto = DTOUtils.fromEntity(bulto);
+                final BultoDTO bultoDto = DTOUtils.fromBultoEntity(bulto);
                 loteDTO.getBultosDTOs().add(bultoDto);
             }
         }
@@ -429,12 +430,20 @@ public class DTOUtils {
         }
     }
 
-    public static List<LoteDTO> fromEntities(final List<Lote> loteList) {
+    public static List<LoteDTO> fromLoteEntities(final List<Lote> loteList) {
         final List<LoteDTO> lotesDtos = new ArrayList<>();
         for (Lote entity : loteList) {
-            lotesDtos.add(DTOUtils.mergeEntities(entity));
+            lotesDtos.add(DTOUtils.fromLoteEntity(entity));
         }
         return lotesDtos;
+    }
+
+    public static List<AnalisisDTO> fromAnalisisEntities(final List<Analisis> analisisList) {
+        final List<AnalisisDTO> analisisDtos = new ArrayList<>();
+        for (Analisis entity : analisisList) {
+            analisisDtos.add(DTOUtils.fromAnalisisEntity(entity));
+        }
+        return analisisDtos;
     }
 
 }

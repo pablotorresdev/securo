@@ -11,11 +11,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.mb.conitrack.dto.AnalisisDTO;
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
+
+import static com.mb.conitrack.dto.DTOUtils.fromAnalisisEntities;
 
 @Controller
 @RequestMapping("/analisis")
@@ -34,7 +38,8 @@ public class AnalisisController {
 
     @GetMapping("/list-analisis")
     public String listAnalisis(Model model) {
-        model.addAttribute("analisis", analisisService.findAll());
+        final List<AnalisisDTO> analisisDTOs = fromAnalisisEntities(analisisService.findAll());
+        model.addAttribute("analisisDTOs", analisisDTOs);
         return "analisis/list-analisis"; //.html
     }
 
@@ -45,8 +50,7 @@ public class AnalisisController {
         if (analisis == null) {
             return new LoteDTO();
         }
-        return null;
-        // return DTOUtils.mergeEntities(analisis.getLotes());
+        return DTOUtils.fromLoteEntity(analisis.getLote());
     }
 
     @GetMapping("/loteId/{loteId}")
@@ -57,9 +61,12 @@ public class AnalisisController {
             return "redirect:/lotes/list-lotes";
         }
 
-        List<Analisis> analisis = loteBultoById.getAnalisisList().stream().filter(Analisis::getActivo).sorted(Comparator
+        List<Analisis> analisisList = loteBultoById.getAnalisisList().stream().filter(Analisis::getActivo).sorted(Comparator
             .comparing(Analisis::getFechaYHoraCreacion)).toList();
-        model.addAttribute("analisis", analisis);
+
+        List<AnalisisDTO> analisisDTOs = fromAnalisisEntities(analisisList);
+
+        model.addAttribute("analisisDTOs", analisisDTOs);
         return "analisis/list-analisis"; // Corresponde a analisis-lote.html
     }
 

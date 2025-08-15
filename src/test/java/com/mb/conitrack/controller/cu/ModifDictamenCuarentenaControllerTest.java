@@ -100,7 +100,7 @@ class ModifDictamenCuarentenaControllerTest {
         when(loteService.persistirDictamenCuarentena(eq(dto), eq(lote))).thenReturn(lote);
 
         try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> DTOUtils.mergeEntities(lote)).thenReturn(null);
+            mocked.when(() -> DTOUtils.fromLoteEntity(lote)).thenReturn(null);
 
             // when
             controller.dictamenCuarentena(dto, lote, redirect);
@@ -108,7 +108,7 @@ class ModifDictamenCuarentenaControllerTest {
             // then
             assertNotNull(dto.getFechaYHoraCreacion());
             verify(loteService).persistirDictamenCuarentena(dto, lote);
-            mocked.verify(() -> DTOUtils.mergeEntities(lote));
+            mocked.verify(() -> DTOUtils.fromLoteEntity(lote));
 
             // flash attributes
             verify(redirect).addFlashAttribute(eq("loteDTO"), isNull());
@@ -130,13 +130,13 @@ class ModifDictamenCuarentenaControllerTest {
         when(loteService.persistirDictamenCuarentena(eq(dto), eq(lote))).thenReturn(lote);
 
         try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> DTOUtils.mergeEntities(lote)).thenReturn(merged);
+            mocked.when(() -> DTOUtils.fromLoteEntity(lote)).thenReturn(merged);
 
             controller.dictamenCuarentena(dto, lote, redirect);
 
             assertNotNull(dto.getFechaYHoraCreacion());
             verify(loteService).persistirDictamenCuarentena(dto, lote);
-            mocked.verify(() -> DTOUtils.mergeEntities(lote));
+            mocked.verify(() -> DTOUtils.fromLoteEntity(lote));
 
             verify(redirect).addFlashAttribute("loteDTO", merged);
             verify(redirect).addFlashAttribute("success", "Cambio de calidad a Cuarentena exitoso");

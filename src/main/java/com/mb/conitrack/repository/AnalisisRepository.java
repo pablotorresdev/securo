@@ -8,4 +8,6 @@ public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
 
     Analisis findByNroAnalisisAndActivoTrue(String nroAnalisis);
 
+    Analisis findByNroAnalisisAndDictamenIsNotNullAndActivoTrue(String nroAnalisis);
+
 }

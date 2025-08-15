@@ -110,7 +110,7 @@ public class LoteService {
     @Transactional
     public Lote persistirDictamenCuarentena(final MovimientoDTO dto, Lote lote) {
         //TODO, eliminar NRO de Reanalisis del DTO
-        final String nroAnalisis = StringUtils.isEmpty(dto.getNroReanalisis())
+        final String nroAnalisis = StringUtils.isEmptyOrWhitespace(dto.getNroReanalisis())
             ? dto.getNroAnalisis()
             : dto.getNroReanalisis();
 
@@ -181,7 +181,7 @@ public class LoteService {
                 traza.getMovimientos().add(movimiento);
             }
             trazaService.save(trazas);
-            dto.setTrazaDTOs(trazas.stream().map(DTOUtils::fromEntity).toList());
+            dto.setTrazaDTOs(trazas.stream().map(DTOUtils::fromTrazaEntity).toList());
         }
 
         if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
@@ -442,34 +442,29 @@ public class LoteService {
 
     //***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
     @Transactional
-    public List<Lote> persistirReanalisisProducto(final MovimientoDTO dto, final List<Lote> lotes) {
+    public Lote persistirReanalisisProducto(final MovimientoDTO dto, final Lote lote) {
         final Analisis analisis = DTOUtils.createAnalisis(dto);
+        analisis.setLote(lote);
         final Analisis newAnalisis = analisisService.save(analisis);
-        List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : lotes) {
-            final Movimiento movimiento = movimientoService.persistirMovimientoReanalisisProducto(
-                dto,
-                loteBulto,
-                newAnalisis.getNroAnalisis());
-            loteBulto.getMovimientos().add(movimiento);
-            loteBulto.getAnalisisList().add(newAnalisis);
-            newAnalisis.setLote(loteBulto);
-            result.add(loteRepository.save(loteBulto));
-        }
-        return result;
+        final Movimiento movimiento = movimientoService.persistirMovimientoReanalisisProducto(
+            dto,
+            lote,
+            newAnalisis.getNroAnalisis());
+        lote.getMovimientos().add(movimiento);
+        lote.getAnalisisList().add(newAnalisis);
+        newAnalisis.setLote(lote);
+        return loteRepository.save(lote);
     }
 
     //***********CU5/6: RESULTADO ANALISIS***********
     @Transactional
-    public List<Lote> persistirResultadoAnalisis(final MovimientoDTO dto) {
+    public Lote persistirResultadoAnalisis(final MovimientoDTO dto) {
         final Analisis analisis = analisisService.addResultadoAnalisis(dto);
-        List<Lote> result = new ArrayList<>();
         final Lote lote = analisis.getLote();
         final Movimiento movimiento = movimientoService.persistirMovimientoResultadoAnalisis(dto, lote);
         lote.setDictamen(movimiento.getDictamenFinal());
         lote.getMovimientos().add(movimiento);
-        result.add(loteRepository.save(lote));
-        return result;
+        return loteRepository.save(lote);
     }
 
     //***********CU7 BAJA: CONSUMO PRODUCCION***********
@@ -484,7 +479,7 @@ public class LoteService {
 
             final Movimiento movimiento = movimientoService.persistirMovimientoBajaConsumoProduccion(loteDTO, lote);
             lote.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
-                DTOUtils.fromEntity(movimiento),
+                DTOUtils.fromMovimientoEntity(movimiento),
                 lote));
 
             if (lote.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
@@ -595,7 +590,7 @@ public class LoteService {
 
             final Movimiento movimiento = movimientoService.persistirMovimientoBajaVenta(loteDTO, bulto);
             bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
-                DTOUtils.fromEntity(movimiento),
+                DTOUtils.fromMovimientoEntity(movimiento),
                 bulto));
 
             if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
@@ -603,7 +598,7 @@ public class LoteService {
             } else {
                 bulto.setEstado(EstadoEnum.EN_USO);
             }
-            loteDTO.getTrazaDTOs().addAll(movimiento.getTrazas().stream().map(DTOUtils::fromEntity).toList());
+            loteDTO.getTrazaDTOs().addAll(movimiento.getTrazas().stream().map(DTOUtils::fromTrazaEntity).toList());
             bulto.getMovimientos().add(movimiento);
             Lote newLote = loteRepository.save(bulto);
             result.add(newLote);
@@ -736,7 +731,7 @@ public class LoteService {
         lote.setProducto(producto);
         lote.setProveedor(proveedor);
 
-        if (StringUtils.isEmpty(loteDTO.getPaisOrigen())) {
+        if (StringUtils.isEmptyOrWhitespace(loteDTO.getPaisOrigen())) {
             if (fabricante.isPresent()) {
                 lote.setPaisOrigen(fabricante.get().getPais());
             } else {

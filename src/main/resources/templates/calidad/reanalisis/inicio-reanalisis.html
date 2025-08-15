@@ -22,7 +22,7 @@
             <label class="form-label" for="codigoInternoLote">Lote:</label>
             <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${lotesForReanalisis}"
+                <option th:each="loteDTO : ${loteDTOs}"
                         th:value="${loteDTO.codigoInternoLote}"
                         th:data-nombreproducto="${loteDTO.nombreProducto}"
                         th:data-nombreproveedor="${loteDTO.nombreProveedor}"
@@ -56,6 +56,7 @@
             <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
             <input class="form-control" id="nroAnalisis" type="text" maxlength="9" required
                    th:field="*{nroAnalisis}" placeholder="Ej: 123456789">
+            <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
         </div>
 
         <!-- Observaciones -->
@@ -77,8 +78,8 @@
 </footer>
 
 <script th:inline="javascript">
-    // Inyectamos todo el array lotesForReanalisis como objeto JavaScript
-    const lotesForReanalisis = /*[[${lotesForReanalisis}]]*/ [];
+    // Inyectamos todo el array loteDTOs como objeto JavaScript
+    const loteDTOs = /*[[${loteDTOs}]]*/ [];
 
     var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
     if (fechaMovimientoDTO) {
@@ -120,8 +121,8 @@
         loteSelect.addEventListener('change', function () {
             const codigoSeleccionado = this.value;
 
-            // Buscamos en lotesForReanalisis por codigoInternoLote
-            const lote = lotesForReanalisis.find(l => l.codigoInternoLote === codigoSeleccionado);
+            // Buscamos en loteDTOs por codigoInternoLote
+            const lote = loteDTOs.find(l => l.codigoInternoLote === codigoSeleccionado);
 
             if (lote) {
                 actualizarInfo(lote);
@@ -132,7 +133,7 @@
 
         // Opcional: si hay un lote ya seleccionado al cargar la página
         if (loteSelect.value) {
-            const loteInicial = lotesForReanalisis.find(l => l.codigoInternoLote === loteSelect.value);
+            const loteInicial = loteDTOs.find(l => l.codigoInternoLote === loteSelect.value);
             if (loteInicial) {
                 actualizarInfo(loteInicial);
             }

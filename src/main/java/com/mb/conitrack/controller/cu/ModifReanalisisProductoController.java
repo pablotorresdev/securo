@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.utils.ControllerUtils;
 
@@ -31,6 +31,9 @@ public class ModifReanalisisProductoController {
 
     @Autowired
     private LoteService loteService;
+
+    @Autowired
+    private AnalisisService analisisService;
 
     private static ControllerUtils controllerUtils() {
         return ControllerUtils.getInstance();
@@ -58,21 +61,24 @@ public class ModifReanalisisProductoController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        final List<Lote> lotesList = new ArrayList<>();
+        Lote lote = null;
         boolean success = controllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
-        success = success &&
-            controllerUtils().populateLoteListByCodigoInterno(
-                lotesList,
+        success = success && controllerUtils()
+            .validarNroAnalisisUnico(movimientoDTO, bindingResult, analisisService);
+        if (success) {
+            lote = controllerUtils().getLoteByCodigoInterno(
                 movimientoDTO.getCodigoInternoLote(),
                 bindingResult,
                 loteService);
+        }
+        success = success && lote != null;
         success = success &&
             controllerUtils().validarFechaMovimientoPosteriorIngresoLote(
                 movimientoDTO,
-                lotesList.get(0),
+                lote,
                 bindingResult);
         success = success &&
-            controllerUtils().validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
+            controllerUtils().validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
 
         if (!success) {
             initModelReanalisisProducto(movimientoDTO, model);
@@ -80,7 +86,7 @@ public class ModifReanalisisProductoController {
             return "calidad/reanalisis/inicio-reanalisis";
         }
 
-        reanalisisProducto(movimientoDTO, lotesList, redirectAttributes);
+        reanalisisProducto(movimientoDTO, lote, redirectAttributes);
         return "redirect:/calidad/reanalisis/inicio-reanalisis-ok";
     }
 
@@ -93,16 +99,16 @@ public class ModifReanalisisProductoController {
     private void initModelReanalisisProducto(final MovimientoDTO movimientoDTO, final Model model) {
         //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
         final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForReanalisisProducto());
-        model.addAttribute("lotesForReanalisis", lotesDtos);
+        model.addAttribute("loteDTOs", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
     private void reanalisisProducto(
         final MovimientoDTO dto,
-        final List<Lote> lotesList,
+        final Lote lote,
         final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.mergeEntities(loteService.persistirReanalisisProducto(dto, lotesList));
+        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirReanalisisProducto(dto, lote));
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",

@@ -57,7 +57,7 @@ public class ABMProductosController {
 
         final TipoProductoEnum tipoProducto = producto.getTipoProducto();
         if (tipoProducto.isRequiereProductoDestino()) {
-            if (StringUtils.isEmpty(producto.getProductoDestino())) {
+            if (StringUtils.isEmptyOrWhitespace(producto.getProductoDestino())) {
                 bindingResult.rejectValue(
                     "productoDestino",
                     "error.productoDestino",

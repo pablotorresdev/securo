@@ -75,6 +75,9 @@
                    th:field="*{nroReanalisis}"
                    type="text"
                    maxlength="30">
+            <div style="color: red; font-weight: bold;"
+                 th:errors="*{nroReanalisis}"
+                 th:if="${#fields.hasErrors('nroReanalisis')}"></div>
         </div>
 
         <!-- Observaciones (opcional) -->

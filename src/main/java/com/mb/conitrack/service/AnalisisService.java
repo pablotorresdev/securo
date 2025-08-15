@@ -66,4 +66,8 @@ public class AnalisisService {
         return analisisRepository.findByNroAnalisisAndActivoTrue(nroAnalisis);
     }
 
+    public Analisis findByNroAnalisisAndDictamenNotNull(final String nroAnalisis) {
+        return analisisRepository.findByNroAnalisisAndDictamenIsNotNullAndActivoTrue(nroAnalisis);
+    }
+
 }

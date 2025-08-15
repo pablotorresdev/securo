@@ -80,7 +80,7 @@ public class LotesController {
             .flatMap(l -> l.getBultos().stream()
                 .filter(Bulto::getActivo)
                 .filter(b -> b.getCantidadActual() != null && b.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-                .map(DTOUtils::fromEntity))
+                .map(DTOUtils::fromBultoEntity))
             .sorted(Comparator.comparing(BultoDTO::getNroBulto))
             .toList();
     }

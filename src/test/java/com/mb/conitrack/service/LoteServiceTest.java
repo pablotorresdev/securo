@@ -319,7 +319,7 @@ class LoteServiceTest {
             ms.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b)).thenReturn(BigDecimal.ZERO);
 
             // mockeamos el mapping a DTO para poblar dto.trazaDTOs
-            msDto.when(() -> DTOUtils.fromEntity(any(Traza.class))).thenAnswer(inv -> new TrazaDTO());
+            msDto.when(() -> DTOUtils.fromTrazaEntity(any(Traza.class))).thenAnswer(inv -> new TrazaDTO());
 
             when(trazaService.save(trazas)).thenReturn(trazas);
             when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));

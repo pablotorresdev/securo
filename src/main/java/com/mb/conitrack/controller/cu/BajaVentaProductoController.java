@@ -94,7 +94,7 @@ public class BajaVentaProductoController {
 
     private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.bajaVentaProducto(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.bajaVentaProducto(loteDTO));
 
         //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);

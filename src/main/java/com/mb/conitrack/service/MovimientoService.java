@@ -39,6 +39,7 @@ import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.EXPIRACION_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
+import static com.mb.conitrack.enums.MotivoEnum.RESULTADO_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
 import static com.mb.conitrack.enums.MotivoEnum.VENTA;
 import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaDevolucionVenta;
@@ -205,7 +206,7 @@ public class MovimientoService {
     public Movimiento persistirMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
 
-        movimiento.setMotivo(ANALISIS);
+        movimiento.setMotivo(RESULTADO_ANALISIS);
         movimiento.setNroAnalisis(dto.getNroAnalisis());
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(dto.getDictamenFinal());

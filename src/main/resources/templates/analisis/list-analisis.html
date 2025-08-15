@@ -13,9 +13,8 @@
     <table class="table table-bordered table-sm">
         <thead>
         <tr>
-            <th>ID</th>
-            <th>Lotes</th>
             <th>Número de Análisis</th>
+            <th>Lote</th>
             <th>Dictamen</th>
             <th>Fecha de Realizado</th>
             <th>Fecha de ReAnálisis</th>
@@ -25,20 +24,15 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="analis : ${analisis}">
-            <td th:text="${analis.id}"></td>
-            <td>
-                <!-- Se itera sobre la lista de lotes para mostrar, por ejemplo, el código interno de cada lote -->
-                <span th:each="lote, iterStat : ${analis.lotes}"
-                      th:text="${lote.codigoInternoLote} + (iterStat.hasNext ? ', ' : '')"></span>
-            </td>
-            <td th:text="${analis.nroAnalisis}"></td>
-            <td th:text="${analis.dictamen != null ? analis.dictamen : 'EN CURSO'}"></td>
-            <td th:text="${analis.fechaRealizado}"></td>
-            <td th:text="${analis.fechaReanalisis}"></td>
-            <td th:text="${analis.fechaVencimiento}"></td>
-            <td th:text="${analis.titulo}"></td>
-            <td th:text="${analis.observaciones}"></td>
+        <tr th:each="analisisDTO : ${analisisDTOs}">
+            <td th:text="${analisisDTO.nroAnalisis}"></td>
+            <td th:text="${analisisDTO.codigoInternoLote}"></td>
+            <td th:text="${analisisDTO.dictamen != null ? analisisDTO.dictamen : 'EN CURSO'}"></td>
+            <td th:text="${analisisDTO.fechaRealizado}"></td>
+            <td th:text="${analisisDTO.fechaReanalisis}"></td>
+            <td th:text="${analisisDTO.fechaVencimiento}"></td>
+            <td th:text="${analisisDTO.titulo}"></td>
+            <td th:text="${analisisDTO.observaciones}"></td>
         </tr>
         </tbody>
     </table>

@@ -60,82 +60,13 @@ public class ControllerUtils {
         final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote)
             .stream()
             .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso)
-                .thenComparing(Lote::getCodigoInterno))
+            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno))
             .toList();
         if (loteListByCodigoInterno.isEmpty()) {
             bindingResult.rejectValue("codigoInternoLote", "Lote inexistente.");
             return false;
         }
         lotesList.addAll(loteListByCodigoInterno);
-        return true;
-    }
-
-    public boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        return (loteDTO.getBultosTotales() == 1) || (validarTipoDeDato(loteDTO, bindingResult) &&
-            validarSumaBultosConvertida(loteDTO, bindingResult));
-    }
-
-    public boolean validarCantidadesMovimiento(
-        final MovimientoDTO dto,
-        final Bulto bulto,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(bulto.getUnidadMedida());
-
-        if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
-            bindingResult.rejectValue("unidadMedida", "", "Unidad no compatible con el producto.");
-            return false;
-        }
-
-        if (dto.getCantidad() == null || dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
-            bindingResult.rejectValue("cantidad", "", "La cantidad debe ser mayor a 0.");
-            return false;
-        }
-
-        BigDecimal cantidadConvertida = dto.getCantidad()
-            .multiply(BigDecimal.valueOf(dto.getUnidadMedida().getFactorConversion() /
-                bulto.getUnidadMedida().getFactorConversion()));
-
-        if (cantidadConvertida.compareTo(bulto.getCantidadActual()) > 0) {
-            bindingResult.rejectValue("cantidad", "", "La cantidad excede el stock disponible del bulto.");
-            return false;
-        }
-        return true;
-    }
-
-    public boolean validarCantidadesMovimiento(
-        final MovimientoDTO dto,
-        final Lote lote,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(lote.getUnidadMedida());
-
-        if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
-            bindingResult.rejectValue("unidadMedida", "", "Unidad no compatible con el producto.");
-            return false;
-        }
-
-        if (dto.getCantidad() == null || dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
-            bindingResult.rejectValue("cantidad", "", "La cantidad debe ser mayor a 0.");
-            return false;
-        }
-
-        BigDecimal cantidadConvertida = dto.getCantidad()
-            .multiply(BigDecimal.valueOf(dto.getUnidadMedida().getFactorConversion() /
-                lote.getUnidadMedida().getFactorConversion()));
-
-        if (cantidadConvertida.compareTo(lote.getCantidadActual()) > 0) {
-            bindingResult.rejectValue("cantidad", "", "La cantidad excede el stock disponible del lote.");
-            return false;
-        }
         return true;
     }
 
@@ -266,7 +197,7 @@ public class ControllerUtils {
             return false;
         }
         // Verificamos que nroAnalisis no sea vacío
-        if (StringUtils.isEmpty(movimientoDTO.getNroAnalisis())) {
+        if (StringUtils.isEmptyOrWhitespace(movimientoDTO.getNroAnalisis())) {
             bindingResult.rejectValue("nroAnalisis", "", "El Nro de Análisis es obligatorio");
             return false;
         }
@@ -478,6 +409,74 @@ public class ControllerUtils {
         return result;
     }
 
+    public boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        return (loteDTO.getBultosTotales() == 1) ||
+            (validarTipoDeDato(loteDTO, bindingResult) && validarSumaBultosConvertida(loteDTO, bindingResult));
+    }
+
+    public boolean validarCantidadesMovimiento(
+        final MovimientoDTO dto,
+        final Bulto bulto,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(bulto.getUnidadMedida());
+
+        if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
+            bindingResult.rejectValue("unidadMedida", "", "Unidad no compatible con el producto.");
+            return false;
+        }
+
+        if (dto.getCantidad() == null || dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
+            bindingResult.rejectValue("cantidad", "", "La cantidad debe ser mayor a 0.");
+            return false;
+        }
+
+        BigDecimal cantidadConvertida = dto.getCantidad()
+            .multiply(BigDecimal.valueOf(dto.getUnidadMedida().getFactorConversion() /
+                bulto.getUnidadMedida().getFactorConversion()));
+
+        if (cantidadConvertida.compareTo(bulto.getCantidadActual()) > 0) {
+            bindingResult.rejectValue("cantidad", "", "La cantidad excede el stock disponible del bulto.");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean validarCantidadesMovimiento(
+        final MovimientoDTO dto,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        final List<UnidadMedidaEnum> unidadesPorTipo = UnidadMedidaEnum.getUnidadesPorTipo(lote.getUnidadMedida());
+
+        if (!unidadesPorTipo.contains(dto.getUnidadMedida())) {
+            bindingResult.rejectValue("unidadMedida", "", "Unidad no compatible con el producto.");
+            return false;
+        }
+
+        if (dto.getCantidad() == null || dto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
+            bindingResult.rejectValue("cantidad", "", "La cantidad debe ser mayor a 0.");
+            return false;
+        }
+
+        BigDecimal cantidadConvertida = dto.getCantidad()
+            .multiply(BigDecimal.valueOf(dto.getUnidadMedida().getFactorConversion() /
+                lote.getUnidadMedida().getFactorConversion()));
+
+        if (cantidadConvertida.compareTo(lote.getCantidadActual()) > 0) {
+            bindingResult.rejectValue("cantidad", "", "La cantidad excede el stock disponible del lote.");
+            return false;
+        }
+        return true;
+    }
+
     public boolean validateCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
@@ -536,7 +535,7 @@ public class ControllerUtils {
 
         final Optional<Lote> loteByCodigoInterno = loteService.findLoteByCodigoInterno(codigoInternoLote);
         if (!loteByCodigoInterno.isPresent()) {
-            bindingResult.rejectValue("codigoInternoLote", "","Lote bloqueado.");
+            bindingResult.rejectValue("codigoInternoLote", "", "Lote bloqueado.");
             return null;
         }
         return loteByCodigoInterno.get();
@@ -552,7 +551,7 @@ public class ControllerUtils {
         }
         final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote);
         if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.rejectValue("codigoInternoLote", "","Lote bloqueado.");
+            bindingResult.rejectValue("codigoInternoLote", "", "Lote bloqueado.");
             return false;
         }
         lotesList.addAll(loteListByCodigoInterno);
@@ -599,8 +598,39 @@ public class ControllerUtils {
             return false;
         }
 
-        if (movimientoDTO.getNroAnalisis()==null) {
-            bindingResult.rejectValue("nroAnalisis", "nroAnalisis.nulo","Nro de analisis no puede ser nulo");
+        if (StringUtils.isEmptyOrWhitespace(movimientoDTO.getNroAnalisis()) &&
+            StringUtils.isEmptyOrWhitespace(movimientoDTO.getNroReanalisis())) {
+            bindingResult.rejectValue("nroAnalisis", "nroAnalisis.nulo", "Ingrese un nro de analisis");
+            return false;
+        }
+        return true;
+    }
+
+
+
+    public boolean validarValorTitulo(
+        final MovimientoDTO movimientoDTO,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // (5) El valor del título no puede ser mayor al valor del título del último análisis aprobado
+        //     (si existe un último análisis con dictamen APROBADO)
+        Analisis ultimoAprobado = lote
+            .getAnalisisList()
+            .stream()
+            .filter(a -> a.getDictamen() == DictamenEnum.APROBADO && a.getTitulo() != null)
+            .max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
+            .orElse(null);
+
+        if (ultimoAprobado != null && movimientoDTO.getTitulo().compareTo(ultimoAprobado.getTitulo()) > 0) {
+            bindingResult.rejectValue(
+                "titulo",
+                "",
+                "El valor del título no puede ser mayor al del último análisis aprobado (" +
+                    ultimoAprobado.getTitulo() +
+                    ")");
             return false;
         }
         return true;
@@ -634,18 +664,28 @@ public class ControllerUtils {
         return true;
     }
 
-    public boolean validarNroAnalisisUnico(final @Valid MovimientoDTO movimientoDTO, final BindingResult bindingResult, AnalisisService analisisService) {
+    public boolean validarNroAnalisisUnico(
+        final @Valid MovimientoDTO movimientoDTO,
+        final BindingResult bindingResult,
+        AnalisisService analisisService) {
         if (bindingResult.hasErrors()) {
             return false;
         }
 
-        final Analisis analisis = analisisService.findByNroAnalisis(movimientoDTO.getNroAnalisis());
-        if (analisis!=null) {
-            bindingResult.rejectValue("nroAnalisis", "nroAnalisis.duplicado","Nro de analisis ya registrado.");
-            return false;
+        if (StringUtils.isEmptyOrWhitespace(movimientoDTO.getNroReanalisis())) {
+            final Analisis analisis = analisisService.findByNroAnalisisAndDictamenNotNull(movimientoDTO.getNroAnalisis());
+            if (analisis != null) {
+                bindingResult.rejectValue("nroAnalisis", "nroAnalisis.duplicado", "Nro de analisis ya registrado.");
+                return false;
+            }
+        } else {
+            final Analisis analisis = analisisService.findByNroAnalisisAndDictamenNotNull(movimientoDTO.getNroReanalisis());
+            if (analisis != null) {
+                bindingResult.rejectValue("nroReanalisis", "nroReanalisis.duplicado", "Nro de analisis ya registrado.");
+                return false;
+            }
         }
         return true;
-
     }
 
 }

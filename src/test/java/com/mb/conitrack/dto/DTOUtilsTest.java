@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +18,7 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,20 +73,36 @@ class DTOUtilsTest {
         assertEquals("R-999", a.getNroAnalisis());      // se usó el re-
     }
 
+    @Test
+    void fromAnalisisEntityMovimiento_retNullSiEsNull() {
+        assertNull(DTOUtils.fromAnalisisEntity(null));
+    }
+
+    @Test
+    void fromBultoEntityMovimiento_retNullSiEsNull() {
+        assertNull(DTOUtils.fromMovimientoEntity(null));
+    }
+
+    @Test
+    void fromBultoEntityTraza_retNullSiEsNull() {
+        assertNull(DTOUtils.fromTrazaEntity(null));
+    }
+
     /* ---------- caso 1: entidad nula ---------- */
     @Test
     @DisplayName("Devuelve null si Analisis es null")
-    void fromAnalisisEntity_entidadNull() {
-        assertNull(DTOUtils.fromEntity((Analisis)null));
+    void fromBultoEntity_entidadNull() {
+        assertNull(DTOUtils.fromAnalisisEntity(null));
     }
 
     /* ---------- caso 2: mapeo completo ---------- */
     @Test
     @DisplayName("Copia todos los campos cuando Analisis tiene datos")
-    void fromAnalisisEntity_mapeoCompleto() {
+    void fromBultoEntity_mapeoCompleto() {
         // Crear una entidad Analisis con todos los valores relevantes
         Analisis entity = new Analisis();
         entity.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 10, 30));
+        entity.setLote(lote());
         entity.setNroAnalisis("AN-001");
         entity.setFechaRealizado(LocalDate.of(2025, 8, 1));
         entity.setFechaReanalisis(LocalDate.of(2026, 8, 1));
@@ -97,7 +112,7 @@ class DTOUtilsTest {
         entity.setObservaciones("ok");
 
         // Llamamos al método a testear
-        AnalisisDTO dto = DTOUtils.fromEntity(entity);
+        AnalisisDTO dto = DTOUtils.fromAnalisisEntity(entity);
 
         // Verificaciones
         assertNotNull(dto);
@@ -109,21 +124,6 @@ class DTOUtilsTest {
         assertEquals(DictamenEnum.APROBADO, dto.getDictamen());
         assertEquals(new BigDecimal("87.5"), dto.getTitulo());
         assertEquals("ok", dto.getObservaciones());
-    }
-
-    @Test
-    void fromEntityAnalisis_retNullSiEsNull() {
-        assertNull(DTOUtils.fromEntity((Analisis)null));
-    }
-
-    @Test
-    void fromEntityMovimiento_retNullSiEsNull() {
-        assertNull(DTOUtils.fromEntity((Movimiento)null));
-    }
-
-    @Test
-    void fromEntityTraza_retNullSiEsNull() {
-        assertNull(DTOUtils.fromEntity((Traza)null));
     }
 
     @Test
@@ -148,7 +148,7 @@ class DTOUtilsTest {
         mov.setDictamenInicial(DictamenEnum.APROBADO);
         mov.setDictamenFinal(DictamenEnum.RECHAZADO);
 
-        MovimientoDTO dto = DTOUtils.fromEntity(mov);
+        MovimientoDTO dto = DTOUtils.fromMovimientoEntity(mov);
 
         assertEquals("L-001", dto.getCodigoInternoLote());
         assertEquals(99L, dto.getLoteId());
@@ -161,7 +161,7 @@ class DTOUtilsTest {
     @Test
     @DisplayName("Devuelve null si el Movimiento es null")
     void fromMovimientoEntity_movimientoNull() {
-        assertNull(DTOUtils.fromEntity((Movimiento)null));
+        assertNull(DTOUtils.fromMovimientoEntity(null));
     }
 
     @Test
@@ -177,7 +177,7 @@ class DTOUtilsTest {
         mov.setDictamenInicial(DictamenEnum.DEVOLUCION_CLIENTES);
         mov.setDictamenFinal(DictamenEnum.RECHAZADO);
 
-        MovimientoDTO dto = DTOUtils.fromEntity(mov);
+        MovimientoDTO dto = DTOUtils.fromMovimientoEntity(mov);
 
         assertEquals(LocalDate.of(2025, 8, 7), dto.getFechaMovimiento());
         assertNull(dto.getCodigoInternoLote());      // sin lote
@@ -191,7 +191,7 @@ class DTOUtilsTest {
     @Test
     @DisplayName("Devuelve null si Traza es null")
     void fromTrazaEntity_entidadNull() {
-        assertNull(DTOUtils.fromEntity((Traza)null));
+        assertNull(DTOUtils.fromTrazaEntity(null));
     }
 
     /* ---------- caso 2: mapeo completo ---------- */
@@ -211,7 +211,7 @@ class DTOUtilsTest {
         traza.setObservaciones("ok");
 
         // Llamada al método
-        TrazaDTO dto = DTOUtils.fromEntity(traza);
+        TrazaDTO dto = DTOUtils.fromTrazaEntity(traza);
 
         // Verificaciones
         assertNotNull(dto);
@@ -262,49 +262,61 @@ class DTOUtilsTest {
     /* ---------------------------------
      *          Test individuales
      * --------------------------------- */
+    private Lote lote() {
+        Lote l = new Lote();
+        l.setActivo(true);
+        l.setCodigoInterno("L-001");
+        l.setId(99L);
+        l.setFechaYHoraCreacion(LocalDateTime.now());
+        l.setFechaIngreso(LocalDate.now());
+        l.setBultosTotales(1);
+        l.setEstado(EstadoEnum.NUEVO);
+        l.setDictamen(DictamenEnum.APROBADO);
+        l.setCantidadInicial(new BigDecimal("10"));
+        l.setCantidadActual(new BigDecimal("10"));
+        l.setUnidadMedida(UnidadMedidaEnum.LITRO);
 
-    private Lote lote(
-        String codigoInterno, int nroBulto,
-        UnidadMedidaEnum um, EstadoEnum estado) {
+        // Producto real
+        Producto prod = new Producto();
+        prod.setId(1L);
+        prod.setNombreGenerico("ProductoZ");
+        prod.setUnidadMedida(UnidadMedidaEnum.LITRO);
+        l.setProducto(prod);
 
-        Lote l = mock(Lote.class, RETURNS_DEEP_STUBS);
-        when(l.getActivo()).thenReturn(true);
-        when(l.getCodigoInterno()).thenReturn(codigoInterno);
-        when(l.getId()).thenReturn(99L);
-        when(l.getFechaYHoraCreacion()).thenReturn(LocalDateTime.now());
-        when(l.getFechaIngreso()).thenReturn(LocalDate.now());
-        when(l.getBultosTotales()).thenReturn(1);
-        when(l.getEstado()).thenReturn(estado);
-        when(l.getDictamen()).thenReturn(DictamenEnum.APROBADO);
-        when(l.getCantidadInicial()).thenReturn(new BigDecimal("10"));
-        when(l.getCantidadActual()).thenReturn(new BigDecimal("10"));
-        when(l.getUnidadMedida()).thenReturn(um);
-        when(l.getProducto()).thenReturn(producto());
-        when(l.getProveedor().getId()).thenReturn(2L);
-        when(l.getProveedor().getRazonSocial()).thenReturn("ProveedorX");
-        when(l.getFabricante().getId()).thenReturn(3L);
-        when(l.getFabricante().getRazonSocial()).thenReturn("FabricanteY");
-        when(l.getObservaciones()).thenReturn("obs");
+        // Proveedor real
+        Proveedor prov = new Proveedor();
+        prov.setId(2L);
+        prov.setRazonSocial("ProveedorX");
+        l.setProveedor(prov);
 
-        // Analisis / trazas vacíos para simplificar
-        when(l.getAnalisisList()).thenReturn(Collections.emptyList());
-        when(l.getTrazas()).thenReturn(Collections.emptyList());
+        // Fabricante real (si tu modelo lo separa de Proveedor, usá el tipo correcto)
+        Proveedor fab = new Proveedor();
+        fab.setId(3L);
+        fab.setRazonSocial("FabricanteY");
+        l.setFabricante(fab);
 
-        // Cada lote tiene un bulto homónimo
-        Bulto b = bulto(
-            nroBulto,
-            new BigDecimal("10"),
-            new BigDecimal("10"),
-            um, estado);
-        when(l.getBultos()).thenReturn(List.of(b));
-        when(b.getLote()).thenReturn(l);
+        // Bulto real
+        Bulto b = new Bulto();
+        b.setActivo(true);
+        b.setNroBulto(1);
+        b.setCantidadInicial(new BigDecimal("10"));
+        b.setCantidadActual(new BigDecimal("10"));
+        b.setUnidadMedida(UnidadMedidaEnum.LITRO);
+        b.setEstado(EstadoEnum.NUEVO);
+        b.setLote(l);
+        l.setBultos(List.of(b));
 
-        // movimientos a nivel lote
-        Movimiento mov = mock(Movimiento.class);
-        when(mov.getActivo()).thenReturn(true);
-        when(mov.getCantidad()).thenReturn(new BigDecimal("1"));
-        when(mov.getUnidadMedida()).thenReturn(um);
-        when(l.getMovimientos()).thenReturn(List.of(mov));
+        // Movimiento real (si no lo usa el test, podés omitirlo)
+        Movimiento mov = new Movimiento();
+        mov.setActivo(true);
+        mov.setCantidad(new BigDecimal("1"));
+        mov.setUnidadMedida(UnidadMedidaEnum.LITRO);
+        mov.setLote(l);
+        l.setMovimientos(List.of(mov));
+
+        // Analisis/trazas vacíos
+        l.setAnalisisList(Collections.emptyList());
+        l.setTrazas(Collections.emptyList());
 
         return l;
     }

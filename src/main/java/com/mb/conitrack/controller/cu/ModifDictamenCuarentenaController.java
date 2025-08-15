@@ -16,7 +16,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
@@ -99,7 +98,7 @@ public class ModifDictamenCuarentenaController {
         final Lote lote,
         final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.mergeEntities(loteService.persistirDictamenCuarentena(dto, lote));
+        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirDictamenCuarentena(dto, lote));
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
 
         redirectAttributes.addFlashAttribute(

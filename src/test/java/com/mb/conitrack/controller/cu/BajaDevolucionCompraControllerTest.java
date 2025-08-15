@@ -137,13 +137,13 @@ class BajaDevolucionCompraControllerTest {
         when(loteService.findAllForDevolucionCompra()).thenReturn(entrada);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
-            ms.when(() -> DTOUtils.fromEntities(entrada)).thenReturn(salida);
+            ms.when(() -> DTOUtils.fromLoteEntities(entrada)).thenReturn(salida);
 
             controller.initModelDevolucionCompra(model);
 
             assertSame(salida, model.getAttribute("lotesDevolvibles"));
             verify(loteService).findAllForDevolucionCompra();
-            ms.verify(() -> DTOUtils.fromEntities(entrada));
+            ms.verify(() -> DTOUtils.fromLoteEntities(entrada));
         }
     }
 
@@ -185,13 +185,13 @@ class BajaDevolucionCompraControllerTest {
         when(loteService.bajaBultosDevolucionCompra(mov, lote)).thenReturn(persistido);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
-            ms.when(() -> DTOUtils.mergeEntities(persistido)).thenReturn(null);
+            ms.when(() -> DTOUtils.fromLoteEntity(persistido)).thenReturn(null);
 
             controller.procesarDevolucionCompra(mov, lote, ra);
 
             assertNotNull(mov.getFechaYHoraCreacion());
             verify(loteService).bajaBultosDevolucionCompra(mov, lote);
-            ms.verify(() -> DTOUtils.mergeEntities(persistido));
+            ms.verify(() -> DTOUtils.fromLoteEntity(persistido));
 
             Map<String, ?> flash = ra.getFlashAttributes();
             assertTrue(flash.containsKey("loteDTO"));
@@ -214,7 +214,7 @@ class BajaDevolucionCompraControllerTest {
         when(loteService.bajaBultosDevolucionCompra(mov, lote)).thenReturn(persistido);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
-            ms.when(() -> DTOUtils.mergeEntities(persistido)).thenReturn(merged);
+            ms.when(() -> DTOUtils.fromLoteEntity(persistido)).thenReturn(merged);
 
             controller.procesarDevolucionCompra(mov, lote, ra);
 
@@ -222,7 +222,7 @@ class BajaDevolucionCompraControllerTest {
             assertTrue(mov.getFechaYHoraCreacion().isBefore(LocalDateTime.now().plusSeconds(2)));
 
             verify(loteService).bajaBultosDevolucionCompra(mov, lote);
-            ms.verify(() -> DTOUtils.mergeEntities(persistido));
+            ms.verify(() -> DTOUtils.fromLoteEntity(persistido));
 
             Map<String, ?> flash = ra.getFlashAttributes();
             assertSame(merged, flash.get("loteDTO"));
@@ -269,14 +269,14 @@ class BajaDevolucionCompraControllerTest {
         when(loteService.findAllForDevolucionCompra()).thenReturn(entrada);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
-            ms.when(() -> DTOUtils.fromEntities(entrada)).thenReturn(salidaDtos);
+            ms.when(() -> DTOUtils.fromLoteEntities(entrada)).thenReturn(salidaDtos);
 
             String view = controller.showDevolucionCompraForm(dto, model);
 
             assertEquals("compras/baja/devolucion-compra", view);
             assertSame(salidaDtos, model.getAttribute("lotesDevolvibles"));
             verify(loteService).findAllForDevolucionCompra();
-            ms.verify(() -> DTOUtils.fromEntities(entrada));
+            ms.verify(() -> DTOUtils.fromLoteEntities(entrada));
         }
     }
 

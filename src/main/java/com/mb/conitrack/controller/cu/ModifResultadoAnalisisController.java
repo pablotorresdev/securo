@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.AnalisisDTO;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.AnalisisService;
@@ -26,6 +26,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
+import static com.mb.conitrack.dto.DTOUtils.fromAnalisisEntities;
 import static com.mb.conitrack.dto.DTOUtils.getLotesDtosByCodigoInterno;
 
 @Controller
@@ -61,7 +62,7 @@ public class ModifResultadoAnalisisController {
     }
 
     @PostMapping("/resultado-analisis")
-    public String procesar(
+    public String procesarResultadoAnalisis(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,
@@ -83,24 +84,24 @@ public class ModifResultadoAnalisisController {
     }
 
     private void initModelResultadoAnalisis(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = getLotesDtosByCodigoInterno(loteService.findAllForResultadoAnalisis());
-        List<Analisis> analisis = analisisService.findAllEnCursoForLotesCuarentena();
+        final List<LoteDTO> lotesDTOs = getLotesDtosByCodigoInterno(loteService.findAllForResultadoAnalisis());
+        List<AnalisisDTO> analisisDTOs = fromAnalisisEntities(analisisService.findAllEnCursoForLotesCuarentena());
         movimientoDTO.setFechaMovimiento(LocalDateTime.now().toLocalDate());
         model.addAttribute("movimientoDTO", movimientoDTO);
-        model.addAttribute("lotesForResultado", lotesDtos);
-        model.addAttribute("analisisEnCurso", analisis);
+        model.addAttribute("loteDTOs", lotesDTOs);
+        model.addAttribute("analisisDTOs", analisisDTOs);
         model.addAttribute("resultados", List.of(DictamenEnum.APROBADO, DictamenEnum.RECHAZADO));
     }
 
     private void resultadoAnalisis(final MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.mergeEntities(loteService.persistirResultadoAnalisis(movimientoDTO));
+        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirResultadoAnalisis(movimientoDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
             loteDTO != null
-                ? "Cambio de dictamen a " + movimientoDTO.getDictamenFinal() + " exitoso"
+                ? ("Cambio de dictamen a " + movimientoDTO.getDictamenFinal() + " exitoso")
                 : "Hubo un error con el cambio de dictamen.");
     }
 
@@ -114,6 +115,8 @@ public class ModifResultadoAnalisisController {
 
         boolean success = ControllerUtils.validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult);
         success = success && ControllerUtils.validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult);
+
+        //TODO: fix loteList and validate titulo % when rechazado
         success = success &&
             controllerUtils().populateLoteListByCodigoInterno(
                 lotesList,
@@ -129,7 +132,9 @@ public class ModifResultadoAnalisisController {
                 .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
         success = success &&
             ControllerUtils.validarContraFechasProveedor(movimientoDTO, lotesList.get(0), bindingResult);
-        success = success && controllerUtils().validarValorTitulo(movimientoDTO, lotesList, bindingResult);
+        if (DictamenEnum.RECHAZADO != movimientoDTO.getDictamenFinal()) {
+            success = success && controllerUtils().validarValorTitulo(movimientoDTO, lotesList, bindingResult);
+        }
         return success;
     }
 

@@ -27,7 +27,7 @@
             <select class="form-select" id="loteSelector">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:attr="attr-codigoInternoLote=${loteDTO.codigoInternoLote}"
-                        th:each="loteDTO : ${lotesForResultado}"
+                        th:each="loteDTO : ${loteDTOs}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInternoLote} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
                         th:value="${loteDTO.getNroUltimoAnalisisDto()}">
                 </option>
@@ -39,11 +39,11 @@
             <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
             <select class="form-select" id="analisisSelector">
                 <option value="">-- Seleccione un Análisis --</option>
-                <option th:attr="attr-codigoInternoLote=${anal.lotes.get(0).codigoInterno}"
-                        th:each="anal : ${analisisEnCurso}"
-                        th:selected="${anal.nroAnalisis} == *{nroAnalisis}"
-                        th:text="'Nro Análisis: ' + ${anal.nroAnalisis} + ' | Producto: ' + ${anal.lotes.get(0).producto.nombreGenerico} + ' | Código Lote: ' + ${anal.lotes.get(0).codigoInterno}"
-                        th:value="${anal.nroAnalisis}">
+                <option th:attr="attr-codigoInternoLote=${analisisDTO.codigoInternoLote}"
+                        th:each="analisisDTO : ${analisisDTOs}"
+                        th:selected="${analisisDTO.nroAnalisis} == *{nroAnalisis}"
+                        th:text="'Nro Análisis: ' + ${analisisDTO.nroAnalisis} + ' | Código Lote: ' + ${analisisDTO.codigoInternoLote}"
+                        th:value="${analisisDTO.nroAnalisis}">
                 </option>
             </select>
             <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>

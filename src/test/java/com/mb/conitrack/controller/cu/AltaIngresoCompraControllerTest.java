@@ -219,7 +219,7 @@ class AltaIngresoCompraControllerTest {
 
         try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
             // Forzamos que el merge devuelva null
-            mocked.when(() -> DTOUtils.mergeEntities(devueltoPorService)).thenReturn(null);
+            mocked.when(() -> DTOUtils.fromLoteEntity(devueltoPorService)).thenReturn(null);
 
             // when
             controller.procesaringresoCompra(entrada, redirect);
@@ -228,7 +228,7 @@ class AltaIngresoCompraControllerTest {
             assertNotNull(entrada.getFechaYHoraCreacion(), "Debe setear fecha/hora de creación");
 
             verify(loteService).altaStockPorCompra(entrada);
-            mocked.verify(() -> DTOUtils.mergeEntities(devueltoPorService));
+            mocked.verify(() -> DTOUtils.fromLoteEntity(devueltoPorService));
 
             Map<String, ?> flash = redirect.getFlashAttributes();
             assertTrue(flash.containsKey("loteDTO"));  // lo agrega aunque sea null
@@ -251,7 +251,7 @@ class AltaIngresoCompraControllerTest {
         when(loteService.altaStockPorCompra(entrada)).thenReturn(devueltoPorService);
 
         try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> DTOUtils.mergeEntities(devueltoPorService)).thenReturn(resultDTO);
+            mocked.when(() -> DTOUtils.fromLoteEntity(devueltoPorService)).thenReturn(resultDTO);
 
             // when
             controller.procesaringresoCompra(entrada, redirect);
@@ -262,7 +262,7 @@ class AltaIngresoCompraControllerTest {
 
             // 2) Se llamó al servicio y al DTOUtils
             verify(loteService).altaStockPorCompra(entrada);
-            mocked.verify(() -> DTOUtils.mergeEntities(devueltoPorService));
+            mocked.verify(() -> DTOUtils.fromLoteEntity(devueltoPorService));
 
             // 3) Flash attributes correctos
             Map<String, ?> flash = redirect.getFlashAttributes();

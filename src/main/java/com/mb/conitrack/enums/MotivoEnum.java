@@ -5,6 +5,7 @@ public enum MotivoEnum {
     MUESTREO("Muestreo"),
     DEVOLUCION_COMPRA("Devolucion compra"),
     ANALISIS("Analisis"),
+    RESULTADO_ANALISIS("Resultado analisis"),
     CONSUMO_PRODUCCION("Consumo produccion"),
     PRODUCCION_PROPIA("Produccion propia"),
     LIBERACION("Liberacion"),

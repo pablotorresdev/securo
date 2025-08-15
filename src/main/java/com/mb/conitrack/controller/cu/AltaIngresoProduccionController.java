@@ -90,7 +90,7 @@ public class AltaIngresoProduccionController {
 
     private void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeEntities(loteService.altaStockPorProduccion(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.altaStockPorProduccion(loteDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(

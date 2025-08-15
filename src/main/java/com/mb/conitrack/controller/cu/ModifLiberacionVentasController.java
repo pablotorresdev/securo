@@ -96,7 +96,7 @@ public class ModifLiberacionVentasController {
         final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
         final List<Lote> lotes = loteService.persistirLiberacionProducto(dto, lotesList);
-        final LoteDTO loteDTO = DTOUtils.mergeEntities(lotes);
+        final LoteDTO loteDTO = DTOUtils.mergeLoteEntities(lotes);
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",

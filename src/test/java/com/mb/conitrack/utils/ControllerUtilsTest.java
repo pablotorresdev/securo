@@ -74,7 +74,7 @@ class ControllerUtilsTest {
         verify(br).rejectValue(
             eq("nroAnalisis"),
             eq("nroAnalisis.nulo"),
-            eq("Nro de analisis no puede ser nulo")
+            eq("Ingrese un nro de analisis")
         );
         verifyNoMoreInteractions(br);
     }
