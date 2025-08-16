@@ -27,17 +27,13 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/calidad/dictamen")
-public class ModifDictamenCuarentenaController {
+public class ModifDictamenCuarentenaController  extends AbstractCuController {
 
     @Autowired
     private LoteService loteService;
 
     @Autowired
     private AnalisisService analisisService;
-
-    private static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -98,7 +94,7 @@ public class ModifDictamenCuarentenaController {
         final Lote lote,
         final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirDictamenCuarentena(dto, lote));
+        final LoteDTO loteDTO = dtoUtils().fromLoteEntity(loteService.persistirDictamenCuarentena(dto, lote));
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
 
         redirectAttributes.addFlashAttribute(

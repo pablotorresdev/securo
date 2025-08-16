@@ -14,26 +14,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/calidad/baja")
-public class BajaMuestreoBultoController {
+public class BajaMuestreoBultoController extends AbstractCuController {
 
     @Autowired
     private LoteService loteService;
-
-    private static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -99,7 +93,7 @@ public class BajaMuestreoBultoController {
     }
 
     void initModelMuestreoBulto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = DTOUtils.fromLoteEntities(loteService.findAllForMuestreo());
+        final List<LoteDTO> lotesDtos = dtoUtils().fromLoteEntities(loteService.findAllForMuestreo());
         model.addAttribute("lotesMuestreables", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
@@ -109,7 +103,7 @@ public class BajaMuestreoBultoController {
         final Bulto bulto,
         final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        LoteDTO loteDTO = DTOUtils.mergeLoteEntities(List.of(loteService.bajaMuestreo(movimientoDTO, bulto)));
+        LoteDTO loteDTO = dtoUtils().fromLoteEntity(loteService.bajaMuestreo(movimientoDTO, bulto));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());

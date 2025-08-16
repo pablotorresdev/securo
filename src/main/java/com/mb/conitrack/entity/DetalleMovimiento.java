@@ -27,10 +27,12 @@ public class DetalleMovimiento {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "movimiento_id", nullable = false)
+    @EqualsAndHashCode.Include
     private Movimiento movimiento;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bulto_id", nullable = false)
+    @EqualsAndHashCode.Include
     private Bulto bulto;
 
     @Column(nullable = false, precision = 12, scale = 4)

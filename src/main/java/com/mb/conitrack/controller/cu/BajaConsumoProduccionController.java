@@ -26,16 +26,12 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/produccion/baja")
-public class BajaConsumoProduccionController {
+public class BajaConsumoProduccionController extends AbstractCuController {
 
     //TODO: Sistema FIFO (fecha reanalisis/vencimiento) para lotes que compartan el mismo producto
 
     @Autowired
     private LoteService loteService;
-
-    private static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
 
     @GetMapping("/cancelar")
     public String cancelar() {
@@ -74,7 +70,7 @@ public class BajaConsumoProduccionController {
 
     private void consumoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.bajaConsumoProduccion(loteDTO));
+        final LoteDTO resultDTO = dtoUtils().fromLoteEntity(loteService.bajaConsumoProduccion(loteDTO));
 
         //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);

@@ -18,6 +18,7 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
@@ -38,6 +39,8 @@ import static com.mb.conitrack.utils.EntityUtils.addLoteInfoToMovimientoAlta;
 import static com.mb.conitrack.utils.EntityUtils.crearMovimientoDevolucionCompra;
 import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoCompra;
 import static com.mb.conitrack.utils.EntityUtils.populateDetalleMovimiento;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMenorUnidadMedida;
 
 @AllArgsConstructor
 @Service
@@ -232,43 +235,43 @@ public class LoteService {
     @Transactional
     public Lote bajaBultosDevolucionCompra(final MovimientoDTO dto, final Lote lote) {
 
+        final Movimiento movimiento = crearMovimientoDevolucionCompra(dto);
+        movimiento.setDictamenInicial(lote.getDictamen());
+        movimiento.setCantidad(lote.getCantidadActual());
+        movimiento.setUnidadMedida(lote.getUnidadMedida());
+        movimiento.setLote(lote);
+
         for (Bulto bulto : lote.getBultos()) {
-            dto.setCantidad(bulto.getCantidadActual());
-            dto.setUnidadMedida(bulto.getUnidadMedida());
-            dto.setCodigoInternoLote(lote.getCodigoInterno());
-            dto.setDictamenInicial(lote.getDictamen());
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimiento)
+                .bulto(bulto)
+                .cantidad(bulto.getCantidadActual())
+                .unidadMedida(bulto.getUnidadMedida())
+                .build();
 
-            final Movimiento movimiento = crearMovimientoDevolucionCompra(dto);
-            movimiento.setLote(lote);
-            populateDetalleMovimiento(movimiento, bulto);
+            movimiento.getDetalles().add(det);
+        }
 
+        final Movimiento savedMovimiento = movimientoService.save(movimiento);
+
+        for (Bulto bulto : lote.getBultos()) {
             bulto.setCantidadActual(BigDecimal.ZERO);
             bulto.setEstado(EstadoEnum.DEVUELTO);
-
-            final Movimiento savedMovimiento = movimientoService.save(movimiento);
             bultoService.save(bulto);
-
-            lote.getMovimientos().add(savedMovimiento);
         }
+
         lote.setEstado(EstadoEnum.DEVUELTO);
         lote.setCantidadActual(BigDecimal.ZERO);
+        lote.getMovimientos().add(savedMovimiento);
+
+        for (Analisis analisis :lote.getAnalisisList()){
+            if(analisis.getDictamen() == null){
+                analisis.setDictamen(DictamenEnum.ANULADO);
+                analisisService.save(analisis);
+            }
+        }
 
         return loteRepository.save(lote);
-    }
-
-    @Transactional
-    public List<Lote> bajaDevolucionCompra(final MovimientoDTO dto, final List<Lote> lotes) {
-        List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : lotes) {
-            final Movimiento movimiento = movimientoService.persistirMovimientoDevolucionCompra(dto, loteBulto);
-            loteBulto.setCantidadActual(BigDecimal.ZERO);
-            loteBulto.setEstado(EstadoEnum.DEVUELTO);
-            loteBulto.setDictamen(DictamenEnum.RECHAZADO);
-            loteBulto.getMovimientos().add(movimiento);
-            Lote newLote = loteRepository.save(loteBulto);
-            result.add(newLote);
-        }
-        return result;
     }
 
     //************************************************************************
@@ -469,29 +472,57 @@ public class LoteService {
 
     //***********CU7 BAJA: CONSUMO PRODUCCION***********
     @Transactional
-    public List<Lote> bajaConsumoProduccion(final LoteDTO loteDTO) {
-        List<Lote> result = new ArrayList<>();
-        for (int nroBulto : loteDTO.getNroBultoList()) {
-            //TODO: Fix
-            final Lote lote = loteRepository.findFirstByCodigoInternoAndActivoTrue(
-                    loteDTO.getCodigoInternoLote())
-                .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+    public Lote bajaConsumoProduccion(final LoteDTO loteDTO) {
+        final Lote lote = loteRepository.findFirstByCodigoInternoAndActivoTrue(
+                loteDTO.getCodigoInternoLote())
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-            final Movimiento movimiento = movimientoService.persistirMovimientoBajaConsumoProduccion(loteDTO, lote);
-            lote.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
-                DTOUtils.fromMovimientoEntity(movimiento),
-                lote));
+        final List<Integer> nroBultoList = loteDTO.getNroBultoList();
+        final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
+        final List<UnidadMedidaEnum> unidadMedidaBultos = loteDTO.getUnidadMedidaBultos();
 
-            if (lote.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
-                lote.setEstado(EstadoEnum.CONSUMIDO);
+        for (int nroBulto : nroBultoList) {
+            final Bulto bultoEntity = lote.getBultoByNro(nroBulto);
+            final BigDecimal cantidaConsumoBulto = cantidadesBultos.get(nroBulto);
+            final UnidadMedidaEnum uniMedidaConsumoBulto = unidadMedidaBultos.get(nroBulto);
+
+            if (bultoEntity.getUnidadMedida() == uniMedidaConsumoBulto) {
+                bultoEntity.setCantidadActual(bultoEntity.getCantidadActual().subtract(cantidaConsumoBulto));
+                if (lote.getUnidadMedida() == uniMedidaConsumoBulto) {
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidaConsumoBulto));
+                } else {
+                    final BigDecimal cantidadConsumoLoteConvertida = convertirCantidadEntreUnidades(
+                        uniMedidaConsumoBulto,
+                        cantidaConsumoBulto,
+                        lote.getUnidadMedida());
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidadConsumoLoteConvertida));
+                }
             } else {
-                lote.setEstado(EstadoEnum.EN_USO);
+                final BigDecimal cantidadConsumoBultoConvertida = convertirCantidadEntreUnidades(
+                    uniMedidaConsumoBulto,
+                    cantidaConsumoBulto,
+                    bultoEntity.getUnidadMedida());
+                bultoEntity.setCantidadActual(bultoEntity.getCantidadActual().subtract(cantidadConsumoBultoConvertida));
+
+                if (lote.getUnidadMedida() == uniMedidaConsumoBulto) {
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidaConsumoBulto));
+                } else {
+                    final BigDecimal cantidadConsumoLoteConvertida = convertirCantidadEntreUnidades(
+                        uniMedidaConsumoBulto,
+                        cantidaConsumoBulto,
+                        lote.getUnidadMedida());
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidadConsumoLoteConvertida));
+                }
             }
-            lote.getMovimientos().add(movimiento);
-            Lote newLote = loteRepository.save(lote);
-            result.add(newLote);
+            if (bultoEntity.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+                bultoEntity.setEstado(EstadoEnum.CONSUMIDO);
+            } else {
+                bultoEntity.setEstado(EstadoEnum.EN_USO);
+            }
         }
-        return result;
+        final Movimiento movimiento = movimientoService.persistirMovimientoBajaConsumoProduccion(loteDTO, lote);
+        lote.getMovimientos().add(movimiento);
+        return loteRepository.save(lote);
     }
 
     //***********CU10 ALTA: PRODUCCION INTERNA***********

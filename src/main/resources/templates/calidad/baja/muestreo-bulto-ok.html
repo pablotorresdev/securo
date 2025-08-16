@@ -81,11 +81,10 @@
                 <td th:text="${loteDTO.observaciones}"></td>
             </tr>
             <tr>
-                <th>Cantidad en Bulto:</th>
+                <th>Cantidades por Bulto:</th>
                 <td>
                     <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                          th:text="'Bulto ' + ${iterStat.count} + ' = ' + ${cant}
-                                   + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ') '">
+                          th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
                     </span>
                 </td>
             </tr>

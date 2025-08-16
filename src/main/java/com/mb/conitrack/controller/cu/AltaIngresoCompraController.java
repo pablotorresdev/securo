@@ -24,7 +24,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 @Controller
 @RequestMapping("/compras/alta")
-public class AltaIngresoCompraController {
+public class AltaIngresoCompraController extends AbstractCuController {
 
     @Autowired
     private ProductoService productoService;
@@ -35,9 +35,6 @@ public class AltaIngresoCompraController {
     @Autowired
     private LoteService loteService;
 
-    private static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
 
     @GetMapping("/cancelar")
     public String cancelar() {
@@ -98,7 +95,7 @@ public class AltaIngresoCompraController {
 
     void procesaringresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.altaStockPorCompra(loteDTO));
+        final LoteDTO resultDTO = dtoUtils().fromLoteEntity(loteService.altaStockPorCompra(loteDTO));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",

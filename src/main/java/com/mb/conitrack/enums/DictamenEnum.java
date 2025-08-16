@@ -5,6 +5,7 @@ public enum DictamenEnum {
     CUARENTENA("Cuarentena"),
     APROBADO("Aprobado"),
     RECHAZADO("Rechazado"),
+    ANULADO("Anulado"),
     ANALISIS_EXPIRADO("Analisis expirado"),
     VENCIDO("Vencido"),
     LIBERADO("Liberado"),

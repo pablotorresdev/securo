@@ -162,10 +162,6 @@ public class EntityUtils {
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
         movimiento.setCodigoInterno(dto.getCodigoInternoLote() + "-" + timestampLoteDTO);
-        movimiento.setCantidad(dto.getCantidad());
-        movimiento.setUnidadMedida(dto.getUnidadMedida());
-
-        movimiento.setDictamenInicial(dto.getDictamenInicial());
         movimiento.setDictamenFinal(DictamenEnum.RECHAZADO);
 
         movimiento.setFecha(dto.getFechaMovimiento());

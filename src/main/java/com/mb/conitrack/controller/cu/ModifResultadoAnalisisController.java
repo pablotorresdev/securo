@@ -14,14 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.AnalisisDTO;
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
@@ -30,17 +28,13 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/calidad/analisis")
-public class ModifResultadoAnalisisController {
+public class ModifResultadoAnalisisController extends AbstractCuController {
 
     @Autowired
     private LoteService loteService;
 
     @Autowired
     private AnalisisService analisisService;
-
-    private static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -93,7 +87,7 @@ public class ModifResultadoAnalisisController {
 
     private void resultadoAnalisis(final MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirResultadoAnalisis(movimientoDTO));
+        final LoteDTO loteDTO = dtoUtils().fromLoteEntity(loteService.persistirResultadoAnalisis(movimientoDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(

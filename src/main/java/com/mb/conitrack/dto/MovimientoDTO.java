@@ -83,6 +83,8 @@ public class MovimientoDTO {
 
     protected List<BultoDTO> bultoDTOS = new ArrayList<>();
 
+    protected List<DetalleMovimientoDTO> detalleMovimientoDTOs = new ArrayList<>();
+
     protected List<TrazaDTO> trazaDTOs = new ArrayList<>();
 
 }

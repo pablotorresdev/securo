@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -277,20 +278,23 @@ class BajaMuestreoBultoControllerTest {
         Lote persistido = new Lote();
         LoteDTO resultDTO = new LoteDTO();
 
-        try (MockedStatic<ControllerUtils> ms = mockStatic(ControllerUtils.class);
-            MockedStatic<DTOUtils> msDto = mockStatic(DTOUtils.class)) {
+        try (MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
+            MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
 
-            ControllerUtils utils = mock(ControllerUtils.class);
-            ms.when(ControllerUtils::getInstance).thenReturn(utils);
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
 
-            when(utils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
             when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
-            when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
-            when(utils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
-            when(utils.validarCantidadesMovimiento(dto, bulto, binding)).thenReturn(true);
+            when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
+            when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
+            when(controllerUtils.validarCantidadesMovimiento(dto, bulto, binding)).thenReturn(true);
 
             when(loteService.bajaMuestreo(dto, bulto)).thenReturn(persistido);
-            msDto.when(() -> DTOUtils.mergeLoteEntities(List.of(persistido))).thenReturn(resultDTO);
+            when(dtoUtils.fromLoteEntity(eq(persistido))).thenReturn(resultDTO);
 
             String view = controller.procesarMuestreoBulto(dto, binding, model, redirect);
 
@@ -300,7 +304,6 @@ class BajaMuestreoBultoControllerTest {
             assertTrue(dto.getFechaYHoraCreacion().isBefore(LocalDateTime.now().plusSeconds(2)));
 
             verify(loteService).bajaMuestreo(dto, bulto);
-            msDto.verify(() -> DTOUtils.mergeLoteEntities(List.of(persistido)));
 
             Map<String, ?> flash = redirect.getFlashAttributes();
             assertSame(resultDTO, flash.get("loteDTO"));

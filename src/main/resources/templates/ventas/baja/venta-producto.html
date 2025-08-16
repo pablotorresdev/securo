@@ -175,9 +175,9 @@
             <p><strong>Código interno:</strong> ${loteDTO.codigoInternoLote}</p>
             <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
             <hr>
-            <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</p>
-            <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual} ${loteDTO.unidadMedida}</p>
-            <p><strong>Bultos iniciales / actuales:</strong> ${loteDTO.bultosTotales} / ${loteDTO.bultosActuales}</p>
+            <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</p>
+            <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual} ${loteDTO.unidadMedida}</p>
+            <p><strong>Bultos totales:</strong> ${loteDTO.bultosTotales}</p>
             <hr>
             <p><strong>Nº análisis actual:</strong> ${a.nroAnalisis || '—'}</p>
             <p><strong>Fecha realizado análisis:</strong> ${a.fechaRealizado || '—'}</p>
@@ -194,10 +194,7 @@
 
             /* ---------- 1. cuántos bultos debo mostrar ---------- */
             // CAMBIO: cálculo “a prueba de nulos”
-            const totalBultos =
-                (lote.bultosActuales != null ? lote.bultosActuales :
-                    (lote.bultosTotales != null ? lote.bultosTotales :
-                        0));
+            const totalBultos = lote.bultosTotales != null ? lote.bultosTotales : 0;
 
             /* ---------- 2. Arrays con stock y unidad base ---------- */
             //  (si llegan vacíos, los relleno para que tengan totalBultos posiciones)

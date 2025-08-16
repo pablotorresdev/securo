@@ -26,14 +26,10 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/baja")
-public class BajaVentaProductoController {
+public class BajaVentaProductoController  extends AbstractCuController  {
 
     @Autowired
     private LoteService loteService;
-
-    private static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -102,7 +98,7 @@ public class BajaVentaProductoController {
 
     private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.bajaVentaProducto(loteDTO));
+        final LoteDTO resultDTO = dtoUtils().mergeLoteEntities(loteService.bajaVentaProducto(loteDTO));
 
         //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);

@@ -31,6 +31,8 @@ public class BultoDTO {
 
     private List<Movimiento> movimientos = new ArrayList<>();
 
+    protected List<DetalleMovimientoDTO> detalleMovimientoDTOs = new ArrayList<>();
+
     private List<Traza> trazas = new ArrayList<>();
 
 }
