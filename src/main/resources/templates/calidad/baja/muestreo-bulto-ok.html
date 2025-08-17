@@ -145,7 +145,7 @@
          th:if="${trazasMuestreo != null and !#lists.isEmpty(trazasMuestreo)}">
 
         <span class="text-danger">¡ATENCIÓN!</span>
-        Retirar del stock las unidades con el siguiente numero de traza, del bulto indicado arriba para su muestreo:
+        Retirar del stock, para su muestreo, las unidades con los siguientes números de traza del <b>Bulto Nro <span th:text="${bultoMuestreo}"></span></b>:
 
         <span th:each="t, iterStat : ${trazasMuestreo}">
         <span th:text="|[${t.nroTraza}]|"></span>

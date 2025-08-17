@@ -1,10 +1,16 @@
 package com.mb.conitrack.entity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 
 @Entity
@@ -41,6 +47,17 @@ public class DetalleMovimiento {
     @Enumerated(EnumType.STRING)
     @Column(name = "unidad_medida", nullable = false, length = 50)
     private UnidadMedidaEnum unidadMedida;
+
+    @ManyToMany
+    @JoinTable(
+        name = "trazas_detalles",
+        joinColumns = @JoinColumn(name = "detalle_id"),
+        inverseJoinColumns = @JoinColumn(name = "traza_id")
+    )
+    @JsonManagedReference
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private Set<Traza> trazas = new HashSet<>();
 
 }
 

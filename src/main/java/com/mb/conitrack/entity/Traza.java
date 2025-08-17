@@ -1,8 +1,8 @@
 package com.mb.conitrack.entity;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -28,8 +28,8 @@ import lombok.ToString;
         columnNames = { "producto_id", "nro_traza" }
     )
 )
-@SQLDelete(sql = "UPDATE traza SET activo = false WHERE id = ?")
-@ToString(exclude = { "lote", "bulto", "movimientos" }) // ⬅️ agregar "bulto"
+@SQLDelete(sql = "UPDATE trazas SET activo = false WHERE id = ?")
+@ToString(exclude = { "lote", "bulto", "detalles" }) // campos reales
 public class Traza {
 
     @Id
@@ -64,7 +64,7 @@ public class Traza {
     @ManyToMany(mappedBy = "trazas", fetch = FetchType.EAGER)
     @JsonBackReference
     @EqualsAndHashCode.Exclude
-    private Set<Movimiento> movimientos = new HashSet<>();
+    private List<DetalleMovimiento> detalles = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)

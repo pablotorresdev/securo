@@ -316,7 +316,7 @@ class DTOUtilsTest {
 
         // Analisis/trazas vacíos
         l.setAnalisisList(Collections.emptyList());
-        l.setTrazas(Collections.emptyList());
+        l.setTrazas(Collections.emptySet());
 
         return l;
     }

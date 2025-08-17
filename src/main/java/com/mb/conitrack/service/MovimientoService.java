@@ -199,11 +199,11 @@ public class MovimientoService {
 
         for (Traza traza : trazas) {
             traza.setEstado(EstadoEnum.VENDIDO);
-            traza.getMovimientos().add(movimiento);
+            traza.getDetalles().addAll(movimiento.getDetalles());
         }
         trazaService.save(trazas);
 
-        movimiento.setTrazas(new LinkedHashSet<>(trazas));
+        //movimiento.setTrazas(new LinkedHashSet<>(trazas));
 
         movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
         String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
@@ -256,6 +256,7 @@ public class MovimientoService {
     public Movimiento persistirMovimientoLiberacionProducto(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
 
+        movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setMotivo(LIBERACION);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(LIBERADO);

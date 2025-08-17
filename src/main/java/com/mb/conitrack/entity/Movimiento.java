@@ -95,16 +95,6 @@ public class Movimiento {
     @EqualsAndHashCode.Exclude
     private Movimiento movimientoOrigen;
 
-    @ManyToMany
-    @JoinTable(
-        name = "trazas_movimientos",
-        joinColumns = @JoinColumn(name = "movimiento_id"),
-        inverseJoinColumns = @JoinColumn(name = "traza_id")
-    )
-    @JsonManagedReference
-    @EqualsAndHashCode.Exclude
-    private Set<Traza> trazas = new HashSet<>();
-
     @Column(nullable = false)
     private Boolean activo;
 

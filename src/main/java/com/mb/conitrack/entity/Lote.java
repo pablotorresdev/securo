@@ -6,7 +6,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,6 +109,7 @@ public class Lote {
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
+    @OrderBy("nroBulto ASC")
     private List<Bulto> bultos = new ArrayList<>();
 
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
@@ -127,7 +130,7 @@ public class Lote {
     @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
-    private List<Traza> trazas = new ArrayList<>();
+    private Set<Traza> trazas = new HashSet<>();
 
     @Column(nullable = false)
     private Boolean activo;
@@ -293,15 +296,12 @@ public class Lote {
     }
 
     public Traza getTrazaRangeEnd() {
-        if (this.trazas.isEmpty()) {
+        if (trazas == null || trazas.isEmpty()) {
             return null;
-        } else if (this.trazas.size() == 1) {
-            return this.trazas.get(0);
-        } else {
-            return this.trazas.stream()
-                .max(Comparator.comparing(Traza::getNroTraza))
-                .orElse(null);
         }
+        return trazas.stream()
+            .max(Comparator.comparing(Traza::getNroTraza))
+            .orElse(null);
     }
 
 }

@@ -1,5 +1,5 @@
+DROP TABLE IF EXISTS trazas_detalles CASCADE;
 DROP TABLE IF EXISTS detalle_movimientos CASCADE;
-DROP TABLE IF EXISTS trazas_movimientos CASCADE;
 DROP TABLE IF EXISTS lote_bultos CASCADE;
 DROP TABLE IF EXISTS trazas CASCADE;
 DROP TABLE IF EXISTS lote_analisis CASCADE;
@@ -136,7 +136,6 @@ CREATE TABLE bultos
         FOREIGN KEY (lote_id) REFERENCES lotes (id)
 );
 
---N movimientos por M bultos--
 CREATE TABLE movimientos
 (
     id                   BIGSERIAL PRIMARY KEY,
@@ -176,7 +175,6 @@ CREATE TABLE detalle_movimientos (
        FOREIGN KEY (bulto_id) REFERENCES bultos (id)
 );
 
-
 CREATE TABLE analisis
 (
     id                BIGSERIAL PRIMARY KEY,
@@ -199,6 +197,7 @@ CREATE TABLE trazas
     id             BIGSERIAL PRIMARY KEY,
     fecha_creacion TIMESTAMP   NOT NULL,
     lote_id        BIGINT      NOT NULL,
+    bulto_id       BIGINT      NOT NULL,
     producto_id    BIGINT      NOT NULL,
     nro_traza      BIGINT      NOT NULL,
     estado         VARCHAR(30) NOT NULL,
@@ -206,21 +205,23 @@ CREATE TABLE trazas
     activo         BOOLEAN     NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_trazas_lote
         FOREIGN KEY (lote_id) REFERENCES lotes (id),
+    CONSTRAINT fk_trazas_bulto
+        FOREIGN KEY (bulto_id) REFERENCES bultos (id),
     CONSTRAINT fk_trazas_producto
         FOREIGN KEY (producto_id) REFERENCES productos (id),
     CONSTRAINT uk_traza_producto_traza
         UNIQUE (producto_id, nro_traza)
 );
 
-CREATE TABLE trazas_movimientos
+CREATE TABLE trazas_detalles
 (
     traza_id      BIGINT NOT NULL,
-    movimiento_id BIGINT NOT NULL,
-    PRIMARY KEY (traza_id, movimiento_id),
-    CONSTRAINT fk_traza_movimiento
+    detalle_id BIGINT NOT NULL,
+    PRIMARY KEY (traza_id, detalle_id),
+    CONSTRAINT fk_traza_detalle
         FOREIGN KEY (traza_id) REFERENCES trazas (id),
     CONSTRAINT fk_movimiento_traza
-        FOREIGN KEY (movimiento_id) REFERENCES movimientos (id)
+        FOREIGN KEY (detalle_id) REFERENCES detalle_movimientos (id)
 );
 
 

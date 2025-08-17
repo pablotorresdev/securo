@@ -2,6 +2,8 @@ package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +36,6 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.addLoteInfoToMovimien
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoDevolucionCompra;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoCompra;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.populateDetalleMovimientoAlta;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 
 @AllArgsConstructor
@@ -144,11 +145,11 @@ public class LoteService {
                 throw new IllegalStateException("La cantidad de Unidades debe ser entero");
             }
 
-            final List<Traza> trazas = lote.getFirstAvailableTrazaList(cantidad.intValue());
+            final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantidad.intValue());
 
             for (Traza traza : trazas) {
                 traza.setEstado(EstadoEnum.CONSUMIDO);
-                traza.getMovimientos().add(movimiento);
+                traza.getDetalles().addAll(movimiento.getDetalles());
             }
             trazaService.save(trazas);
             dto.setTrazaDTOs(trazas.stream().map(DTOUtils::fromTrazaEntity).toList());
@@ -347,63 +348,55 @@ public class LoteService {
         final Producto producto = productoService.findById(loteDTO.getProductoId())
             .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
 
-        // 1) Construir el agregado (lote, bultos, trazas). AÚN SIN DETALLES.
         final Lote lote = loteUtils().createLoteIngreso(loteDTO);
         loteUtils().populateLoteAltaProduccionPropia(lote, loteDTO, producto, conifarma);
 
-        // 2) Persistir Lote y Bultos (para que tengan ID)
         final Lote loteGuardado = loteRepository.save(lote);
         bultoService.save(loteGuardado.getBultos());
 
-        // 3) Crear Movimiento con Lote ya managed (SIN detalles todavía) y persistirlo
-        final Movimiento movimiento = createMovimientoAltaIngresoProduccion(loteGuardado);
-        movimientoService.save(movimiento); // movimiento con ID
-
-        // 4) Crear DetalleMovimiento SOLO en la colección del Movimiento (UNA SOLA RUTA)
-        //    ¡NO agregues a bulto.getDetalles()!
-        for (Bulto bultoPersistido : loteGuardado.getBultos()) {
-            final DetalleMovimiento det = DetalleMovimiento.builder()
-                .movimiento(movimiento)
-                .bulto(bultoPersistido)
-                .cantidad(bultoPersistido.getCantidadInicial())
-                .unidadMedida(bultoPersistido.getUnidadMedida())
-                .build();
-
-            movimiento.getDetalles().add(det); // <-- solo en movimiento
-            // NO: bultoPersistido.getDetalles().add(det);
+        if (loteGuardado.getTrazas() != null && !loteGuardado.getTrazas().isEmpty()) {
+            trazaService.save(loteGuardado.getTrazas());
         }
 
-        // Persistir detalles vía cascade desde Movimiento (o usa detalleService.saveAll si no hay cascade)
+        final Movimiento movimiento = createMovimientoAltaIngresoProduccion(loteGuardado);
         movimientoService.save(movimiento);
 
-        // 5) Trazas (asegurar FK de bulto set, ver fix previo) + vínculo al movimiento
-        for (Traza traza : loteGuardado.getTrazas()) {
-            traza.setLote(loteGuardado);
-            traza.getMovimientos().add(movimiento);
-            // IMPORTANTE (si aplica a tu modelo): traza.setBulto(...) ya se hace
-            // en populateLoteAltaProduccionPropia cuando se reparten a bultos.
-        }
-        trazaService.save(loteGuardado.getTrazas());
+        loteGuardado.getBultos().stream()
+            .sorted(Comparator.comparing(Bulto::getNroBulto))
+            .forEach(b -> {
+                final DetalleMovimiento det = DetalleMovimiento.builder()
+                    .movimiento(movimiento)
+                    .bulto(b)
+                    .cantidad(b.getCantidadInicial())
+                    .unidadMedida(b.getUnidadMedida())
+                    .build();
+
+                if (b.getTrazas() != null && !b.getTrazas().isEmpty()) {
+                    b.getTrazas().stream()
+                        .sorted(Comparator.comparing(Traza::getNroTraza))
+                        .forEach(det.getTrazas()::add); // Set + LinkedHashSet => único y ordenado
+                }
+
+                movimiento.getDetalles().add(det);
+            });
+
+        movimientoService.save(movimiento);
 
         return loteGuardado;
     }
 
     //***********CU11 MODIFICACION: LIBERACION DE PRODUCTO***********
     @Transactional
-    public List<Lote> persistirLiberacionProducto(final MovimientoDTO dto, final List<Lote> lotes) {
+    public Lote persistirLiberacionProducto(final MovimientoDTO dto, final Lote lote) {
 
-        List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : lotes) {
-            final Movimiento movimiento = movimientoService.persistirMovimientoLiberacionProducto(dto, loteBulto);
+            final Movimiento movimiento = movimientoService.persistirMovimientoLiberacionProducto(dto, lote);
 
-            loteBulto.setFechaReanalisisProveedor(loteBulto.getFechaReanalisisVigente());
-            loteBulto.setFechaVencimientoProveedor(loteBulto.getFechaVencimientoVigente());
+            lote.setFechaReanalisisProveedor(lote.getFechaReanalisisVigente());
+            lote.setFechaVencimientoProveedor(lote.getFechaVencimientoVigente());
 
-            loteBulto.setDictamen(movimiento.getDictamenFinal());
-            loteBulto.getMovimientos().add(movimiento);
-            result.add(loteRepository.save(loteBulto));
-        }
-        return result;
+            lote.setDictamen(movimiento.getDictamenFinal());
+            lote.getMovimientos().add(movimiento);
+        return loteRepository.save(lote);
     }
 
     //***********CU12 BAJA: VENTA***********
@@ -427,7 +420,7 @@ public class LoteService {
             } else {
                 bulto.setEstado(EstadoEnum.EN_USO);
             }
-            loteDTO.getTrazaDTOs().addAll(movimiento.getTrazas().stream().map(DTOUtils::fromTrazaEntity).toList());
+            //loteDTO.getTrazaDTOs().addAll(movimiento.getTrazas().stream().map(DTOUtils::fromTrazaEntity).toList());
             bulto.getMovimientos().add(movimiento);
             Lote newLote = loteRepository.save(bulto);
             result.add(newLote);

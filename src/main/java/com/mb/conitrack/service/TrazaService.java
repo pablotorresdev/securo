@@ -2,6 +2,7 @@ package com.mb.conitrack.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,10 @@ public class TrazaService {
 
     //***********CU10 ALTA: Produccion***********
     public List<Traza> save(final List<Traza> trazas) {
+        return trazaRepository.saveAll(trazas);
+    }
+
+    public List<Traza> save(final Set<Traza> trazas) {
         return trazaRepository.saveAll(trazas);
     }
 

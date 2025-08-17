@@ -42,7 +42,7 @@
                     th:classappend="${#fields.hasErrors('codigoInternoLote')} ? ' error-field'">
                 <option value="">-- Seleccione el lote a muestrear --</option>
                 <!-- Opciones de LoteDTO; agregamos data con último análisis y dictamen -->
-                <option th:each="loteDTO : ${lotesMuestreables}"
+                <option th:each="loteDTO : ${loteMuestreoDTOs}"
                         th:value="${loteDTO.codigoInternoLote}"
                         th:data-nroanalisis="${loteDTO.nroUltimoAnalisisDto}"
                         th:data-dictamen="${loteDTO.dictamen}"

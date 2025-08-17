@@ -65,10 +65,11 @@ public class Bulto {
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();
 
-    @OneToMany(mappedBy = "bulto", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "bulto", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
-    private List<Traza> trazas = new ArrayList<>();
+    @OrderBy("nroTraza ASC")
+    private Set<Traza> trazas = new HashSet<>();
 
     @Column(nullable = false)
     private Boolean activo;
@@ -118,15 +119,12 @@ public class Bulto {
     }
 
     public Traza getTrazaRangeEnd() {
-        if (this.trazas.isEmpty()) {
+        if (trazas == null || trazas.isEmpty()) {
             return null;
-        } else if (this.trazas.size() == 1) {
-            return this.trazas.get(0);
-        } else {
-            return this.trazas.stream()
-                .max(Comparator.comparing(Traza::getNroTraza))
-                .orElse(null);
         }
+        return trazas.stream()
+            .max(Comparator.comparing(Traza::getNroTraza))
+            .orElse(null);
     }
 
 }

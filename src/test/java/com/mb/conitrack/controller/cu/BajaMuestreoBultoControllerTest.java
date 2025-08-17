@@ -119,7 +119,7 @@ class BajaMuestreoBultoControllerTest {
 
             assertEquals("calidad/baja/muestreo-bulto", view);
             assertSame(dto, model.getAttribute("movimientoDTO"));
-            assertSame(salidaDtos, model.getAttribute("lotesMuestreables"));
+            assertSame(salidaDtos, model.getAttribute("loteMuestreoDTOs"));
             verify(queryServiceLote).findAllForMuestreo();
             mocked.verify(() -> DTOUtils.fromLoteEntities(entrada));
         }

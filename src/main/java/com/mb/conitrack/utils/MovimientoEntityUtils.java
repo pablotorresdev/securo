@@ -199,7 +199,7 @@ public class MovimientoEntityUtils {
         movimiento.setUnidadMedida(lote.getUnidadMedida());
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setLote(lote);
-        movimiento.getTrazas().addAll(lote.getTrazas());
+        //movimiento.getTrazas().addAll(lote.getTrazas());
         movimiento.setActivo(true);
         return movimiento;
     }

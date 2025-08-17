@@ -99,7 +99,7 @@ public class BajaMuestreoBultoController extends AbstractCuController {
 
     void initModelMuestreoBulto(final MovimientoDTO movimientoDTO, final Model model) {
         final List<LoteDTO> lotesDtos = DTOUtils.fromLoteEntities(queryServiceLote.findAllForMuestreo());
-        model.addAttribute("lotesMuestreables", lotesDtos);
+        model.addAttribute("loteMuestreoDTOs", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
@@ -111,6 +111,7 @@ public class BajaMuestreoBultoController extends AbstractCuController {
         LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.bajaMuestreo(movimientoDTO, bulto));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+        redirectAttributes.addFlashAttribute("bultoMuestreo", movimientoDTO.getNroBulto());
         redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",

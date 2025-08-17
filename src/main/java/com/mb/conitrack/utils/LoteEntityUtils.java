@@ -91,6 +91,10 @@ public class LoteEntityUtils {
             ? createTrazas(loteDTO, producto, loteDTO.getCantidadInicial())
             : new ArrayList<>();
 
+        for (Traza t : trazas) {
+            t.setLote(lote);
+        }
+
         int idxTrazaActual = 0;
         int bultos = Math.max(loteDTO.getBultosTotales(), 1);
         for (int i = 0; i < bultos; i++) {

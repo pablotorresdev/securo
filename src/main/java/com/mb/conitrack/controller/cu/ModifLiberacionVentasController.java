@@ -24,6 +24,7 @@ import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
 
+import static com.mb.conitrack.controller.cu.AbstractCuController.controllerUtils;
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
@@ -60,16 +61,17 @@ public class ModifLiberacionVentasController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        final List<Lote> lotesList = new ArrayList<>();
-        boolean success = ControllerUtils.getInstance().populateLoteListByCodigoInterno(
-            lotesList,
+
+        Lote lote = controllerUtils().getLoteByCodigoInterno(
             movimientoDTO.getCodigoInternoLote(),
             bindingResult,
-            queryServiceLote)
-            && ControllerUtils.getInstance()
-            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult)
-            && ControllerUtils.getInstance()
-            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult);
+            queryServiceLote);
+
+        boolean success = lote != null;
+        success = success && ControllerUtils.getInstance()
+            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
+        success = success &&  ControllerUtils.getInstance()
+            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
 
         if (!success) {
             initModelLiberacionProducto(movimientoDTO, model);
@@ -77,7 +79,7 @@ public class ModifLiberacionVentasController {
             return "ventas/liberacion/inicio-liberacion";
         }
 
-        liberacionProducto(movimientoDTO, lotesList, redirectAttributes);
+        liberacionProducto(movimientoDTO, lote, redirectAttributes);
         return "redirect:/ventas/liberacion/inicio-liberacion-ok";
     }
 
@@ -88,19 +90,18 @@ public class ModifLiberacionVentasController {
     }
 
     private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = fromLoteEntities(queryServiceLote.findAllForLiberacionProducto());
+        final List<LoteDTO> loteLiberacionProdDtos = fromLoteEntities(queryServiceLote.findAllForLiberacionProducto());
         //TODO: unificar nombres de atributos
-        model.addAttribute("lotesDtos", lotesDtos);
+        model.addAttribute("loteLiberacionProdDtos", loteLiberacionProdDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
     private void liberacionProducto(
         final MovimientoDTO dto,
-        final List<Lote> lotesList,
+        final Lote lote,
         final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final List<Lote> lotes = loteService.persistirLiberacionProducto(dto, lotesList);
-        final LoteDTO loteDTO = DTOUtils.mergeLoteEntities(lotes);
+        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirLiberacionProducto(dto, lote));
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
