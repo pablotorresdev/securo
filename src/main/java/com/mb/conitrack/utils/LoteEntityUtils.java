@@ -9,26 +9,18 @@ import java.util.Optional;
 import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
-import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.MotivoEnum;
-import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import lombok.Getter;
-
-import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
-import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 
 public class LoteEntityUtils {
 
@@ -40,11 +32,11 @@ public class LoteEntityUtils {
 
     //***********CU1 ALTA: COMPRA***********
     public void populateLoteAltaStockCompra(
-        final Lote lote, final LoteDTO loteDTO,
+        final Lote lote,
+        final LoteDTO loteDTO,
         final Producto producto,
         final Proveedor proveedor,
-        final Proveedor fabricante
-    ) {
+        final Proveedor fabricante) {
         lote.setCodigoInterno("L-" +
             producto.getCodigoInterno() +
             "-" +
@@ -112,6 +104,9 @@ public class LoteEntityUtils {
                 List<Traza> trazasBulto = new ArrayList<>(trazas.subList(
                     idxTrazaActual,
                     idxTrazaActual + indexTrazaFinal));
+                for (Traza t : trazasBulto) {
+                    t.setBulto(bulto);
+                }
                 bulto.getTrazas().addAll(trazasBulto);
                 idxTrazaActual += indexTrazaFinal;
             }
@@ -194,10 +189,7 @@ public class LoteEntityUtils {
         return lote;
     }
 
-    List<Traza> createTrazas(
-        final LoteDTO loteDTO,
-        final Producto producto,
-        final BigDecimal cantidadInicialLote) {
+    List<Traza> createTrazas(final LoteDTO loteDTO, final Producto producto, final BigDecimal cantidadInicialLote) {
         List<Traza> trazas = new ArrayList<>();
         if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
             throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
@@ -224,11 +216,7 @@ public class LoteEntityUtils {
         return trazas;
     }
 
-    void populateCantidadUdeMBulto(
-        final LoteDTO loteDTO,
-        final int bultosTotales,
-        final Bulto bulto,
-        final int i) {
+    void populateCantidadUdeMBulto(final LoteDTO loteDTO, final int bultosTotales, final Bulto bulto, final int i) {
         if (bultosTotales == 1) {
             bulto.setCantidadInicial(loteDTO.getCantidadInicial());
             bulto.setCantidadActual(loteDTO.getCantidadInicial());

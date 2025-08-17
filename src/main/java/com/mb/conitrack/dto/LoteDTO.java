@@ -35,7 +35,7 @@ public class LoteDTO {
 
     //Datos de ALTA obligatorios
     @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
-    @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = { AltaCompra.class })
+    @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = { AltaCompra.class, AltaProduccion.class })
     private LocalDate fechaIngreso;
 
     @NotNull(message = "El producto es obligatorio", groups = { AltaCompra.class, AltaProduccion.class })

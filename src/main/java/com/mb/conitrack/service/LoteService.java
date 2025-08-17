@@ -342,29 +342,48 @@ public class LoteService {
     //***********CU10 ALTA: PRODUCCION INTERNA***********
     @Transactional
     public Lote altaStockPorProduccion(final LoteDTO loteDTO) {
-        Proveedor conifarma = proveedorService.getConifarma();
+        final Proveedor conifarma = proveedorService.getConifarma();
 
-        Producto producto = productoService.findById(loteDTO.getProductoId())
+        final Producto producto = productoService.findById(loteDTO.getProductoId())
             .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
 
-        Lote lote = loteUtils().createLoteIngreso(loteDTO);
+        // 1) Construir el agregado (lote, bultos, trazas). AÚN SIN DETALLES.
+        final Lote lote = loteUtils().createLoteIngreso(loteDTO);
         loteUtils().populateLoteAltaProduccionPropia(lote, loteDTO, producto, conifarma);
 
-        final Movimiento movimiento = createMovimientoAltaIngresoProduccion(lote);
-
-        for (Traza traza : lote.getTrazas()) {
-            traza.getMovimientos().add(movimiento);
-            traza.setLote(lote);
-        }
-
-        for (Bulto bulto : lote.getBultos()) {
-            populateDetalleMovimientoAlta(movimiento, bulto);
-        }
-
-        Lote loteGuardado = loteRepository.save(lote);     // ✔ ahora el Lote ya está “managed”
+        // 2) Persistir Lote y Bultos (para que tengan ID)
+        final Lote loteGuardado = loteRepository.save(lote);
         bultoService.save(loteGuardado.getBultos());
+
+        // 3) Crear Movimiento con Lote ya managed (SIN detalles todavía) y persistirlo
+        final Movimiento movimiento = createMovimientoAltaIngresoProduccion(loteGuardado);
+        movimientoService.save(movimiento); // movimiento con ID
+
+        // 4) Crear DetalleMovimiento SOLO en la colección del Movimiento (UNA SOLA RUTA)
+        //    ¡NO agregues a bulto.getDetalles()!
+        for (Bulto bultoPersistido : loteGuardado.getBultos()) {
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimiento)
+                .bulto(bultoPersistido)
+                .cantidad(bultoPersistido.getCantidadInicial())
+                .unidadMedida(bultoPersistido.getUnidadMedida())
+                .build();
+
+            movimiento.getDetalles().add(det); // <-- solo en movimiento
+            // NO: bultoPersistido.getDetalles().add(det);
+        }
+
+        // Persistir detalles vía cascade desde Movimiento (o usa detalleService.saveAll si no hay cascade)
         movimientoService.save(movimiento);
-        trazaService.save(lote.getTrazas());
+
+        // 5) Trazas (asegurar FK de bulto set, ver fix previo) + vínculo al movimiento
+        for (Traza traza : loteGuardado.getTrazas()) {
+            traza.setLote(loteGuardado);
+            traza.getMovimientos().add(movimiento);
+            // IMPORTANTE (si aplica a tu modelo): traza.setBulto(...) ya se hace
+            // en populateLoteAltaProduccionPropia cuando se reparten a bultos.
+        }
+        trazaService.save(loteGuardado.getTrazas());
 
         return loteGuardado;
     }
