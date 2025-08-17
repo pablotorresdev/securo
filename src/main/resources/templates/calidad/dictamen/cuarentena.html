@@ -10,6 +10,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Cambiar Dictamen a Cuarentena</h2>
+
     <form method="post" th:action="@{/calidad/dictamen/cuarentena}" th:object="${movimientoDTO}">
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
@@ -21,7 +22,7 @@
             <label class="form-label" for="codigoInternoLote">Lote:</label>
             <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${lotesForCuarentena}"
+                <option th:each="loteDTO : ${loteCuarentenaDTOs}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
                          + ' | Codigo Interno: ' + ${loteDTO.codigoInternoLote}
@@ -32,6 +33,9 @@
                         th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}">
                 </option>
             </select>
+        </div>
+
+        <div class="mb-4" id="infoSection">
         </div>
 
 
@@ -53,7 +57,7 @@
         <div class="mb-3" id="grupoNroAnalisisEditable">
             <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
             <input class="form-control" id="nroAnalisis"
-                   placeholder="Ej: 1234"
+                   placeholder="Ej: 123456789"
                    th:field="*{nroAnalisis}"
                    type="text"
                    maxlength="30">
@@ -80,16 +84,12 @@
                  th:if="${#fields.hasErrors('nroReanalisis')}"></div>
         </div>
 
-        <!-- Observaciones (opcional) -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
-            <textarea class="form-control"
-                      id="observaciones"
-                      rows="2"
-                      th:field="*{observaciones}"></textarea>
+            <textarea class="form-control" id="observaciones" rows="2" th:field="*{observaciones}"></textarea>
         </div>
 
-        <!-- Botones -->
+
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/calidad/dictamen/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Enviar a Cuarentena</button>

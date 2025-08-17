@@ -14,12 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.AnalisisDTO;
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import jakarta.validation.Valid;
 
@@ -35,6 +37,9 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
 
     @Autowired
     private AnalisisService analisisService;
+
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -76,18 +81,18 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
     }
 
     private void initModelResultadoAnalisis(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDTOs = fromLoteEntities(loteService.findAllForResultadoAnalisis());
+        final List<LoteDTO> loteResultadoAnalisisDTOs = fromLoteEntities(queryServiceLote.findAllForResultadoAnalisis());
         List<AnalisisDTO> analisisDTOs = fromAnalisisEntities(analisisService.findAllEnCursoForLotesCuarentena());
         movimientoDTO.setFechaMovimiento(LocalDateTime.now().toLocalDate());
         model.addAttribute("movimientoDTO", movimientoDTO);
-        model.addAttribute("loteDTOs", lotesDTOs);
+        model.addAttribute("loteResultadoAnalisisDTOs", loteResultadoAnalisisDTOs);
         model.addAttribute("analisisDTOs", analisisDTOs);
         model.addAttribute("resultados", List.of(DictamenEnum.APROBADO, DictamenEnum.RECHAZADO));
     }
 
     private void resultadoAnalisis(final MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = dtoUtils().fromLoteEntity(loteService.persistirResultadoAnalisis(movimientoDTO));
+        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirResultadoAnalisis(movimientoDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
@@ -111,7 +116,7 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
             lote = controllerUtils().getLoteByCodigoInterno(
                 movimientoDTO.getCodigoInternoLote(),
                 bindingResult,
-                loteService);
+                queryServiceLote);
         }
         success = success && lote != null;
         success = success && controllerUtils().validarExisteMuestreoParaAnalisis(movimientoDTO, lote, bindingResult);

@@ -31,6 +31,7 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 import com.mb.conitrack.utils.ControllerUtils;
 
 import static com.mb.conitrack.dto.DTOUtils.fromAnalisisEntities;
@@ -45,7 +46,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -62,6 +62,9 @@ class ModifResultadoAnalisisControllerTest {
 
     @Mock
     LoteService loteService;
+
+    @Mock
+    QueryServiceLote queryServiceLote;
 
     @Mock
     AnalisisService analisisService;
@@ -111,7 +114,7 @@ class ModifResultadoAnalisisControllerTest {
     @Test
     @DisplayName("Falla validarContraFechasProveedor -> vuelve al form")
     void fallaContraFechasProveedor() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
         Lote lote = new Lote();
         try (
@@ -129,7 +132,7 @@ class ModifResultadoAnalisisControllerTest {
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
 
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenReturn(lote);
 
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
@@ -154,7 +157,7 @@ class ModifResultadoAnalisisControllerTest {
     @Test
     @DisplayName("Falla validarDatosResultadoAnalisisAprobadoInput -> vuelve al form")
     void fallaDatosAprobado() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (
@@ -182,7 +185,7 @@ class ModifResultadoAnalisisControllerTest {
     @Test
     @DisplayName("Falla validarDatosMandatoriosResultadoAnalisisInput -> vuelve al form")
     void fallaDatosMandatorios() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (
@@ -203,9 +206,9 @@ class ModifResultadoAnalisisControllerTest {
     }
 
     @Test
-    @DisplayName("Falla validarExisteMuestreoParaAnalisis -> vuelve al form")
-    void fallaExisteMuestreo() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+    @DisplayName("Falla getLoteByCodigoInterno -> vuelve al form")
+    void fallaLoteByCodigoInterno() {
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (
@@ -222,7 +225,38 @@ class ModifResultadoAnalisisControllerTest {
                 .thenReturn(true);
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
+                .thenAnswer(inv -> null);
+
+            du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
+            du.when(() -> fromAnalisisEntities(anyList())).thenReturn(Collections.emptyList());
+
+            String view = controller.procesarResultadoAnalisis(dto, binding, model, redirect);
+            assertEquals("calidad/analisis/resultado-analisis", view);
+        }
+    }
+
+    @Test
+    @DisplayName("Falla validarExisteMuestreoParaAnalisis -> vuelve al form")
+    void fallaExisteMuestreo() {
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
+
+        try (
+            MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class);
+            MockedStatic<DTOUtils> du = mockStatic(DTOUtils.class)) {
+
+            ControllerUtils controllerUtils = mock(ControllerUtils.class);
+            cu.when(ControllerUtils::getInstance).thenReturn(controllerUtils);
+
+            DTOUtils dtoUtils = mock(DTOUtils.class);
+            du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
+
+            when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding))
+                .thenReturn(true);
+            when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
+                .thenReturn(true);
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenAnswer(inv -> new Lote());
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(false);
@@ -238,7 +272,7 @@ class ModifResultadoAnalisisControllerTest {
     @Test
     @DisplayName("Falla validarFechaAnalisisPosteriorIngresoLote -> vuelve al form")
     void fallaFechaAnalisis() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (
@@ -256,7 +290,7 @@ class ModifResultadoAnalisisControllerTest {
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
 
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenAnswer(inv -> new Lote());
 
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
@@ -278,7 +312,7 @@ class ModifResultadoAnalisisControllerTest {
     @Test
     @DisplayName("Falla validarFechaMovimientoPosteriorIngresoLote -> vuelve al form")
     void fallaFechaMovimiento() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (
@@ -295,7 +329,7 @@ class ModifResultadoAnalisisControllerTest {
                 .thenReturn(true);
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenAnswer(inv -> new Lote());
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
@@ -313,7 +347,7 @@ class ModifResultadoAnalisisControllerTest {
     @Test
     @DisplayName("Falla populateLoteListByCodigoInterno -> vuelve al form")
     void fallaPopulateLoteList() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (
@@ -330,7 +364,7 @@ class ModifResultadoAnalisisControllerTest {
                 .thenReturn(true);
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenAnswer(inv -> new Lote());
 
             du.when(() -> fromLoteEntities(anyList())).thenReturn(Collections.emptyList());
@@ -344,7 +378,7 @@ class ModifResultadoAnalisisControllerTest {
     @Test
     @DisplayName("Falla validarValorTitulo -> vuelve al form")
     void fallaValorTitulo() {
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (
@@ -361,7 +395,7 @@ class ModifResultadoAnalisisControllerTest {
                 .thenReturn(true);
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding))
                 .thenReturn(true);
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenAnswer(inv -> new Lote());
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
@@ -385,7 +419,7 @@ class ModifResultadoAnalisisControllerTest {
     @DisplayName("BindingResult con errores -> vuelve al form e inicializa modelo")
     void procesar_ResultadoAnalisis_bindingErrors() {
         binding.reject("any", "err");
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(Collections.emptyList());
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(Collections.emptyList());
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
@@ -396,7 +430,7 @@ class ModifResultadoAnalisisControllerTest {
 
             assertEquals("calidad/analisis/resultado-analisis", view);
             assertSame(dto, model.getAttribute("movimientoDTO"));
-            assertNotNull(model.getAttribute("loteDTOs"));
+            assertNotNull(model.getAttribute("loteResultadoAnalisisDTOs"));
             assertNotNull(model.getAttribute("analisisDTOs"));
         }
     }
@@ -418,7 +452,7 @@ class ModifResultadoAnalisisControllerTest {
 
             when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenAnswer(inv -> new Lote());
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
@@ -464,7 +498,7 @@ class ModifResultadoAnalisisControllerTest {
 
             when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenAnswer(inv -> new Lote());
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
@@ -511,7 +545,7 @@ class ModifResultadoAnalisisControllerTest {
 
             when(controllerUtils.validarDatosMandatoriosResultadoAnalisisInput(dto, binding)).thenReturn(true);
             when(controllerUtils.validarDatosResultadoAnalisisAprobadoInput(dto, binding)).thenReturn(true);
-            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(loteService)))
+            when(controllerUtils.getLoteByCodigoInterno(anyString(), eq(binding), eq(queryServiceLote)))
                 .thenReturn(lote);
             when(controllerUtils.validarExisteMuestreoParaAnalisis(eq(dto), any(Lote.class), eq(binding)))
                 .thenReturn(true);
@@ -563,7 +597,7 @@ class ModifResultadoAnalisisControllerTest {
         List<LoteDTO> salidaLotes = List.of(new LoteDTO(), new LoteDTO());
         List<AnalisisDTO> salidaAnalisis = List.of(new AnalisisDTO());
 
-        when(loteService.findAllForResultadoAnalisis()).thenReturn(entradaLotes);
+        when(queryServiceLote.findAllForResultadoAnalisis()).thenReturn(entradaLotes);
         when(analisisService.findAllEnCursoForLotesCuarentena()).thenReturn(entradaAnalisis);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
@@ -574,7 +608,7 @@ class ModifResultadoAnalisisControllerTest {
 
             assertEquals("calidad/analisis/resultado-analisis", view);
             assertSame(dto, model.getAttribute("movimientoDTO"));
-            assertSame(salidaLotes, model.getAttribute("loteDTOs"));
+            assertSame(salidaLotes, model.getAttribute("loteResultadoAnalisisDTOs"));
             assertSame(salidaAnalisis, model.getAttribute("analisisDTOs"));
 
             Object resultados = model.getAttribute("resultados");
@@ -588,7 +622,7 @@ class ModifResultadoAnalisisControllerTest {
 
             assertNotNull(dto.getFechaMovimiento());
 
-            verify(loteService).findAllForResultadoAnalisis();
+            verify(queryServiceLote).findAllForResultadoAnalisis();
             verify(analisisService).findAllEnCursoForLotesCuarentena();
             ms.verify(() -> fromLoteEntities(entradaLotes));
             ms.verify(() -> fromAnalisisEntities(entradaAnalisis));

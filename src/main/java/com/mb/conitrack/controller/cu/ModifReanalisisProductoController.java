@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import jakarta.validation.Valid;
 
@@ -32,6 +34,9 @@ public class ModifReanalisisProductoController extends AbstractCuController {
 
     @Autowired
     private AnalisisService analisisService;
+
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -63,16 +68,13 @@ public class ModifReanalisisProductoController extends AbstractCuController {
             lote = controllerUtils().getLoteByCodigoInterno(
                 movimientoDTO.getCodigoInternoLote(),
                 bindingResult,
-                loteService);
+                queryServiceLote);
         }
         success = success && lote != null;
-        success = success &&
-            controllerUtils().validarFechaMovimientoPosteriorIngresoLote(
-                movimientoDTO,
-                lote,
-                bindingResult);
-        success = success &&
-            controllerUtils().validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
+        success = success && controllerUtils()
+            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
+        success = success && controllerUtils()
+            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
 
         if (!success) {
             initModelReanalisisProducto(movimientoDTO, model);
@@ -92,8 +94,8 @@ public class ModifReanalisisProductoController extends AbstractCuController {
 
     private void initModelReanalisisProducto(final MovimientoDTO movimientoDTO, final Model model) {
         //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
-        final List<LoteDTO> lotesDtos = fromLoteEntities(loteService.findAllForReanalisisProducto());
-        model.addAttribute("loteDTOs", lotesDtos);
+        final List<LoteDTO> lotesDtos = fromLoteEntities(queryServiceLote.findAllForReanalisisProducto());
+        model.addAttribute("loteReanalisisDTOs", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
@@ -102,8 +104,9 @@ public class ModifReanalisisProductoController extends AbstractCuController {
         final Lote lote,
         final RedirectAttributes redirectAttributes) {
         dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = dtoUtils().fromLoteEntity(loteService.persistirReanalisisProducto(dto, lote));
+        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirReanalisisProducto(dto, lote));
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
             loteDTO != null

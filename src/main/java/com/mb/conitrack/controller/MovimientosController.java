@@ -11,8 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.MovimientoService;
+import com.mb.conitrack.service.QueryServiceLote;
+import com.mb.conitrack.service.QueryServiceMovimiento;
 
 /**
  * CU3
@@ -22,10 +23,13 @@ import com.mb.conitrack.service.MovimientoService;
 public class MovimientosController {
 
     @Autowired
-    private LoteService loteService;
+    private MovimientoService movimientoService;
 
     @Autowired
-    private MovimientoService movimientoService;
+    private QueryServiceLote queryServiceLote;
+
+    @Autowired
+    private QueryServiceMovimiento queryServiceMovimiento;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -35,13 +39,13 @@ public class MovimientosController {
 
     @GetMapping("/list-muestreos")
     public String listMuestreos(Model model) {
-        model.addAttribute("movimientos", movimientoService.findAllMuestreos());
+        model.addAttribute("movimientos", queryServiceMovimiento.findAllMuestreos());
         return "movimientos/list-movimientos"; //
     }
 
     @GetMapping("/list-movimientos")
     public String listMovimientos(Model model) {
-        model.addAttribute("movimientos", movimientoService.findAll());
+        model.addAttribute("movimientos", queryServiceMovimiento.findAll());
         return "movimientos/list-movimientos"; //.html
     }
 
@@ -49,7 +53,7 @@ public class MovimientosController {
     @GetMapping("/loteId/{loteId}")
     public String listMovimientosPorLote(@PathVariable("loteId") Long loteId, Model model) {
         // Se asume que findById() recupera el lote con sus movimientos (por ejemplo, con fetch join)
-        final List<Movimiento> movimientos = loteService.findLoteBultoById(loteId).getMovimientos();
+        final List<Movimiento> movimientos = queryServiceLote.findLoteBultoById(loteId).getMovimientos();
         movimientos.sort(Comparator
             .comparing(Movimiento::getFecha));
         model.addAttribute("movimientos", movimientos);

@@ -17,6 +17,7 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import jakarta.validation.Valid;
 
@@ -28,6 +29,9 @@ public class AltaDevolucionVentaController {
 
     @Autowired
     private LoteService loteService;
+
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -86,7 +90,7 @@ public class AltaDevolucionVentaController {
     }
 
     private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
-        List<LoteDTO> lotesDevolucion = fromLoteEntities(loteService.findAllForDevolucionVenta());
+        List<LoteDTO> lotesDevolucion = fromLoteEntities(queryServiceLote.findAllForDevolucionVenta());
         model.addAttribute("lotesDevolucion", lotesDevolucion);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }

@@ -12,7 +12,7 @@
     <h2 class="mb-4">Reanalizar un Lote Aprobado</h2>
 
     <form method="post" th:action="@{/calidad/reanalisis/inicio-reanalisis}" th:object="${movimientoDTO}">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
@@ -22,14 +22,17 @@
             <label class="form-label" for="codigoInternoLote">Lote:</label>
             <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${loteDTOs}"
+                <option th:each="loteDTO : ${loteReanalisisDTOs}"
+                        th:text="'Producto: ' + ${loteDTO.nombreProducto}
+                         + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
+                         + ' | Codigo Interno: ' + ${loteDTO.codigoInternoLote}
+                         + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
                         th:value="${loteDTO.codigoInternoLote}"
                         th:data-nombreproducto="${loteDTO.nombreProducto}"
                         th:data-nombreproveedor="${loteDTO.nombreProveedor}"
                         th:data-fechaingreso="${loteDTO.fechaIngreso}"
                         th:data-dictamen="${loteDTO.dictamen?.valor}"
-                        th:data-analisis="${loteDTO.analisisDTOs != null ? #lists.size(loteDTO.analisisDTOs) : 0}"
-                        th:text="'Producto: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInternoLote}">
+                        th:data-analisis="${loteDTO.analisisDTOs != null ? #lists.size(loteDTO.analisisDTOs) : 0}">
                 </option>
             </select>
         </div>
@@ -38,8 +41,8 @@
         </div>
 
         <!-- Fecha Movimiento -->
-        <div class="mb-3">
-            <label class="form-label" for="fechaMovimiento">Fecha de Movimiento:</label>
+        <div class="mb-2">
+            <label class="form-label" for="fechaMovimiento">Fecha de Reanalisis:</label>
             <input class="form-control" id="fechaMovimiento"
                    required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
@@ -54,12 +57,11 @@
         <!-- Número de Análisis -->
         <div class="mb-3">
             <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
-            <input class="form-control" id="nroAnalisis" type="text" maxlength="9" required
+            <input class="form-control" id="nroAnalisis" type="text" maxlength="30" required
                    th:field="*{nroAnalisis}" placeholder="Ej: 123456789">
-            <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+            <div style="color: red; font-weight: bold;" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
         </div>
 
-        <!-- Observaciones -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control" id="observaciones" rows="2" th:field="*{observaciones}"></textarea>
@@ -68,7 +70,7 @@
 
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/calidad/reanalisis/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Guardar Reanálisis</button>
+            <button class="btn btn-primary" type="submit">Iniciar Reanálisis</button>
         </div>
     </form>
 </div>
@@ -78,8 +80,8 @@
 </footer>
 
 <script th:inline="javascript">
-    // Inyectamos todo el array loteDTOs como objeto JavaScript
-    const loteDTOs = /*[[${loteDTOs}]]*/ [];
+    // Inyectamos todo el array loteReanalisisDTOs como objeto JavaScript
+    const loteReanalisisDTOs = /*[[${loteReanalisisDTOs}]]*/ [];
 
     var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
     if (fechaMovimientoDTO) {
@@ -121,8 +123,8 @@
         loteSelect.addEventListener('change', function () {
             const codigoSeleccionado = this.value;
 
-            // Buscamos en loteDTOs por codigoInternoLote
-            const lote = loteDTOs.find(l => l.codigoInternoLote === codigoSeleccionado);
+            // Buscamos en loteReanalisisDTOs por codigoInternoLote
+            const lote = loteReanalisisDTOs.find(l => l.codigoInternoLote === codigoSeleccionado);
 
             if (lote) {
                 actualizarInfo(lote);
@@ -133,7 +135,7 @@
 
         // Opcional: si hay un lote ya seleccionado al cargar la página
         if (loteSelect.value) {
-            const loteInicial = loteDTOs.find(l => l.codigoInternoLote === loteSelect.value);
+            const loteInicial = loteReanalisisDTOs.find(l => l.codigoInternoLote === loteSelect.value);
             if (loteInicial) {
                 actualizarInfo(loteInicial);
             }

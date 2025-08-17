@@ -17,12 +17,15 @@ public class FechaValidatorService {
     @Autowired
     LoteService loteService;
 
+    @Autowired
+    private QueryServiceLote queryServiceLote;
+
     private final LocalDate hoy = LocalDate.now(); // ejemplo
 
     @Scheduled(cron = "0 0 5 * * *") // Todos los días a las 5 AM
     public void validarFecha() {
-        procesarLotesAnalisisExpirado(loteService.findAllLotesAnalisisExpirado());
-        procesarLotesVencidos(loteService.findAllLotesVencidos());
+        procesarLotesAnalisisExpirado(queryServiceLote.findAllLotesAnalisisExpirado());
+        procesarLotesVencidos(queryServiceLote.findAllLotesVencidos());
     }
 
     private void procesarLotesAnalisisExpirado(List<Lote> lotesReanalisis) {

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -16,9 +17,8 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 
-import static com.mb.conitrack.utils.ControllerUtils.validarTipoDeDato;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,7 +28,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 class ControllerUtilsTest {
 
@@ -82,43 +90,55 @@ class ControllerUtilsTest {
     @Test
     @DisplayName("bultosTotales > 1 y ambos validadores = true -> true")
     void ambosValidadoresTrue() {
+        // given
         LoteDTO dto = new LoteDTO();
+        dto.setCantidadesBultos(new ArrayList<>());
+        dto.setUnidadMedidaBultos(new ArrayList<>());
         dto.getCantidadesBultos().add(new BigDecimal("2"));
         dto.getUnidadMedidaBultos().add(UnidadMedidaEnum.UNIDAD);
         dto.setBultosTotales(5);
+
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        try (
-            MockedStatic<ControllerUtils> mocked =
-                mockStatic(ControllerUtils.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
+        try (MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class)) {
+            // Spy que ejecuta métodos reales por defecto
+            ControllerUtils utilsSpy = mock(ControllerUtils.class, Answers.CALLS_REAL_METHODS);
+            cu.when(ControllerUtils::getInstance).thenReturn(utilsSpy);
 
-            mocked.when(() -> validarTipoDeDato(dto, br)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validarSumaBultosConvertida(dto, br)).thenReturn(true);
+            // Stubs: ambos validadores OK
+            doReturn(true).when(utilsSpy).validarTipoDeDato(dto, br);
+            doReturn(true).when(utilsSpy).validarSumaBultosConvertida(dto, br);
 
+            // when
             boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
+            // then
             assertTrue(ok);
-            mocked.verify(() -> validarTipoDeDato(dto, br));
-            mocked.verify(() -> ControllerUtils.validarSumaBultosConvertida(dto, br));
+            verify(utilsSpy).validarTipoDeDato(dto, br);
+            verify(utilsSpy).validarSumaBultosConvertida(dto, br);
         }
     }
 
     @Test
     @DisplayName("bultosTotales == 1 -> true (short-circuit) y NO llama validadores")
     void bultosIgualUno() {
+        // given
         LoteDTO dto = new LoteDTO();
-        dto.setBultosTotales(1);
+        dto.setBultosTotales(1); // activa el short-circuit
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        try (
-            MockedStatic<ControllerUtils> mocked =
-                mockStatic(ControllerUtils.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
+        try (MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class)) {
+            // Spy que ejecuta métodos reales por defecto
+            ControllerUtils utilsSpy = mock(ControllerUtils.class, Answers.CALLS_REAL_METHODS);
+            cu.when(ControllerUtils::getInstance).thenReturn(utilsSpy);
 
+            // when
             boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
-            assertTrue(ok);
-            mocked.verify(() -> validarTipoDeDato(any(), any()), never());
-            mocked.verify(() -> ControllerUtils.validarSumaBultosConvertida(any(), any()), never());
+            // then
+            assertTrue(ok); // se cumple el short-circuit
+            verify(utilsSpy, never()).validarTipoDeDato(any(), any());
+            verify(utilsSpy, never()).validarSumaBultosConvertida(any(), any());
         }
     }
 
@@ -131,7 +151,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -151,7 +171,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -213,24 +233,28 @@ class ControllerUtilsTest {
         verifyNoMoreInteractions(br);
     }
 
+
     @Test
     @DisplayName("Si BindingResult ya tiene errores -> false y NO llama a los otros validadores")
     void earlyReturnPorErroresBultos() {
+        // given
         LoteDTO dto = new LoteDTO();
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(true);
 
-        try (
-            MockedStatic<ControllerUtils> mocked =
-                mockStatic(ControllerUtils.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
+        try (MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class)) {
+            // Spy que ejecuta métodos reales por defecto
+            ControllerUtils utilsSpy = mock(ControllerUtils.class, Answers.CALLS_REAL_METHODS);
+            cu.when(ControllerUtils::getInstance).thenReturn(utilsSpy);
 
+            // when
             boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
+            // then
             assertFalse(ok);
             verify(br).hasErrors();
-            // No debe invocar los validadores internos
-            mocked.verify(() -> validarTipoDeDato(any(), any()), never());
-            mocked.verify(() -> ControllerUtils.validarSumaBultosConvertida(any(), any()), never());
+            verify(utilsSpy, never()).validarTipoDeDato(any(), any());
+            verify(utilsSpy, never()).validarSumaBultosConvertida(any(), any());
         }
     }
 
@@ -241,7 +265,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(true);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -293,7 +317,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertFalse(ok);
         // Se esperan 2 rechazos sobre el mismo field y code, con mensajes distintos
@@ -329,7 +353,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertTrue(ok);
         verify(br).hasErrors();
@@ -350,7 +374,7 @@ class ControllerUtilsTest {
         List<Lote> salida = new ArrayList<>();
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(true);
-        LoteService service = mock(LoteService.class);
+        QueryServiceLote service = mock(QueryServiceLote.class);
 
         boolean ok = ControllerUtils.getInstance()
             .populateLoteListByCodigoInterno(salida, "L-XYZ", br, service);
@@ -368,7 +392,7 @@ class ControllerUtilsTest {
         List<Lote> salida = new ArrayList<>();
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
-        LoteService service = mock(LoteService.class);
+        QueryServiceLote service = mock(QueryServiceLote.class);
         when(service.findLoteListByCodigoInterno("L-ABC"))
             .thenReturn(new ArrayList<>());
 
@@ -393,7 +417,7 @@ class ControllerUtilsTest {
         List<Lote> salida = new ArrayList<>();
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
-        LoteService service = mock(LoteService.class);
+        QueryServiceLote service = mock(QueryServiceLote.class);
         Lote l1 = new Lote();
         Lote l2 = new Lote();
         when(service.findLoteListByCodigoInterno("L-123"))
@@ -415,23 +439,33 @@ class ControllerUtilsTest {
     @Test
     @DisplayName("bultosTotales > 1 y validarTipoDeDato = false -> false; NO llama validarSuma")
     void primerValidadorFalse() {
+        // given
         LoteDTO dto = new LoteDTO();
+        dto.setCantidadesBultos(new ArrayList<>());
+        dto.setUnidadMedidaBultos(new ArrayList<>());
         dto.getCantidadesBultos().add(new BigDecimal("2"));
         dto.getUnidadMedidaBultos().add(UnidadMedidaEnum.UNIDAD);
         dto.setBultosTotales(3);
+
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        try (
-            MockedStatic<ControllerUtils> mocked =
-                mockStatic(ControllerUtils.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
+        try (MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class)) {
+            // Spy que llama métodos reales por defecto
+            ControllerUtils utilsSpy = mock(ControllerUtils.class, Answers.CALLS_REAL_METHODS);
 
-            mocked.when(() -> validarTipoDeDato(dto, br)).thenReturn(false);
+            // El singleton devuelve el spy
+            cu.when(ControllerUtils::getInstance).thenReturn(utilsSpy);
 
+            // Stub: primer validador devuelve false
+            doReturn(false).when(utilsSpy).validarTipoDeDato(dto, br);
+
+            // when
             boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
+            // then
             assertFalse(ok);
-            mocked.verify(() -> validarTipoDeDato(dto, br));
-            mocked.verify(() -> ControllerUtils.validarSumaBultosConvertida(any(), any()), never());
+            verify(utilsSpy).validarTipoDeDato(dto, br);
+            verify(utilsSpy, never()).validarSumaBultosConvertida(any(), any());
         }
     }
 
@@ -497,26 +531,36 @@ class ControllerUtilsTest {
     @Test
     @DisplayName("bultosTotales > 1, validarTipoDeDato = true y validarSuma = false -> false")
     void segundoValidadorFalse() {
+        // given
         LoteDTO dto = new LoteDTO();
+        dto.setCantidadesBultos(new ArrayList<>());
+        dto.setUnidadMedidaBultos(new ArrayList<>());
         dto.getCantidadesBultos().add(new BigDecimal("2"));
         dto.getUnidadMedidaBultos().add(UnidadMedidaEnum.UNIDAD);
         dto.getCantidadesBultos().add(new BigDecimal("3"));
         dto.getUnidadMedidaBultos().add(UnidadMedidaEnum.UNIDAD);
         dto.setBultosTotales(2);
+
         BeanPropertyBindingResult br = new BeanPropertyBindingResult(dto, "loteDTO");
 
-        try (
-            MockedStatic<ControllerUtils> mocked =
-                mockStatic(ControllerUtils.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
+        try (MockedStatic<ControllerUtils> cu = mockStatic(ControllerUtils.class)) {
+            // Spy que llama métodos reales por defecto
+            ControllerUtils utilsSpy = mock(ControllerUtils.class, Answers.CALLS_REAL_METHODS);
 
-            mocked.when(() -> validarTipoDeDato(dto, br)).thenReturn(true);
-            mocked.when(() -> ControllerUtils.validarSumaBultosConvertida(dto, br)).thenReturn(false);
+            // El singleton devuelve el spy
+            cu.when(ControllerUtils::getInstance).thenReturn(utilsSpy);
 
+            // Stubs: primer validador true, segundo false
+            doReturn(true).when(utilsSpy).validarTipoDeDato(dto, br);
+            doReturn(false).when(utilsSpy).validarSumaBultosConvertida(dto, br);
+
+            // when
             boolean ok = ControllerUtils.getInstance().validarBultos(dto, br);
 
+            // then
             assertFalse(ok);
-            mocked.verify(() -> validarTipoDeDato(dto, br));
-            mocked.verify(() -> ControllerUtils.validarSumaBultosConvertida(dto, br));
+            verify(utilsSpy).validarTipoDeDato(dto, br);
+            verify(utilsSpy).validarSumaBultosConvertida(dto, br);
         }
     }
 
@@ -661,7 +705,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -682,7 +726,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertTrue(ok);
         verify(br).hasErrors();
@@ -698,7 +742,7 @@ class ControllerUtilsTest {
         BindingResult br = mock(BindingResult.class);
         when(br.hasErrors()).thenReturn(false);
 
-        boolean ok = validarTipoDeDato(d, br);
+        boolean ok = ControllerUtils.getInstance().validarTipoDeDato(d, br);
 
         assertFalse(ok);
         verify(br).hasErrors();
@@ -734,11 +778,11 @@ class ControllerUtilsTest {
     }
 
     @Test
-    void validarFechaEgresoLoteDtoPosteriorLote() {
+    void validarFechaAnalisisPosteriorIngresoLote() {
     }
 
     @Test
-    void validarFechaAnalisisPosteriorIngresoLote() {
+    void validarFechaEgresoLoteDtoPosteriorLote() {
     }
 
     @Test

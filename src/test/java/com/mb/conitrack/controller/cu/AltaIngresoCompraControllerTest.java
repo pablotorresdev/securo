@@ -32,6 +32,7 @@ import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
 import com.mb.conitrack.utils.ControllerUtils;
 
+import static com.mb.conitrack.controller.cu.AbstractCuController.controllerUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -113,7 +114,7 @@ class AltaIngresoCompraControllerTest {
         assertSame(dto, model.getAttribute("loteDTO"));        // misma instancia
         assertSame(productosMock, model.getAttribute("productos"));        // misma instancia
         assertSame(proveedoresMock, model.getAttribute("proveedores"));        // misma instancia
-        assertEquals(ControllerUtils.getCountryList(), model.getAttribute("paises"));        // misma instancia
+        assertEquals(controllerUtils().getCountryList(), model.getAttribute("paises"));        // misma instancia
     }
 
     @Test

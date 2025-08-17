@@ -47,6 +47,14 @@ public class DTOUtils {
         throw new IllegalArgumentException("El número de análisis es requerido");
     }
 
+    public static List<BultoDTO> fromBultoEntities(final List<Bulto> bultoList) {
+        final List<BultoDTO> bultoDTOs = new ArrayList<>();
+        for (Bulto entity : bultoList) {
+            bultoDTOs.add(DTOUtils.fromBultoEntity(entity));
+        }
+        return bultoDTOs;
+    }
+
     public static List<AnalisisDTO> fromAnalisisEntities(final List<Analisis> analisisList) {
         final List<AnalisisDTO> analisisDtos = new ArrayList<>();
         for (Analisis entity : analisisList) {

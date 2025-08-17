@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import jakarta.validation.Valid;
 
@@ -26,17 +28,8 @@ public class BajaDevolucionCompraController extends AbstractCuController {
     @Autowired
     private LoteService loteService;
 
-    private static boolean validarDevolucionCompra(
-        final MovimientoDTO movimientoDTO,
-        final BindingResult bindingResult,
-        final Lote loteByCodigoInterno) {
-        boolean success = loteByCodigoInterno != null;
-        success = success && controllerUtils()
-            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, loteByCodigoInterno, bindingResult);
-        success = success && controllerUtils()
-            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, loteByCodigoInterno, bindingResult);
-        return success;
-    }
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -66,7 +59,7 @@ public class BajaDevolucionCompraController extends AbstractCuController {
         final Lote loteByCodigoInterno = controllerUtils().getLoteByCodigoInterno(
             movimientoDTO.getCodigoInternoLote(),
             bindingResult,
-            loteService);
+            queryServiceLote);
 
         if (!validarDevolucionCompra(movimientoDTO, bindingResult, loteByCodigoInterno)) {
             initModelDevolucionCompra(model);
@@ -85,7 +78,9 @@ public class BajaDevolucionCompraController extends AbstractCuController {
     }
 
     void initModelDevolucionCompra(final Model model) {
-        model.addAttribute("lotesDevolvibles", dtoUtils().fromLoteEntities(loteService.findAllForDevolucionCompra()));
+        model.addAttribute(
+            "lotesDevolvibles",
+            DTOUtils.fromLoteEntities(queryServiceLote.findAllForDevolucionCompra()));
     }
 
     void procesarDevolucionCompra(
@@ -93,7 +88,7 @@ public class BajaDevolucionCompraController extends AbstractCuController {
         Lote lote,
         final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = dtoUtils().fromLoteEntity(loteService.bajaBultosDevolucionCompra(
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.bajaBultosDevolucionCompra(
             movimientoDTO,
             lote));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
@@ -102,6 +97,18 @@ public class BajaDevolucionCompraController extends AbstractCuController {
             resultDTO != null
                 ? "Devolucion realizada correctamente."
                 : "Hubo un error en la devolucion de compra.");
+    }
+
+    private boolean validarDevolucionCompra(
+        final MovimientoDTO movimientoDTO,
+        final BindingResult bindingResult,
+        final Lote loteByCodigoInterno) {
+        boolean success = loteByCodigoInterno != null;
+        success = success && controllerUtils()
+            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, loteByCodigoInterno, bindingResult);
+        success = success && controllerUtils()
+            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, loteByCodigoInterno, bindingResult);
+        return success;
     }
 
 }

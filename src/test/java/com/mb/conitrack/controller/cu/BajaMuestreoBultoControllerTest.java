@@ -29,6 +29,7 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 import com.mb.conitrack.utils.ControllerUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,6 +59,9 @@ class BajaMuestreoBultoControllerTest {
 
     @Mock
     LoteService loteService;
+
+    @Mock
+    QueryServiceLote queryServiceLote;
 
     Model model;
     RedirectAttributes redirect;
@@ -106,7 +110,7 @@ class BajaMuestreoBultoControllerTest {
         List<Lote> entrada = List.of(new Lote(), new Lote());
         List<LoteDTO> salidaDtos = List.of(new LoteDTO());
 
-        when(loteService.findAllForMuestreo()).thenReturn(entrada);
+        when(queryServiceLote.findAllForMuestreo()).thenReturn(entrada);
 
         try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
             mocked.when(() -> DTOUtils.fromLoteEntities(entrada)).thenReturn(salidaDtos);
@@ -116,7 +120,7 @@ class BajaMuestreoBultoControllerTest {
             assertEquals("calidad/baja/muestreo-bulto", view);
             assertSame(dto, model.getAttribute("movimientoDTO"));
             assertSame(salidaDtos, model.getAttribute("lotesMuestreables"));
-            verify(loteService).findAllForMuestreo();
+            verify(queryServiceLote).findAllForMuestreo();
             mocked.verify(() -> DTOUtils.fromLoteEntities(entrada));
         }
     }
@@ -158,7 +162,7 @@ class BajaMuestreoBultoControllerTest {
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
             when(utils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
-            when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.empty());
+            when(queryServiceLote.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.empty());
 
             String view = controller.procesarMuestreoBulto(dto, binding, model, redirect);
 
@@ -166,7 +170,7 @@ class BajaMuestreoBultoControllerTest {
             assertSame(dto, model.getAttribute("movimientoDTO"));
 
             verify(utils).validarNroAnalisisNotNull(dto, binding);
-            verify(loteService).findLoteByCodigoInterno("COD-123");
+            verify(queryServiceLote).findLoteByCodigoInterno("COD-123");
             verify(utils, never()).validarFechaMovimientoPosteriorIngresoLote(any(), any(), any());
             verify(utils, never()).validarFechaAnalisisPosteriorIngresoLote(any(), any(), any());
             verify(utils, never()).validarCantidadesMovimiento(any(), any(Bulto.class), any());
@@ -183,7 +187,7 @@ class BajaMuestreoBultoControllerTest {
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
             when(utils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
-            when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
+            when(queryServiceLote.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(false);
 
             String view = controller.procesarMuestreoBulto(dto, binding, model, redirect);
@@ -209,7 +213,7 @@ class BajaMuestreoBultoControllerTest {
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
             when(utils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
-            when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
+            when(queryServiceLote.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(false);
 
@@ -232,7 +236,7 @@ class BajaMuestreoBultoControllerTest {
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
             when(utils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
-            when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
+            when(queryServiceLote.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
 
@@ -255,7 +259,7 @@ class BajaMuestreoBultoControllerTest {
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
             when(utils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
-            when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
+            when(queryServiceLote.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarCantidadesMovimiento(dto, esperado, binding)).thenReturn(false);
@@ -288,7 +292,7 @@ class BajaMuestreoBultoControllerTest {
             du.when(DTOUtils::getInstance).thenReturn(dtoUtils);
 
             when(controllerUtils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
-            when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
+            when(queryServiceLote.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
             when(controllerUtils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(controllerUtils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(controllerUtils.validarCantidadesMovimiento(dto, bulto, binding)).thenReturn(true);
@@ -327,7 +331,7 @@ class BajaMuestreoBultoControllerTest {
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
             when(utils.validarNroAnalisisNotNull(dto, binding)).thenReturn(true);
-            when(loteService.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
+            when(queryServiceLote.findLoteByCodigoInterno("COD-123")).thenReturn(Optional.of(lote));
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarCantidadesMovimiento(dto, bulto, binding)).thenReturn(true);

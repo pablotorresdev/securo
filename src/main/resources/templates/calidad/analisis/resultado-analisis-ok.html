@@ -88,8 +88,8 @@
                 <th>Distribución de Bultos:</th>
                 <td>
                     <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                          th:text="'Bulto ' + (iterStat.index+1) + ': ' + cant + ' (' + ${loteDTO.unidadMedidaBultos[iterStat.index]} + ') '">
-                     </span>
+                          th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
+                    </span>
                 </td>
             </tr>
             </tbody>

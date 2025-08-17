@@ -22,6 +22,7 @@ import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import jakarta.validation.Valid;
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class ControllerUtils {
         // Utility class
     }
 
-    public static List<String> getCountryList() {
+    public List<String> getCountryList() {
         String[] countryCodes = Locale.getISOCountries();
         List<String> countries = new ArrayList<>();
         for (String code : countryCodes) {
@@ -49,7 +50,7 @@ public class ControllerUtils {
         return countries;
     }
 
-    public static boolean validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
+    public boolean validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -108,7 +109,7 @@ public class ControllerUtils {
         return true;
     }
 
-    public static boolean validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    public boolean validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -302,20 +303,22 @@ public class ControllerUtils {
         String codigoInternoLote,
         BindingResult bindingResult,
         final LoteService loteService) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote)
-            .stream()
-            .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno))
-            .toList();
-        if (loteListByCodigoInterno.isEmpty()) {
-            bindingResult.rejectValue("codigoInternoLote", "Lote inexistente.");
-            return false;
-        }
-        lotesList.addAll(loteListByCodigoInterno);
-        return true;
+        throw new UnsupportedOperationException("This method is not implemented yet.");
+
+        //        if (bindingResult.hasErrors()) {
+        //            return false;
+        //        }
+        //        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote)
+        //            .stream()
+        //            .filter(l -> l.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
+        //            .sorted(Comparator.comparing(Lote::getFechaIngreso).thenComparing(Lote::getCodigoInterno))
+        //            .toList();
+        //        if (loteListByCodigoInterno.isEmpty()) {
+        //            bindingResult.rejectValue("codigoInternoLote", "Lote inexistente.");
+        //            return false;
+        //        }
+        //        lotesList.addAll(loteListByCodigoInterno);
+        //        return true;
     }
 
     public boolean validarCantidadesPorMedidas(
@@ -595,12 +598,12 @@ public class ControllerUtils {
     public Lote getLoteByCodigoInterno(
         String codigoInternoLote,
         BindingResult bindingResult,
-        final LoteService loteService) {
+        final QueryServiceLote queryServiceLote) {
         if (bindingResult.hasErrors()) {
             return null;
         }
 
-        final Optional<Lote> loteByCodigoInterno = loteService.findLoteByCodigoInterno(codigoInternoLote);
+        final Optional<Lote> loteByCodigoInterno = queryServiceLote.findLoteByCodigoInterno(codigoInternoLote);
         if (loteByCodigoInterno.isEmpty()) {
             bindingResult.rejectValue("codigoInternoLote", "", "Lote no encontrado.");
             return null;
@@ -612,11 +615,11 @@ public class ControllerUtils {
         final List<Lote> lotesList,
         String codigoInternoLote,
         BindingResult bindingResult,
-        final LoteService loteService) {
+        final QueryServiceLote queryServiceLote) {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        final List<Lote> loteListByCodigoInterno = loteService.findLoteListByCodigoInterno(codigoInternoLote);
+        final List<Lote> loteListByCodigoInterno = queryServiceLote.findLoteListByCodigoInterno(codigoInternoLote);
         if (loteListByCodigoInterno.isEmpty()) {
             bindingResult.rejectValue("codigoInternoLote", "", "Lote no encontrado.");
             return false;

@@ -25,30 +25,30 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="lote : ${lotes}">
-            <td th:text="${lote.producto.nombreGenerico}">Producto</td>
-            <td th:text="${lote.codigoInternoLote}">Código Interno</td>
-            <td th:text="${lote.cantidadActual}">Cantidad Actual</td>
-            <td th:text="${lote.unidadMedida}">Unidad Medida</td>
+        <tr th:each="loteDTO : ${loteDTOs}">
+            <td th:text="${loteDTO.nombreProducto}">Producto</td>
+            <td th:text="${loteDTO.codigoInternoLote}">Código Interno</td>
+            <td th:text="${loteDTO.cantidadActual}">Cantidad Actual</td>
+            <td th:text="${loteDTO.unidadMedida}">Unidad Medida</td>
             <!-- Días hasta Reanálisis Vigente -->
             <td>
-                <span th:text="${lote.diasHastaFechaReanalisisVigente}"
-                      th:classappend="${lote.diasHastaFechaReanalisisVigente != null and lote.diasHastaFechaReanalisisVigente <= 30} ? 'text-danger'">
+                <span th:text="${loteDTO.diasHastaFechaReanalisisVigente}"
+                      th:classappend="${loteDTO.diasHastaFechaReanalisisVigente != null and loteDTO.diasHastaFechaReanalisisVigente <= 30} ? 'text-danger'">
                 </span>
             </td>
 
             <!-- Días hasta Vencimiento Vigente -->
             <td>
-                <span th:text="${lote.diasHastaFechaVencimientoVigente}"
-                      th:classappend="${lote.diasHastaFechaVencimientoVigente != null and lote.diasHastaFechaVencimientoVigente <= 30} ? 'text-danger'">
+                <span th:text="${loteDTO.diasHastaFechaVencimientoVigente}"
+                      th:classappend="${loteDTO.diasHastaFechaVencimientoVigente != null and loteDTO.diasHastaFechaVencimientoVigente <= 30} ? 'text-danger'">
                 </span>
             </td>
-            <td th:text="${lote.fechaReanalisisVigente}">Última Fecha Reanálisis Vigente</td>
-            <td th:text="${lote.fechaVencimientoVigente}">Última Fecha Vencimiento Vigente</td>
-            <td th:text="${lote.fechaReanalisisProveedor}">Fecha Reanálisis Proveedor</td>
-            <td th:text="${lote.fechaVencimientoProveedor}">Fecha Vencimiento Proveedor</td>
+            <td th:text="${loteDTO.fechaReanalisisVigente}">Última Fecha Reanálisis Vigente</td>
+            <td th:text="${loteDTO.fechaVencimientoVigente}">Última Fecha Vencimiento Vigente</td>
+            <td th:text="${loteDTO.fechaReanalisisProveedor}">Fecha Reanálisis Proveedor</td>
+            <td th:text="${loteDTO.fechaVencimientoProveedor}">Fecha Vencimiento Proveedor</td>
             <td>
-                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/loteId/' + ${lote.id}}">Ver Analisis</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/codigoInternoLote/' + ${loteDTO.codigoInternoLote}}">Ver Analisis</a>
             </td>
         </tr>
         </tbody>

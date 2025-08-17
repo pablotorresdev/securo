@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,7 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.BajaProduccion;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.utils.ControllerUtils;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
@@ -32,6 +31,9 @@ public class BajaConsumoProduccionController extends AbstractCuController {
 
     @Autowired
     private LoteService loteService;
+
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     @GetMapping("/cancelar")
     public String cancelar() {
@@ -70,7 +72,7 @@ public class BajaConsumoProduccionController extends AbstractCuController {
 
     private void consumoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = dtoUtils().fromLoteEntity(loteService.bajaConsumoProduccion(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.bajaConsumoProduccion(loteDTO));
 
         //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
@@ -82,8 +84,8 @@ public class BajaConsumoProduccionController extends AbstractCuController {
     }
 
     private void initModelConsumoProduccion(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> lotesProduccion = fromLoteEntities(loteService.findAllForConsumoProduccion());
-        model.addAttribute("lotesProduccion", lotesProduccion);
+        List<LoteDTO> loteProduccionDTOs = fromLoteEntities(queryServiceLote.findAllForConsumoProduccion());
+        model.addAttribute("loteProduccionDTOs", loteProduccionDTOs);
         model.addAttribute("loteDTO", loteDTO); //  ← mantiene lo que el usuario ingresó
     }
 
@@ -95,7 +97,7 @@ public class BajaConsumoProduccionController extends AbstractCuController {
         Lote lote = controllerUtils().getLoteByCodigoInterno(
             loteDTO.getCodigoInternoLote(),
             bindingResult,
-            loteService);
+            queryServiceLote);
 
         boolean success = lote != null;
         success = success &&

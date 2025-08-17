@@ -2,7 +2,6 @@ package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -15,17 +14,16 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
-import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.repository.DetalleMovimientoRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
+import com.mb.conitrack.utils.LoteEntityUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -35,21 +33,18 @@ import static com.mb.conitrack.enums.DictamenEnum.CUARENTENA;
 import static com.mb.conitrack.enums.DictamenEnum.LIBERADO;
 import static com.mb.conitrack.enums.DictamenEnum.VENCIDO;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
-import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.EXPIRACION_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
-import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.RESULTADO_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
 import static com.mb.conitrack.enums.MotivoEnum.VENTA;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaDevolucionVenta;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoCompra;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoAltaIngresoProduccion;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoModificacion;
-import static com.mb.conitrack.utils.EntityUtils.createMovimientoPorMuestreo;
-import static com.mb.conitrack.utils.EntityUtils.getAnalisisEnCurso;
-import static com.mb.conitrack.utils.EntityUtils.populateDetalleMovimiento;
-import static com.mb.conitrack.utils.EntityUtils.populateDetalleMovimientoAlta;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaDevolucionVenta;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaProduccion;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMayorUnidadMedida;
 
 @AllArgsConstructor
 @Service
@@ -64,54 +59,19 @@ public class MovimientoService {
     @Autowired
     private final MovimientoRepository movimientoRepository;
 
-    @Autowired
-    private DetalleMovimientoRepository detalleMovimientoRepository;
-
-    Movimiento createMovimientoMuestreoConAnalisis(
-        final MovimientoDTO dto,
-        final Bulto bulto,
-        final Analisis ultimoAnalisis) {
-        final Movimiento movimiento = createMovimientoPorMuestreo(dto);
-        populateDetalleMovimiento(movimiento, bulto);
-        String timestampLoteDTO = dto.getFechaYHoraCreacion()
-            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(bulto.getLote().getCodigoInterno() + "-B_" + bulto.getNroBulto() + "-" + timestampLoteDTO);
-        movimiento.setLote(bulto.getLote());
-        movimiento.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
-        return movimiento;
-    }
-
-    public List<Movimiento> findAll() {
-        final List<Movimiento> movimientos = movimientoRepository.findAllByActivoTrue();
-        movimientos.sort(Comparator.comparing(Movimiento::getFecha));
-        return movimientos;
-    }
-
-    public List<Movimiento> findAllMuestreos() {
-        return movimientoRepository.findAllByActivoTrue()
-            .stream()
-            .filter(movimiento -> MUESTREO.equals(movimiento.getMotivo()))
-            .sorted(Comparator.comparing(Movimiento::getFecha))
-            .toList();
+    private static LoteEntityUtils loteUtils() {
+        return LoteEntityUtils.getInstance();
     }
 
     public Movimiento save(final Movimiento movimiento) {
         return movimientoRepository.save(movimiento);
     }
 
-    //***********CU1 ALTA: COMPRA***********
-    @Transactional
-    public Movimiento persistirMovimientoAltaIngresoCompra(Lote lote) {
-        final Movimiento movimientoAltaIngresoCompra = createMovimientoAltaIngresoCompra(lote);
-        movimientoAltaIngresoCompra.setLote(lote);
-        return movimientoRepository.save(movimientoAltaIngresoCompra);
-    }
-
     //***********CU2 MODIFICACION: CUARENTENA***********
     @Transactional
     public Movimiento persistirMovimientoCuarentenaPorAnalisis(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
-
+        movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setMotivo(ANALISIS);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(CUARENTENA);
@@ -125,6 +85,7 @@ public class MovimientoService {
     @Transactional
     public Movimiento persistirMovimientoReanalisisProducto(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
+        movimiento.setFecha(dto.getFechaMovimiento());
 
         movimiento.setMotivo(ANALISIS);
         movimiento.setDictamenInicial(lote.getDictamen());
@@ -140,71 +101,22 @@ public class MovimientoService {
     public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Bulto bulto) {
         final List<Analisis> analisisList = bulto.getLote().getAnalisisList();
         if (analisisList.isEmpty()) {
-            return crearMovimientoMuestreoConPrimerAnalisis(dto,  bulto);
+            return crearMovimientoMuestreoConPrimerAnalisis(dto, bulto);
         } else {
-            final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
+            final Optional<Analisis> analisisEnCurso = loteUtils().getAnalisisEnCurso(analisisList);
             if (analisisEnCurso.isPresent()) {
-                return crearMovimientoMuestreoConAnalisisEnCurso(dto,  bulto, analisisEnCurso);
+                return crearMovimientoMuestreoConAnalisisEnCurso(dto, bulto, analisisEnCurso);
             } else {
                 return crearMovmimientoMuestreoConAnalisisDictaminado(dto, bulto);
             }
         }
     }
 
-    //***********CU4 BAJA: DEVOLUCION COMPRA***********
-    @Transactional
-    public Movimiento createMovimientoDevolucionCompra(final MovimientoDTO dto, Bulto bulto) {
-        Movimiento movimiento = new Movimiento();
-
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        movimiento.setMotivo(DEVOLUCION_COMPRA);
-
-        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        String timestampLoteDTO = dto.getFechaYHoraCreacion()
-            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(bulto.getLote().getCodigoInterno() + "-B_" + bulto.getNroBulto() + "-" + timestampLoteDTO);
-        movimiento.setCantidad(bulto.getCantidadActual());
-        movimiento.setUnidadMedida(bulto.getUnidadMedida());
-
-        movimiento.setDictamenInicial(bulto.getLote().getDictamen());
-        movimiento.setDictamenFinal(DictamenEnum.RECHAZADO);
-
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setActivo(true);
-
-        movimiento.setObservaciones("_CU4_\n" + dto.getObservaciones());
-        return movimiento;
-    }
-
-    @Transactional
-    public Movimiento persistirMovimientoDevolucionCompra(final MovimientoDTO dto, Lote lote) {
-        Movimiento movimiento = new Movimiento();
-
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        movimiento.setMotivo(DEVOLUCION_COMPRA);
-
-        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        String timestampLoteDTO = dto.getFechaYHoraCreacion()
-            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
-        movimiento.setCantidad(lote.getCantidadActual());
-        movimiento.setUnidadMedida(lote.getUnidadMedida());
-
-        movimiento.setDictamenInicial(lote.getDictamen());
-        movimiento.setDictamenFinal(DictamenEnum.RECHAZADO);
-
-        movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setLote(lote);
-        movimiento.setActivo(true);
-
-        movimiento.setObservaciones("_CU4_\n" + dto.getObservaciones());
-        return movimientoRepository.save(movimiento);
-    }
-
     //***********CU5/6: RESULTADO ANALISIS***********
     @Transactional
     public Movimiento persistirMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
+        movimiento.setFecha(dto.getFechaRealizadoAnalisis());
 
         movimiento.setMotivo(RESULTADO_ANALISIS);
         movimiento.setNroAnalisis(dto.getNroAnalisis());
@@ -217,26 +129,43 @@ public class MovimientoService {
 
     //***********CU7: CONSUMO PRODUCCION***********
     @Transactional
-    public Movimiento persistirMovimientoBajaConsumoProduccion(final LoteDTO loteDTO, final Lote bulto) {
-        final Movimiento movimiento = new Movimiento();
+    public Movimiento persistirMovimientoBajaConsumoProduccion(final LoteDTO loteDTO, final Lote loteEntity) {
+        final Movimiento movimiento = createMovimientoBajaProduccion(loteDTO, loteEntity);
 
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        movimiento.setMotivo(MotivoEnum.CONSUMO_PRODUCCION);
+        UnidadMedidaEnum uniMedidaMovimiento = loteDTO.getUnidadMedidaBultos().get(0);
 
-        //final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
-        final int i = -1;
-        movimiento.setCantidad(loteDTO.getCantidadesBultos().get(i));
-        movimiento.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
+        for (int i = 1; i < loteDTO.getCantidadesBultos().size(); i++) {
+            uniMedidaMovimiento = obtenerMayorUnidadMedida(uniMedidaMovimiento, loteDTO.getUnidadMedidaBultos().get(i));
+        }
 
-        movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
-        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
-            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-" + timestampLoteDTO);
-        movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
-        movimiento.setFecha(loteDTO.getFechaEgreso());
-        movimiento.setLote(bulto);
-        movimiento.setActivo(true);
-        movimiento.setObservaciones("_CU7_\n" + loteDTO.getObservaciones());
+        BigDecimal cantidad = BigDecimal.ZERO;
+
+        for (int i = 0; i < loteDTO.getCantidadesBultos().size(); i++) {
+            final BigDecimal montoBulto = convertirCantidadEntreUnidades(
+                loteDTO.getUnidadMedidaBultos().get(i),
+                loteDTO.getCantidadesBultos().get(i),
+                uniMedidaMovimiento);
+            cantidad = cantidad.add(montoBulto);
+        }
+
+        movimiento.setCantidad(cantidad);
+        movimiento.setUnidadMedida(uniMedidaMovimiento);
+
+        for (int i = 0; i < loteDTO.getNroBultoList().size(); i++) {
+            final Integer nroBulto = loteDTO.getNroBultoList().get(i);
+            if (BigDecimal.ZERO.compareTo(loteDTO.getCantidadesBultos().get(i)) == 0) {
+                continue;
+            }
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimiento)
+                .bulto(loteEntity.getBultoByNro(nroBulto))
+                .cantidad(loteDTO.getCantidadesBultos().get(i))
+                .unidadMedida( loteDTO.getUnidadMedidaBultos().get(i))
+                .build();
+
+            movimiento.getDetalles().add(det);
+        }
+
         return movimientoRepository.save(movimiento);
     }
 
@@ -247,7 +176,7 @@ public class MovimientoService {
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(VENTA);
 
-       //final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
+        //final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
         final int i = -1;
         movimiento.setCantidad(loteDTO.getCantidadesBultos().get(i));
         movimiento.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
@@ -293,7 +222,6 @@ public class MovimientoService {
     @Transactional
     public Movimiento persistirMovimientoAltaIngresoProduccion(Lote lote) {
         final Movimiento movimientoAltaIngresoProduccion = createMovimientoAltaIngresoProduccion(lote);
-        movimientoAltaIngresoProduccion.setLote(lote);
         return movimientoRepository.save(movimientoAltaIngresoProduccion);
     }
 
@@ -301,7 +229,7 @@ public class MovimientoService {
     @Transactional
     public Movimiento persistirMovimientoExpiracionAnalisis(final MovimientoDTO dto, Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
-
+        movimiento.setFecha(dto.getFechaYHoraCreacion().toLocalDate());
         movimiento.setMotivo(EXPIRACION_ANALISIS);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(ANALISIS_EXPIRADO);
@@ -314,6 +242,7 @@ public class MovimientoService {
     @Transactional
     public Movimiento persistirMovimientoProductoVencido(final MovimientoDTO dto, Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
+        movimiento.setFecha(dto.getFechaYHoraCreacion().toLocalDate());
         movimiento.setMotivo(VENCIMIENTO);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(VENCIDO);
@@ -326,6 +255,7 @@ public class MovimientoService {
     @Transactional
     public Movimiento persistirMovimientoLiberacionProducto(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
+
         movimiento.setMotivo(LIBERACION);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(LIBERADO);
@@ -375,5 +305,6 @@ public class MovimientoService {
         final Analisis newAnalisis = analisisService.save(DTOUtils.createAnalisis(dto));
         return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, newAnalisis));
     }
+
 
 }

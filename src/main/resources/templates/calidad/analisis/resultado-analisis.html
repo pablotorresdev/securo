@@ -27,7 +27,7 @@
             <select class="form-select" id="loteSelector">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:attr="attr-codigoInternoLote=${loteDTO.codigoInternoLote}"
-                        th:each="loteDTO : ${loteDTOs}"
+                        th:each="loteDTO : ${loteResultadoAnalisisDTOs}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoInternoLote} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
                         th:value="${loteDTO.getNroUltimoAnalisisDto()}">
                 </option>

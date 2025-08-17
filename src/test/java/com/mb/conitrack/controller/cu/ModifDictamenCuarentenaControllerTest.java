@@ -29,6 +29,7 @@ import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
 import com.mb.conitrack.service.ProveedorService;
+import com.mb.conitrack.service.QueryServiceLote;
 import com.mb.conitrack.utils.ControllerUtils;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
@@ -62,6 +63,9 @@ class ModifDictamenCuarentenaControllerTest {
 
     @Mock
     AnalisisService analisisService;;
+
+    @Mock
+    QueryServiceLote queryServiceLote;;
 
     @Mock
     ProductoService productoService;
@@ -236,7 +240,7 @@ class ModifDictamenCuarentenaControllerTest {
 
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
             when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
+            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
                 .thenAnswer(inv -> {
                     return null;                   // el estático debe devolver boolean
                 });
@@ -246,7 +250,7 @@ class ModifDictamenCuarentenaControllerTest {
             assertEquals("calidad/dictamen/cuarentena", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
             verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
+            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
             verify(controller).initModelDictamencuarentena(dto, model);
             verify(controller, never()).dictamenCuarentena(any(), any(), any());
             assertSame(dto, model.getAttribute("movimientoDTO"));
@@ -271,7 +275,7 @@ class ModifDictamenCuarentenaControllerTest {
 
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
             when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
+            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
                 .thenAnswer(inv -> {
                     return new Lote();                   // el estático debe devolver boolean
                 });
@@ -283,7 +287,7 @@ class ModifDictamenCuarentenaControllerTest {
 
             assertEquals("calidad/dictamen/cuarentena", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
+            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
             verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
             verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(controller).initModelDictamencuarentena(dto, model);
@@ -309,7 +313,7 @@ class ModifDictamenCuarentenaControllerTest {
             mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
             when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
+            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
                 .thenAnswer(inv -> {
                     return new Lote();                   // el estático debe devolver boolean
                 });
@@ -324,7 +328,7 @@ class ModifDictamenCuarentenaControllerTest {
             assertEquals("calidad/dictamen/cuarentena", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
             verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
+            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
             verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(controller).initModelDictamencuarentena(dto, model);
@@ -369,7 +373,7 @@ class ModifDictamenCuarentenaControllerTest {
 
         Lote l1 = new Lote();
         Lote l2 = new Lote();
-        given(loteService.findAllForCuarentena()).willReturn(List.of(l1, l2));
+        given(queryServiceLote.findAllForCuarentena()).willReturn(List.of(l1, l2));
 
         List<LoteDTO> fakeDtos = List.of(new LoteDTO(), new LoteDTO());
 
@@ -383,7 +387,7 @@ class ModifDictamenCuarentenaControllerTest {
 
             // then
             assertEquals("calidad/dictamen/cuarentena", view);
-            assertSame(fakeDtos, model.getAttribute("lotesForCuarentena"));
+            assertSame(fakeDtos, model.getAttribute("loteCuarentenaDTOs"));
             assertSame(dto, model.getAttribute("movimientoDTO"));
 
             // Verificamos que se haya llamado al método estático con alguna lista
@@ -396,7 +400,7 @@ class ModifDictamenCuarentenaControllerTest {
     void showDictamenCuarentenaForm_listaVacia() {
         // given
         MovimientoDTO dto = new MovimientoDTO();
-        given(loteService.findAllForCuarentena()).willReturn(Collections.emptyList());
+        given(queryServiceLote.findAllForCuarentena()).willReturn(Collections.emptyList());
 
         // when
         String view = controller.showDictamenCuarentenaForm(dto, model);
@@ -405,10 +409,10 @@ class ModifDictamenCuarentenaControllerTest {
         assertEquals("calidad/dictamen/cuarentena", view);
 
         // se llama al servicio
-        verify(loteService).findAllForCuarentena();
+        verify(queryServiceLote).findAllForCuarentena();
 
         // model con atributos esperados
-        Object lotesAttr = model.getAttribute("lotesForCuarentena");
+        Object lotesAttr = model.getAttribute("loteCuarentenaDTOs");
         assertNotNull(lotesAttr);
         assertTrue(lotesAttr instanceof List<?>);
         assertTrue(((List<?>)lotesAttr).isEmpty());
@@ -444,7 +448,7 @@ class ModifDictamenCuarentenaControllerTest {
             mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
             when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
             when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService)))
+            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
                 .thenAnswer(inv -> {
                     return new Lote();                   // el estático debe devolver boolean
                 });
@@ -458,7 +462,7 @@ class ModifDictamenCuarentenaControllerTest {
             assertEquals("redirect:/calidad/dictamen/cuarentena-ok", view);
             verify(utilsMock).validarNroAnalisisNotNull(dto, br);
             verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(loteService));
+            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
             verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
             verify(controller, never()).initModelDictamencuarentena(any(), any());

@@ -18,7 +18,7 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.utils.ControllerUtils;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import jakarta.validation.Valid;
 
@@ -26,10 +26,13 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/baja")
-public class BajaVentaProductoController  extends AbstractCuController  {
+public class BajaVentaProductoController extends AbstractCuController {
 
     @Autowired
     private LoteService loteService;
+
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -70,7 +73,7 @@ public class BajaVentaProductoController  extends AbstractCuController  {
     }
 
     private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> lotesVenta = fromLoteEntities(loteService.findAllForVentaProducto());
+        List<LoteDTO> lotesVenta = fromLoteEntities(queryServiceLote.findAllForVentaProducto());
         model.addAttribute("lotesVenta", lotesVenta);
         model.addAttribute("loteDTO", loteDTO);
     }
@@ -81,9 +84,6 @@ public class BajaVentaProductoController  extends AbstractCuController  {
         }
         //TODO: analizar validacion para ventas, ahora se copio la de consumo produccion
         final List<Lote> lotes = new ArrayList<>();
-
-
-
 
         return controllerUtils().populateAvailableLoteListByCodigoInterno(
             lotes,
@@ -98,7 +98,7 @@ public class BajaVentaProductoController  extends AbstractCuController  {
 
     private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = dtoUtils().mergeLoteEntities(loteService.bajaVentaProducto(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.bajaVentaProducto(loteDTO));
 
         //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);

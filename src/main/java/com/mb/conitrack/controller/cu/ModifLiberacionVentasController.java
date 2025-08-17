@@ -19,6 +19,7 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 import com.mb.conitrack.utils.ControllerUtils;
 
 import jakarta.validation.Valid;
@@ -31,6 +32,9 @@ public class ModifLiberacionVentasController {
 
     @Autowired
     private LoteService loteService;
+
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -61,7 +65,7 @@ public class ModifLiberacionVentasController {
             lotesList,
             movimientoDTO.getCodigoInternoLote(),
             bindingResult,
-            loteService)
+            queryServiceLote)
             && ControllerUtils.getInstance()
             .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lotesList.get(0), bindingResult)
             && ControllerUtils.getInstance()
@@ -84,7 +88,7 @@ public class ModifLiberacionVentasController {
     }
 
     private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = fromLoteEntities(loteService.findAllForLiberacionProducto());
+        final List<LoteDTO> lotesDtos = fromLoteEntities(queryServiceLote.findAllForLiberacionProducto());
         //TODO: unificar nombres de atributos
         model.addAttribute("lotesDtos", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);

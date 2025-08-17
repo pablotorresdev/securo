@@ -26,6 +26,7 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 import com.mb.conitrack.utils.ControllerUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +54,9 @@ class BajaDevolucionCompraControllerTest {
 
     @Mock
     LoteService loteService;
+
+    @Mock
+    QueryServiceLote queryServiceLote;
 
     Model model;
 
@@ -85,7 +89,7 @@ class BajaDevolucionCompraControllerTest {
             ControllerUtils utils = mock(ControllerUtils.class);
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
-            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(loteService)))
+            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(queryServiceLote)))
                 .thenReturn(lote);
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(false);
@@ -112,7 +116,7 @@ class BajaDevolucionCompraControllerTest {
             ControllerUtils utils = mock(ControllerUtils.class);
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
-            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(loteService)))
+            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(queryServiceLote)))
                 .thenReturn(lote);
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(false);
 
@@ -134,7 +138,7 @@ class BajaDevolucionCompraControllerTest {
     void initModelDevolucionCompra_ok() {
         List<Lote> entrada = List.of(new Lote());
         List<LoteDTO> salida = List.of(new LoteDTO());
-        when(loteService.findAllForDevolucionCompra()).thenReturn(entrada);
+        when(queryServiceLote.findAllForDevolucionCompra()).thenReturn(entrada);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
             ms.when(() -> DTOUtils.fromLoteEntities(entrada)).thenReturn(salida);
@@ -142,7 +146,7 @@ class BajaDevolucionCompraControllerTest {
             controller.initModelDevolucionCompra(model);
 
             assertSame(salida, model.getAttribute("lotesDevolvibles"));
-            verify(loteService).findAllForDevolucionCompra();
+            verify(queryServiceLote).findAllForDevolucionCompra();
             ms.verify(() -> DTOUtils.fromLoteEntities(entrada));
         }
     }
@@ -156,7 +160,7 @@ class BajaDevolucionCompraControllerTest {
             ControllerUtils utils = mock(ControllerUtils.class);
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
-            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(loteService)))
+            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(queryServiceLote)))
                 .thenReturn(null);
 
             // Evitar que haga lógica pesada dentro del init
@@ -165,7 +169,7 @@ class BajaDevolucionCompraControllerTest {
             String view = controller.procesarDevolucionCompra(dto, binding, model, redirect);
 
             assertEquals("compras/baja/devolucion-compra", view);
-            verify(utils).getLoteByCodigoInterno("COD-DEV-001", binding, loteService);
+            verify(utils).getLoteByCodigoInterno("COD-DEV-001", binding, queryServiceLote);
             verify(controller).initModelDevolucionCompra(model);
             verify(controller, never()).procesarDevolucionCompra(any(), any(), any());
             assertSame(dto, model.getAttribute("movimientoDTO"));
@@ -246,7 +250,7 @@ class BajaDevolucionCompraControllerTest {
     @Test
     @DisplayName("GET /devolucion-compra -> lista vacía en el modelo cuando el servicio no trae datos")
     void showDevolucionCompraForm_listaVacia() {
-        when(loteService.findAllForDevolucionCompra()).thenReturn(Collections.emptyList());
+        when(queryServiceLote.findAllForDevolucionCompra()).thenReturn(Collections.emptyList());
 
         String view = controller.showDevolucionCompraForm(dto, model);
 
@@ -255,7 +259,7 @@ class BajaDevolucionCompraControllerTest {
         assertNotNull(attr);
         assertTrue(attr instanceof List<?>);
         assertTrue(((List<?>)attr).isEmpty());
-        verify(loteService).findAllForDevolucionCompra();
+        verify(queryServiceLote).findAllForDevolucionCompra();
     }
 
     /* ------------------ procesarDevolucionCompra (unit) ------------------ */
@@ -266,7 +270,7 @@ class BajaDevolucionCompraControllerTest {
         List<Lote> entrada = List.of(new Lote(), new Lote());
         List<LoteDTO> salidaDtos = List.of(new LoteDTO(), new LoteDTO());
 
-        when(loteService.findAllForDevolucionCompra()).thenReturn(entrada);
+        when(queryServiceLote.findAllForDevolucionCompra()).thenReturn(entrada);
 
         try (MockedStatic<DTOUtils> ms = mockStatic(DTOUtils.class)) {
             ms.when(() -> DTOUtils.fromLoteEntities(entrada)).thenReturn(salidaDtos);
@@ -275,7 +279,7 @@ class BajaDevolucionCompraControllerTest {
 
             assertEquals("compras/baja/devolucion-compra", view);
             assertSame(salidaDtos, model.getAttribute("lotesDevolvibles"));
-            verify(loteService).findAllForDevolucionCompra();
+            verify(queryServiceLote).findAllForDevolucionCompra();
             ms.verify(() -> DTOUtils.fromLoteEntities(entrada));
         }
     }
@@ -289,7 +293,7 @@ class BajaDevolucionCompraControllerTest {
             ControllerUtils utils = mock(ControllerUtils.class);
             ms.when(ControllerUtils::getInstance).thenReturn(utils);
 
-            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(loteService)))
+            when(utils.getLoteByCodigoInterno(eq("COD-DEV-001"), eq(binding), eq(queryServiceLote)))
                 .thenReturn(lote);
             when(utils.validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
             when(utils.validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding)).thenReturn(true);
@@ -299,7 +303,7 @@ class BajaDevolucionCompraControllerTest {
             String view = controller.procesarDevolucionCompra(dto, binding, model, redirect);
 
             assertEquals("redirect:/compras/baja/devolucion-compra-ok", view);
-            verify(utils).getLoteByCodigoInterno("COD-DEV-001", binding, loteService);
+            verify(utils).getLoteByCodigoInterno("COD-DEV-001", binding, queryServiceLote);
             verify(utils).validarFechaMovimientoPosteriorIngresoLote(dto, lote, binding);
             verify(utils).validarFechaAnalisisPosteriorIngresoLote(dto, lote, binding);
             verify(controller, never()).initModelDevolucionCompra(any());

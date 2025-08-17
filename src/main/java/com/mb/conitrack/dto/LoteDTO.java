@@ -228,14 +228,6 @@ public class LoteDTO {
             .orElse(null);
     }
 
-    public String getNroUltimoAnalisisDictaminado() {
-        final AnalisisDTO currentAnalisis = getUltimoAnalisisDtoDictaminado();
-        if (currentAnalisis == null) {
-            return null;
-        }
-        return currentAnalisis.getNroAnalisis();
-    }
-
     public String getUltimoNroAnalisisDto() {
         final AnalisisDTO currentAnalisis = getUltimoAnalisisDto();
         if (currentAnalisis == null) {

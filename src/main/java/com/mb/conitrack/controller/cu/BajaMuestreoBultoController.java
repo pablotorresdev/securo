@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
+import com.mb.conitrack.service.QueryServiceLote;
 
 import jakarta.validation.Valid;
 
@@ -28,6 +30,9 @@ public class BajaMuestreoBultoController extends AbstractCuController {
 
     @Autowired
     private LoteService loteService;
+
+    @Autowired
+    private QueryServiceLote queryServiceLote;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -55,7 +60,7 @@ public class BajaMuestreoBultoController extends AbstractCuController {
 
         boolean success = controllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
         Lote lote = success
-            ? loteService.findLoteByCodigoInterno(movimientoDTO.getCodigoInternoLote()).orElse(null)
+            ? queryServiceLote.findLoteByCodigoInterno(movimientoDTO.getCodigoInternoLote()).orElse(null)
             : null;
 
         success = success && lote != null;
@@ -93,7 +98,7 @@ public class BajaMuestreoBultoController extends AbstractCuController {
     }
 
     void initModelMuestreoBulto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> lotesDtos = dtoUtils().fromLoteEntities(loteService.findAllForMuestreo());
+        final List<LoteDTO> lotesDtos = DTOUtils.fromLoteEntities(queryServiceLote.findAllForMuestreo());
         model.addAttribute("lotesMuestreables", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
@@ -103,7 +108,7 @@ public class BajaMuestreoBultoController extends AbstractCuController {
         final Bulto bulto,
         final RedirectAttributes redirectAttributes) {
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        LoteDTO loteDTO = dtoUtils().fromLoteEntity(loteService.bajaMuestreo(movimientoDTO, bulto));
+        LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.bajaMuestreo(movimientoDTO, bulto));
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());

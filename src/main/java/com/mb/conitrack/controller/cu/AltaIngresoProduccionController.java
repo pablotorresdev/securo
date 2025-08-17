@@ -20,11 +20,11 @@ import com.mb.conitrack.dto.validation.AltaProduccion;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.ProductoService;
-import com.mb.conitrack.utils.ControllerUtils;
+import com.mb.conitrack.service.TrazaService;
 
 @Controller
 @RequestMapping("/produccion/alta")
-public class AltaIngresoProduccionController {
+public class AltaIngresoProduccionController extends AbstractCuController {
 
     //TODO: Sistema FIFO (fecha reanalisis/vencimiento) para lotes que compartan el mismo producto
 
@@ -34,9 +34,8 @@ public class AltaIngresoProduccionController {
     @Autowired
     private LoteService loteService;
 
-    private static ControllerUtils getControllerUtils() {
-        return ControllerUtils.getInstance();
-    }
+    @Autowired
+    private TrazaService trazaService;
 
     @GetMapping("/cancelar")
     public String cancelar() {
@@ -90,7 +89,7 @@ public class AltaIngresoProduccionController {
 
     private void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.altaStockPorProduccion(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.altaStockPorProduccion(loteDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
@@ -104,8 +103,8 @@ public class AltaIngresoProduccionController {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        boolean success = getControllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
-        success = success && getControllerUtils().validarBultos(loteDTO, bindingResult);
+        boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
+        success = success && controllerUtils().validarBultos(loteDTO, bindingResult);
         success = success && validarTraza(loteDTO, bindingResult);
         return success;
     }
@@ -120,7 +119,7 @@ public class AltaIngresoProduccionController {
                 bindingResult.rejectValue("trazaInicial", "", "El número de traza solo aplica a unidades de venta");
                 return false;
             }
-            final Long maxNroTraza = loteService.findMaxNroTraza(loteDTO.getProductoId());
+            final Long maxNroTraza = trazaService.findMaxNroTraza(loteDTO.getProductoId());
             if (maxNroTraza > 0 && loteDTO.getTrazaInicial() <= maxNroTraza) {
                 bindingResult.rejectValue(
                     "trazaInicial",

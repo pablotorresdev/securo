@@ -1,6 +1,5 @@
 package com.mb.conitrack.controller;
 
-import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 
@@ -10,13 +9,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.mb.conitrack.dto.BultoDTO;
 import com.mb.conitrack.entity.Bulto;
-import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.BultoService;
+
+import static com.mb.conitrack.dto.DTOUtils.fromBultoEntities;
 
 /**
  * CU3
@@ -49,6 +46,19 @@ public class BultosController {
         return "bultos/list-bultos"; // Corresponde a bultos-lote.html
     }
 
+    @GetMapping("/loteId/{codigoInternoLote}")
+    public String listBultosPorLote(@PathVariable("codigoInternoLote") String codigoInternoLote, Model model) {
+
+        final List<Bulto> bultos = bultoService.findByCodigoInternoLote(codigoInternoLote);
+        List<Bulto> bultosByCodigoInternoLote = bultos.stream()
+            .filter(Bulto::getActivo)
+            .filter(bulto -> codigoInternoLote.equals(bulto.getLote().getCodigoInterno()))
+            .sorted(Comparator
+                .comparing(Bulto::getNroBulto)).toList();
+
+        model.addAttribute("bultos", fromBultoEntities(bultosByCodigoInternoLote));
+        return "bultos/list-bultos"; // Corresponde a bultos-lote.html
+    }
 
 }
 

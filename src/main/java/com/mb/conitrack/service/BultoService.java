@@ -41,4 +41,11 @@ public class BultoService {
     public DetalleMovimiento save(final DetalleMovimiento detalle) {
         return detalleMovimientoRepository.save(detalle);
     }
+
+    public List<Bulto> findByCodigoInternoLote(final String codigoInternoLote) {
+        List<Bulto> bultos = bultoRepository.findAll();
+        bultos.sort(Comparator.comparing(Bulto::getId));
+        return bultos;
+    }
+
 }

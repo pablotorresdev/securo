@@ -35,7 +35,6 @@ public class AltaIngresoCompraController extends AbstractCuController {
     @Autowired
     private LoteService loteService;
 
-
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
@@ -66,13 +65,6 @@ public class AltaIngresoCompraController extends AbstractCuController {
         return "redirect:/compras/alta/ingreso-compra-ok";
     }
 
-    private static boolean validarIngresoCompra(final LoteDTO loteDTO, final BindingResult bindingResult) {
-        boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
-        success = success && controllerUtils().validateFechasProveedor(loteDTO, bindingResult);
-        success = success && controllerUtils().validarBultos(loteDTO, bindingResult);
-        return success;
-    }
-
     @GetMapping("/ingreso-compra-ok")
     public String exitoIngresoCompra(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
@@ -90,18 +82,25 @@ public class AltaIngresoCompraController extends AbstractCuController {
             loteDTO.setUnidadMedidaBultos(new ArrayList<>());
         }
         model.addAttribute("loteDTO", loteDTO);
-        model.addAttribute("paises", ControllerUtils.getCountryList());
+        model.addAttribute("paises", controllerUtils().getCountryList());
     }
 
     void procesaringresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = dtoUtils().fromLoteEntity(loteService.altaStockPorCompra(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.altaStockPorCompra(loteDTO));
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
             resultDTO != null
                 ? "Ingreso de stock por compra exitoso."
                 : "Hubo un error en el ingreso de stock por compra.");
+    }
+
+    private boolean validarIngresoCompra(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
+        success = success && controllerUtils().validateFechasProveedor(loteDTO, bindingResult);
+        success = success && controllerUtils().validarBultos(loteDTO, bindingResult);
+        return success;
     }
 
 }

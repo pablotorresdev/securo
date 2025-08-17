@@ -9,6 +9,8 @@ import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
+import lombok.Getter;
+
 import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
 
@@ -16,6 +18,9 @@ import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
  * Utilidades para el manejo y conversión entre distintas unidades de medida.
  */
 public class UnidadMedidaUtils {
+
+    @Getter
+    private static final UnidadMedidaUtils Instance = new UnidadMedidaUtils();
 
     private UnidadMedidaUtils() {
         // Constructor privado para evitar instanciación
@@ -34,7 +39,7 @@ public class UnidadMedidaUtils {
         UnidadMedidaEnum unidadOrigen,
         BigDecimal cantidad,
         UnidadMedidaEnum unidadDestino) {
-        if (unidadOrigen.equals(unidadDestino)) {
+        if (unidadOrigen == unidadDestino) {
             return cantidad;
         }
         final double factorOrigen = unidadOrigen.getFactorConversion();
@@ -53,10 +58,37 @@ public class UnidadMedidaUtils {
      * @throws IllegalArgumentException si las unidades no pertenecen al mismo tipo (masa, volumen, etc.).
      */
     public static UnidadMedidaEnum obtenerMenorUnidadMedida(UnidadMedidaEnum unidadUno, UnidadMedidaEnum unidadDos) {
+        if (unidadUno==unidadDos) {
+            return unidadUno;
+        }
         if (!unidadUno.getTipo().equals(unidadDos.getTipo())) {
             throw new IllegalArgumentException("Las unidades de medida no son compatibles");
         }
         if (unidadUno.getFactorConversion() < unidadDos.getFactorConversion()) {
+            return unidadUno;
+        } else {
+            return unidadDos;
+        }
+    }
+
+    /**
+     * Devuelve la unidad de medida más grande (la de mayor magnitud) entre dos unidades del mismo tipo.
+     *
+     * @param unidadUno Primera unidad de medida a comparar.
+     * @param unidadDos Segunda unidad de medida a comparar.
+     *
+     * @return La unidad de mayor magnitud (es decir, la que tiene el mayor factor de conversión).
+     *
+     * @throws IllegalArgumentException si las unidades no pertenecen al mismo tipo (masa, volumen, etc.).
+     */
+    public static UnidadMedidaEnum obtenerMayorUnidadMedida(UnidadMedidaEnum unidadUno, UnidadMedidaEnum unidadDos) {
+        if (unidadUno==unidadDos) {
+            return unidadUno;
+        }
+        if (!unidadUno.getTipo().equals(unidadDos.getTipo())) {
+            throw new IllegalArgumentException("Las unidades de medida no son compatibles");
+        }
+        if (unidadUno.getFactorConversion() > unidadDos.getFactorConversion()) {
             return unidadUno;
         } else {
             return unidadDos;
