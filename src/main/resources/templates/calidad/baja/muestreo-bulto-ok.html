@@ -141,13 +141,13 @@
         </div>
     </div>
     <!-- Cartel de unidades a retirar -->
-    <div class="alert alert-warning display-6 fw-bold text-center"
-         th:if="${trazasMuestreo != null and !#lists.isEmpty(trazasMuestreo)}">
+    <div class="alert alert-warning fw-bold"
+         th:if="${trazaMuestreoDTOs != null and !#lists.isEmpty(trazaMuestreoDTOs)}">
 
         <span class="text-danger">¡ATENCIÓN!</span>
         Retirar del stock, para su muestreo, las unidades con los siguientes números de traza del <b>Bulto Nro <span th:text="${bultoMuestreo}"></span></b>:
 
-        <span th:each="t, iterStat : ${trazasMuestreo}">
+        <span th:each="t, iterStat : ${trazaMuestreoDTOs}">
         <span th:text="|[${t.nroTraza}]|"></span>
         <span th:if="${!iterStat.last}">,&nbsp;</span>
     </span>

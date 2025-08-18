@@ -61,16 +61,15 @@ public class ModifLiberacionVentasController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-
         Lote lote = controllerUtils().getLoteByCodigoInterno(
             movimientoDTO.getCodigoInternoLote(),
             bindingResult,
             queryServiceLote);
 
         boolean success = lote != null;
-        success = success && ControllerUtils.getInstance()
+        success = success && controllerUtils()
             .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-        success = success &&  ControllerUtils.getInstance()
+        success = success &&  controllerUtils()
             .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
 
         if (!success) {

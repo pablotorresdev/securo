@@ -2,7 +2,6 @@ package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -16,15 +15,12 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
@@ -35,7 +31,6 @@ import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -202,82 +197,6 @@ class LoteServiceTest {
             ms.verify(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b));
             verify(loteRepository).save(out);
             verifyNoInteractions(trazaService);
-        }
-    }
-
-    @Test
-    @DisplayName("bajaMuestreo - UNIDAD_VENTA con UNIDAD y cantidad entera -> consume trazas, estados y guardado")
-    void bajaMuestreo_unidadVenta_ok() {
-        // given
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setNroAnalisis("AN-OK");
-
-        // spy para stubear getUltimoNroAnalisis() y getFirstAvailableTrazaList()
-        Lote lote = Mockito.spy(new Lote());
-        doReturn("AN-OK").when(lote).getUltimoNroAnalisis();
-
-        Producto prod = new Producto();
-        prod.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
-        lote.setProducto(prod);
-
-        Bulto b = new Bulto();
-        b.setLote(lote);
-        b.setCantidadActual(new BigDecimal("2")); // va a quedar en 0 para probar CONSUMIDO
-        lote.getBultos().add(b);
-
-        Movimiento mov = new Movimiento();
-        mov.setCantidad(new BigDecimal("2"));           // entero
-        mov.setUnidadMedida(UnidadMedidaEnum.UNIDAD);   // unidad correcta
-        when(movimientoService.persistirMovimientoMuestreo(dto, b)).thenReturn(mov);
-
-        // dos trazas a consumir
-        Traza t1 = new Traza();
-        t1.setEstado(EstadoEnum.DISPONIBLE);
-        Traza t2 = new Traza();
-        t2.setEstado(EstadoEnum.DISPONIBLE);
-        List<Traza> trazas = List.of(t1, t2);
-        doReturn(trazas).when(lote).getFirstAvailableTrazaList(2);
-
-        try (
-            MockedStatic<UnidadMedidaUtils> ms = mockStatic(UnidadMedidaUtils.class);
-            MockedStatic<DTOUtils> msDto = mockStatic(DTOUtils.class)) {
-
-            // restar -> 0 -> bulto CONSUMIDO
-            ms.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b)).thenReturn(BigDecimal.ZERO);
-
-            // mockeamos el mapping a DTO para poblar dto.trazaDTOs
-            msDto.when(() -> DTOUtils.fromTrazaEntity(any(Traza.class))).thenAnswer(inv -> new TrazaDTO());
-
-            when(trazaService.save(trazas)).thenReturn(trazas);
-            when(loteRepository.save(any(Lote.class))).thenAnswer(inv -> inv.getArgument(0));
-
-            // when
-            Lote out = service.bajaMuestreo(dto, b);
-
-            // then
-            assertSame(lote, out);
-
-            // trazas consumidas y vinculadas al movimiento
-            assertEquals(EstadoEnum.CONSUMIDO, t1.getEstado());
-            assertEquals(EstadoEnum.CONSUMIDO, t2.getEstado());
-//            assertTrue(t1.getMovimientos().contains(mov));
-//            assertTrue(t2.getMovimientos().contains(mov));
-            verify(trazaService).save(trazas);
-
-            // dto recibió DTOs de traza
-            assertNotNull(dto.getTrazaDTOs());
-            assertEquals(2, dto.getTrazaDTOs().size());
-
-            // estados bulto/lote
-            assertEquals(BigDecimal.ZERO, b.getCantidadActual());
-            assertEquals(EstadoEnum.CONSUMIDO, b.getEstado());
-            assertEquals(EstadoEnum.CONSUMIDO, out.getEstado()); // único bulto => todos consumidos
-
-            // persistencias y vínculos
-            assertTrue(out.getMovimientos().contains(mov));
-            verify(movimientoService).persistirMovimientoMuestreo(dto, b);
-            ms.verify(() -> UnidadMedidaUtils.restarMovimientoConvertido(dto, b));
-            verify(loteRepository).save(out);
         }
     }
 

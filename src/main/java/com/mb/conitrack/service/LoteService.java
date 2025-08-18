@@ -3,7 +3,6 @@ package com.mb.conitrack.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
+import com.mb.conitrack.dto.BultoDTO;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
@@ -36,6 +36,7 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.addLoteInfoToMovimien
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoDevolucionCompra;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoCompra;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 
 @AllArgsConstructor
@@ -389,43 +390,62 @@ public class LoteService {
     @Transactional
     public Lote persistirLiberacionProducto(final MovimientoDTO dto, final Lote lote) {
 
-            final Movimiento movimiento = movimientoService.persistirMovimientoLiberacionProducto(dto, lote);
+        final Movimiento movimiento = movimientoService.persistirMovimientoLiberacionProducto(dto, lote);
 
-            lote.setFechaReanalisisProveedor(lote.getFechaReanalisisVigente());
-            lote.setFechaVencimientoProveedor(lote.getFechaVencimientoVigente());
+        lote.setFechaReanalisisProveedor(lote.getFechaReanalisisVigente());
+        lote.setFechaVencimientoProveedor(lote.getFechaVencimientoVigente());
 
-            lote.setDictamen(movimiento.getDictamenFinal());
-            lote.getMovimientos().add(movimiento);
+        lote.setDictamen(movimiento.getDictamenFinal());
+        lote.getMovimientos().add(movimiento);
         return loteRepository.save(lote);
     }
 
     //***********CU12 BAJA: VENTA***********
     @Transactional
-    public List<Lote> bajaVentaProducto(final LoteDTO loteDTO) {
-        List<Lote> result = new ArrayList<>();
+    public Lote bajaVentaProducto(final LoteDTO loteDTO) {
+        final Lote lote = loteRepository.findFirstByCodigoInternoAndActivoTrue(
+                loteDTO.getCodigoInternoLote())
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        for (int nroBulto : loteDTO.getNroBultoList()) {
-            //TODO: Fix
-            final Lote bulto = loteRepository.findFirstByCodigoInternoAndActivoTrue(
-                    loteDTO.getCodigoInternoLote())
-                .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+        final List<Integer> nroBultoList = loteDTO.getNroBultoList();
+        final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
 
-            final Movimiento movimiento = movimientoService.persistirMovimientoBajaVenta(loteDTO, bulto);
-            bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(
-                DTOUtils.fromMovimientoEntity(movimiento),
-                bulto));
+        final Movimiento movimiento = movimientoService.persistirMovimientoBajaVenta(loteDTO, lote);
 
-            if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
-                bulto.setEstado(EstadoEnum.VENDIDO);
-            } else {
-                bulto.setEstado(EstadoEnum.EN_USO);
+        for (int nroBulto : nroBultoList) {
+            final Bulto bultoEntity = lote.getBultoByNro(nroBulto);
+            final BigDecimal cantidaConsumoBulto = cantidadesBultos.get(nroBulto - 1);
+
+            if (BigDecimal.ZERO.compareTo(cantidaConsumoBulto) == 0) {
+                continue;
             }
-            //loteDTO.getTrazaDTOs().addAll(movimiento.getTrazas().stream().map(DTOUtils::fromTrazaEntity).toList());
-            bulto.getMovimientos().add(movimiento);
-            Lote newLote = loteRepository.save(bulto);
-            result.add(newLote);
+
+            bultoEntity.setCantidadActual(bultoEntity.getCantidadActual().subtract(cantidaConsumoBulto));
+            lote.setCantidadActual(lote.getCantidadActual().subtract(cantidaConsumoBulto));
+
+            if (bultoEntity.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+                bultoEntity.setEstado(EstadoEnum.CONSUMIDO);
+            } else {
+                bultoEntity.setEstado(EstadoEnum.EN_USO);
+            }
+
+            lote.getTrazas().addAll(bultoEntity.getTrazas());
+            bultoService.save(bultoEntity);
+
+            loteDTO.getBultosDTOs().add(DTOUtils.fromBultoEntity(bultoEntity));
         }
-        return result;
+
+        boolean todosConsumidos = lote.getBultos().stream()
+            .allMatch(b -> b.getEstado() == EstadoEnum.CONSUMIDO);
+        lote.setEstado(todosConsumidos ? EstadoEnum.CONSUMIDO : EstadoEnum.EN_USO);
+
+        loteDTO.getTrazaDTOs().addAll(movimiento.getDetalles()
+            .stream()
+            .flatMap(d -> d.getTrazas().stream().map(DTOUtils::fromTrazaEntity))
+            .toList());
+
+        lote.getMovimientos().add(movimiento);
+        return loteRepository.save(lote);
     }
 
     //***********CU13 ALTA: DEVOLUCION VENTA***********

@@ -11,6 +11,12 @@ import lombok.Data;
 public class TrazaDTO {
 
     @NotNull
+    private String codigoLote;
+
+    @NotNull
+    private Integer nroBulto;
+
+    @NotNull
     private Long nroTraza;
 
     protected String codigoProducto;

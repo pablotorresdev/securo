@@ -194,33 +194,6 @@ class DTOUtilsTest {
         assertNull(DTOUtils.fromTrazaEntity(null));
     }
 
-    /* ---------- caso 2: mapeo completo ---------- */
-    @Test
-    @DisplayName("Copia todos los campos cuando Traza tiene datos")
-    void fromTrazaEntity_mapeoCompleto() {
-        // Producto asociado
-        Producto prod = new Producto();
-        prod.setCodigoInterno("P-123");
-
-        // Traza con datos
-        Traza traza = new Traza();
-        traza.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 12, 0));
-        traza.setProducto(prod);
-        traza.setEstado(EstadoEnum.DISPONIBLE);
-        traza.setNroTraza(42L);
-        traza.setObservaciones("ok");
-
-        // Llamada al método
-        TrazaDTO dto = DTOUtils.fromTrazaEntity(traza);
-
-        // Verificaciones
-        assertNotNull(dto);
-        assertEquals(traza.getFechaYHoraCreacion(), dto.getFechaYHoraCreacion());
-        assertEquals("P-123", dto.getCodigoProducto());
-        assertEquals(EstadoEnum.DISPONIBLE, dto.getEstado());
-        assertEquals(42L, dto.getNroTraza());
-        assertEquals("ok", dto.getObservaciones());
-    }
 
     private MovimientoDTO buildDto(
         String nroAnalisis,

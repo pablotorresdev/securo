@@ -169,7 +169,7 @@ public class LoteDTO {
         if (this.trazaInicial == null) {
             return null;
         }
-        return this.trazaInicial + this.cantidadActual.longValueExact() - 1;
+        return this.trazaInicial + this.cantidadInicial.longValueExact() - 1;
     }
 
     public LocalDate getFechaVencimientoVigente() {

@@ -41,6 +41,7 @@ import static com.mb.conitrack.enums.MotivoEnum.VENTA;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaDevolucionVenta;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaProduccion;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
@@ -58,6 +59,7 @@ public class MovimientoService {
 
     @Autowired
     private final MovimientoRepository movimientoRepository;
+
 
     private static LoteEntityUtils loteUtils() {
         return LoteEntityUtils.getInstance();
@@ -171,52 +173,45 @@ public class MovimientoService {
 
     //***********CU9: VENTA PRODUCTO PROPIO***********
     @Transactional
-    public Movimiento persistirMovimientoBajaVenta(final LoteDTO loteDTO, final Lote bulto) {
-        final Movimiento movimiento = new Movimiento();
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        movimiento.setMotivo(VENTA);
+    public Movimiento persistirMovimientoBajaVenta(final LoteDTO loteDTO, final Lote loteEntity) {
+        final Movimiento movimiento = createMovimientoBajaVenta(loteDTO, loteEntity);
 
-        //final int i = loteDTO.getNroBultoList().indexOf(bulto.getNroBulto());
-        final int i = -1;
-        movimiento.setCantidad(loteDTO.getCantidadesBultos().get(i));
-        movimiento.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
-
-        boolean unidadVenta = bulto.getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
-
-        if (!unidadVenta) {
-            throw new IllegalStateException("La venta solo puede realizarse en producto terminado");
+        BigDecimal cantidad = BigDecimal.ZERO;
+        for (int i = 0; i < loteDTO.getCantidadesBultos().size(); i++) {
+            cantidad = cantidad.add(loteDTO.getCantidadesBultos().get(i));
         }
-        final BigDecimal cantidad = movimiento.getCantidad();
-        if (movimiento.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
-            throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
+        movimiento.setCantidad(cantidad);
+        movimiento.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+
+        for (int i = 0; i < loteDTO.getNroBultoList().size(); i++) {
+            final Integer nroBulto = loteDTO.getNroBultoList().get(i);
+            final BigDecimal cantBulto = loteDTO.getCantidadesBultos().get(i);
+
+            if (BigDecimal.ZERO.compareTo(cantBulto) == 0) continue;
+
+            final Bulto bulto = loteEntity.getBultoByNro(nroBulto);
+
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimiento)
+                .bulto(bulto)
+                .cantidad(cantBulto)
+                .unidadMedida(UnidadMedidaEnum.UNIDAD)
+                .build();
+            movimiento.getDetalles().add(det);
+
+            final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantBulto.intValue());
+
+            for (Traza tr : trazas) {
+                tr.setEstado(EstadoEnum.VENDIDO);
+            }
+            trazaService.save(trazas);
+
+            det.getTrazas().addAll(trazas);
         }
 
-        if (cantidad.stripTrailingZeros().scale() > 0) {
-            throw new IllegalStateException("La cantidad de Unidades debe ser entero");
-        }
-
-        final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantidad.intValue());
-
-        for (Traza traza : trazas) {
-            traza.setEstado(EstadoEnum.VENDIDO);
-            traza.getDetalles().addAll(movimiento.getDetalles());
-        }
-        trazaService.save(trazas);
-
-        //movimiento.setTrazas(new LinkedHashSet<>(trazas));
-
-        movimiento.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
-        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
-            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(bulto.getCodigoInterno() + "-" + timestampLoteDTO);
-        movimiento.setOrdenProduccion(loteDTO.getOrdenProduccion());
-        movimiento.setFecha(loteDTO.getFechaEgreso());
-        movimiento.setLote(bulto);
-
-        movimiento.setActivo(true);
-        movimiento.setObservaciones("_CU9_\n" + loteDTO.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
+
 
     //***********CU10 ALTA: Produccion***********
     @Transactional

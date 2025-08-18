@@ -112,7 +112,7 @@ public class BajaMuestreoBultoController extends AbstractCuController {
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("bultoMuestreo", movimientoDTO.getNroBulto());
-        redirectAttributes.addFlashAttribute("trazasMuestreo", movimientoDTO.getTrazaDTOs());
+        redirectAttributes.addFlashAttribute("trazaMuestreoDTOs", movimientoDTO.getTrazaDTOs());
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
             loteDTO != null ? "Muestreo registrado correctamente." : "Hubo un error persistiendo el muestreo.");

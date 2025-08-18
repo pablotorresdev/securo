@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -29,10 +27,8 @@ public class BultoDTO {
 
     private EstadoEnum estado;
 
-    private List<Movimiento> movimientos = new ArrayList<>();
-
     protected List<DetalleMovimientoDTO> detalleMovimientoDTOs = new ArrayList<>();
 
-    private List<Traza> trazas = new ArrayList<>();
+    private List<TrazaDTO> trazaDTOs = new ArrayList<>();
 
 }

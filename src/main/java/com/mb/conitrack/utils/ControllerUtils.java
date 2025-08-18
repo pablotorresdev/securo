@@ -726,4 +726,30 @@ public class ControllerUtils {
         return true;
     }
 
+    public boolean validarUnidadMedidaVenta(final LoteDTO loteDTO, final Lote lote, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+
+        if (lote.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+            bindingResult.rejectValue(
+                "cantidadesBultos",
+                "error.cantidadesBultos",
+                "La venta de producto solo es aplicable a UNIDADES");
+            return false;
+        }
+
+        for (int i = 0; i < loteDTO.getUnidadMedidaBultos().size(); i++) {
+            if (loteDTO.getUnidadMedidaBultos().get(i) != UnidadMedidaEnum.UNIDAD) {
+                bindingResult.rejectValue(
+                    "cantidadesBultos",
+                    "error.cantidadesBultos",
+                    "La venta de producto solo es aplicable a UNIDADES");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 }

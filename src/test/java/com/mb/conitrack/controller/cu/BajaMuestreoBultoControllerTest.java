@@ -311,7 +311,7 @@ class BajaMuestreoBultoControllerTest {
 
             Map<String, ?> flash = redirect.getFlashAttributes();
             assertSame(resultDTO, flash.get("loteDTO"));
-            assertTrue(flash.containsKey("trazasMuestreo")); // puede ser null o lista, pero se agrega
+            assertTrue(flash.containsKey("trazaMuestreoDTOs")); // puede ser null o lista, pero se agrega
             assertEquals("Muestreo registrado correctamente.", flash.get("success"));
             assertFalse(flash.containsKey("error"));
         }

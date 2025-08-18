@@ -1,8 +1,8 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.QueryServiceLote;
@@ -73,8 +74,8 @@ public class BajaVentaProductoController extends AbstractCuController {
     }
 
     private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> lotesVenta = fromLoteEntities(queryServiceLote.findAllForVentaProducto());
-        model.addAttribute("lotesVenta", lotesVenta);
+        List<LoteDTO> loteVentaDTOs = fromLoteEntities(queryServiceLote.findAllForVentaProducto());
+        model.addAttribute("loteVentaDTOs", loteVentaDTOs);
         model.addAttribute("loteDTO", loteDTO);
     }
 
@@ -82,32 +83,47 @@ public class BajaVentaProductoController extends AbstractCuController {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        //TODO: analizar validacion para ventas, ahora se copio la de consumo produccion
-        final List<Lote> lotes = new ArrayList<>();
-
-        return controllerUtils().populateAvailableLoteListByCodigoInterno(
-            lotes,
+        Lote lote = controllerUtils().getLoteByCodigoInterno(
             loteDTO.getCodigoInternoLote(),
             bindingResult,
-            loteService)
-            &&
-            controllerUtils().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lotes.get(0), bindingResult)
-            &&
-            controllerUtils().validarCantidadesPorMedidas(loteDTO, lotes, bindingResult);
+            queryServiceLote);
+
+        boolean success = lote != null;
+        success = success && controllerUtils().validarUnidadMedidaVenta(loteDTO, lote, bindingResult);
+        success = success && controllerUtils().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote, bindingResult);
+        return success && controllerUtils().validarCantidadesPorMedidas(loteDTO, lote, bindingResult);
     }
 
     private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.bajaVentaProducto(loteDTO));
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.bajaVentaProducto(loteDTO));
 
-        //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
-        redirectAttributes.addFlashAttribute("trazasMuestreo", loteDTO.getTrazaDTOs());
+        redirectAttributes.addFlashAttribute("trazaVentaDTOs", getTrazaPorBultoDTOs(loteDTO));
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
             resultDTO != null
                 ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
                 : "Hubo un error en la venta de producto.");
+    }
+
+    private static Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
+
+        Map<Integer, List<Long>> trazasVentaPorBulto =
+            loteDTO.getTrazaDTOs().stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                    TrazaDTO::getNroBulto,
+                    java.util.TreeMap::new, // TreeMap para que los bultos salgan 1,2,3...
+                    java.util.stream.Collectors.mapping(
+                        TrazaDTO::getNroTraza,
+                        java.util.stream.Collectors.collectingAndThen(
+                            java.util.stream.Collectors.toList(),
+                            list -> { list.sort(java.util.Comparator.naturalOrder()); return list; }
+                        )
+                    )
+                ));
+
+        return trazasVentaPorBulto;
     }
 
 }

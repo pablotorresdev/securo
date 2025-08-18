@@ -217,6 +217,8 @@ public class DTOUtils {
         TrazaDTO dto = new TrazaDTO();
         dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
         dto.setCodigoProducto(entity.getProducto().getCodigoInterno());
+        dto.setCodigoLote(entity.getLote().getCodigoInterno());
+        dto.setNroBulto(entity.getBulto().getNroBulto());
         dto.setEstado(entity.getEstado());
         dto.setNroTraza(entity.getNroTraza());
         dto.setObservaciones(entity.getObservaciones());
