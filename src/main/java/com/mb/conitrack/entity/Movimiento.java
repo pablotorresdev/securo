@@ -28,7 +28,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "movimientos")
 @SQLDelete(sql = "UPDATE movimientos SET activo = false WHERE id = ?")
-@ToString(exclude = { "lote", "bultos", "trazas", "movimientoOrigen", "detalles" })
+@ToString(exclude = { "lote", "movimientoOrigen", "detalles" })
 public class Movimiento {
 
     @Id

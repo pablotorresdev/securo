@@ -55,7 +55,6 @@ public class DetalleMovimiento {
         inverseJoinColumns = @JoinColumn(name = "traza_id")
     )
     @JsonManagedReference
-    @EqualsAndHashCode.Exclude
     @Builder.Default
     private Set<Traza> trazas = new HashSet<>();
 
