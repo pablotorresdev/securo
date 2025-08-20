@@ -343,7 +343,6 @@ public class DTOUtils {
         for (Movimiento movimiento : entity.getMovimientos()) {
             if (movimiento.getActivo()) {
                 final MovimientoDTO movimientoDTO = DTOUtils.fromMovimientoEntity(movimiento);
-                //movimientoDTO.setNroBulto(String.valueOf(entity.getNroBulto()));
                 loteDTO.getMovimientoDTOs().add(movimientoDTO);
             }
         }

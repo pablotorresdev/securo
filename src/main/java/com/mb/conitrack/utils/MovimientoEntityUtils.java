@@ -117,15 +117,7 @@ public class MovimientoEntityUtils {
         return movimiento;
     }
 
-
-    //***********CU13 ALTA: DEVOLUCION VENTA***********
-    public static Movimiento createMovimientoAltaDevolucionVenta(final Lote lote) {
-        Movimiento movimiento = createAltaProductoPropio(lote);
-        movimiento.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
-        movimiento.setObservaciones("_CU13_\n" + lote.getObservaciones());
-        return movimiento;
-    }
-
+    //*********************PUBLIC COMMONS************************
     public static Movimiento createMovimientoModificacion(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);

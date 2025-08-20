@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;

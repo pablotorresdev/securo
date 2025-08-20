@@ -1,19 +1,24 @@
 package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
-import com.mb.conitrack.dto.BultoDTO;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.DetalleMovimiento;
@@ -30,13 +35,14 @@ import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.utils.LoteEntityUtils;
 import com.mb.conitrack.utils.UnidadMedidaUtils;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 
+import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.addLoteInfoToMovimientoAlta;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoDevolucionCompra;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoCompra;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 
 @AllArgsConstructor
@@ -205,11 +211,11 @@ public class LoteService {
 
         for (Bulto bulto : lote.getBultos()) {
             bulto.setCantidadActual(BigDecimal.ZERO);
-            bulto.setEstado(EstadoEnum.DEVUELTO);
+            bulto.setEstado(DEVUELTO);
             bultoService.save(bulto);
         }
 
-        lote.setEstado(EstadoEnum.DEVUELTO);
+        lote.setEstado(DEVUELTO);
         lote.setCantidadActual(BigDecimal.ZERO);
         lote.getMovimientos().add(savedMovimiento);
 
@@ -375,7 +381,7 @@ public class LoteService {
                 if (b.getTrazas() != null && !b.getTrazas().isEmpty()) {
                     b.getTrazas().stream()
                         .sorted(Comparator.comparing(Traza::getNroTraza))
-                        .forEach(det.getTrazas()::add); // Set + LinkedHashSet => único y ordenado
+                        .forEach(det.getTrazas()::add);
                 }
 
                 movimiento.getDetalles().add(det);
@@ -450,61 +456,68 @@ public class LoteService {
 
     //***********CU13 ALTA: DEVOLUCION VENTA***********
     @Transactional
-    public List<Lote> altaStockDevolucionVenta(final MovimientoDTO dto) {
-        List<Lote> result = new ArrayList<>();
-        Lote lote = loteRepository.findById(dto.getLoteId())
+    public Lote persistirDevolucionVenta(final MovimientoDTO dto) {
+
+        final Lote lote = loteRepository.findFirstByCodigoInternoAndActivoTrue(dto.getCodigoInternoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        Lote loteDevolucion = loteUtils().createLoteDevolucionVenta(lote);
-        loteDevolucion.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        loteDevolucion.setCodigoInterno("L-" +
-            loteDevolucion.getProducto().getTipoProducto() +
-            "-" +
-            loteDevolucion.getFechaYHoraCreacion());
+        // 1) Crear el movimiento (MODIFICACIÓN) y vincular al movimiento de venta origen
+        final Movimiento movDevolucionVenta = movimientoService.persistirMovimientoDevolucionVenta(dto, lote);
 
-        //
-        //        String timestampLoteDTO = loteDTO.getFechaYHoraCreacion()
-        //            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        //        final BigDecimal cantidadInicialLote = loteDTO.getCantidadInicial();
-        //
-        //        boolean unidadVenta = producto.getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
-        //
-        //        List<Traza> trazas = createTrazas(loteDTO, producto, cantidadInicialLote, unidadVenta);
-        //
-        //        int idxTrazaActual = 0;
-        //
-        //        for (int i = 0; i < bultosTotales; i++) {
-        //
-        //            Lote bultoLote = createLoteIngreso(loteDTO);
-        //            populateInfoProduccion(bultoLote, producto, timestampLoteDTO, conifarma);
-        //
-        //            //seteo cantidades y unidades de medida para cada bulto del lote
-        //            populateCantidadUdeMLote(loteDTO, bultosTotales, bultoLote, i);
-        //
-        //            List<Traza> trazasLocales = new ArrayList<>();
-        //            if (unidadVenta) {
-        //                final int indexTrazaFinal = bultoLote.getCantidadInicial().intValue();
-        //                trazasLocales = new ArrayList<>(trazas.subList(idxTrazaActual, idxTrazaActual + indexTrazaFinal));
-        //                bultoLote.getTrazas().addAll(trazasLocales);
-        //                idxTrazaActual += indexTrazaFinal;
-        //            }
-        //
-        //            Lote bultoGuardado = loteRepository.save(bultoLote);
-        //            final Movimiento movimiento = movimientoService.persistirMovimientoAltaIngresoProduccion(bultoGuardado);
-        //            bultoGuardado.getMovimientos().add(movimiento);
-        //
-        //            if (!trazasLocales.isEmpty()) {
-        //                for (Traza traza : trazasLocales) {
-        //                    traza.getMovimientos().add(movimiento);
-        //                    traza.setLote(bultoGuardado);
-        //                }
-        //                bultoGuardado.getTrazas().addAll(trazasLocales);
-        //                trazaService.save(trazasLocales);
-        //            }
-        //            result.add(bultoGuardado);
-        //        }
-        result.add(loteDevolucion);
-        return result;
+        // 2) Agrupar trazas seleccionadas por nro de bulto
+        final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
+            .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
+
+        // 3) Por cada bulto afectado, crear UN DetalleMovimiento y colgar las trazas devueltas
+        for (Map.Entry<Integer, List<TrazaDTO>> trazaDTOporBulto : trazaDTOporBultoMap.entrySet()) {
+            final Integer trazaDTOnroBulto = trazaDTOporBulto.getKey();
+            final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
+
+            final Bulto bulto = lote.getBultoByNro(trazaDTOnroBulto);
+
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movDevolucionVenta)
+                .bulto(bulto)
+                // Cantidad = cantidad de trazas devueltas (campo NOT NULL) — no impacta stock
+                .cantidad(BigDecimal.valueOf(trazasDTOsPorBulto.size()))
+                .unidadMedida(UnidadMedidaEnum.UNIDAD)
+                .build();
+
+            // Colgar el detalle AL movimiento (habilita cascade para insertar detalle + join table)
+            movDevolucionVenta.getDetalles().add(det);
+
+            // Marcar trazas como DEVUELTO y vincularlas al detalle (trazas_detalles)
+            for (TrazaDTO t : trazasDTOsPorBulto) {
+                final Traza trazaBulto = bulto.getTrazaByNro(t.getNroTraza());
+                trazaBulto.setEstado(DEVUELTO);
+                det.getTrazas().add(trazaBulto);
+            }
+
+            // 4) Si TODAS las trazas del bulto están DEVUELTO ⇒ bulto = DEVUELTO
+            final boolean bultoDevuelto = bulto.getTrazas().stream()
+                .allMatch(tr -> tr.getEstado() == DEVUELTO);
+            if (bultoDevuelto) {
+                bulto.setEstado(DEVUELTO);
+            }
+
+            // Si no tenés cascade MERGE/UPDATE desde Lote→Bultos, podés guardar el bulto:
+             bultoService.save(bulto);
+        }
+
+        // 5) Si TODOS los bultos del lote están DEVUELTO ⇒ lote = DEVUELTO
+        final boolean loteDevuelto = lote.getBultos().stream()
+            .allMatch(b -> b.getEstado() == DEVUELTO);
+        if (loteDevuelto) {
+            lote.setEstado(DEVUELTO);
+        }
+
+        movDevolucionVenta.setCantidad(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
+        movDevolucionVenta.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        // 6) Persistir cambios:
+        //    - Detalles + join table se guardan via cascade al guardar el movimiento
+        lote.getMovimientos().add(movimientoService.save(movDevolucionVenta));
+        //    - Lote/bultos/trazas son entidades administradas en la sesión; igual podés asegurar el flush:
+        return loteRepository.save(lote);
     }
 
 }

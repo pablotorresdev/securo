@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Devolución de Venta - Confirmación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Devolución de Venta - Confirmación</h2>
+
+    <!-- Mensaje de éxito -->
+    <div class="alert alert-success fw-bold mb-4"
+         th:if="${success}"
+         th:text="${success}">
+    </div>
+
+    <!-- Datos del Lote -->
+    <div th:if="${loteDTO != null}">
+        <h4>Detalles del Lote</h4>
+        <table class="table table-bordered table-sm">
+            <tbody>
+            <tr>
+                <th>Nombre Producto:</th>
+                <td th:text="${loteDTO.nombreProducto}"></td>
+            </tr>
+            <tr>
+                <th>Proveedor:</th>
+                <td th:text="${loteDTO.nombreProveedor}"></td>
+            </tr>
+            <tr>
+                <th>Código interno Lote:</th>
+                <td th:text="${loteDTO.codigoInternoLote}"></td>
+            </tr>
+            <tr>
+                <th>Fecha Ingreso:</th>
+                <td th:text="${loteDTO.fechaIngreso}"></td>
+            </tr>
+            <tr>
+                <th>Bultos Totales:</th>
+                <td th:text="${loteDTO.bultosTotales}"></td>
+            </tr>
+            <tr>
+                <th>Lote Proveedor:</th>
+                <td th:text="${loteDTO.loteProveedor}"></td>
+            </tr>
+            <tr>
+                <th>Nro Remito:</th>
+                <td th:text="${loteDTO.nroRemito}"></td>
+            </tr>
+            <tr>
+                <th>Detalle Conservación:</th>
+                <td th:text="${loteDTO.detalleConservacion}"></td>
+            </tr>
+            <tr>
+                <th>Fecha Reanálisis Proveedor:</th>
+                <td th:text="${loteDTO.fechaReanalisisProveedor}"></td>
+            </tr>
+            <tr>
+                <th>Fecha Vencimiento Proveedor:</th>
+                <td th:text="${loteDTO.fechaVencimientoProveedor}"></td>
+            </tr>
+            <tr>
+                <th>Dictamen:</th>
+                <td th:text="${loteDTO.dictamen}"></td>
+            </tr>
+            <tr>
+                <th>Traza inicial:</th>
+                <td th:text="${loteDTO.trazaInicial}"></td>
+            </tr>
+            <tr>
+                <th>Traza final:</th>
+                <td th:text="${loteDTO.trazaFinal}"></td>
+            </tr>
+            <tr>
+                <th>Observaciones:</th>
+                <td th:text="${loteDTO.observaciones}"></td>
+            </tr>
+            <tr>
+                <th>Cantidades por Bulto:</th>
+                <td>
+          <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
+                th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
+          </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Movimientos del Lote -->
+        <div th:if="${loteDTO.movimientoDTOs != null and #lists.size(loteDTO.movimientoDTOs) > 0}">
+            <h4>Movimientos del Lote</h4>
+            <table class="table table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Tipo Movimiento</th>
+                    <th>Motivo</th>
+                    <th>Dictamen Inicial</th>
+                    <th>Dictamen Final</th>
+                    <th>Observaciones</th>
+                    <th>Nro Análisis</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="mov : ${loteDTO.movimientoDTOs}">
+                    <td th:text="${mov.fechaMovimiento}"></td>
+                    <td th:text="${mov.cantidad}"></td>
+                    <td th:text="${mov.unidadMedida}"></td>
+                    <td th:text="${mov.tipoMovimiento}"></td>
+                    <td th:text="${mov.motivo}"></td>
+                    <td th:text="${mov.dictamenInicial}"></td>
+                    <td th:text="${mov.dictamenFinal}"></td>
+                    <td th:text="${mov.observaciones}"></td>
+                    <td th:text="${mov.nroAnalisis}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Qué trazas fueron devueltas -->
+    <div class="mt-4" th:if="${movimientoDTO != null and movimientoDTO.trazaDTOs != null and !#lists.isEmpty(movimientoDTO.trazaDTOs)}">
+        <h4>Trazas devueltas</h4>
+
+        <!-- Tabla simple ordenada por Bulto y NroTraza (presentación clara) -->
+        <table class="table table-bordered table-sm">
+            <thead class="table-light">
+            <tr>
+                <th style="width: 140px;">Bulto Nro</th>
+                <th>Nro Traza</th>
+                <th style="width: 220px;">Código Lote</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${movimientoDTO.trazaDTOs}">
+                <td th:text="${t.nroBulto}"></td>
+                <td th:text="${t.nroTraza}"></td>
+                <td th:text="${t.codigoLote}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Si preferís una vista tipo “lista por bulto”, puedo devolverte una variante que agrupe visualmente -->
+    </div>
+
+    <!-- Botón -->
+    <div class="mt-4">
+        <a class="btn btn-primary" th:href="@{/ventas/devolucion/cancelar}">Continuar</a>
+    </div>
+</div>
+</body>
+</html>

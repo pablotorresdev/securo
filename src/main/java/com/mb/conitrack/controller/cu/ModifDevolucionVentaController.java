@@ -28,8 +28,8 @@ import static com.mb.conitrack.controller.cu.AbstractCuController.controllerUtil
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
-@RequestMapping("/ventas/alta")
-public class AltaDevolucionVentaController {
+@RequestMapping("/ventas/devolucion")
+public class ModifDevolucionVentaController {
 
     @Autowired
     private LoteService loteService;
@@ -54,7 +54,7 @@ public class AltaDevolucionVentaController {
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
         //TODO: implementar el filtro correcto en base a ventas y Analisis (Fecha, ventas)
         initModelDevolucionVenta(movimientoDTO, model);
-        return "ventas/alta/devolucion-venta";
+        return "ventas/devolucion/devolucion-venta";
     }
 
     @PostMapping("/devolucion-venta")
@@ -67,16 +67,16 @@ public class AltaDevolucionVentaController {
         if (!validateInfoDevolucion(movimientoDTO, bindingResult)) {
             initModelDevolucionVenta(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
-            return "ventas/alta/devolucion-venta";
+            return "ventas/devolucion/devolucion-venta";
         }
         devolucionVenta(movimientoDTO, redirectAttributes);
-        return "redirect:/ventas/alta/devolucion-venta-ok";
+        return "redirect:/ventas/devolucion/devolucion-venta-ok";
     }
 
     @GetMapping("/devolucion-venta-ok")
     public String exitoDevolucionVenta(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
-        return "ventas/alta/devolucion-venta-ok";
+        return "ventas/devolucion/devolucion-venta-ok";
     }
 
     private void devolucionVenta(
@@ -84,9 +84,10 @@ public class AltaDevolucionVentaController {
         final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.mergeLoteEntities(loteService.altaStockDevolucionVenta(movimientoDTO));
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.persistirDevolucionVenta(movimientoDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
             resultDTO != null

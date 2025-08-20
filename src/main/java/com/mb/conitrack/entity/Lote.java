@@ -304,4 +304,19 @@ public class Lote {
             .orElse(null);
     }
 
+    public Traza getTrazaByNro(long nroTraza) {
+        if (this.trazas == null || this.trazas.isEmpty()) {
+            return null;
+        }
+        if (this.trazas.size() == 1) {
+            Traza unica = this.trazas.stream().filter(Traza::getActivo).findFirst().orElse(null);
+            return (unica!=null && unica.getNroTraza() == nroTraza) ? unica : null;
+        }
+        return this.trazas.stream()
+            .filter(Traza::getActivo)
+            .filter(t -> t.getNroTraza() == nroTraza)
+            .findFirst()
+            .orElse(null);
+    }
+
 }

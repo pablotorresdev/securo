@@ -1,8 +1,6 @@
 package com.mb.conitrack.service;
 
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,8 +17,7 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.TipoMovimientoEnum;
-import com.mb.conitrack.enums.TipoProductoEnum;
+import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.repository.MovimientoRepository;
 import com.mb.conitrack.utils.LoteEntityUtils;
@@ -37,8 +34,6 @@ import static com.mb.conitrack.enums.MotivoEnum.EXPIRACION_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
 import static com.mb.conitrack.enums.MotivoEnum.RESULTADO_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
-import static com.mb.conitrack.enums.MotivoEnum.VENTA;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaDevolucionVenta;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaProduccion;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
@@ -262,10 +257,16 @@ public class MovimientoService {
 
     //***********CU13 ALTA: Devolucion***********
     @Transactional
-    public Movimiento persistirMovimientoAltaDevolucionVenta(Lote lote) {
-        final Movimiento movimientoAltaDevolucionVenta = createMovimientoAltaDevolucionVenta(lote);
-        movimientoAltaDevolucionVenta.setLote(lote);
-        return movimientoRepository.save(movimientoAltaDevolucionVenta);
+    public Movimiento persistirMovimientoDevolucionVenta( MovimientoDTO dto, Lote lote) {
+        final Movimiento movimientoDevolucionVenta = createMovimientoModificacion(dto, lote);
+        movimientoDevolucionVenta.setFecha(dto.getFechaMovimiento());
+        movimientoDevolucionVenta.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
+
+        final Movimiento movimientoOrigen = movimientoRepository.findByCodigoInternoAndActivoTrue(
+            dto.getCodigoMovimientoOrigen()).orElseThrow(() -> new IllegalArgumentException("El movmiento de origen no existe."));
+        movimientoDevolucionVenta.setMovimientoOrigen(movimientoOrigen);
+
+        return movimientoRepository.save(movimientoDevolucionVenta);
     }
 
     @Transactional

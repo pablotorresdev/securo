@@ -37,13 +37,13 @@ public class Traza {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
     @EqualsAndHashCode.Include
     private Lote lote;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bulto_id", nullable = false)
     @JsonBackReference
     @EqualsAndHashCode.Include
@@ -52,7 +52,7 @@ public class Traza {
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaYHoraCreacion;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
     @EqualsAndHashCode.Include
     private Producto producto;
@@ -61,7 +61,7 @@ public class Traza {
     @EqualsAndHashCode.Include
     private Long nroTraza;
 
-    @ManyToMany(mappedBy = "trazas", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "trazas", fetch = FetchType.LAZY)
     @JsonBackReference
     @EqualsAndHashCode.Exclude
     private List<DetalleMovimiento> detalles = new ArrayList<>();

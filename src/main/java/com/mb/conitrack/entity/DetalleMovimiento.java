@@ -48,7 +48,7 @@ public class DetalleMovimiento {
     @Column(name = "unidad_medida", nullable = false, length = 50)
     private UnidadMedidaEnum unidadMedida;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "trazas_detalles",
         joinColumns = @JoinColumn(name = "detalle_id"),

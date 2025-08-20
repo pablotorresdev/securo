@@ -9,7 +9,6 @@ import java.util.Set;
 import org.hibernate.annotations.SQLDelete;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
@@ -40,14 +39,14 @@ public class Movimiento {
     @EqualsAndHashCode.Include
     private String codigoInterno;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
     private Lote lote;
 
     @OneToMany(
-        mappedBy = "movimiento",
-        fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+        mappedBy = "movimiento", fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();
 
@@ -93,6 +92,7 @@ public class Movimiento {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "movimiento_origen_id")
     @EqualsAndHashCode.Exclude
+    @JsonBackReference
     private Movimiento movimientoOrigen;
 
     @Column(nullable = false)

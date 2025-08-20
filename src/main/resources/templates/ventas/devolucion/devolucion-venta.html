@@ -10,7 +10,7 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Devolución Unidad de Venta</h2>
-    <form method="post" th:action="@{/ventas/alta/devolucion-venta}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/ventas/devolucion/devolucion-venta}" th:object="${movimientoDTO}">
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <!-- Inputs ocultos para movimientoDTO.trazaDTOs -->
@@ -92,7 +92,7 @@
 
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/ventas/alta/cancelar}">Cancelar</a>
+            <a class="btn btn-secondary" th:href="@{/ventas/devolucion/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Realizar devolución</button>
         </div>
     </form>
