@@ -16,7 +16,7 @@
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
-        <!-- Select de Lotes disponibles para Cuarentena -->
+        <!-- Select de Lotes disponibles para Devolver -->
         <div class="mb-3">
             <label class="form-label" for="codigoInternoLote">Lote:</label>
             <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
@@ -32,7 +32,6 @@
             </select>
         </div>
 
-
         <!-- Select de Movimientos de venta asociados -->
         <div class="mb-3" id="wrapperMovVentas" style="display:none;">
             <label class="form-label" for="movVentaId">Movimiento de Venta:</label>
@@ -42,6 +41,7 @@
             </select>
         </div>
 
+        <!-- Trazas vendidas del movimiento -->
         <div class="mb-3" id="wrapperTrazas" style="display:none;">
             <label class="form-label">Trazas vendidas del movimiento (seleccione las unidades devueltas):</label>
             <div id="trazasContainer" class="border rounded p-3">
@@ -53,8 +53,7 @@
             </div>
         </div>
 
-
-        <!-- Fecha del Movimiento a Cuarentena -->
+        <!-- Fecha -->
         <div class="mb-2">
             <label class="form-label" for="fechaMovimiento">Fecha Devolucion:</label>
             <input class="form-control" id="fechaMovimiento"
@@ -142,6 +141,22 @@
             }
         });
 
+        // === Helpers de selección maestro ===
+        function syncGroupMaster(groupEl) {
+            const cbs = groupEl.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]');
+            const allChecked = cbs.length && Array.from(cbs).every(cb => cb.checked);
+            const master = groupEl.querySelector('.checkAllBulto');
+            if (master) master.checked = allChecked;
+        }
+
+        function syncGlobalMaster() {
+            const all = trazasContainer.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]');
+            const anyExist = all.length > 0;
+            const allChecked = anyExist && Array.from(all).every(cb => cb.checked);
+            const masterGlobal = trazasContainer.querySelector('#checkAllTrazas');
+            if (masterGlobal) masterGlobal.checked = anyExist && allChecked;
+        }
+
         // 2) cuando cambia el movimiento, cargar trazas vendidas y armar checkboxes
         movSelect.addEventListener('change', async () => {
             clearTrazasUI();
@@ -159,7 +174,7 @@
                     return;
                 }
 
-                // agrupar por nroBulto para mostrar prolijo
+                // agrupar por nroBulto
                 const porBulto = new Map();
                 data.forEach(t => {
                     const key = t.nroBulto;
@@ -167,30 +182,59 @@
                     porBulto.get(key).push(t);
                 });
 
-                // construir UI
+                // 2.1) Barra global "Seleccionar todas"
+                const masterBar = document.createElement('div');
+                masterBar.className = 'd-flex align-items-center gap-3 mb-3';
+                masterBar.innerHTML = `
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkAllTrazas">
+                    <label class="form-check-label fw-bold" for="checkAllTrazas">Seleccionar todas las trazas</label>
+                  </div>
+                `;
+                trazasContainer.appendChild(masterBar);
+
+                const checkAllTrazas = masterBar.querySelector('#checkAllTrazas');
+                checkAllTrazas.addEventListener('change', (e) => {
+                    const checked = e.target.checked;
+                    trazasContainer.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]').forEach(cb => {
+                        cb.checked = checked;
+                    });
+                    // sincroniza todos los maestros por bulto
+                    trazasContainer.querySelectorAll('.checkAllBulto').forEach(g => g.checked = checked);
+                });
+
+                // 2.2) Construir grupos por bulto, con maestro por bulto
                 porBulto.forEach((trazas, nroBulto) => {
                     const group = document.createElement('div');
-                    group.className = 'mb-2';
+                    group.className = 'mb-3 border rounded p-2';
+                    group.dataset.bulto = String(nroBulto);
 
-                    const title = document.createElement('div');
-                    title.className = 'fw-bold mb-1';
-                    title.textContent = `Bulto Nro ${nroBulto}:`;
-                    group.appendChild(title);
+                    const header = document.createElement('div');
+                    header.className = 'd-flex align-items-center justify-content-between mb-2';
+                    const masterId = `checkAllBulto_${nroBulto}`;
+                    header.innerHTML = `
+                        <div class="fw-bold">Bulto Nro ${nroBulto}:</div>
+                        <div class="form-check">
+                          <input class="form-check-input checkAllBulto" type="checkbox" id="${masterId}">
+                          <label class="form-check-label" for="${masterId}">Todas las trazas del bulto</label>
+                        </div>
+                    `;
 
-                    trazas.forEach((t, idx) => {
+                    const items = document.createElement('div');
+                    items.className = 'd-flex flex-wrap gap-3';
+
+                    trazas.forEach((t) => {
                         const id = `traza_${nroBulto}_${t.nroTraza}`;
                         const wrapper = document.createElement('div');
-                        wrapper.className = 'form-check form-check-inline';
+                        wrapper.className = 'form-check';
 
                         const cb = document.createElement('input');
                         cb.type = 'checkbox';
                         cb.className = 'form-check-input';
                         cb.id = id;
-
-                        // IMPORTANTE: nombre para enviar al backend.
-                        // Opción simple: multi-valor "nrosTrazasDevolver"
                         cb.name  = 'nrosTrazasDevolver';
-                        cb.value = t.nroTraza; // si preferís ID, usá t.id (si lo incluye tu DTO)
+                        cb.value = t.nroTraza;
+                        cb.dataset.bulto = String(nroBulto);
 
                         const lb = document.createElement('label');
                         lb.className = 'form-check-label';
@@ -199,12 +243,32 @@
 
                         wrapper.appendChild(cb);
                         wrapper.appendChild(lb);
-                        group.appendChild(wrapper);
+                        items.appendChild(wrapper);
                     });
 
+                    // Maestro por bulto
+                    header.querySelector('.checkAllBulto').addEventListener('change', (e) => {
+                        const checked = e.target.checked;
+                        group.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]').forEach(cb => {
+                            cb.checked = checked;
+                        });
+                        syncGlobalMaster();
+                    });
+
+                    // Cambios individuales → sincronizar maestros
+                    items.addEventListener('change', (e) => {
+                        if (e.target && e.target.matches('input[type="checkbox"][name="nrosTrazasDevolver"]')) {
+                            syncGroupMaster(group);
+                            syncGlobalMaster();
+                        }
+                    });
+
+                    group.appendChild(header);
+                    group.appendChild(items);
                     trazasContainer.appendChild(group);
                 });
 
+                // mostrar bloque de trazas
                 trazasWrapper.style.display = 'block';
 
             } catch (e) {
@@ -225,10 +289,8 @@
                 trazasError.style.display = 'none';
             }
         });
-
     });
 </script>
-
 
 </body>
 </html>
