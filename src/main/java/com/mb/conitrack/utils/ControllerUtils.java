@@ -778,9 +778,9 @@ public class ControllerUtils {
 
         if (movimientoDTO.getTrazaDTOs() == null || movimientoDTO.getTrazaDTOs().isEmpty()) {
             bindingResult.rejectValue("trazaDTOs", "", "Debe seleccionar al menos una traza para devolver.");
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     public boolean validarMovimientoOrigen(
@@ -800,9 +800,9 @@ public class ControllerUtils {
             bindingResult.rejectValue(
                 "fechaMovimiento", "",
                 "La fecha de devolución no puede ser anterior a la fecha del movimiento de venta.");
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
 }

@@ -111,9 +111,8 @@ public class AltaDevolucionVentaController {
         final Optional<Movimiento> movOrigen = queryServiceMovimiento.findMovimientoByCodigoInterno(
             movimientoDTO.getCodigoMovimientoOrigen());
 
-        success = success &&
+        return success &&
             controllerUtils().validarMovimientoOrigen(movimientoDTO, bindingResult, movOrigen.orElse(null));
-        return success;
     }
 
 }
