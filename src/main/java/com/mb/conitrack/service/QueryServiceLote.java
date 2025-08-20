@@ -10,8 +10,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
@@ -23,6 +25,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 @Service
 public class QueryServiceLote {
+
     //TODO: unificar la logica de activo vs todos para operatoria vs auditoria
     private final LoteRepository loteRepository;
 
@@ -169,14 +172,9 @@ public class QueryServiceLote {
     public List<Lote> findAllForDevolucionVenta() {
         final List<Lote> result = new ArrayList<>();
         for (Lote lote : findAllSortByDateAndCodigoInterno()) {
-            if (lote.getEstado() == EstadoEnum.VENDIDO) {
-                result.add(lote);
-                continue;
-            }
             boolean containsVenta = false;
-            final List<Movimiento> movimientos = lote.getMovimientos();
-            for (Movimiento movimiento : movimientos) {
-                if (movimiento.getMotivo() == MotivoEnum.VENTA) {
+            for (Traza traza : lote.getTrazas()) {
+                if (traza.getEstado() == EstadoEnum.VENDIDO) {
                     containsVenta = true;
                     break;
                 }

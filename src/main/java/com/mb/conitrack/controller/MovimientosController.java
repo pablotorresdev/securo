@@ -2,15 +2,25 @@ package com.mb.conitrack.controller;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.mb.conitrack.dto.DTOUtils;
+import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.TrazaDTO;
+import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.enums.EstadoEnum;
+import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.service.MovimientoService;
 import com.mb.conitrack.service.QueryServiceLote;
 import com.mb.conitrack.service.QueryServiceMovimiento;
@@ -21,9 +31,6 @@ import com.mb.conitrack.service.QueryServiceMovimiento;
 @Controller
 @RequestMapping("/movimientos")
 public class MovimientosController {
-
-    @Autowired
-    private MovimientoService movimientoService;
 
     @Autowired
     private QueryServiceLote queryServiceLote;
@@ -58,6 +65,50 @@ public class MovimientosController {
             .comparing(Movimiento::getFecha));
         model.addAttribute("movimientos", movimientos);
         return "movimientos/list-movimientos"; // Corresponde a movimientos-lote.html
+    }
+
+    @GetMapping("/ventas/movimientos-venta/{codInterno}")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public List<MovimientoDTO> getMovimientosByCodigoInterno(
+        @PathVariable("codInterno") String codInterno) {
+
+        return queryServiceLote.findLoteByCodigoInterno(codInterno)
+            .map(lote -> lote.getMovimientos().stream()
+                .filter(Movimiento::getActivo)
+                .filter(m -> m.getMotivo() == MotivoEnum.VENTA)
+                .filter(m -> m.getDetalles() != null && m.getDetalles().stream()
+                    .anyMatch(d -> d.getTrazas() != null && d.getTrazas().stream()
+                        .anyMatch(t -> t.getEstado() == EstadoEnum.VENDIDO)))
+                .sorted(Comparator.comparing(Movimiento::getFecha))
+                .map(DTOUtils::fromMovimientoEntity)
+                .toList()
+            )
+            .orElse(List.of());
+    }
+
+    @GetMapping("/ventas/trazas-vendidas/{codInterno}")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public List<TrazaDTO> getTrazasVendidasPorMovimiento(@PathVariable("codInterno") String codInterno) {
+
+        Movimiento mov = queryServiceMovimiento.findMovimientoByCodigoInterno(codInterno)
+            .orElseThrow(() -> new IllegalArgumentException("Movimiento no existe: " + codInterno));
+
+        // Detalle → Traza; sólo estado VENDIDO; sin duplicados
+        return mov.getDetalles().stream()
+            .flatMap(d -> d.getTrazas().stream())
+            .filter(t -> t.getEstado() == EstadoEnum.VENDIDO)
+            .collect(java.util.stream.Collectors.toMap(
+                Traza::getId, t -> t, (a, b) -> a)) // dedup por ID
+            .values().stream()
+            .sorted(
+                java.util.Comparator
+                    .comparing((Traza t) -> t.getBulto().getNroBulto())
+                    .thenComparing(Traza::getNroTraza)
+            )
+            .map(DTOUtils::fromTrazaEntity) // mapea a tu TrazaDTO
+            .toList();
     }
 
 }

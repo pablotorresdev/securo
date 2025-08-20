@@ -165,6 +165,7 @@ public class DTOUtils {
 
         MovimientoDTO dto = new MovimientoDTO();
         dto.setFechaMovimiento(entity.getFecha());
+        dto.setCodigoInternoMovimiento(entity.getCodigoInterno());
         if (entity.getLote() != null) {
             dto.setCodigoInternoLote(entity.getLote().getCodigoInterno());
             dto.setLoteId(entity.getLote().getId());

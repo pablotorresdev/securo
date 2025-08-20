@@ -42,10 +42,21 @@
             </select>
         </div>
 
+        <div class="mb-3" id="wrapperTrazas" style="display:none;">
+            <label class="form-label">Trazas vendidas del movimiento (seleccione las unidades devueltas):</label>
+            <div id="trazasContainer" class="border rounded p-3">
+                <!-- aquí se inyectan los checkboxes -->
+            </div>
+            <!-- Validación simple: al menos una -->
+            <div id="trazasError" class="text-danger fw-bold mt-2" style="display:none;">
+                Seleccioná al menos una traza.
+            </div>
+        </div>
+
 
         <!-- Fecha del Movimiento a Cuarentena -->
         <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha de Cambio de Dictamen:</label>
+            <label class="form-label" for="fechaMovimiento">Fecha Devolucion:</label>
             <input class="form-control" id="fechaMovimiento"
                    required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
@@ -69,7 +80,7 @@
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/ventas/alta/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Liberar Producto</button>
+            <button class="btn btn-primary" type="submit">Realizar devolución</button>
         </div>
     </form>
 </div>
@@ -79,55 +90,145 @@
 </footer>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        const base       = /*[[@{/}]]*/ '';  // ej: "/" o "/conitrack/"
+        const loteSelect = document.getElementById('codigoInternoLote');
+        const movWrapper = document.getElementById('wrapperMovVentas');
+        const movSelect  = document.getElementById('movVentaId');
 
-        if (fechaMovimientoDTO) {
-            document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
-        } else {
-            const hoy = new Date();
-            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
-            document.getElementById("fechaMovimiento").value = hoyFormateado;
+        const trazasWrapper   = document.getElementById('wrapperTrazas');
+        const trazasContainer = document.getElementById('trazasContainer');
+        const trazasError     = document.getElementById('trazasError');
+
+        // helper: limpiar trazas UI
+        function clearTrazasUI() {
+            trazasContainer.innerHTML = '';
+            trazasWrapper.style.display = 'none';
+            trazasError.style.display = 'none';
         }
 
-        const loteSelect  = document.getElementById('codigoInternoLote');
-        const movWrapper  = document.getElementById('wrapperMovVentas');
-        const movSelect   = document.getElementById('movVentaId');
-
+        // 1) cuando cambia el lote, cargar movimientos
         loteSelect.addEventListener('change', async () => {
             const codInterno = loteSelect.value;
-            movSelect.innerHTML =
-                '<option value="">-- Seleccione un movimiento --</option>';
 
-            if (!codInterno) {
-                movWrapper.style.display = 'none';
-                return;
-            }
+            movSelect.innerHTML = '<option value="">-- Seleccione un movimiento --</option>';
+            movWrapper.style.display = 'none';
+            movSelect.required = false;
+            clearTrazasUI();
 
+            if (!codInterno) return;
+
+            const url = base + 'movimientos/ventas/movimientos-venta/' + encodeURIComponent(codInterno);
             try {
-                const resp = await fetch(`/ventas/movimientos-venta/${codInterno}`);
-                if (!resp.ok) throw new Error('Error HTTP ' + resp.status);
+                const resp = await fetch(url, { method: 'GET' });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
 
                 data.forEach(mov => {
                     const opt = document.createElement('option');
-                    opt.value = mov.id;
-                    opt.text  = `ID: ${mov.id} | ${mov.fechaMovimiento}
-                             | Cant: ${mov.cantidad} ${mov.unidadMedida}`;
+                    const fecha = mov.fechaMovimiento ?? mov.fecha ?? '';
+                    const cant  = mov.cantidad ?? '';
+                    const um    = mov.unidadMedida ?? '';
+                    opt.value   = mov.codigoInternoMovimiento;
+                    opt.text    = `Fecha: ${fecha} | Cant: ${cant} ${um}`;
                     movSelect.appendChild(opt);
                 });
 
                 movWrapper.style.display = data.length ? 'block' : 'none';
+                movSelect.required = data.length > 0;
+
             } catch (e) {
-                alert('No se pudieron cargar los movimientos de venta');
-                movWrapper.style.display = 'none';
-                console.error(e);
+                console.error('Error movimientos:', e);
+                alert('No se pudieron cargar los movimientos de venta para ese lote.');
             }
         });
 
-        const errorField = document.querySelector('.error-field');
-        if (errorField) errorField.focus();
+        // 2) cuando cambia el movimiento, cargar trazas vendidas y armar checkboxes
+        movSelect.addEventListener('change', async () => {
+            clearTrazasUI();
+            const codInternoMov = (movSelect.value || '').trim();
+            if (!codInternoMov) return; // evita llamar con vacío
+
+            const url = base + 'movimientos/ventas/trazas-vendidas/' + encodeURIComponent(codInternoMov);
+            try {
+                const resp = await fetch(url, { method: 'GET' });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const data = await resp.json();
+
+                if (data.length === 0) {
+                    trazasWrapper.style.display = 'none';
+                    return;
+                }
+
+                // agrupar por nroBulto para mostrar prolijo
+                const porBulto = new Map();
+                data.forEach(t => {
+                    const key = t.nroBulto;
+                    if (!porBulto.has(key)) porBulto.set(key, []);
+                    porBulto.get(key).push(t);
+                });
+
+                // construir UI
+                porBulto.forEach((trazas, nroBulto) => {
+                    const group = document.createElement('div');
+                    group.className = 'mb-2';
+
+                    const title = document.createElement('div');
+                    title.className = 'fw-bold mb-1';
+                    title.textContent = `Bulto Nro ${nroBulto}:`;
+                    group.appendChild(title);
+
+                    trazas.forEach((t, idx) => {
+                        const id = `traza_${nroBulto}_${t.nroTraza}`;
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'form-check form-check-inline';
+
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.className = 'form-check-input';
+                        cb.id = id;
+
+                        // IMPORTANTE: nombre para enviar al backend.
+                        // Opción simple: multi-valor "nrosTrazasDevolver"
+                        cb.name  = 'nrosTrazasDevolver';
+                        cb.value = t.nroTraza; // si preferís ID, usá t.id (si lo incluye tu DTO)
+
+                        const lb = document.createElement('label');
+                        lb.className = 'form-check-label';
+                        lb.setAttribute('for', id);
+                        lb.textContent = `[${t.nroTraza}]`;
+
+                        wrapper.appendChild(cb);
+                        wrapper.appendChild(lb);
+                        group.appendChild(wrapper);
+                    });
+
+                    trazasContainer.appendChild(group);
+                });
+
+                trazasWrapper.style.display = 'block';
+
+            } catch (e) {
+                console.error('Error trazas:', e);
+                alert('No se pudieron cargar las trazas vendidas de ese movimiento.');
+            }
+        });
+
+        // 3) validación "al menos una traza" al enviar
+        const form = document.querySelector('form');
+        form.addEventListener('submit', (ev) => {
+            const checks = trazasContainer.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]:checked');
+            if (trazasWrapper.style.display !== 'none' && checks.length === 0) {
+                ev.preventDefault();
+                trazasError.style.display = 'block';
+                trazasError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                trazasError.style.display = 'none';
+            }
+        });
+
     });
 </script>
+
 
 </body>
 </html>
