@@ -77,7 +77,7 @@ public class MovimientoDTO {
     private String codigoInternoMovimiento;
 
     // Campos no usados aun
-    private String movimientoOrigenId;
+    private String codigoMovimientoOrigen;
 
     private String ordenProduccion;
 

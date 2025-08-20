@@ -13,10 +13,13 @@
     <form method="post" th:action="@{/ventas/alta/devolucion-venta}" th:object="${movimientoDTO}">
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
+        <!-- AQUÍ se inyectarán los inputs ocultos para movimientoDTO.trazaDTOs -->
+        <div id="trazasHidden"></div>
+
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
-        <!-- Select de Lotes disponibles para Devolver -->
+        <!-- Select de Lotes -->
         <div class="mb-3">
             <label class="form-label" for="codigoInternoLote">Lote:</label>
             <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
@@ -32,22 +35,23 @@
             </select>
         </div>
 
-        <!-- Select de Movimientos de venta asociados -->
+        <!-- Select de Movimientos -->
         <div class="mb-3" id="wrapperMovVentas" style="display:none;">
             <label class="form-label" for="movVentaId">Movimiento de Venta:</label>
             <select class="form-select" id="movVentaId"
-                    th:field="*{movimientoOrigenId}" required>
+                    th:field="*{codigoMovimientoOrigen}" required>
                 <option value="">-- Seleccione un movimiento --</option>
             </select>
+            <div class="text-danger fw-bold"
+                 th:errors="*{codigoMovimientoOrigen}"
+                 th:if="${#fields.hasErrors('codigoMovimientoOrigen')}">
+            </div>
         </div>
 
-        <!-- Trazas vendidas del movimiento -->
+        <!-- Trazas -->
         <div class="mb-3" id="wrapperTrazas" style="display:none;">
             <label class="form-label">Trazas vendidas del movimiento (seleccione las unidades devueltas):</label>
-            <div id="trazasContainer" class="border rounded p-3">
-                <!-- aquí se inyectan los checkboxes -->
-            </div>
-            <!-- Validación simple: al menos una -->
+            <div id="trazasContainer" class="border rounded p-3"></div>
             <div id="trazasError" class="text-danger fw-bold mt-2" style="display:none;">
                 Seleccioná al menos una traza.
             </div>
@@ -67,7 +71,7 @@
                  th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
-        <!-- Observaciones (opcional) -->
+        <!-- Observaciones -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control"
@@ -87,9 +91,10 @@
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
+
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        const base       = /*[[@{/}]]*/ '';  // ej: "/" o "/conitrack/"
+        const base       = /*[[@{/}]]*/ '';
         const loteSelect = document.getElementById('codigoInternoLote');
         const movWrapper = document.getElementById('wrapperMovVentas');
         const movSelect  = document.getElementById('movVentaId');
@@ -97,15 +102,17 @@
         const trazasWrapper   = document.getElementById('wrapperTrazas');
         const trazasContainer = document.getElementById('trazasContainer');
         const trazasError     = document.getElementById('trazasError');
+        const trazasHidden    = document.getElementById('trazasHidden');
 
-        // helper: limpiar trazas UI
+        // limpiar UI trazas
         function clearTrazasUI() {
             trazasContainer.innerHTML = '';
             trazasWrapper.style.display = 'none';
             trazasError.style.display = 'none';
+            trazasHidden.innerHTML = '';
         }
 
-        // 1) cuando cambia el lote, cargar movimientos
+        // cargar movimientos al seleccionar lote
         loteSelect.addEventListener('change', async () => {
             const codInterno = loteSelect.value;
 
@@ -127,7 +134,7 @@
                     const fecha = mov.fechaMovimiento ?? mov.fecha ?? '';
                     const cant  = mov.cantidad ?? '';
                     const um    = mov.unidadMedida ?? '';
-                    opt.value   = mov.codigoInternoMovimiento;
+                    opt.value   = mov.codigoInternoMovimiento; // importante
                     opt.text    = `Fecha: ${fecha} | Cant: ${cant} ${um}`;
                     movSelect.appendChild(opt);
                 });
@@ -141,7 +148,7 @@
             }
         });
 
-        // === Helpers de selección maestro ===
+        // helpers de selección maestro
         function syncGroupMaster(groupEl) {
             const cbs = groupEl.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]');
             const allChecked = cbs.length && Array.from(cbs).every(cb => cb.checked);
@@ -157,11 +164,11 @@
             if (masterGlobal) masterGlobal.checked = anyExist && allChecked;
         }
 
-        // 2) cuando cambia el movimiento, cargar trazas vendidas y armar checkboxes
+        // cargar trazas del movimiento
         movSelect.addEventListener('change', async () => {
             clearTrazasUI();
             const codInternoMov = (movSelect.value || '').trim();
-            if (!codInternoMov) return; // evita llamar con vacío
+            if (!codInternoMov) return;
 
             const url = base + 'movimientos/ventas/trazas-vendidas/' + encodeURIComponent(codInternoMov);
             try {
@@ -182,7 +189,7 @@
                     porBulto.get(key).push(t);
                 });
 
-                // 2.1) Barra global "Seleccionar todas"
+                // barra global "Seleccionar todas"
                 const masterBar = document.createElement('div');
                 masterBar.className = 'd-flex align-items-center gap-3 mb-3';
                 masterBar.innerHTML = `
@@ -199,11 +206,10 @@
                     trazasContainer.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]').forEach(cb => {
                         cb.checked = checked;
                     });
-                    // sincroniza todos los maestros por bulto
                     trazasContainer.querySelectorAll('.checkAllBulto').forEach(g => g.checked = checked);
                 });
 
-                // 2.2) Construir grupos por bulto, con maestro por bulto
+                // Grupos por bulto con maestro por bulto
                 porBulto.forEach((trazas, nroBulto) => {
                     const group = document.createElement('div');
                     group.className = 'mb-3 border rounded p-2';
@@ -246,7 +252,6 @@
                         items.appendChild(wrapper);
                     });
 
-                    // Maestro por bulto
                     header.querySelector('.checkAllBulto').addEventListener('change', (e) => {
                         const checked = e.target.checked;
                         group.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]').forEach(cb => {
@@ -255,7 +260,6 @@
                         syncGlobalMaster();
                     });
 
-                    // Cambios individuales → sincronizar maestros
                     items.addEventListener('change', (e) => {
                         if (e.target && e.target.matches('input[type="checkbox"][name="nrosTrazasDevolver"]')) {
                             syncGroupMaster(group);
@@ -268,7 +272,6 @@
                     trazasContainer.appendChild(group);
                 });
 
-                // mostrar bloque de trazas
                 trazasWrapper.style.display = 'block';
 
             } catch (e) {
@@ -277,18 +280,63 @@
             }
         });
 
-        // 3) validación "al menos una traza" al enviar
+        // submit: validar y crear inputs ocultos para movimientoDTO.trazaDTOs
         const form = document.querySelector('form');
         form.addEventListener('submit', (ev) => {
             const checks = trazasContainer.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]:checked');
+
             if (trazasWrapper.style.display !== 'none' && checks.length === 0) {
                 ev.preventDefault();
                 trazasError.style.display = 'block';
                 trazasError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
             } else {
                 trazasError.style.display = 'none';
             }
+
+            // limpiar los hidden previos
+            trazasHidden.innerHTML = '';
+
+            // construir trazaDTOs[index].{codigoLote, nroBulto, nroTraza}
+            const codigoLote = (loteSelect.value || '').trim(); // requerido por TrazaDTO
+            let idx = 0;
+            checks.forEach(cb => {
+                const nroTraza = cb.value;
+                const nroBulto = cb.dataset.bulto;
+
+                // codigoLote
+                const h1 = document.createElement('input');
+                h1.type = 'hidden';
+                h1.name = `trazaDTOs[${idx}].codigoLote`;
+                h1.value = codigoLote;
+                trazasHidden.appendChild(h1);
+
+                // nroBulto
+                const h2 = document.createElement('input');
+                h2.type = 'hidden';
+                h2.name = `trazaDTOs[${idx}].nroBulto`;
+                h2.value = nroBulto;
+                trazasHidden.appendChild(h2);
+
+                // nroTraza
+                const h3 = document.createElement('input');
+                h3.type = 'hidden';
+                h3.name = `trazaDTOs[${idx}].nroTraza`;
+                h3.value = nroTraza;
+                trazasHidden.appendChild(h3);
+
+                idx++;
+            });
         });
+
+        // fecha por defecto
+        const fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
+        const fechaInput = document.getElementById("fechaMovimiento");
+        fechaInput.value = fechaMovimientoDTO || new Date().toISOString().split('T')[0];
+
+        // foco si hay error
+        const errorField = document.querySelector('.error-field');
+        if (errorField) errorField.focus();
     });
 </script>
 

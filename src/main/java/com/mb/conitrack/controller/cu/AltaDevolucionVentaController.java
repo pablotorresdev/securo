@@ -2,6 +2,7 @@ package com.mb.conitrack.controller.cu;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,11 +17,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.QueryServiceLote;
+import com.mb.conitrack.service.QueryServiceMovimiento;
 
 import jakarta.validation.Valid;
 
+import static com.mb.conitrack.controller.cu.AbstractCuController.controllerUtils;
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
@@ -32,6 +36,9 @@ public class AltaDevolucionVentaController {
 
     @Autowired
     private QueryServiceLote queryServiceLote;
+
+    @Autowired
+    private QueryServiceMovimiento queryServiceMovimiento;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -57,9 +64,7 @@ public class AltaDevolucionVentaController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        final boolean success = validateCantidadDevolucion(movimientoDTO, bindingResult);
-
-        if (!success) {
+        if (!validateInfoDevolucion(movimientoDTO, bindingResult)) {
             initModelDevolucionVenta(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
             return "ventas/alta/devolucion-venta";
@@ -86,7 +91,7 @@ public class AltaDevolucionVentaController {
             resultDTO != null ? "success" : "error",
             resultDTO != null
                 ? "Ingreso de stock por devolución exitoso."
-                : "Hubo un error en el ingreso de stock por  devolución.");
+                : "Hubo un error en el ingreso de stock por devolución.");
     }
 
     private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
@@ -95,10 +100,20 @@ public class AltaDevolucionVentaController {
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private boolean validateCantidadDevolucion(
+    private boolean validateInfoDevolucion(
         final @Valid MovimientoDTO movimientoDTO,
         final BindingResult bindingResult) {
-        return true;
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+
+        boolean success = controllerUtils().validarTrazasDevolucion(movimientoDTO, bindingResult);
+        final Optional<Movimiento> movOrigen = queryServiceMovimiento.findMovimientoByCodigoInterno(
+            movimientoDTO.getCodigoMovimientoOrigen());
+
+        success = success &&
+            controllerUtils().validarMovimientoOrigen(movimientoDTO, bindingResult, movOrigen.orElse(null));
+        return success;
     }
 
 }

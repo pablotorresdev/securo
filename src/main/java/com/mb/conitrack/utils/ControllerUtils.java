@@ -16,6 +16,7 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
@@ -38,6 +39,7 @@ public class ControllerUtils {
     private ControllerUtils() {
         // Utility class
     }
+
 
     public List<String> getCountryList() {
         String[] countryCodes = Locale.getISOCountries();
@@ -492,6 +494,23 @@ public class ControllerUtils {
         return false;
     }
 
+    public boolean validarFechaDevolucionLoteDtoPosteriorLote(
+        final MovimientoDTO dto,
+        final Lote lote,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (dto.getFechaMovimiento() != null && dto.getFechaMovimiento().isBefore(lote.getFechaIngreso())) {
+            bindingResult.rejectValue(
+                "fechaMovimiento",
+                "",
+                "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
+            return false;
+        }
+        return true;
+    }
+
     public boolean validarFechaEgresoLoteDtoPosteriorLote(
         final LoteDTO dto,
         final Lote lote,
@@ -750,6 +769,40 @@ public class ControllerUtils {
         }
 
         return true;
+    }
+
+    public boolean validarTrazasDevolucion(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+
+        if (movimientoDTO.getTrazaDTOs() == null || movimientoDTO.getTrazaDTOs().isEmpty()) {
+            bindingResult.rejectValue("trazaDTOs", "", "Debe seleccionar al menos una traza para devolver.");
+            return true;
+        }
+        return false;
+    }
+
+    public boolean validarMovimientoOrigen(
+        final MovimientoDTO movimientoDTO,
+        final BindingResult bindingResult,
+        final Movimiento movOrigen) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (movOrigen == null) {
+            bindingResult.rejectValue("codigoMovimientoOrigen", "", "No se encontro el movimiento de venta origen");
+            return true;
+        }
+
+        if (movimientoDTO.getFechaMovimiento() != null &&
+            movimientoDTO.getFechaMovimiento().isBefore(movOrigen.getFecha())) {
+            bindingResult.rejectValue(
+                "fechaMovimiento", "",
+                "La fecha de devolución no puede ser anterior a la fecha del movimiento de venta.");
+            return true;
+        }
+        return false;
     }
 
 }
