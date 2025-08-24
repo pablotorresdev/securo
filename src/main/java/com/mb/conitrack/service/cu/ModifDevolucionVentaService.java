@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 
+import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Bulto;
@@ -19,13 +20,10 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.repository.BultoRepository;
-import com.mb.conitrack.repository.LoteRepository;
-import com.mb.conitrack.repository.MovimientoRepository;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntity;
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
@@ -34,7 +32,7 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModif
 public class ModifDevolucionVentaService extends AbstractCuService {
 
     @Transactional
-    public Lote persistirDevolucionVenta(final MovimientoDTO dto) {
+    public LoteDTO persistirDevolucionVenta(final MovimientoDTO dto) {
 
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -95,7 +93,7 @@ public class ModifDevolucionVentaService extends AbstractCuService {
         //    - Detalles + join table se guardan via cascade al guardar el movimiento
         lote.getMovimientos().add(movimientoRepository.save(movDevolucionVenta));
         //    - Lote/bultos/trazas son entidades administradas en la sesión; igual podés asegurar el flush:
-        return loteRepository.save(lote);
+        return fromLoteEntity(loteRepository.save(lote));
     }
 
     @Transactional
@@ -112,6 +110,7 @@ public class ModifDevolucionVentaService extends AbstractCuService {
         return movimientoRepository.save(movimientoDevolucionVenta);
     }
 
+    @Transactional
     public boolean validateInfoDevolucion(
         final @Valid MovimientoDTO movimientoDTO,
         final BindingResult bindingResult) {

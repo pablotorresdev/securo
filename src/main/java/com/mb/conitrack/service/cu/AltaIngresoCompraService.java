@@ -52,6 +52,7 @@ public class AltaIngresoCompraService extends AbstractCuService {
         return DTOUtils.fromLoteEntity(loteGuardado);
     }
 
+    @Transactional
     public boolean validarIngresoCompra(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;

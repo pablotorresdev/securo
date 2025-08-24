@@ -81,6 +81,7 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         return DTOUtils.fromLoteEntity(loteGuardado);
     }
 
+    @Transactional
     public boolean validarIngresoProduccionInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
@@ -91,7 +92,8 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         return success;
     }
 
-    private boolean validarTraza(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    @Transactional
+    boolean validarTraza(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

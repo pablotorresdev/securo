@@ -38,11 +38,11 @@ public class FechaValidatorService extends AbstractCuService {
     public List<Lote> persistirProductosVencidos(final MovimientoDTO dto, final List<Lote> lotes) {
         //TODO, eliminar NRO de Reanalisis del DTO
         List<Lote> result = new ArrayList<>();
-        for (Lote loteBulto : lotes) {
-            final Movimiento movimiento = persistirMovimientoProductoVencido(dto, loteBulto);
-            loteBulto.setDictamen(movimiento.getDictamenFinal());
-            loteBulto.getMovimientos().add(movimiento);
-            result.add(loteRepository.save(loteBulto));
+        for (Lote lote : lotes) {
+            final Movimiento movimiento = persistirMovimientoProductoVencido(dto, lote);
+            lote.setDictamen(movimiento.getDictamenFinal());
+            lote.getMovimientos().add(movimiento);
+            result.add(loteRepository.save(lote));
         }
         return result;
     }

@@ -2,6 +2,7 @@ package com.mb.conitrack.service.cu;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,12 +17,6 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.repository.BultoRepository;
-import com.mb.conitrack.repository.LoteRepository;
-import com.mb.conitrack.repository.MovimientoRepository;
-import com.mb.conitrack.repository.TrazaRepository;
-
-import lombok.AllArgsConstructor;
 
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
 
@@ -30,7 +25,7 @@ public class BajaVentaProductoService extends AbstractCuService {
 
     //***********CU12 BAJA: VENTA***********
     @Transactional
-    public Lote bajaVentaProducto(final LoteDTO loteDTO) {
+    public LoteDTO bajaVentaProducto(final LoteDTO loteDTO) {
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(
                 loteDTO.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -73,10 +68,10 @@ public class BajaVentaProductoService extends AbstractCuService {
             .toList());
 
         lote.getMovimientos().add(movimiento);
-        return loteRepository.save(lote);
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
-    @jakarta.transaction.Transactional
+    @Transactional
     public Movimiento persistirMovimientoBajaVenta(final LoteDTO loteDTO, final Lote loteEntity) {
         final Movimiento movimiento = createMovimientoBajaVenta(loteDTO, loteEntity);
 
@@ -118,18 +113,31 @@ public class BajaVentaProductoService extends AbstractCuService {
         return movimientoRepository.save(movimiento);
     }
 
-
-    public boolean validarVentaProductoInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    @Transactional
+    public boolean validarVentaProductoInput(final LoteDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        Lote lote = getLoteByCodigoLote(
-            loteDTO.getCodigoLote(),
-            bindingResult);
 
-        boolean success = lote != null;
-        success = success && validarUnidadMedidaVenta(loteDTO, lote, bindingResult);
-        success = success && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote, bindingResult);
-        return success && validarCantidadesPorMedidas(loteDTO, lote, bindingResult);
+        final Optional<Lote> lote = loteRepository
+            .findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
+
+        if (lote.isEmpty()) {
+            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
+            return false;
+        }
+
+        if (!validarUnidadMedidaVenta(dto, lote.get(), bindingResult)) {
+            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
+            return false;
+        }
+
+        if (!validarFechaEgresoLoteDtoPosteriorLote(dto, lote.get(), bindingResult)) {
+            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
+            return false;
+        }
+
+        return validarCantidadesPorMedidas(dto, lote.get(), bindingResult);
     }
+
 }

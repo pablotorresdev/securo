@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,18 +16,16 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.cu.ModifReanalisisProductoService;
+import com.mb.conitrack.service.cu.ModifReanalisisLoteService;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
-
 @Controller
 @RequestMapping("/calidad/reanalisis")
-public class ModifReanalisisProductoController extends AbstractCuController {
+public class ModifReanalisisLoteController extends AbstractCuController {
 
     @Autowired
-    private ModifReanalisisProductoService reanalisisProductoService;
+    private ModifReanalisisLoteService reanalisisLoteService;
 
     @Autowired
     private AnalisisService analisisService;
@@ -46,47 +43,43 @@ public class ModifReanalisisProductoController extends AbstractCuController {
     // CUZ: Reanalisis de Producto Aprobado
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
     @GetMapping("/inicio-reanalisis")
-    public String showReanalisisProductoForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        initModelReanalisisProducto(movimientoDTO, model);
+    public String showReanalisisLoteForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
+        initModelReanalisisLote(movimientoDTO, model);
         return "calidad/reanalisis/inicio-reanalisis";
     }
 
     @PostMapping("/inicio-reanalisis")
-    public String procesarReanalisisProducto(
+    public String reanalisisLote(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!reanalisisProductoService.validarReanalisisProducto(movimientoDTO, bindingResult)) {
-            initModelReanalisisProducto(movimientoDTO, model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
+        if (!reanalisisLoteService.validarReanalisisLote(movimientoDTO, bindingResult)) {
+            initModelReanalisisLote(movimientoDTO, model);
             return "calidad/reanalisis/inicio-reanalisis";
         }
 
-        procesarReanalisisProducto(movimientoDTO, redirectAttributes);
+        reanalisisLote(movimientoDTO, redirectAttributes);
         return "redirect:/calidad/reanalisis/inicio-reanalisis-ok";
     }
 
     @GetMapping("/inicio-reanalisis-ok")
-    public String exitoReanalisisProducto(
+    public String exitoReanalisisLote(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
         return "calidad/reanalisis/inicio-reanalisis-ok";
     }
 
-    private void initModelReanalisisProducto(final MovimientoDTO movimientoDTO, final Model model) {
+    private void initModelReanalisisLote(final MovimientoDTO movimientoDTO, final Model model) {
         //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
-        final List<LoteDTO> lotesDtos = loteService.findAllForReanalisisProductoDTOs();
-        model.addAttribute("loteReanalisisDTOs", lotesDtos);
+        model.addAttribute("loteReanalisisDTOs", loteService.findAllForReanalisisLoteDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void procesarReanalisisProducto(
-        final MovimientoDTO dto,
-        final RedirectAttributes redirectAttributes) {
+    private void reanalisisLote(final MovimientoDTO dto, final RedirectAttributes redirectAttributes) {
 
         dto.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO loteDTO = reanalisisProductoService.persistirReanalisisProducto(dto);
+        final LoteDTO loteDTO = reanalisisLoteService.persistirReanalisisLote(dto);
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
 
         redirectAttributes.addFlashAttribute(

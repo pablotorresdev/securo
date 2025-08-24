@@ -40,27 +40,27 @@
         <div class="mb-4" id="infoSection">
         </div>
 
-        <!-- Fecha Movimiento -->
         <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha de Reanalisis:</label>
-            <input class="form-control" id="fechaMovimiento"
+            <label class="form-label" for="fechaMovimiento">Fecha del Reanalisis:</label>
+            <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
                    required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
                    th:field="*{fechaMovimiento}"
                    type="date">
 
-            <div style="color: red; font-weight: bold;"
+            <div class="text-danger fw-bold"
                  th:errors="*{fechaMovimiento}"
-                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
+                 th:if="${#fields.hasErrors('fechaMovimiento')}">
+            </div>
         </div>
 
         <!-- Número de Análisis -->
         <div class="mb-3">
-            <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
-            <input class="form-control" id="nroAnalisis" type="text" maxlength="30" required
-                   th:field="*{nroAnalisis}" placeholder="Ej: 123456789">
-            <div style="color: red; font-weight: bold;" th:errors="*{nroAnalisis}"
-                 th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+            <label class="form-label" for="nroReanalisis">Número de Reanalisis:</label>
+            <input class="form-control" id="nroReanalisis" type="text" maxlength="30" required
+                   th:field="*{nroReanalisis}" placeholder="Ej: 123456789">
+            <div style="color: red; font-weight: bold;" th:errors="*{nroReanalisis}"
+                 th:if="${#fields.hasErrors('nroReanalisis')}"></div>
         </div>
 
         <div class="mb-3">
@@ -81,49 +81,45 @@
 </footer>
 
 <script th:inline="javascript">
-
-    var codigoLote: /*[[${movimientoDTO.codigoLote}]]*/ null;
-
-    // Inyectamos todo el array loteReanalisisDTOs como objeto JavaScript
-    const loteReanalisisDTOs = /*[[${loteReanalisisDTOs}]]*/ [];
-
-    var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
-
-    if (fechaMovimientoDTO) {
-        document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
-    } else {
-        const hoy = new Date();
-        const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
-        document.getElementById("fechaMovimiento").value = hoyFormateado;
-    }
-
-    const infoSection = document.getElementById('infoSection');
-
-    function actualizarInfo(data) {
-        let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
-        html += '<p><strong>Código Interno:</strong> ' + (data.codigoLote || 'N/D') + '</p>';
-        html += '<p><strong>Producto:</strong> ' + (data.nombreProducto || 'N/D') + '</p>';
-        html += '<p><strong>Fecha ingreso:</strong> ' + (data.fechaIngreso || 'N/D') + '</p>';
-        html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (data.fechaReanalisisProveedor || 'N/D') + '</p>';
-        html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (data.fechaVencimientoProveedor || 'N/D') + '</p>';
-        if (data.analisisDTOs && data.analisisDTOs.length > 0) {
-            html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
-            data.analisisDTOs.forEach(function (a) {
-                html += '<li>';
-                html += '<strong>Nro Análisis:</strong> ' + (a.nroAnalisis || 'N/A') + ' ';
-                html += '<strong>Fecha Realizado:</strong> ' + (a.fechaRealizado || 'En curso') + ' | ';
-                html += '<strong>Fecha Reanálisis:</strong> ' + (a.fechaReanalisis || 'N/A') + ' | ';
-                html += '<strong>Dictamen:</strong> ' + (a.dictamen || 'En curso') + ' | ';
-                html += '<strong>Título:</strong> ' + (a.titulo || 'N/A');
-                html += '</li>';
-            });
-            html += '</ul>';
-        }
-        infoSection.innerHTML = html;
-    }
-
     document.addEventListener('DOMContentLoaded', function () {
+
+        const dto = {
+            codigoLote: /*[[${movimientoDTO.codigoLote}]]*/ null,
+            fechaMovimiento  : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
+        };
+
+        const setFechaMovimiento = () => {
+            const campo = document.getElementById('fechaMovimiento');
+            campo.value = dto.fechaMovimiento || new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
+        };
+
         const loteSelect = document.getElementById('codigoLote');
+        const loteReanalisisDTOs = /*[[${loteReanalisisDTOs}]]*/ [];
+
+        const infoSection = document.getElementById('infoSection');
+
+        function actualizarInfo(data) {
+            let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
+            html += '<p><strong>Código Interno:</strong> ' + (data.codigoLote || 'N/D') + '</p>';
+            html += '<p><strong>Producto:</strong> ' + (data.nombreProducto || 'N/D') + '</p>';
+            html += '<p><strong>Fecha ingreso:</strong> ' + (data.fechaIngreso || 'N/D') + '</p>';
+            html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (data.fechaReanalisisProveedor || 'N/D') + '</p>';
+            html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (data.fechaVencimientoProveedor || 'N/D') + '</p>';
+            if (data.analisisDTOs && data.analisisDTOs.length > 0) {
+                html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
+                data.analisisDTOs.forEach(function (a) {
+                    html += '<li>';
+                    html += '<strong>Nro Análisis:</strong> ' + (a.nroReanalisis || 'N/A') + ' ';
+                    html += '<strong>Fecha Realizado:</strong> ' + (a.fechaRealizado || 'En curso') + ' | ';
+                    html += '<strong>Fecha Reanálisis:</strong> ' + (a.fechaReanalisis || 'N/A') + ' | ';
+                    html += '<strong>Dictamen:</strong> ' + (a.dictamen || 'En curso') + ' | ';
+                    html += '<strong>Título:</strong> ' + (a.titulo || 'N/A');
+                    html += '</li>';
+                });
+                html += '</ul>';
+            }
+            infoSection.innerHTML = html;
+        }
 
         loteSelect.addEventListener('change', function () {
             const codigoSeleccionado = this.value;
@@ -138,6 +134,8 @@
             }
         });
 
+        setFechaMovimiento();
+
         // Opcional: si hay un lote ya seleccionado al cargar la página
         if (loteSelect.value) {
             const loteInicial = loteReanalisisDTOs.find(l => l.codigoLote === loteSelect.value);
@@ -145,6 +143,7 @@
                 actualizarInfo(loteInicial);
             }
         }
+
     });
 </script>
 </body>

@@ -1,7 +1,6 @@
 package com.mb.conitrack.service.cu;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,30 +54,30 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
 
     @Transactional
     public boolean validarResultadoAnalisisInput(
-        final MovimientoDTO movimientoDTO,
+        final MovimientoDTO dto,
         final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
 
-        if (!validarDatosMandatoriosResultadoAnalisisInput(movimientoDTO, bindingResult)) {
+        if (!validarDatosMandatoriosResultadoAnalisisInput(dto, bindingResult)) {
             return false;
         }
 
-        if (!validarDatosResultadoAnalisisAprobadoInput(movimientoDTO, bindingResult)) {
+        if (!validarDatosResultadoAnalisisAprobadoInput(dto, bindingResult)) {
             return false;
         }
 
-        if (!movimientoRepository.existeMuestreo(movimientoDTO.getCodigoLote(), movimientoDTO.getNroAnalisis())) {
+        if (!movimientoRepository.existeMuestreo(dto.getCodigoLote(), dto.getNroAnalisis())) {
             bindingResult.rejectValue(
                 "nroAnalisis",
                 "",
-                "No se encontró un MUESTREO realizado para ese Nro de Análisis " + movimientoDTO.getNroAnalisis());
+                "No se encontró un MUESTREO realizado para ese Nro de Análisis " + dto.getNroAnalisis());
             return false;
         }
 
         final Optional<LocalDate> fechaIngresoLote = loteRepository
-            .findByCodigoLoteAndActivoTrue(movimientoDTO.getCodigoLote())
+            .findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .map(Lote::getFechaIngreso);
 
         if (fechaIngresoLote.isEmpty()) {
@@ -86,36 +85,36 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
             return false;
         }
 
-        if (!validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, fechaIngresoLote.get(), bindingResult)) {
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
             return false;
         }
 
-        if (!validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, fechaIngresoLote.get(), bindingResult)) {
+        if (!validarFechaAnalisisPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
             return false;
         }
 
-        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(movimientoDTO.getCodigoLote());
+        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
         if (lote.isEmpty()) {
             bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
             return false;
         }
 
-        if (!validateFechasAnalisis(movimientoDTO, bindingResult)) {
+        if (!validateFechasAnalisis(dto, bindingResult)) {
             return false;
         }
 
-        if (DictamenEnum.RECHAZADO == movimientoDTO.getDictamenFinal()) {
+        if (DictamenEnum.RECHAZADO == dto.getDictamenFinal()) {
             return true;
         }
 
         final List<Analisis> analisisList = analisisRepository.findUltimoAprobadoConTituloPorCodigoLote(
-            movimientoDTO.getCodigoLote());
+            dto.getCodigoLote());
 
         if (analisisList.isEmpty()) {
             return true;
         }
 
-        return validarValorTitulo(movimientoDTO, analisisList.get(0), bindingResult);
+        return validarValorTitulo(dto, analisisList.get(0), bindingResult);
     }
 
 }

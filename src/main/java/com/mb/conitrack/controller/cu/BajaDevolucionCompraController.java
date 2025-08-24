@@ -37,7 +37,7 @@ public class BajaDevolucionCompraController extends AbstractCuController {
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/devolucion-compra")
     public String showDevolucionCompraForm(@ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {
-        initModelDevolucionCompra(model);
+        initModelDevolucionCompra(model, movimientoDTO);
         return "compras/baja/devolucion-compra";
     }
 
@@ -50,8 +50,7 @@ public class BajaDevolucionCompraController extends AbstractCuController {
         RedirectAttributes redirectAttributes) {
 
         if (!devolucionCompraService.validarDevolucionCompra(movimientoDTO, bindingResult)) {
-            initModelDevolucionCompra(model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
+            initModelDevolucionCompra(model, movimientoDTO);
             return "compras/baja/devolucion-compra";
         }
 
@@ -76,8 +75,9 @@ public class BajaDevolucionCompraController extends AbstractCuController {
             loteDTO != null ? "Devolucion realizada correctamente." : "Hubo un error en la devolucion de compra.");
     }
 
-    void initModelDevolucionCompra(final Model model) {
+    void initModelDevolucionCompra(final Model model, MovimientoDTO movimientoDTO) {
         model.addAttribute("lotesDevolvibles", loteService.findAllForDevolucionCompraDTOs());
+        model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
 }

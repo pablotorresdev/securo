@@ -13,19 +13,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.cu.ModifLiberacionVentasService;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
-
 @Controller
 @RequestMapping("/ventas/liberacion")
-public class ModifLiberacionVentasController  extends AbstractCuController {
+public class ModifLiberacionVentasController extends AbstractCuController {
 
     @Autowired
     private ModifLiberacionVentasService modifLiberacionVentasService;
@@ -54,24 +50,12 @@ public class ModifLiberacionVentasController  extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        Lote lote = controllerUtils().getLoteByCodigoLote(
-            movimientoDTO.getCodigoLote(),
-            bindingResult,
-            loteService);
-
-        boolean success = lote != null;
-        success = success && controllerUtils()
-            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-        success = success &&  controllerUtils()
-            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-
-        if (!success) {
+        if (!modifLiberacionVentasService.validarLiberacionVentas(movimientoDTO, bindingResult)) {
             initModelLiberacionProducto(movimientoDTO, model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
             return "ventas/liberacion/inicio-liberacion";
         }
 
-        liberacionProducto(movimientoDTO, lote, redirectAttributes);
+        liberacionProducto(movimientoDTO, redirectAttributes);
         return "redirect:/ventas/liberacion/inicio-liberacion-ok";
     }
 
@@ -82,7 +66,7 @@ public class ModifLiberacionVentasController  extends AbstractCuController {
     }
 
     private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> loteLiberacionProdDtos = fromLoteEntities(loteService.findAllForLiberacionProducto());
+        final List<LoteDTO> loteLiberacionProdDtos = loteService.findAllForLiberacionProductoDTOs();
         //TODO: unificar nombres de atributos
         model.addAttribute("loteLiberacionProdDtos", loteLiberacionProdDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
@@ -90,10 +74,11 @@ public class ModifLiberacionVentasController  extends AbstractCuController {
 
     private void liberacionProducto(
         final MovimientoDTO dto,
-        final Lote lote,
         final RedirectAttributes redirectAttributes) {
+
         dto.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(modifLiberacionVentasService.persistirLiberacionProducto(dto, lote));
+        final LoteDTO loteDTO = modifLiberacionVentasService.persistirLiberacionProducto(dto);
+
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",

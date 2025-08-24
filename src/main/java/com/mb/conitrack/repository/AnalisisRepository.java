@@ -12,6 +12,7 @@ import com.mb.conitrack.entity.Analisis;
 
 public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
 
+    @EntityGraph(attributePaths = "lote")
     Analisis findByNroAnalisisAndActivoTrue(String nroAnalisis);
 
     Analisis findByNroAnalisisAndDictamenIsNotNullAndActivoTrue(String nroAnalisis);

@@ -70,6 +70,7 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
         return movimientoRepository.save(movimiento);
     }
 
+    @Transactional
     public boolean validarDictamenCuarentena(
         final @Valid MovimientoDTO movimientoDTO,
         final BindingResult bindingResult) {

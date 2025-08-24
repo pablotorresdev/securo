@@ -21,10 +21,10 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModif
 
 //***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
 @Service
-public class ModifReanalisisProductoService extends AbstractCuService {
+public class ModifReanalisisLoteService extends AbstractCuService {
 
     @Transactional
-    public LoteDTO persistirReanalisisProducto(final MovimientoDTO dto) {
+    public LoteDTO persistirReanalisisLote(final MovimientoDTO dto) {
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -32,7 +32,7 @@ public class ModifReanalisisProductoService extends AbstractCuService {
         final Analisis analisis = DTOUtils.createAnalisis(dto);
         analisis.setLote(lote);
         final Analisis newAnalisis = analisisRepository.save(analisis);
-        final Movimiento movimiento = persistirMovimientoReanalisisProducto(
+        final Movimiento movimiento = persistirMovimientoReanalisisLote(
             dto,
             lote,
             newAnalisis.getNroAnalisis());
@@ -43,7 +43,7 @@ public class ModifReanalisisProductoService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoReanalisisProducto(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
+    public Movimiento persistirMovimientoReanalisisLote(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
         movimiento.setFecha(dto.getFechaMovimiento());
 
@@ -56,21 +56,21 @@ public class ModifReanalisisProductoService extends AbstractCuService {
         return movimientoRepository.save(movimiento);
     }
 
-
-    public boolean validarReanalisisProducto(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
+    @Transactional
+    public boolean validarReanalisisLote(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
 
-        if (!validarNroAnalisisNotNull(movimientoDTO, bindingResult)) {
+        if (!validarNroAnalisisNotNull(dto, bindingResult)) {
             return false;
         }
 
-        if (!validarNroAnalisisUnico(movimientoDTO, bindingResult)) {
+        if (!validarNroAnalisisUnico(dto, bindingResult)) {
             return false;
         }
 
-        final Optional<LocalDate> fechaIngresoLote = loteRepository.findByCodigoLoteAndActivoTrue(movimientoDTO.getCodigoLote())
+        final Optional<LocalDate> fechaIngresoLote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .map(Lote::getFechaIngreso);
 
         if (fechaIngresoLote.isEmpty()) {
@@ -78,11 +78,11 @@ public class ModifReanalisisProductoService extends AbstractCuService {
             return false;
         }
 
-        if (!validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, fechaIngresoLote.get(), bindingResult)) {
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
             return false;
         }
 
-        return validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, fechaIngresoLote.get(), bindingResult);
+        return validarFechaAnalisisPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult);
     }
 
 }

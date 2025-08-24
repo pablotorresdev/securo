@@ -50,7 +50,6 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
 
         if (!dictamenCuarentenaService.validarDictamenCuarentena(movimientoDTO, bindingResult)) {
             initModelDictamencuarentena(movimientoDTO, model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
             return "calidad/dictamen/cuarentena";
         }
 

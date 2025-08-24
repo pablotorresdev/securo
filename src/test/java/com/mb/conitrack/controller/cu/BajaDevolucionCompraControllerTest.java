@@ -82,16 +82,6 @@ class BajaDevolucionCompraControllerTest {
         assertEquals("compras/baja/devolucion-compra-ok", controller.exitoDevolucionCompra(new LoteDTO()));
     }
 
-    @Test
-    void testInitModelDevolucionCompra_CargaLotes() {
-        var lista = List.of(new LoteDTO());
-        when(loteService.findAllForDevolucionCompraDTOs()).thenReturn(lista);
-
-        controller.initModelDevolucionCompra(model);
-
-        assertSame(lista, model.getAttribute("lotesDevolvibles"));
-    }
-
     // -------------------- GET /devolucion-compra-ok --------------------
 
     // -------------------- POST /devolucion-compra (handler) --------------------

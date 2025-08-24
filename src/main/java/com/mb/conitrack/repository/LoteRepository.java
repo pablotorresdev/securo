@@ -8,7 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 
 public interface LoteRepository extends JpaRepository<Lote, Long> {
@@ -114,7 +116,7 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
           )
         order by l.fechaIngreso asc, l.codigoLote asc
     """)
-    List<Lote> findAllForReanalisisProducto();
+    List<Lote> findAllForReanalisisLote();
 
     @Query("""
         select l
@@ -164,6 +166,30 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     List<Lote> findLotesConStockOrder();
 
     @Query("""
+          select distinct l
+          from Lote l
+          left join fetch l.analisisList aFetch
+          where exists (
+            select 1 from Bulto b
+            where b.lote = l and b.cantidadActual > 0
+          )
+          and (
+               l.fechaVencimientoProveedor is not null
+            or l.fechaReanalisisProveedor  is not null
+            or exists (
+                select 1
+                from Analisis a
+                where a.lote = l
+                  and a.activo = true
+                  and a.dictamen is not null
+                  and (a.fechaVencimiento is not null or a.fechaReanalisis is not null)
+            )
+          )
+          order by l.fechaIngreso asc, l.codigoLote asc
+        """)
+    List<Lote> findLotesDictaminadosConStock();
+
+    @Query("""
         select l
         from Lote l
         where l.activo = true
@@ -206,4 +232,26 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
         order by l.fechaIngreso asc, l.codigoLote asc
     """)
     List<Lote> findAllForDevolucionVenta();
+
+
+    @Query("""
+        select distinct b
+        from Bulto b
+        join b.lote l
+        left join fetch b.detalles d
+        left join fetch d.movimiento m
+        where l.codigoLote = :codigoLote
+          and l.activo = true
+          and l.dictamen <> com.mb.conitrack.enums.DictamenEnum.RECIBIDO
+          and exists (
+              select 1 from Analisis a
+              where a.lote = l
+                and a.nroAnalisis is not null
+          )
+          and b.activo = true
+          and b.cantidadActual is not null
+          and b.cantidadActual > 0
+        order by b.nroBulto asc
+    """)
+    List<Bulto> findBultosForMuestreoByCodigoLote(@Param("codigoLote") String codigoLote);
 }

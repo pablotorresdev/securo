@@ -74,13 +74,14 @@ public class BajaDevolucionCompraService extends AbstractCuService {
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
-    public boolean validarDevolucionCompra(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
+    @Transactional
+    public boolean validarDevolucionCompra(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
 
         final Optional<Lote> lote = loteRepository
-            .findByCodigoLoteAndActivoTrue(movimientoDTO.getCodigoLote());
+            .findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
 
         if (lote.isEmpty()) {
             bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
@@ -88,7 +89,7 @@ public class BajaDevolucionCompraService extends AbstractCuService {
         }
 
         return controllerUtils().validarFechaMovimientoPosteriorIngresoLote(
-            movimientoDTO, lote.get().getFechaIngreso(), bindingResult);
+            dto, lote.get().getFechaIngreso(), bindingResult);
     }
 
 }

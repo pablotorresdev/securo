@@ -1,7 +1,5 @@
 package com.mb.conitrack.controller;
 
-import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.mb.conitrack.dto.BultoDTO;
-import com.mb.conitrack.dto.DTOUtils;
-import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.LoteService;
-
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 /**
  * CU1, CU4
@@ -46,7 +39,7 @@ public class LotesController {
 
     @GetMapping("/list-fechas-lotes")
     public String listFechasLotes(Model model) {
-        model.addAttribute("loteDTOs", fromLoteEntities(loteService.findAllLotesDictaminados()));
+        model.addAttribute("loteDTOs", loteService.findLotesDictaminadosConStock());
         return "lotes/list-fechas-lotes";
     }
 
@@ -58,21 +51,9 @@ public class LotesController {
 
     @GetMapping("/codigoLote/muestreo/{codigoLote}")
     @ResponseBody
-    @Transactional(readOnly = true)
     public List<BultoDTO> getBultosForMuestreoByCodigoLote(
         @PathVariable String codigoLote) {
-
-        return loteService.findLoteByCodigoLote(codigoLote)
-            .stream()
-            .filter(Lote::getActivo)
-            .filter(l -> l.getDictamen() != DictamenEnum.RECIBIDO)
-            .filter(l -> l.getAnalisisList().stream().anyMatch(a -> a.getNroAnalisis() != null))
-            .flatMap(l -> l.getBultos().stream()
-                .filter(Bulto::getActivo)
-                .filter(b -> b.getCantidadActual() != null && b.getCantidadActual().compareTo(BigDecimal.ZERO) > 0)
-                .map(DTOUtils::fromBultoEntity))
-            .sorted(Comparator.comparing(BultoDTO::getNroBulto))
-            .toList();
+        return loteService.findBultosForMuestreoByCodigoLote(codigoLote);
     }
 
 }

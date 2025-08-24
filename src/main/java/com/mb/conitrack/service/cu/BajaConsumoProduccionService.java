@@ -2,6 +2,7 @@ package com.mb.conitrack.service.cu;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,19 +129,25 @@ public class BajaConsumoProduccionService extends AbstractCuService {
         return movimientoRepository.save(movimiento);
     }
 
+    @Transactional
     public boolean validarConsumoProduccionInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
         //TODO: caso donde el lote 2/3 se haya usado, pero el 1/3 no ni el 3/3
-        Lote lote = getLoteByCodigoLote(
-            loteDTO.getCodigoLote(),
-            bindingResult);
+        final Optional<Lote> lote = loteRepository
+            .findByCodigoLoteAndActivoTrue(loteDTO.getCodigoLote());
 
-        boolean success = lote != null;
-        success = success && validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote, bindingResult);
-        success = success && validarCantidadesPorMedidas(loteDTO, lote, bindingResult);
-        return success;
+        if (lote.isEmpty()) {
+            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
+            return false;
+        }
+
+        if (!validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote.get(), bindingResult)){
+            return false;
+        }
+
+        return validarCantidadesPorMedidas(loteDTO, lote.get(), bindingResult);
     }
 
 }

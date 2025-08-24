@@ -137,16 +137,17 @@ public class BajaMuestreoBultoService extends AbstractCuService {
         }
     }
 
-    public boolean validarMuestreoBulto(final MovimientoDTO movimientoDTO, final BindingResult bindingResult) {
+    @Transactional
+    public boolean validarMuestreoBulto(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
 
-        if (!validarNroAnalisisNotNull(movimientoDTO, bindingResult)) {
+        if (!validarNroAnalisisNotNull(dto, bindingResult)) {
             return false;
         }
 
-        final Optional<LocalDate> fechaIngresoLote = loteRepository.findByCodigoLoteAndActivoTrue(movimientoDTO.getCodigoLote())
+        final Optional<LocalDate> fechaIngresoLote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .map(Lote::getFechaIngreso);
 
         if (fechaIngresoLote.isEmpty()) {
@@ -154,24 +155,24 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             return false;
         }
 
-        if (!validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, fechaIngresoLote.get(), bindingResult)) {
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
             return false;
         }
 
-        if (!validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, fechaIngresoLote.get(), bindingResult)) {
+        if (!validarFechaAnalisisPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
             return false;
         }
 
         final Optional<Bulto> bulto = bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue(
-            movimientoDTO.getCodigoLote(),
-            parseInt(movimientoDTO.getNroBulto()));
+            dto.getCodigoLote(),
+            parseInt(dto.getNroBulto()));
 
         if (bulto.isEmpty()) {
             bindingResult.rejectValue("nroBulto", "", "Bulto no encontrado.");
             return false;
         }
 
-        return validarCantidadesMovimiento(movimientoDTO, bulto.get(), bindingResult);
+        return validarCantidadesMovimiento(dto, bulto.get(), bindingResult);
     }
 
 }

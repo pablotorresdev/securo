@@ -49,7 +49,6 @@ public class BajaMuestreoBultoController extends AbstractCuController {
 
         if (!muestreoBultoService.validarMuestreoBulto(movimientoDTO, bindingResult)) {
             initModelMuestreoBulto(movimientoDTO, model);
-            model.addAttribute("movimientoDTO", movimientoDTO);
             return "calidad/baja/muestreo-bulto";
         }
 

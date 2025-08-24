@@ -91,14 +91,13 @@ public class BajaVentaProductoController extends AbstractCuController {
     }
 
     private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> loteVentaDTOs = fromLoteEntities(loteService.findAllForVentaProducto());
-        model.addAttribute("loteVentaDTOs", loteVentaDTOs);
+        model.addAttribute("loteVentaDTOs", loteService.findAllForVentaProductoDTOs());
         model.addAttribute("loteDTO", loteDTO);
     }
 
     private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(ventaProductoService.bajaVentaProducto(loteDTO));
+        final LoteDTO resultDTO = ventaProductoService.bajaVentaProducto(loteDTO);
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute("trazaVentaDTOs", getTrazaPorBultoDTOs(loteDTO));

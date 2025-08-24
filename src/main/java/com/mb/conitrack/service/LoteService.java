@@ -8,12 +8,16 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mb.conitrack.dto.BultoDTO;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.repository.LoteRepository;
 
 import lombok.AllArgsConstructor;
+
+import static com.mb.conitrack.dto.DTOUtils.fromBultoEntities;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @AllArgsConstructor
 @Service
@@ -78,8 +82,8 @@ public class LoteService {
     //***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
     //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
     @Transactional(readOnly = true)
-    public List<LoteDTO> findAllForReanalisisProductoDTOs() {
-        return DTOUtils.fromLoteEntities(loteRepository.findAllForReanalisisProducto());
+    public List<LoteDTO> findAllForReanalisisLoteDTOs() {
+        return DTOUtils.fromLoteEntities(loteRepository.findAllForReanalisisLote());
     }
 
     //***********CU5/6: RESULTADO ANALISIS***********
@@ -119,18 +123,21 @@ public class LoteService {
     }
 
     //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
-    public List<Lote> findAllForLiberacionProducto() {
-        return loteRepository.findAllForLiberacionProducto();
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForLiberacionProductoDTOs() {
+        return fromLoteEntities(loteRepository.findAllForLiberacionProducto());
     }
 
     //***********CU12 BAJA: VENTA***********
-    public List<Lote> findAllForVentaProducto() {
-        return loteRepository.findAllForVentaProducto();
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForVentaProductoDTOs() {
+        return fromLoteEntities(loteRepository.findAllForVentaProducto());
     }
 
     //***********CU13 ALTA: DEVOLUCION VENTA***********
-    public List<Lote> findAllForDevolucionVenta() {
-        return loteRepository.findAllForDevolucionVenta();
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForDevolucionVenta() {
+        return fromLoteEntities(loteRepository.findAllForDevolucionVenta());
     }
 
     //****************************COMMON PUBLIC*****************************
@@ -144,15 +151,17 @@ public class LoteService {
 
     @Transactional(readOnly = true)
     public Optional<Lote> findLoteByCodigoLote(final String codigoLote) {
-        if (codigoLote == null) {
-            return Optional.empty();
-        }
-        final Optional<Lote> byCodigoLoteAndActivoTrue = loteRepository.findByCodigoLoteAndActivoTrue(
+        return loteRepository.findByCodigoLoteAndActivoTrue(
             codigoLote);
-
-        return byCodigoLoteAndActivoTrue;
     }
 
+    @Transactional(readOnly = true)
+    public List<BultoDTO> findBultosForMuestreoByCodigoLote(final String codigoLote) {
+        return fromBultoEntities(loteRepository.findBultosForMuestreoByCodigoLote(
+            codigoLote));
+    }
+
+    @Transactional(readOnly = true)
     public List<Lote> findLoteListByCodigoLote(final String codigoLote) {
         if (codigoLote == null) {
             return new ArrayList<>();
@@ -160,10 +169,9 @@ public class LoteService {
         return loteRepository.findAllByCodigoLoteAndActivoTrue(codigoLote);
     }
 
-    public List<Lote> findAllLotesDictaminados() {
-        return loteRepository.findLotesConStockOrder().stream()
-            .filter(lote -> lote.getFechaVencimientoVigente() != null || lote.getFechaReanalisisVigente() != null)
-            .toList();
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findLotesDictaminadosConStock() {
+        return fromLoteEntities(loteRepository.findLotesDictaminadosConStock());
     }
 
     public List<Lote> findAllSortByDateAndCodigoLoteAudit() {

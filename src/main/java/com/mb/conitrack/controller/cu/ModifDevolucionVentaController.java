@@ -69,8 +69,7 @@ public class ModifDevolucionVentaController extends AbstractCuController {
     }
 
     private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
-        List<LoteDTO> lotesDevolucion = fromLoteEntities(loteService.findAllForDevolucionVenta());
-        model.addAttribute("lotesDevolucion", lotesDevolucion);
+        model.addAttribute("lotesDevolucion", loteService.findAllForDevolucionVenta());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
@@ -79,7 +78,7 @@ public class ModifDevolucionVentaController extends AbstractCuController {
         final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(devolucionVentaService.persistirDevolucionVenta(movimientoDTO));
+        final LoteDTO resultDTO = devolucionVentaService.persistirDevolucionVenta(movimientoDTO);
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);
