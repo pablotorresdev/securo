@@ -30,7 +30,7 @@
         <tr th:each="mov : ${movimientos}">
             <td th:text="${mov.tipoMovimiento}"></td>
             <td th:text="${mov.lote.producto.nombreGenerico}"></td>
-            <td th:text="${mov.lote.codigoInterno}"></td>
+            <td th:text="${mov.lote.codigoLote}"></td>
             <td th:text="${mov.lote.bultosTotales}"></td>
             <td th:text="${mov.cantidad}"></td>
             <td th:text="${mov.unidadMedida}"></td>

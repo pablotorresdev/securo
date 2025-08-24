@@ -2,7 +2,6 @@ package com.mb.conitrack.controller;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,14 +15,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.dto.TrazaDTO;
-import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.MovimientoService;
-import com.mb.conitrack.service.QueryServiceLote;
-import com.mb.conitrack.service.QueryServiceMovimiento;
 
 /**
  * CU3
@@ -33,10 +30,10 @@ import com.mb.conitrack.service.QueryServiceMovimiento;
 public class MovimientosController {
 
     @Autowired
-    private QueryServiceLote queryServiceLote;
+    private LoteService loteService;
 
     @Autowired
-    private QueryServiceMovimiento queryServiceMovimiento;
+    private MovimientoService movimientoService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -46,13 +43,13 @@ public class MovimientosController {
 
     @GetMapping("/list-muestreos")
     public String listMuestreos(Model model) {
-        model.addAttribute("movimientos", queryServiceMovimiento.findAllMuestreos());
+        model.addAttribute("movimientos", movimientoService.findAllOrderByFechaAscNullsLast());
         return "movimientos/list-movimientos"; //
     }
 
     @GetMapping("/list-movimientos")
     public String listMovimientos(Model model) {
-        model.addAttribute("movimientos", queryServiceMovimiento.findAll());
+        model.addAttribute("movimientos", movimientoService.findAllOrderByFechaAsc());
         return "movimientos/list-movimientos"; //.html
     }
 
@@ -60,7 +57,7 @@ public class MovimientosController {
     @GetMapping("/loteId/{loteId}")
     public String listMovimientosPorLote(@PathVariable("loteId") Long loteId, Model model) {
         // Se asume que findById() recupera el lote con sus movimientos (por ejemplo, con fetch join)
-        final List<Movimiento> movimientos = queryServiceLote.findLoteBultoById(loteId).getMovimientos();
+        final List<Movimiento> movimientos = loteService.findLoteById(loteId).getMovimientos();
         movimientos.sort(Comparator
             .comparing(Movimiento::getFecha));
         model.addAttribute("movimientos", movimientos);
@@ -70,10 +67,10 @@ public class MovimientosController {
     @GetMapping("/ventas/movimientos-venta/{codInterno}")
     @ResponseBody
     @Transactional(readOnly = true)
-    public List<MovimientoDTO> getMovimientosByCodigoInterno(
+    public List<MovimientoDTO> getMovimientosByCodigolote(
         @PathVariable("codInterno") String codInterno) {
 
-        return queryServiceLote.findLoteByCodigoInterno(codInterno)
+        return loteService.findLoteByCodigoLote(codInterno)
             .map(lote -> lote.getMovimientos().stream()
                 .filter(Movimiento::getActivo)
                 .filter(m -> m.getMotivo() == MotivoEnum.VENTA)
@@ -92,7 +89,7 @@ public class MovimientosController {
     @Transactional(readOnly = true)
     public List<TrazaDTO> getTrazasVendidasPorMovimiento(@PathVariable("codInterno") String codInterno) {
 
-        Movimiento mov = queryServiceMovimiento.findMovimientoByCodigoInterno(codInterno)
+        Movimiento mov = movimientoService.findMovimientoByCodigoMovimiento(codInterno)
             .orElseThrow(() -> new IllegalArgumentException("Movimiento no existe: " + codInterno));
 
         // Detalle → Traza; sólo estado VENDIDO; sin duplicados

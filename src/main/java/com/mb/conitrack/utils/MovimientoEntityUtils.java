@@ -43,7 +43,7 @@ public class MovimientoEntityUtils {
         populateDetalleMovimiento(movimiento, bulto);
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(bulto.getLote().getCodigoInterno() +
+        movimiento.setCodigoMovimiento(bulto.getLote().getCodigoLote() +
             "-B_" +
             bulto.getNroBulto() +
             "-" +
@@ -64,7 +64,7 @@ public class MovimientoEntityUtils {
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(dto.getCodigoInternoLote() + "-" + timestampLoteDTO);
+        movimiento.setCodigoMovimiento(dto.getCodigoLote() + "-" + timestampLoteDTO);
         movimiento.setDictamenFinal(DictamenEnum.RECHAZADO);
 
         movimiento.setFecha(dto.getFechaMovimiento());
@@ -82,7 +82,7 @@ public class MovimientoEntityUtils {
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
         movimiento.setFecha(dto.getFechaEgreso());
         movimiento.setObservaciones(dto.getObservaciones());
         movimiento.setObservaciones("_CU7_\n" + dto.getObservaciones());
@@ -108,7 +108,7 @@ public class MovimientoEntityUtils {
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
         movimiento.setFecha(dto.getFechaEgreso());
         movimiento.setObservaciones("_CU12_\n" + dto.getObservaciones());
         movimiento.setLote(lote);
@@ -124,7 +124,7 @@ public class MovimientoEntityUtils {
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
 
         movimiento.setObservaciones(dto.getObservaciones());
         movimiento.setLote(lote);
@@ -151,7 +151,7 @@ public class MovimientoEntityUtils {
         movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
         String timestampLoteDTO = lote.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
         movimiento.setFecha(lote.getFechaYHoraCreacion().toLocalDate());
         movimiento.setCantidad(lote.getCantidadInicial());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
@@ -195,7 +195,7 @@ public class MovimientoEntityUtils {
         movimiento.setFechaYHoraCreacion(lote.getFechaYHoraCreacion());
         String timestampLoteDTO = lote.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
         movimiento.setFecha(lote.getFechaIngreso());
         movimiento.setCantidad(lote.getCantidadInicial());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
@@ -209,7 +209,7 @@ public class MovimientoEntityUtils {
     public static void addLoteInfoToMovimientoAlta(final Lote lote, final Movimiento movimiento) {
         String timestampLoteDTO = lote.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
-        movimiento.setCodigoInterno(lote.getCodigoInterno() + "-" + timestampLoteDTO);
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
         movimiento.setLote(lote);
         for (Bulto bulto : lote.getBultos()) {
             populateDetalleMovimientoAlta(movimiento, bulto);

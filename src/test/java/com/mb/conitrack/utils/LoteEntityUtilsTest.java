@@ -2,7 +2,8 @@ package com.mb.conitrack.utils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +40,7 @@ class LoteEntityUtilsTest {
     @DisplayName("Mapea todos los campos y setea defaults (NUEVO/RECIBIDO/activo)")
     void createLoteIngreso_ok() {
         // given
-        LocalDateTime now = LocalDateTime.of(2025, 1, 10, 11, 22, 33);
+        OffsetDateTime now = OffsetDateTime.of(2025, 1, 10, 11, 22, 33, 0, ZoneOffset.UTC);
         LocalDate fechaIngreso = LocalDate.of(2025, 1, 11);
         LocalDate reanalisis = LocalDate.of(2026, 2, 1);
         LocalDate vencimiento = LocalDate.of(2027, 3, 1);
@@ -83,7 +84,7 @@ class LoteEntityUtilsTest {
     void createLoteIngreso_opcionalesNull() {
         // given
         LoteDTO dto = new LoteDTO();
-        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 1, 1, 0, 0));
+        dto.setFechaYHoraCreacion(OffsetDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC));
         dto.setPaisOrigen(null);
         dto.setFechaIngreso(LocalDate.of(2025, 1, 2));
         dto.setBultosTotales(1);
@@ -125,10 +126,10 @@ class LoteEntityUtilsTest {
             UnidadMedidaEnum.GRAMO,
             UnidadMedidaEnum.GRAMO));
         dto.setFechaIngreso(LocalDate.now());
-        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 1, 1, 12, 0, 0));
+        dto.setFechaYHoraCreacion(OffsetDateTime.of(2025, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC));
 
         Producto producto = new Producto();
-        producto.setCodigoInterno("P-123");
+        producto.setCodigoProducto("P-123");
 
         Proveedor proveedor = new Proveedor();
         proveedor.setPais("AR");
@@ -141,7 +142,7 @@ class LoteEntityUtilsTest {
         LoteEntityUtils.getInstance().populateLoteAltaStockCompra(lote, dto, producto, proveedor, fabricante);
 
         // then
-        assertEquals("L-P-123-25.01.01_12.00.00", lote.getCodigoInterno());
+        assertEquals("L-P-123-25.01.01_12.00.00", lote.getCodigoLote());
         assertSame(producto, lote.getProducto());
         assertSame(proveedor, lote.getProveedor());
         assertSame(fabricante, lote.getFabricante()); // fabricante seteado
@@ -166,10 +167,10 @@ class LoteEntityUtilsTest {
         dto.setCantidadInicial(new BigDecimal("10"));
         dto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
         dto.setFechaIngreso(LocalDate.now());
-        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 1, 1, 12, 0, 0));
+        dto.setFechaYHoraCreacion(OffsetDateTime.of(2025, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC));
 
         Producto producto = new Producto();
-        producto.setCodigoInterno("P-XYZ");
+        producto.setCodigoProducto("P-XYZ");
 
         Proveedor proveedor = new Proveedor();
         proveedor.setPais("UY");
@@ -179,7 +180,7 @@ class LoteEntityUtilsTest {
         // when
         LoteEntityUtils.getInstance().populateLoteAltaStockCompra(lote, dto, producto, proveedor, null);
         // then
-        assertEquals("L-P-XYZ-25.01.01_12.00.00", lote.getCodigoInterno());
+        assertEquals("L-P-XYZ-25.01.01_12.00.00", lote.getCodigoLote());
         assertSame(producto, lote.getProducto());
         assertSame(proveedor, lote.getProveedor());
         assertNull(lote.getFabricante());         // no presente
@@ -202,10 +203,10 @@ class LoteEntityUtilsTest {
         dto.setCantidadesBultos(java.util.List.of(BigDecimal.ONE, BigDecimal.TEN));
         dto.setUnidadMedidaBultos(java.util.List.of(UnidadMedidaEnum.GRAMO, UnidadMedidaEnum.GRAMO));
         dto.setFechaIngreso(LocalDate.now());
-        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 1, 1, 12, 0, 0));
+        dto.setFechaYHoraCreacion(OffsetDateTime.of(2025, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC));
 
         Producto producto = new Producto();
-        producto.setCodigoInterno("P-999");
+        producto.setCodigoProducto("P-999");
 
         Proveedor proveedor = new Proveedor();
         proveedor.setPais("AR");
@@ -217,7 +218,7 @@ class LoteEntityUtilsTest {
         LoteEntityUtils.getInstance().populateLoteAltaStockCompra(lote, dto, producto, proveedor, null);
 
         // then
-        assertEquals("L-P-999-25.01.01_12.00.00", lote.getCodigoInterno());
+        assertEquals("L-P-999-25.01.01_12.00.00", lote.getCodigoLote());
         assertSame(producto, lote.getProducto());
         assertSame(proveedor, lote.getProveedor());
         assertEquals("CL", lote.getPaisOrigen()); // NO pisado

@@ -23,6 +23,12 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
+        default_batch_fetch_size: 50
+        jdbc:
+          batch_size: 50
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         connection:
@@ -30,6 +36,7 @@ spring:
           characterEncoding: UTF-8
           useUnicode: true
     show-sql: false
+    open-in-view: false
   devtools:
     livereload:
       enabled: true

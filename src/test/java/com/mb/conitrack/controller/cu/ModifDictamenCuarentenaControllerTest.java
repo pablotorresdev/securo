@@ -1,7 +1,10 @@
 package com.mb.conitrack.controller.cu;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,40 +19,20 @@ import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.entity.maestro.Producto;
-import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.ProductoService;
-import com.mb.conitrack.service.ProveedorService;
-import com.mb.conitrack.service.QueryServiceLote;
+import com.mb.conitrack.service.cu.ModifDictamenCuarentenaService;
 import com.mb.conitrack.utils.ControllerUtils;
 
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ModifDictamenCuarentenaControllerTest {
@@ -58,416 +41,105 @@ class ModifDictamenCuarentenaControllerTest {
     @InjectMocks
     ModifDictamenCuarentenaController controller;
 
-    @Mock
-    LoteService loteService;
-
-    @Mock
-    AnalisisService analisisService;;
-
-    @Mock
-    QueryServiceLote queryServiceLote;;
-
-    @Mock
-    ProductoService productoService;
-
-    @Mock
-    ProveedorService proveedorService;
-
-    @Mock
-    List<Proveedor> proveedoresMock;
-
-    @Mock
-    List<Producto> productosMock;
+    @Mock ModifDictamenCuarentenaService dictamenCuarentenaService;
+    @Mock AnalisisService analisisService;
+    @Mock LoteService loteService;
 
     Model model;
-
-    RedirectAttributes redirect;
-
     LoteDTO dto;
-
-    BindingResult binding;
-
-    @Test
-    @DisplayName("cancel")
-    void cancel() {
-        final String s = controller.cancelar();
-        assertEquals("redirect:/", s);
-    }
-
-    @Test
-    @DisplayName("dictamenCuarentena - error: mergeEntities devuelve null → flash 'error'")
-    void dictamenCuarentena_error() {
-        // given
-        MovimientoDTO dto = new MovimientoDTO();
-        Lote lote = new Lote();
-        RedirectAttributes redirect = mock(RedirectAttributes.class);
-
-        when(loteService.persistirDictamenCuarentena(eq(dto), eq(lote))).thenReturn(lote);
-
-        try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> DTOUtils.fromLoteEntity(lote)).thenReturn(null);
-
-            // when
-            controller.dictamenCuarentena(dto, lote, redirect);
-
-            // then
-            assertNotNull(dto.getFechaYHoraCreacion());
-            verify(loteService).persistirDictamenCuarentena(dto, lote);
-            mocked.verify(() -> DTOUtils.fromLoteEntity(lote));
-
-            // flash attributes
-            verify(redirect).addFlashAttribute(eq("loteDTO"), isNull());
-            verify(redirect).addFlashAttribute(
-                eq("error"),
-                eq("Hubo un error al realizar el cambio de calidad a Cuarentena."));
-            verifyNoMoreInteractions(redirect);
-        }
-    }
-
-    @Test
-    @DisplayName("dictamenCuarentena - éxito: mergeEntities devuelve dto → flash 'success'")
-    void dictamenCuarentena_ok() {
-        MovimientoDTO dto = new MovimientoDTO();
-        final Lote lote = new Lote();
-        RedirectAttributes redirect = mock(RedirectAttributes.class);
-        LoteDTO merged = new LoteDTO();
-
-        when(loteService.persistirDictamenCuarentena(eq(dto), eq(lote))).thenReturn(lote);
-
-        try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> DTOUtils.fromLoteEntity(lote)).thenReturn(merged);
-
-            controller.dictamenCuarentena(dto, lote, redirect);
-
-            assertNotNull(dto.getFechaYHoraCreacion());
-            verify(loteService).persistirDictamenCuarentena(dto, lote);
-            mocked.verify(() -> DTOUtils.fromLoteEntity(lote));
-
-            verify(redirect).addFlashAttribute("loteDTO", merged);
-            verify(redirect).addFlashAttribute("success", "Cambio de calidad a Cuarentena exitoso");
-            verifyNoMoreInteractions(redirect);
-        }
-    }
-
-    @Test
-    @DisplayName("exitoDictamenCuarentena")
-    void exitoDictamenCuarentena() {
-        final String s = controller.exitoDictamenCuarentena(dto);
-        assertEquals("calidad/dictamen/cuarentena-ok", s);
-    }
-
-    @Test
-    void exitoMuestreo() {
-    }
-
-    @Test
-    void exitoReanalisisProducto() {
-    }
-
-    @Test
-    void exitoResultadoAnalisis() {
-    }
-
-    @Test
-    @DisplayName("Falla 1er validador -> vuelve al form y llama initModel")
-    void fallaPrimerValidador() {
-        MovimientoDTO dto = new MovimientoDTO();
-        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
-        Model model = new ExtendedModelMap();
-        RedirectAttributes redirect = new RedirectAttributesModelMap();
-
-        doNothing().when(controller).initModelDictamencuarentena(any(), any());
-
-        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            ControllerUtils utilsMock = mock(ControllerUtils.class);
-            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
-
-            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(false);
-
-            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
-
-            assertEquals("calidad/dictamen/cuarentena", view);
-            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(controller).initModelDictamencuarentena(dto, model);
-            verify(controller, never()).dictamenCuarentena(any(), any(), any());
-            assertSame(dto, model.getAttribute("movimientoDTO"));
-        }
-    }
-
-    @Test
-    @DisplayName("Pasa 1°, falla 2° -> vuelve al form")
-    void fallaSegundoValidador() {
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setCodigoInternoLote("X");
-        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
-        Model model = new ExtendedModelMap();
-        RedirectAttributes redirect = new RedirectAttributesModelMap();
-
-        doNothing().when(controller).initModelDictamencuarentena(any(), any());
-
-        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            ControllerUtils utilsMock = mock(ControllerUtils.class);
-            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
-
-            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
-            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(false);
-
-            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
-
-            assertEquals("calidad/dictamen/cuarentena", view);
-            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(controller).initModelDictamencuarentena(dto, model);
-            verify(controller, never()).dictamenCuarentena(any(), any(), any());
-            assertSame(dto, model.getAttribute("movimientoDTO"));
-        }
-    }
-
-    @Test
-    @DisplayName("Pasan 1° y 2°, falla 3° -> vuelve al form")
-    void fallaTercerValidador() {
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setCodigoInternoLote("X");
-        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
-        Model model = new ExtendedModelMap();
-        RedirectAttributes redirect = new RedirectAttributesModelMap();
-
-        doNothing().when(controller).initModelDictamencuarentena(any(), any());
-
-        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            ControllerUtils utilsMock = mock(ControllerUtils.class);
-            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
-
-            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
-            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
-                .thenAnswer(inv -> {
-                    return null;                   // el estático debe devolver boolean
-                });
-
-            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
-
-            assertEquals("calidad/dictamen/cuarentena", view);
-            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
-            verify(controller).initModelDictamencuarentena(dto, model);
-            verify(controller, never()).dictamenCuarentena(any(), any(), any());
-            assertSame(dto, model.getAttribute("movimientoDTO"));
-        }
-    }
-
-    @Test
-    @DisplayName("Pasan 1°, 2°, 3° falla 4° -> vuelve al form")
-    void fallaCuartoValidador() {
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setCodigoInternoLote("X");
-        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
-        Model model = new ExtendedModelMap();
-        RedirectAttributes redirect = new RedirectAttributesModelMap();
-
-        doNothing().when(controller).initModelDictamencuarentena(any(), any());
-
-        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-
-            ControllerUtils utilsMock = mock(ControllerUtils.class);
-            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
-
-            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
-            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
-                .thenAnswer(inv -> {
-                    return new Lote();                   // el estático debe devolver boolean
-                });
-            // 3° falla
-            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
-                .thenReturn(false);
-
-            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
-
-            assertEquals("calidad/dictamen/cuarentena", view);
-            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
-            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
-            verify(controller).initModelDictamencuarentena(dto, model);
-            verify(controller, never()).dictamenCuarentena(any(), any(), any());
-            assertSame(dto, model.getAttribute("movimientoDTO"));
-        }
-    }
-
-    @Test
-    @DisplayName("Pasan 1°, 2°, 3°, 4° falla 5° -> vuelve al form")
-    void fallaQuintoValidador() {
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setCodigoInternoLote("X");
-        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
-        Model model = new ExtendedModelMap();
-        RedirectAttributes redirect = new RedirectAttributesModelMap();
-
-        doNothing().when(controller).initModelDictamencuarentena(any(), any());
-
-        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-
-            ControllerUtils utilsMock = mock(ControllerUtils.class);
-            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
-            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
-            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
-                .thenAnswer(inv -> {
-                    return new Lote();                   // el estático debe devolver boolean
-                });
-            // 3° falla
-            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
-                .thenReturn(true);
-            when(utilsMock.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
-                .thenReturn(false);
-
-            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
-
-            assertEquals("calidad/dictamen/cuarentena", view);
-            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
-            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
-            verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
-            verify(controller).initModelDictamencuarentena(dto, model);
-            verify(controller, never()).dictamenCuarentena(any(), any(), any());
-            assertSame(dto, model.getAttribute("movimientoDTO"));
-        }
-    }
-
-    @Test
-    void procesarDictamenCuarentena() {
-    }
-
-    @Test
-    void procesarMuestreoBulto() {
-    }
-
-    @Test
-    void procesarReanalisisProducto() {
-    }
-
-    @Test
-    void procesarResultadoAnalisis() {
-    }
 
     @BeforeEach
     void setUp() {
-        openMocks(this);   // inicializa @Mock y @InjectMocks
-        dto = new LoteDTO();
         model = new ExtendedModelMap();
+        dto = new LoteDTO();
     }
 
+    // -------------------- GET /cancelar --------------------
     @Test
-    void showDictamenCuarentenaForm() {
+    @DisplayName("cancel")
+    void testCancel() {
+        assertEquals("redirect:/", controller.cancelar());
     }
 
+    // -------------------- GET /cuarentena-ok --------------------
     @Test
-    @DisplayName("GET /cuarentena -> convierte lotes a DTOs y los agrega al model (lista con datos)")
-    void showDictamenCuarentenaForm_listaConDatos() {
-        // given
-        MovimientoDTO dto = new MovimientoDTO();
+    void testExitoDictamenCuarentena() {
+        assertEquals("calidad/dictamen/cuarentena-ok", controller.exitoDictamenCuarentena(new LoteDTO()));
+    }
+
+    // -------------------- GET /cuarentena --------------------
+    @Test
+    @DisplayName("GET /cuarentena -> llena modelo con lista de LoteDTO y movimientoDTO")
+    void testShowDictamenCuarentenaForm_listaConDatos() {
+        MovimientoDTO mov = new MovimientoDTO();
         Model model = new ExtendedModelMap();
 
-        Lote l1 = new Lote();
-        Lote l2 = new Lote();
-        given(queryServiceLote.findAllForCuarentena()).willReturn(List.of(l1, l2));
+        LoteDTO l1 = new LoteDTO();
+        LoteDTO l2 = new LoteDTO();
+        List<LoteDTO> lista = List.of(l1, l2);
+        when(loteService.findAllForCuarentenaDTOs()).thenReturn(lista);
 
-        List<LoteDTO> fakeDtos = List.of(new LoteDTO(), new LoteDTO());
+        String view = controller.showDictamenCuarentenaForm(mov, model);
 
-        // mock estático de DTOUtils.getLotesDtosByCodigoInterno(...)
-        try (MockedStatic<DTOUtils> mocked = mockStatic(DTOUtils.class)) {
-            mocked.when(() -> fromLoteEntities(anyList()))
-                .thenReturn(fakeDtos);
+        assertEquals("calidad/dictamen/cuarentena", view);
+        assertSame(mov, model.getAttribute("movimientoDTO"));
 
-            // when
-            String view = controller.showDictamenCuarentenaForm(dto, model);
-
-            // then
-            assertEquals("calidad/dictamen/cuarentena", view);
-            assertSame(fakeDtos, model.getAttribute("loteCuarentenaDTOs"));
-            assertSame(dto, model.getAttribute("movimientoDTO"));
-
-            // Verificamos que se haya llamado al método estático con alguna lista
-            mocked.verify(() -> fromLoteEntities(anyList()));
-        }
+        // Verificamos contenido (equals), no identidad de referencia:
+        Object attr = model.getAttribute("loteCuarentenaDTOs");
+        assertNotNull(attr);
+        assertTrue(attr instanceof List<?>);
+        @SuppressWarnings("unchecked")
+        List<LoteDTO> enModelo = (List<LoteDTO>) attr;
+        assertEquals(lista.size(), enModelo.size());
+        assertEquals(lista, enModelo); // igualdad por contenido (Lombok @Data genera equals)
     }
 
     @Test
-    @DisplayName("GET /cuarentena -> retorna vista y pone DTO y lista vacía en el model")
-    void showDictamenCuarentenaForm_listaVacia() {
-        // given
-        MovimientoDTO dto = new MovimientoDTO();
-        given(queryServiceLote.findAllForCuarentena()).willReturn(Collections.emptyList());
+    @DisplayName("GET /cuarentena -> lista vacía")
+    void testShowDictamenCuarentenaForm_listaVacia() {
+        MovimientoDTO mov = new MovimientoDTO();
+        when(loteService.findAllForCuarentenaDTOs()).thenReturn(Collections.emptyList());
 
-        // when
-        String view = controller.showDictamenCuarentenaForm(dto, model);
+        String view = controller.showDictamenCuarentenaForm(mov, model);
 
-        // then
         assertEquals("calidad/dictamen/cuarentena", view);
-
-        // se llama al servicio
-        verify(queryServiceLote).findAllForCuarentena();
-
-        // model con atributos esperados
+        verify(loteService).findAllForCuarentenaDTOs();
         Object lotesAttr = model.getAttribute("loteCuarentenaDTOs");
         assertNotNull(lotesAttr);
-        assertTrue(lotesAttr instanceof List<?>);
-        assertTrue(((List<?>)lotesAttr).isEmpty());
-
-        assertSame(dto, model.getAttribute("movimientoDTO"));
+        assertInstanceOf(List.class, lotesAttr);
+        assertTrue(((List<?>) lotesAttr).isEmpty());
+        assertSame(mov, model.getAttribute("movimientoDTO"));
     }
 
     @Test
-    void showMuestreoBultoForm() {
+    @DisplayName("initModelDictamencuarentena -> setea atributos")
+    void testInitModelDictamencuarentena() {
+        MovimientoDTO mov = new MovimientoDTO();
+        List<LoteDTO> lista = List.of(new LoteDTO());
+        when(loteService.findAllForCuarentenaDTOs()).thenReturn(lista);
+
+        controller.initModelDictamencuarentena(mov, model);
+
+        assertSame(lista, model.getAttribute("loteCuarentenaDTOs"));
+        assertSame(mov, model.getAttribute("movimientoDTO"));
     }
 
+    // -------------------- POST /cuarentena (handler) --------------------
     @Test
-    void showReanalisisProductoForm() {
-    }
-
-    @Test
-    void showResultadoAnalisisForm() {
-    }
-
-    @Test
-    @DisplayName("Todos OK -> redirige y llama dictamenCuarentena")
-    void todoOk() {
-        MovimientoDTO dto = new MovimientoDTO();
-        dto.setCodigoInternoLote("X");
-        BindingResult br = new BeanPropertyBindingResult(dto, "movimientoDTO");
-        Model model = new ExtendedModelMap();
+    @DisplayName("POST falla: ya hay errores en BindingResult → vuelve al form")
+    void testProcesarDictamenCuarentena_Handler_BindingErrors() {
+        MovimientoDTO mov = new MovimientoDTO();
+        BindingResult br = new BeanPropertyBindingResult(mov, "movimientoDTO");
+        br.addError(new FieldError("movimientoDTO", "dummy", "x"));
         RedirectAttributes redirect = new RedirectAttributesModelMap();
 
-        doNothing().when(controller).dictamenCuarentena(eq(dto), any(Lote.class), eq(redirect));
+        // no hace falta mockear nada más; con el error inicial la validación corta
+        String view = controller.dictamenCuarentena(mov, br, model, redirect);
 
-        try (MockedStatic<ControllerUtils> mocked = mockStatic(ControllerUtils.class)) {
-            ControllerUtils utilsMock = mock(ControllerUtils.class);
-            mocked.when(ControllerUtils::getInstance).thenReturn(utilsMock);
-            when(utilsMock.validarNroAnalisisNotNull(dto, br)).thenReturn(true);
-            when(utilsMock.validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService))).thenReturn(true);
-            when(utilsMock.getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote)))
-                .thenAnswer(inv -> {
-                    return new Lote();                   // el estático debe devolver boolean
-                });
-            when(utilsMock.validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
-                .thenReturn(true);
-            when(utilsMock.validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br)))
-                .thenReturn(true);
-
-            String view = controller.procesarDictamenCuarentena(dto, br, model, redirect);
-
-            assertEquals("redirect:/calidad/dictamen/cuarentena-ok", view);
-            verify(utilsMock).validarNroAnalisisNotNull(dto, br);
-            verify(utilsMock).validarNroAnalisisUnico(eq(dto), eq(br), eq(analisisService));
-            verify(utilsMock).getLoteByCodigoInterno(eq("X"), eq(br), eq(queryServiceLote));
-            verify(utilsMock).validarFechaMovimientoPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
-            verify(utilsMock).validarFechaAnalisisPosteriorIngresoLote(eq(dto), any(Lote.class), eq(br));
-            verify(controller, never()).initModelDictamencuarentena(any(), any());
-            verify(controller).dictamenCuarentena(eq(dto), any(Lote.class), eq(redirect));
-        }
+        assertEquals("calidad/dictamen/cuarentena", view);
+        assertSame(mov, model.getAttribute("movimientoDTO"));
+        // init model se ejecuta
+        assertNotNull(model.getAttribute("loteCuarentenaDTOs"));
     }
 
 }

@@ -2,7 +2,7 @@ package com.mb.conitrack.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,6 +21,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import static jakarta.persistence.CascadeType.MERGE;
+import static jakarta.persistence.CascadeType.PERSIST;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,9 +38,9 @@ public class Movimiento {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "codigo_interno", length = 100, nullable = false)
+    @Column(name = "codigo_movimiento", length = 100, nullable = false)
     @EqualsAndHashCode.Include
-    private String codigoInterno;
+    private String codigoMovimiento;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lote_id", nullable = false)
@@ -46,13 +49,13 @@ public class Movimiento {
 
     @OneToMany(
         mappedBy = "movimiento", fetch = FetchType.LAZY,
-        cascade = CascadeType.ALL, orphanRemoval = true)
+        cascade = {PERSIST, MERGE}, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();
 
     //TODO: unificar con fecha de movimiento
     @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime fechaYHoraCreacion;
+    private OffsetDateTime fechaYHoraCreacion;
 
     @Column(nullable = false)
     private LocalDate fecha;
@@ -89,7 +92,7 @@ public class Movimiento {
     @Column(name = "dictamen_final", nullable = false)
     private DictamenEnum dictamenFinal;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movimiento_origen_id")
     @EqualsAndHashCode.Exclude
     @JsonBackReference

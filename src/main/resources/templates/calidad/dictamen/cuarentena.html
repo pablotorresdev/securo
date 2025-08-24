@@ -19,20 +19,24 @@
 
         <!-- Select de Lotes disponibles para Cuarentena -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInternoLote">Lote:</label>
-            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
+            <label class="form-label" for="codigoLote">Lote:</label>
+            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${loteCuarentenaDTOs}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
-                         + ' | Codigo Interno: ' + ${loteDTO.codigoInternoLote}
+                         + ' | Codigo Interno: ' + ${loteDTO.codigoLote}
                          + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
-                        th:value="${loteDTO.codigoInternoLote}"
+                        th:value="${loteDTO.codigoLote}"
                         th:data-dictamen="${loteDTO.dictamen.valor}"
                         th:data-nroanalisis="${loteDTO.getNroUltimoAnalisisDto()}"
                         th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}">
                 </option>
             </select>
+            <div class="text-danger fw-bold"
+                 th:errors="*{codigoLote}"
+                 th:if="${#fields.hasErrors('codigoLote')}">
+            </div>
         </div>
 
         <div class="mb-4" id="infoSection">
@@ -102,7 +106,7 @@
 </footer>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        const loteSelect = document.getElementById('codigoInternoLote');
+        const loteSelect = document.getElementById('codigoLote');
         const grupoEditable = document.getElementById('grupoNroAnalisisEditable');
         const grupoReadonly = document.getElementById('grupoNroAnalisisSoloLectura');
         const grupoReanalisis = document.getElementById('grupoNroReanalisis');
@@ -118,7 +122,7 @@
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
             const hoy = new Date();
-            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
             document.getElementById("fechaMovimiento").value = hoyFormateado;
         }
 

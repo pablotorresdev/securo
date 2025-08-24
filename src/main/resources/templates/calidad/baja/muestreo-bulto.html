@@ -38,12 +38,12 @@
             <select class="form-select"
                     id="loteMuestreo"
                     required
-                    th:field="*{codigoInternoLote}"
-                    th:classappend="${#fields.hasErrors('codigoInternoLote')} ? ' error-field'">
+                    th:field="*{codigoLote}"
+                    th:classappend="${#fields.hasErrors('codigoLote')} ? ' error-field'">
                 <option value="">-- Seleccione el lote a muestrear --</option>
                 <!-- Opciones de LoteDTO; agregamos data con último análisis y dictamen -->
                 <option th:each="loteDTO : ${loteMuestreoDTOs}"
-                        th:value="${loteDTO.codigoInternoLote}"
+                        th:value="${loteDTO.codigoLote}"
                         th:data-nroanalisis="${loteDTO.nroUltimoAnalisisDto}"
                         th:data-dictamen="${loteDTO.dictamen}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto}
@@ -136,7 +136,7 @@
 
         /* -------- valores del DTO (cuando volvemos con errores) -------- */
         const dto = {
-            codigoInternoLote: /*[[${movimientoDTO.codigoInternoLote}]]*/ null,
+            codigoLote: /*[[${movimientoDTO.codigoLote}]]*/ null,
             nroBulto         : /*[[${movimientoDTO.nroBulto}]]*/ null,
             unidadMedida     : /*[[${movimientoDTO.unidadMedida}]]*/ null,
             fechaMovimiento  : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
@@ -144,14 +144,14 @@
 
         const setFechaMovimiento = () => {
             const campo = document.getElementById('fechaMovimiento');
-            campo.value = dto.fechaMovimiento || new Date().toISOString().split('T')[0];
+            campo.value = dto.fechaMovimiento || new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
         };
 
         /* -------- carga Bultos (BultoDTO) por Lote -------- */
-        const cargarBultos = (codigoInterno) => {
+        const cargarBultos = (codigoLote) => {
             bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
 
-            fetch(`/lotes/codigoInterno/muestreo/${codigoInterno}`, {
+            fetch(`/lotes/codigoLote/muestreo/${codigoLote}`, {
                 headers: { [csrfHeader]: csrfToken }
             })
                 .then(r => r.json())
@@ -242,8 +242,8 @@
         /* -------- init -------- */
         setFechaMovimiento();
 
-        if (dto.codigoInternoLote) {
-            loteSel.value = dto.codigoInternoLote;
+        if (dto.codigoLote) {
+            loteSel.value = dto.codigoLote;
             loteSel.dispatchEvent(new Event('change'));
         }
 

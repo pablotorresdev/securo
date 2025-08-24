@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,24 +17,18 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.QueryServiceLote;
-import com.mb.conitrack.utils.ControllerUtils;
+import com.mb.conitrack.service.cu.ModifLiberacionVentasService;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.controller.cu.AbstractCuController.controllerUtils;
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/liberacion")
-public class ModifLiberacionVentasController {
+public class ModifLiberacionVentasController  extends AbstractCuController {
 
     @Autowired
-    private LoteService loteService;
-
-    @Autowired
-    private QueryServiceLote queryServiceLote;
+    private ModifLiberacionVentasService modifLiberacionVentasService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -43,7 +36,7 @@ public class ModifLiberacionVentasController {
         return "redirect:/";
     }
 
-    //***************************** CU1 LIBERACION************************************
+    //***************************** CU11 LIBERACION************************************
     // CU11: Dictamen Lote a liberacion
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_ventas')")
     @GetMapping("/inicio-liberacion")
@@ -55,16 +48,16 @@ public class ModifLiberacionVentasController {
     }
 
     @PostMapping("/inicio-liberacion")
-    public String procesarLiberacionProducto(
+    public String liberacionProducto(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        Lote lote = controllerUtils().getLoteByCodigoInterno(
-            movimientoDTO.getCodigoInternoLote(),
+        Lote lote = controllerUtils().getLoteByCodigoLote(
+            movimientoDTO.getCodigoLote(),
             bindingResult,
-            queryServiceLote);
+            loteService);
 
         boolean success = lote != null;
         success = success && controllerUtils()
@@ -89,7 +82,7 @@ public class ModifLiberacionVentasController {
     }
 
     private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> loteLiberacionProdDtos = fromLoteEntities(queryServiceLote.findAllForLiberacionProducto());
+        final List<LoteDTO> loteLiberacionProdDtos = fromLoteEntities(loteService.findAllForLiberacionProducto());
         //TODO: unificar nombres de atributos
         model.addAttribute("loteLiberacionProdDtos", loteLiberacionProdDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
@@ -99,8 +92,8 @@ public class ModifLiberacionVentasController {
         final MovimientoDTO dto,
         final Lote lote,
         final RedirectAttributes redirectAttributes) {
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirLiberacionProducto(dto, lote));
+        dto.setFechaYHoraCreacion(OffsetDateTime.now());
+        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(modifLiberacionVentasService.persistirLiberacionProducto(dto, lote));
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",

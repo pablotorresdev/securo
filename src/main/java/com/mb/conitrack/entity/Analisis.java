@@ -2,7 +2,8 @@ package com.mb.conitrack.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -25,7 +26,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "analisis")
 @SQLDelete(sql = "UPDATE analisis SET activo = false WHERE id = ?")
-@ToString(exclude = { "lote" }) // ⬅️ antes decía "lotes"
+@ToString(exclude = { "lote" })
 public class Analisis {
 
     @Id
@@ -35,13 +36,13 @@ public class Analisis {
 
     @Column(name = "fecha_creacion", nullable = false)
     @EqualsAndHashCode.Include
-    private LocalDateTime fechaYHoraCreacion;
+    private OffsetDateTime fechaYHoraCreacion;
 
     @Column(name = "nro_analisis", length = 30, nullable = false)
     @EqualsAndHashCode.Include
     private String nroAnalisis;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
     @EqualsAndHashCode.Include

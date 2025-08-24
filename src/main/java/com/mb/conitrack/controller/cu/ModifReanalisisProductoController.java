@@ -1,6 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.QueryServiceLote;
+import com.mb.conitrack.service.cu.ModifReanalisisProductoService;
 
 import jakarta.validation.Valid;
 
@@ -30,13 +28,13 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 public class ModifReanalisisProductoController extends AbstractCuController {
 
     @Autowired
-    private LoteService loteService;
+    private ModifReanalisisProductoService reanalisisProductoService;
 
     @Autowired
     private AnalisisService analisisService;
 
     @Autowired
-    private QueryServiceLote queryServiceLote;
+    private LoteService loteService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -60,29 +58,13 @@ public class ModifReanalisisProductoController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        Lote lote = null;
-        boolean success = controllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
-        success = success && controllerUtils()
-            .validarNroAnalisisUnico(movimientoDTO, bindingResult, analisisService);
-        if (success) {
-            lote = controllerUtils().getLoteByCodigoInterno(
-                movimientoDTO.getCodigoInternoLote(),
-                bindingResult,
-                queryServiceLote);
-        }
-        success = success && lote != null;
-        success = success && controllerUtils()
-            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-        success = success && controllerUtils()
-            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-
-        if (!success) {
+        if (!reanalisisProductoService.validarReanalisisProducto(movimientoDTO, bindingResult)) {
             initModelReanalisisProducto(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
             return "calidad/reanalisis/inicio-reanalisis";
         }
 
-        reanalisisProducto(movimientoDTO, lote, redirectAttributes);
+        procesarReanalisisProducto(movimientoDTO, redirectAttributes);
         return "redirect:/calidad/reanalisis/inicio-reanalisis-ok";
     }
 
@@ -94,17 +76,17 @@ public class ModifReanalisisProductoController extends AbstractCuController {
 
     private void initModelReanalisisProducto(final MovimientoDTO movimientoDTO, final Model model) {
         //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
-        final List<LoteDTO> lotesDtos = fromLoteEntities(queryServiceLote.findAllForReanalisisProducto());
+        final List<LoteDTO> lotesDtos = loteService.findAllForReanalisisProductoDTOs();
         model.addAttribute("loteReanalisisDTOs", lotesDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void reanalisisProducto(
+    private void procesarReanalisisProducto(
         final MovimientoDTO dto,
-        final Lote lote,
         final RedirectAttributes redirectAttributes) {
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirReanalisisProducto(dto, lote));
+
+        dto.setFechaYHoraCreacion(OffsetDateTime.now());
+        final LoteDTO loteDTO = reanalisisProductoService.persistirReanalisisProducto(dto);
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
 
         redirectAttributes.addFlashAttribute(

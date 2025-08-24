@@ -1,6 +1,6 @@
 package com.mb.conitrack.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.mb.conitrack.enums.EstadoEnum;
 
@@ -21,7 +21,7 @@ public class TrazaDTO {
 
     protected String codigoProducto;
 
-    private LocalDateTime fechaYHoraCreacion;
+    private OffsetDateTime fechaYHoraCreacion;
 
     private EstadoEnum estado;
 

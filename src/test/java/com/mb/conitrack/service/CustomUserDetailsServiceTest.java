@@ -12,6 +12,7 @@ import com.mb.conitrack.entity.maestro.Role;
 import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.repository.maestro.RoleRepository;
 import com.mb.conitrack.repository.maestro.UserRepository;
+import com.mb.conitrack.service.maestro.CustomUserDetailsService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

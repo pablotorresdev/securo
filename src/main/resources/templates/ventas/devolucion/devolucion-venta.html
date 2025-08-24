@@ -21,16 +21,16 @@
 
         <!-- Select de Lotes -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInternoLote">Lote:</label>
-            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
+            <label class="form-label" for="codigoLote">Lote:</label>
+            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${lotesDevolucion}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
-                         + ' | Codigo interno: ' + ${loteDTO.codigoInternoLote}
+                         + ' | Codigo interno: ' + ${loteDTO.codigoLote}
                          + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
                          + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
                          + '/' + ${loteDTO.trazaFinal}"
-                        th:value="${loteDTO.codigoInternoLote}">
+                        th:value="${loteDTO.codigoLote}">
                 </option>
             </select>
         </div>
@@ -105,7 +105,7 @@
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', async function () {
         const base       = /*[[@{/}]]*/ '';
-        const loteSelect = document.getElementById('codigoInternoLote');
+        const loteSelect = document.getElementById('codigoLote');
         const movWrapper = document.getElementById('wrapperMovVentas');
         const movSelect  = document.getElementById('movVentaId');
 
@@ -115,7 +115,7 @@
         const trazasHidden    = document.getElementById('trazasHidden');
 
         // === valores actuales para restaurar selección tras recarga ===
-        const selectedCodLote = /*[[${movimientoDTO.codigoInternoLote}]]*/ null;
+        const selectedCodLote = /*[[${movimientoDTO.codigoLote}]]*/ null;
         const selectedCodMov  = /*[[${movimientoDTO.codigoMovimientoOrigen}]]*/ null;
         const selectedTrazas  = /*[[${movimientoDTO.trazaDTOs}]]*/ []; // [{codigoLote,nroBulto,nroTraza},...]
 
@@ -162,7 +162,7 @@
                     const fecha = mov.fechaMovimiento ?? mov.fecha ?? '';
                     const cant  = mov.cantidad ?? '';
                     const um    = mov.unidadMedida ?? '';
-                    opt.value   = mov.codigoInternoMovimiento; // importante
+                    opt.value   = mov.codigoMovimiento; // importante
                     opt.text    = `Fecha: ${fecha} | Cant: ${cant} ${um}`;
                     movSelect.appendChild(opt);
                 });
@@ -373,7 +373,7 @@
         // fecha por defecto
         const fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
         const fechaInput = document.getElementById("fechaMovimiento");
-        fechaInput.value = fechaMovimientoDTO || new Date().toISOString().split('T')[0];
+        fechaInput.value = fechaMovimientoDTO ||  new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
 
         // === Restauración automática si ya venimos con selección ===
         // (Thymeleaf ya deja seleccionado el lote en el combo porque usamos th:field)

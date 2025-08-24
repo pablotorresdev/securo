@@ -1,6 +1,5 @@
 package com.mb.conitrack.controller;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,9 +18,9 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.QueryServiceLote;
 
 import static com.mb.conitrack.dto.DTOUtils.fromAnalisisEntities;
+import static java.util.Comparator.comparing;
 
 @Controller
 @RequestMapping("/analisis")
@@ -31,7 +30,7 @@ public class AnalisisController {
     private AnalisisService analisisService;
 
     @Autowired
-    private QueryServiceLote queryServiceLote;
+    private LoteService loteService;
 
     @GetMapping("/cancelar")
     public String cancelar() {
@@ -58,43 +57,37 @@ public class AnalisisController {
     @GetMapping("/loteId/{loteId}")
     public String listAnalisisPorLote(@PathVariable("loteId") Long loteId, Model model) {
 
-        final Lote loteBultoById = queryServiceLote.findLoteBultoById(loteId);
-        if (loteBultoById == null) {
+        final Lote loteById = loteService.findLoteById(loteId);
+        if (loteById == null) {
             return "redirect:/lotes/list-lotes";
         }
 
-        List<Analisis> analisisList = loteBultoById.getAnalisisList()
+        List<Analisis> analisisList = loteById.getAnalisisList()
             .stream()
             .filter(Analisis::getActivo)
-            .sorted(Comparator
-                .comparing(Analisis::getFechaYHoraCreacion))
+            .sorted(comparing(Analisis::getFechaYHoraCreacion))
             .toList();
 
-        List<AnalisisDTO> analisisDTOs = fromAnalisisEntities(analisisList);
-
-        model.addAttribute("analisisDTOs", analisisDTOs);
-        return "analisis/list-analisis"; // Corresponde a analisis-lote.html
+        model.addAttribute("analisisDTOs", fromAnalisisEntities(analisisList));
+        return "analisis/list-analisis";
     }
 
-    @GetMapping("/codigoInternoLote/{codigoInternoLote}")
-    public String listAnalisisPorLote(@PathVariable("codigoInternoLote") String codigoInternoLote, Model model) {
+    @GetMapping("/codigoLote/{codigoLote}")
+    public String listAnalisisPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {
 
-        final Optional<Lote> loteByCodigoInterno = queryServiceLote.findLoteByCodigoInterno(codigoInternoLote);
-        if (loteByCodigoInterno.isEmpty()) {
+        final Optional<Lote> lote = loteService.findLoteByCodigoLote(codigoLote);
+        if (lote.isEmpty()) {
             return "redirect:/lotes/list-lotes";
         }
 
-        List<Analisis> analisisList = loteByCodigoInterno.get()
+        List<Analisis> analisisList = lote.get()
             .getAnalisisList()
             .stream()
             .filter(Analisis::getActivo)
-            .sorted(Comparator
-                .comparing(Analisis::getFechaYHoraCreacion))
+            .sorted(comparing(Analisis::getFechaYHoraCreacion))
             .toList();
 
-        List<AnalisisDTO> analisisDTOs = fromAnalisisEntities(analisisList);
-
-        model.addAttribute("analisisDTOs", analisisDTOs);
+        model.addAttribute("analisisDTOs", fromAnalisisEntities(analisisList));
         return "analisis/list-analisis"; // Corresponde a analisis-lote.html
     }
 

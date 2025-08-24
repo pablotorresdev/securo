@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.entity.maestro.Proveedor;
-import com.mb.conitrack.service.ProveedorService;
+import com.mb.conitrack.service.maestro.ProveedorService;
 
 import jakarta.validation.Valid;
 
@@ -33,7 +33,7 @@ public class ABMProveedoresController {
 
     @GetMapping("/list-proveedores")
     public String listProveedores(Model model) {
-        model.addAttribute("proveedores", proveedorService.findAll());
+        model.addAttribute("proveedores", proveedorService.findAllByOrderByRazonSocialAsc());
         return "proveedores/list-proveedores";
     }
 

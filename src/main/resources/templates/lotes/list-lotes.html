@@ -44,7 +44,7 @@
         <tr th:each="lote : ${lotes}">
             <td th:text="${lote.producto.nombreGenerico}"></td>
             <td th:text="${lote.fechaIngreso}"></td>
-            <td th:text="${lote.codigoInterno}"></td>
+            <td th:text="${lote.codigoLote}"></td>
             <td th:text="${lote.getUltimoNroAnalisis()}"></td>
             <td th:text="${lote.bultosTotales}"></td>
             <td th:text="${lote.cantidadInicial}"></td>

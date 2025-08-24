@@ -18,16 +18,16 @@
 
         <!-- Select de Lotes disponibles para Cuarentena -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInternoLote">Lote:</label>
-            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
+            <label class="form-label" for="codigoLote">Lote:</label>
+            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${loteLiberacionProdDtos}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
-                         + ' | Codigo interno: ' + ${loteDTO.codigoInternoLote}
+                         + ' | Codigo interno: ' + ${loteDTO.codigoLote}
                          + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
                          + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
                          + '/' + ${loteDTO.trazaFinal}"
-                        th:value="${loteDTO.codigoInternoLote}">
+                        th:value="${loteDTO.codigoLote}">
                 </option>
             </select>
         </div>
@@ -75,7 +75,7 @@
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
             const hoy = new Date();
-            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
             document.getElementById("fechaMovimiento").value = hoyFormateado;
         }
 

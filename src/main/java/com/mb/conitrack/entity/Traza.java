@@ -1,6 +1,7 @@
 package com.mb.conitrack.entity;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class Traza {
     private Bulto bulto;
 
     @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime fechaYHoraCreacion;
+    private OffsetDateTime fechaYHoraCreacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)

@@ -13,7 +13,7 @@ import lombok.Data;
 public class DetalleMovimientoDTO {
 
     @NotNull
-    private String codigoInternoMovimiento;
+    private String codigoMovimiento;
 
     @NotNull
     private Integer nroBulto;

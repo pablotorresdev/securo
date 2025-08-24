@@ -1,8 +1,6 @@
 package com.mb.conitrack.service;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,25 +15,11 @@ public class TrazaService {
     private TrazaRepository trazaRepository;
 
     public Long findMaxNroTraza(Long productoId) {
-        return trazaRepository
-            .findTopByProductoIdOrderByNroTrazaDesc(productoId)
-            .map(Traza::getNroTraza)
-            .orElse(-1L);
+        return trazaRepository.findMaxNroTraza(productoId);
     }
 
-    //***********CU10 ALTA: Produccion***********
-    public List<Traza> save(final List<Traza> trazas) {
-        return trazaRepository.saveAll(trazas);
-    }
-
-    public List<Traza> save(final Set<Traza> trazas) {
-        return trazaRepository.saveAll(trazas);
-    }
-
-    public List<Traza> findAll() {
-        List<Traza> trazas = trazaRepository.findAll();
-        trazas.sort(Comparator.comparing(Traza::getNroTraza));
-        return trazas;
+    public List<Traza> findAllByOrderByNroTrazaAsc() {
+        return trazaRepository.findAllByOrderByNroTrazaAsc();
     }
 
     public List<Traza> findByLoteId(final Long loteId) {

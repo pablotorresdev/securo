@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "productos", uniqueConstraints = @UniqueConstraint(
-    columnNames = { "nombreGenerico", "codigoInterno", "tipo_producto" }
+    columnNames = { "nombre_generico", "codigo_producto", "tipo_producto" }
 ))
 @SQLDelete(sql = "UPDATE productos SET activo = false WHERE id = ?")
 public class Producto {
@@ -35,8 +35,8 @@ public class Producto {
     @Column(name = "nombre_generico", nullable = false)
     private String nombreGenerico;
 
-    @Column(name = "codigo_interno", length = 50, nullable = false, unique = true)
-    private String codigoInterno;
+    @Column(name = "codigo_producto", length = 50, nullable = false, unique = true)
+    private String codigoProducto;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_producto", nullable = false, length = 50)

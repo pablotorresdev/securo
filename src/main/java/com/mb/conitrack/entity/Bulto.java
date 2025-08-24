@@ -23,13 +23,16 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import static jakarta.persistence.CascadeType.MERGE;
+import static jakarta.persistence.CascadeType.PERSIST;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "bultos")
 @SQLDelete(sql = "UPDATE bultos SET activo = false WHERE id = ?")
-@ToString(exclude = { "lote", "trazas", "detalles" }) // ⬅️ agregar
+@ToString(exclude = { "lote", "trazas", "detalles" })
 public class Bulto {
 
     @Id
@@ -37,7 +40,7 @@ public class Bulto {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lote_id", nullable = false)
     @JsonBackReference
     @EqualsAndHashCode.Include
@@ -61,11 +64,11 @@ public class Bulto {
     @Column(name = "estado", nullable = false)
     private EstadoEnum estado;
 
-    @OneToMany(mappedBy = "bulto", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bulto", fetch = FetchType.LAZY, cascade = {PERSIST, MERGE}, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();
 
-    @OneToMany(mappedBy = "bulto", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bulto", fetch = FetchType.LAZY, cascade = {PERSIST, MERGE}, orphanRemoval = true)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @OrderBy("nroTraza ASC")

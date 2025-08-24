@@ -2,7 +2,8 @@ package com.mb.conitrack.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
 
 import org.hibernate.annotations.SQLDelete;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
@@ -30,6 +32,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import static jakarta.persistence.CascadeType.MERGE;
+import static jakarta.persistence.CascadeType.PERSIST;
+
 @Slf4j
 @Data
 @NoArgsConstructor
@@ -38,8 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 @Table(name = "lotes")
 @SQLDelete(sql = "UPDATE lotes SET activo = false WHERE id = ?")
 @ToString(exclude = {
-    "producto", "proveedor", "fabricante", "loteOrigen",
-    "bultos", "movimientos", "analisisList", "trazas"   // ⬅️ agregar
+    "producto", "proveedor", "fabricante",
+    "bultos", "movimientos", "analisisList", "trazas"
 })
 public class Lote {
 
@@ -49,21 +54,21 @@ public class Lote {
     private Long id;
 
     @Column(name = "fecha_creacion", nullable = false)
-    private LocalDateTime fechaYHoraCreacion;
+    private OffsetDateTime fechaYHoraCreacion;
 
-    @Column(name = "codigo_interno", length = 50, nullable = false)
+    @Column(name = "codigo_lote", length = 50, nullable = false)
     @EqualsAndHashCode.Include
-    private String codigoInterno;
+    private String codigoLote;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fabricante_id")
     private Proveedor fabricante;
 
@@ -93,8 +98,10 @@ public class Lote {
     @Column(nullable = false)
     private DictamenEnum dictamen;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lote_origen_id")
+    @EqualsAndHashCode.Exclude
+    @JsonBackReference
     private Lote loteOrigen;
 
     @Column(name = "nro_remito")
@@ -106,28 +113,28 @@ public class Lote {
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
-    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @OrderBy("nroBulto ASC")
     private List<Bulto> bultos = new ArrayList<>();
 
-    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     private List<Movimiento> movimientos = new ArrayList<>();
 
     @OneToMany(
         mappedBy = "lote",
-        cascade = CascadeType.ALL,
+        cascade = {PERSIST, MERGE},
         orphanRemoval = true,
-        fetch = FetchType.EAGER
+        fetch = FetchType.LAZY
     )
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     private List<Analisis> analisisList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "lote", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     private Set<Traza> trazas = new HashSet<>();
@@ -135,10 +142,10 @@ public class Lote {
     @Column(nullable = false)
     private Boolean activo;
 
-    @Column(name = "cantidad_inicial", precision = 12, scale = 4)
+    @Column(name = "cantidad_inicial", precision = 12, scale = 4, nullable = false)
     private BigDecimal cantidadInicial;
 
-    @Column(name = "cantidad_actual", precision = 12, scale = 4)
+    @Column(name = "cantidad_actual", precision = 12, scale = 4, nullable = false)
     private BigDecimal cantidadActual;
 
     @Enumerated(EnumType.STRING)

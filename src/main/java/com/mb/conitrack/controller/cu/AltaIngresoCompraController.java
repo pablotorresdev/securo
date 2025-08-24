@@ -1,6 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +17,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.AltaCompra;
-import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.ProductoService;
-import com.mb.conitrack.service.ProveedorService;
-import com.mb.conitrack.utils.ControllerUtils;
+import com.mb.conitrack.service.cu.AltaIngresoCompraService;
+import com.mb.conitrack.service.maestro.ProductoService;
+import com.mb.conitrack.service.maestro.ProveedorService;
 
 @Controller
 @RequestMapping("/compras/alta")
@@ -33,7 +32,7 @@ public class AltaIngresoCompraController extends AbstractCuController {
     private ProveedorService proveedorService;
 
     @Autowired
-    private LoteService loteService;
+    private AltaIngresoCompraService ingresoCompraService;
 
     @GetMapping("/cancelar")
     public String cancelar() {
@@ -56,12 +55,12 @@ public class AltaIngresoCompraController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!validarIngresoCompra(loteDTO, bindingResult)) {
+        if (!ingresoCompraService.validarIngresoCompra(loteDTO, bindingResult)) {
             initModelIngresoCompra(loteDTO, model);
             return "compras/alta/ingreso-compra";
         }
 
-        procesaringresoCompra(loteDTO, redirectAttributes);
+        procesarIngresoCompra(loteDTO, redirectAttributes);
         return "redirect:/compras/alta/ingreso-compra-ok";
     }
 
@@ -85,22 +84,17 @@ public class AltaIngresoCompraController extends AbstractCuController {
         model.addAttribute("paises", controllerUtils().getCountryList());
     }
 
-    void procesaringresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
-        loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.altaStockPorCompra(loteDTO));
+    void procesarIngresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+
+        loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
+        final LoteDTO resultDTO = ingresoCompraService.altaStockPorCompra(loteDTO);
+
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",
             resultDTO != null
                 ? "Ingreso de stock por compra exitoso."
                 : "Hubo un error en el ingreso de stock por compra.");
-    }
-
-    private boolean validarIngresoCompra(final LoteDTO loteDTO, final BindingResult bindingResult) {
-        boolean success = controllerUtils().validateCantidadIngreso(loteDTO, bindingResult);
-        success = success && controllerUtils().validateFechasProveedor(loteDTO, bindingResult);
-        success = success && controllerUtils().validarBultos(loteDTO, bindingResult);
-        return success;
     }
 
 }

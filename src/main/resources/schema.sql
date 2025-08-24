@@ -1,8 +1,6 @@
 DROP TABLE IF EXISTS trazas_detalles CASCADE;
 DROP TABLE IF EXISTS detalle_movimientos CASCADE;
-DROP TABLE IF EXISTS lote_bultos CASCADE;
 DROP TABLE IF EXISTS trazas CASCADE;
-DROP TABLE IF EXISTS lote_analisis CASCADE;
 DROP TABLE IF EXISTS analisis CASCADE;
 DROP TABLE IF EXISTS movimientos CASCADE;
 
@@ -49,7 +47,7 @@ CREATE TABLE productos
 (
     id               BIGSERIAL PRIMARY KEY,
     nombre_generico  VARCHAR(255) NOT NULL,
-    codigo_interno   VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
+    codigo_producto  VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
     tipo_producto    VARCHAR(50)  NOT NULL,
     unidad_medida    VARCHAR(50)  NOT NULL,
     producto_destino VARCHAR(50),
@@ -85,29 +83,29 @@ CREATE TABLE configuracion
 CREATE TABLE lotes
 (
     id                   BIGSERIAL PRIMARY KEY,
-    fecha_creacion       TIMESTAMP      NOT NULL,
-    codigo_interno       VARCHAR(70)    NOT NULL,
-    producto_id          BIGINT         NOT NULL,
-    proveedor_id         BIGINT         NOT NULL,
+    fecha_creacion       TIMESTAMPTZ NOT NULL,
+    codigo_lote          VARCHAR(70) NOT NULL,
+    producto_id          BIGINT      NOT NULL,
+    proveedor_id         BIGINT      NOT NULL,
     fabricante_id        BIGINT,
-    pais_origen          TEXT           NOT NULL,
+    pais_origen          TEXT        NOT NULL,
 
-    fecha_ingreso        DATE           NOT NULL,
-    bultos_totales       INT            NOT NULL,
+    fecha_ingreso        DATE        NOT NULL,
+    bultos_totales       INT         NOT NULL,
     cantidad_inicial     NUMERIC(12, 4),
     cantidad_actual      NUMERIC(12, 4),
-    unidad_medida        VARCHAR(50)    NOT NULL,
+    unidad_medida        VARCHAR(50) NOT NULL,
 
-    lote_proveedor       TEXT           NOT NULL,
+    lote_proveedor       TEXT        NOT NULL,
     fecha_reanal_prov    DATE,
     fecha_vto_prov       DATE,
-    estado               VARCHAR(30)    NOT NULL,
-    dictamen             TEXT           NOT NULL,
+    estado               VARCHAR(30) NOT NULL,
+    dictamen             TEXT        NOT NULL,
     lote_origen_id       BIGINT,
     nro_remito           TEXT,
     detalle_conservacion TEXT,
     observaciones        TEXT,
-    activo               BOOLEAN        NOT NULL DEFAULT TRUE,
+    activo               BOOLEAN     NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_producto_lote
         FOREIGN KEY (producto_id) REFERENCES productos (id),
     CONSTRAINT fk_lote_origen_lote
@@ -139,8 +137,8 @@ CREATE TABLE bultos
 CREATE TABLE movimientos
 (
     id                   BIGSERIAL PRIMARY KEY,
-    codigo_interno       VARCHAR(100) NOT NULL,
-    fecha_creacion       TIMESTAMP    NOT NULL,
+    codigo_movimiento    VARCHAR(100) NOT NULL,
+    fecha_creacion       TIMESTAMPTZ  NOT NULL,
     fecha                DATE         NOT NULL,
     tipo_movimiento      TEXT         NOT NULL,
     motivo               TEXT         NOT NULL,
@@ -160,25 +158,26 @@ CREATE TABLE movimientos
         FOREIGN KEY (movimiento_origen_id) REFERENCES movimientos (id)
 );
 
-CREATE TABLE detalle_movimientos (
-   id             BIGSERIAL PRIMARY KEY,
-   movimiento_id  BIGINT       NOT NULL,
-   bulto_id       BIGINT       NOT NULL,
-   cantidad       NUMERIC(12,4) NOT NULL,
-   unidad_medida  VARCHAR(50)   NOT NULL,
+CREATE TABLE detalle_movimientos
+(
+    id            BIGSERIAL PRIMARY KEY,
+    movimiento_id BIGINT         NOT NULL,
+    bulto_id      BIGINT         NOT NULL,
+    cantidad      NUMERIC(12, 4) NOT NULL,
+    unidad_medida VARCHAR(50)    NOT NULL,
 
-   CONSTRAINT uk_mov_bulto UNIQUE (movimiento_id, bulto_id),
+    CONSTRAINT uk_mov_bulto UNIQUE (movimiento_id, bulto_id),
 
-   CONSTRAINT fk_mov_bulto_det_mov
-       FOREIGN KEY (movimiento_id) REFERENCES movimientos (id),
-   CONSTRAINT fk_mov_bulto_det_bul
-       FOREIGN KEY (bulto_id) REFERENCES bultos (id)
+    CONSTRAINT fk_mov_bulto_det_mov
+        FOREIGN KEY (movimiento_id) REFERENCES movimientos (id),
+    CONSTRAINT fk_mov_bulto_det_bul
+        FOREIGN KEY (bulto_id) REFERENCES bultos (id)
 );
 
 CREATE TABLE analisis
 (
     id                BIGSERIAL PRIMARY KEY,
-    fecha_creacion    TIMESTAMP   NOT NULL,
+    fecha_creacion    TIMESTAMPTZ NOT NULL,
     nro_analisis      VARCHAR(30) NOT NULL,
     lote_id           BIGINT      NOT NULL,
     fecha_realizado   DATE,
@@ -195,7 +194,7 @@ CREATE TABLE analisis
 CREATE TABLE trazas
 (
     id             BIGSERIAL PRIMARY KEY,
-    fecha_creacion TIMESTAMP   NOT NULL,
+    fecha_creacion TIMESTAMPTZ NOT NULL,
     lote_id        BIGINT      NOT NULL,
     bulto_id       BIGINT      NOT NULL,
     producto_id    BIGINT      NOT NULL,
@@ -215,7 +214,7 @@ CREATE TABLE trazas
 
 CREATE TABLE trazas_detalles
 (
-    traza_id      BIGINT NOT NULL,
+    traza_id   BIGINT NOT NULL,
     detalle_id BIGINT NOT NULL,
     PRIMARY KEY (traza_id, detalle_id),
     CONSTRAINT fk_traza_detalle
@@ -224,26 +223,55 @@ CREATE TABLE trazas_detalles
         FOREIGN KEY (detalle_id) REFERENCES detalle_movimientos (id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_lotes_codigo_activo ON lotes (codigo_lote, activo);
+CREATE INDEX IF NOT EXISTS idx_lotes_fecha_ingreso ON lotes (fecha_ingreso);
+CREATE INDEX IF NOT EXISTS idx_lotes_lote_origen_id ON lotes (lote_origen_id);
+CREATE INDEX IF NOT EXISTS idx_bultos_lote_id ON bultos (lote_id);
+CREATE INDEX IF NOT EXISTS idx_bultos_lote_nro ON bultos (lote_id, nro_bulto);
+CREATE INDEX IF NOT EXISTS idx_movs_fecha ON movimientos (fecha);
+CREATE INDEX IF NOT EXISTS idx_movs_codigo ON movimientos (codigo_movimiento);
+CREATE INDEX IF NOT EXISTS idx_movs_lote_id ON movimientos (lote_id);
+CREATE INDEX IF NOT EXISTS idx_movs_mov_origen_id ON movimientos (movimiento_origen_id);
+CREATE INDEX IF NOT EXISTS idx_analisis_nro ON analisis (nro_analisis);
+CREATE INDEX IF NOT EXISTS idx_analisis_lote_id ON analisis (lote_id);
+CREATE INDEX IF NOT EXISTS idx_trazas_lote_id ON trazas (lote_id);
+CREATE INDEX IF NOT EXISTS idx_trazas_bulto_nro ON trazas (bulto_id, nro_traza);
+CREATE INDEX IF NOT EXISTS idx_trazas_producto_id ON trazas (producto_id);
+CREATE INDEX IF NOT EXISTS idx_detmov_mov_id ON detalle_movimientos (movimiento_id);
+CREATE INDEX IF NOT EXISTS idx_detmov_bulto_id ON detalle_movimientos (bulto_id);
 
-/*
-AGREGAR LUEGO DE ARMAR LOS TESTS Y UNA VEZ QUE ESTEN TODOS VERIFICADOS
+CREATE INDEX IF NOT EXISTS idx_lotes_codigo_activo_true ON lotes (codigo_lote)
+    WHERE activo = true;
 
-CREATE INDEX idx_lotes_producto   ON lotes (producto_id);
-CREATE INDEX idx_lotes_proveedor  ON lotes (proveedor_id);
-CREATE INDEX idx_bultos_lote      ON bultos (lote_id);
-CREATE INDEX idx_movs_lote        ON movimientos (lote_id);
-CREATE INDEX idx_movs_origen      ON movimientos (movimiento_origen_id);
-CREATE INDEX idx_trazas_producto  ON trazas (producto_id);
+CREATE INDEX IF NOT EXISTS idx_bultos_lote_activo_true ON bultos (lote_id, nro_bulto)
+    WHERE activo = true;
+
+CREATE INDEX IF NOT EXISTS idx_trazas_bulto_activo_true ON trazas (bulto_id, nro_traza)
+    WHERE activo = true;
+
+CREATE INDEX IF NOT EXISTS idx_movs_fecha_activo_true ON movimientos (fecha)
+    WHERE activo = true;
 
 ALTER TABLE lotes
-  ADD CONSTRAINT chk_lotes_cant_inicial CHECK (cantidad_inicial >= 0),
-  ADD CONSTRAINT chk_lotes_cant_actual  CHECK (cantidad_actual  >= 0);
+    ADD CONSTRAINT uk_lotes_codigo_lote UNIQUE (codigo_lote);
+
+ALTER TABLE lotes
+    ADD CONSTRAINT chk_lotes_cant_inicial CHECK (cantidad_inicial >= 0),
+    ADD CONSTRAINT chk_lotes_cant_actual CHECK (cantidad_actual >= 0);
+
+ALTER TABLE lotes
+    ADD CONSTRAINT chk_lotes_cant_coherente CHECK (cantidad_actual <= cantidad_inicial);
 
 ALTER TABLE bultos
-  ADD CONSTRAINT chk_bultos_cant_inicial CHECK (cantidad_inicial >= 0),
-  ADD CONSTRAINT chk_bultos_cant_actual  CHECK (cantidad_actual  >= 0);
+    ADD CONSTRAINT uk_bulto_por_lote UNIQUE (lote_id, nro_bulto);
+
+ALTER TABLE bultos
+    ADD CONSTRAINT chk_bultos_cant_inicial CHECK (cantidad_inicial >= 0),
+    ADD CONSTRAINT chk_bultos_cant_actual CHECK (cantidad_actual >= 0);
+
+ALTER TABLE bultos
+    ADD CONSTRAINT chk_bultos_cant_coherente CHECK (cantidad_actual <= cantidad_inicial);
 
 ALTER TABLE movimientos
-  ADD CONSTRAINT chk_movs_cantidad CHECK (cantidad IS NULL OR cantidad >= 0);
+    ADD CONSTRAINT chk_movs_cantidad CHECK (cantidad IS NULL OR cantidad >= 0);
 
- */

@@ -18,7 +18,7 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.service.QueryServiceLote;
+import com.mb.conitrack.service.LoteService;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
@@ -30,7 +30,7 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 public class LotesController {
 
     @Autowired
-    private QueryServiceLote queryServiceLote;
+    private LoteService loteService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -40,29 +40,29 @@ public class LotesController {
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
-        model.addAttribute("lotes", queryServiceLote.findAllSortByDateAndCodigoInternoAudit());
+        model.addAttribute("lotes", loteService.findAllSortByDateAndCodigoLoteAudit());
         return "lotes/list-lotes";
     }
 
     @GetMapping("/list-fechas-lotes")
     public String listFechasLotes(Model model) {
-        model.addAttribute("loteDTOs", fromLoteEntities(queryServiceLote.findAllLotesDictaminados()));
+        model.addAttribute("loteDTOs", fromLoteEntities(loteService.findAllLotesDictaminados()));
         return "lotes/list-fechas-lotes";
     }
 
-    @GetMapping("/codigoInterno/{codigoInternoLote}")
+    @GetMapping("/codigoLote/{codigoLote}")
     @ResponseBody
-    public List<Lote> getLoteByCodigoInterno(@PathVariable("codigoInternoLote") String codigoInternoLote) {
-        return queryServiceLote.findLoteListByCodigoInterno(codigoInternoLote);
+    public List<Lote> getLoteByCodigoLote(@PathVariable("codigoLote") String codigoLote) {
+        return loteService.findLoteListByCodigoLote(codigoLote);
     }
 
-    @GetMapping("/codigoInterno/muestreo/{codigoInternoLote}")
+    @GetMapping("/codigoLote/muestreo/{codigoLote}")
     @ResponseBody
     @Transactional(readOnly = true)
-    public List<BultoDTO> getBultosForMuestreoByCodigoInterno(
-        @PathVariable String codigoInternoLote) {
+    public List<BultoDTO> getBultosForMuestreoByCodigoLote(
+        @PathVariable String codigoLote) {
 
-        return queryServiceLote.findLoteByCodigoInterno(codigoInternoLote)
+        return loteService.findLoteByCodigoLote(codigoLote)
             .stream()
             .filter(Lote::getActivo)
             .filter(l -> l.getDictamen() != DictamenEnum.RECIBIDO)

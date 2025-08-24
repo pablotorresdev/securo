@@ -1,4 +1,4 @@
-package com.mb.conitrack.service;
+package com.mb.conitrack.service.maestro;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -31,7 +31,7 @@
         <tr th:classappend="${!producto.activo} ? 'text-decoration-line-through text-muted' : ''"
             th:each="producto : ${productos}">
             <td th:text="${producto.nombreGenerico}"></td>
-            <td th:text="${producto.codigoInterno}"></td>
+            <td th:text="${producto.codigoProducto}"></td>
             <td th:text="${producto.tipoProducto}"></td>
             <td th:text="${producto.unidadMedida}"></td>
             <td th:text="${producto.productoDestino != null ? producto.productoDestino : ''}"></td>

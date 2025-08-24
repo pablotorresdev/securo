@@ -19,15 +19,15 @@
 
         <!-- Select de Lotes -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInternoLote">Lote:</label>
-            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
+            <label class="form-label" for="codigoLote">Lote:</label>
+            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${loteReanalisisDTOs}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
                          + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
-                         + ' | Codigo Interno: ' + ${loteDTO.codigoInternoLote}
+                         + ' | Codigo Interno: ' + ${loteDTO.codigoLote}
                          + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
-                        th:value="${loteDTO.codigoInternoLote}"
+                        th:value="${loteDTO.codigoLote}"
                         th:data-nombreproducto="${loteDTO.nombreProducto}"
                         th:data-nombreproveedor="${loteDTO.nombreProveedor}"
                         th:data-fechaingreso="${loteDTO.fechaIngreso}"
@@ -59,7 +59,8 @@
             <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
             <input class="form-control" id="nroAnalisis" type="text" maxlength="30" required
                    th:field="*{nroAnalisis}" placeholder="Ej: 123456789">
-            <div style="color: red; font-weight: bold;" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+            <div style="color: red; font-weight: bold;" th:errors="*{nroAnalisis}"
+                 th:if="${#fields.hasErrors('nroAnalisis')}"></div>
         </div>
 
         <div class="mb-3">
@@ -80,15 +81,19 @@
 </footer>
 
 <script th:inline="javascript">
+
+    var codigoLote: /*[[${movimientoDTO.codigoLote}]]*/ null;
+
     // Inyectamos todo el array loteReanalisisDTOs como objeto JavaScript
     const loteReanalisisDTOs = /*[[${loteReanalisisDTOs}]]*/ [];
 
     var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+
     if (fechaMovimientoDTO) {
         document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
     } else {
         const hoy = new Date();
-        const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+        const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
         document.getElementById("fechaMovimiento").value = hoyFormateado;
     }
 
@@ -96,7 +101,7 @@
 
     function actualizarInfo(data) {
         let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
-        html += '<p><strong>Código Interno:</strong> ' + (data.codigoInternoLote || 'N/D') + '</p>';
+        html += '<p><strong>Código Interno:</strong> ' + (data.codigoLote || 'N/D') + '</p>';
         html += '<p><strong>Producto:</strong> ' + (data.nombreProducto || 'N/D') + '</p>';
         html += '<p><strong>Fecha ingreso:</strong> ' + (data.fechaIngreso || 'N/D') + '</p>';
         html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (data.fechaReanalisisProveedor || 'N/D') + '</p>';
@@ -118,13 +123,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        const loteSelect = document.getElementById('codigoInternoLote');
+        const loteSelect = document.getElementById('codigoLote');
 
         loteSelect.addEventListener('change', function () {
             const codigoSeleccionado = this.value;
 
-            // Buscamos en loteReanalisisDTOs por codigoInternoLote
-            const lote = loteReanalisisDTOs.find(l => l.codigoInternoLote === codigoSeleccionado);
+            // Buscamos en loteReanalisisDTOs por codigoLote
+            const lote = loteReanalisisDTOs.find(l => l.codigoLote === codigoSeleccionado);
 
             if (lote) {
                 actualizarInfo(lote);
@@ -135,14 +140,12 @@
 
         // Opcional: si hay un lote ya seleccionado al cargar la página
         if (loteSelect.value) {
-            const loteInicial = loteReanalisisDTOs.find(l => l.codigoInternoLote === loteSelect.value);
+            const loteInicial = loteReanalisisDTOs.find(l => l.codigoLote === loteSelect.value);
             if (loteInicial) {
                 actualizarInfo(loteInicial);
             }
         }
     });
 </script>
-
-
 </body>
 </html>

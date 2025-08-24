@@ -1,6 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.TrazaDTO;
-import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.QueryServiceLote;
+import com.mb.conitrack.service.cu.BajaVentaProductoService;
 
 import jakarta.validation.Valid;
 
@@ -30,10 +28,7 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 public class BajaVentaProductoController extends AbstractCuController {
 
     @Autowired
-    private LoteService loteService;
-
-    @Autowired
-    private QueryServiceLote queryServiceLote;
+    private BajaVentaProductoService ventaProductoService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -52,13 +47,13 @@ public class BajaVentaProductoController extends AbstractCuController {
     }
 
     @PostMapping("/venta-producto")
-    public String procesarVentaProducto(
+    public String ventaProducto(
         @Valid @ModelAttribute LoteDTO loteDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!validarVentaProductoInput(loteDTO, bindingResult)) {
+        if (!ventaProductoService.validarVentaProductoInput(loteDTO, bindingResult)) {
             initModelVentaProducto(loteDTO, model);
             return "ventas/baja/venta-producto";
         }
@@ -73,41 +68,7 @@ public class BajaVentaProductoController extends AbstractCuController {
         return "ventas/baja/venta-producto-ok";
     }
 
-    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
-        List<LoteDTO> loteVentaDTOs = fromLoteEntities(queryServiceLote.findAllForVentaProducto());
-        model.addAttribute("loteVentaDTOs", loteVentaDTOs);
-        model.addAttribute("loteDTO", loteDTO);
-    }
-
-    private boolean validarVentaProductoInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        Lote lote = controllerUtils().getLoteByCodigoInterno(
-            loteDTO.getCodigoInternoLote(),
-            bindingResult,
-            queryServiceLote);
-
-        boolean success = lote != null;
-        success = success && controllerUtils().validarUnidadMedidaVenta(loteDTO, lote, bindingResult);
-        success = success && controllerUtils().validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote, bindingResult);
-        return success && controllerUtils().validarCantidadesPorMedidas(loteDTO, lote, bindingResult);
-    }
-
-    private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
-        loteDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.bajaVentaProducto(loteDTO));
-
-        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
-        redirectAttributes.addFlashAttribute("trazaVentaDTOs", getTrazaPorBultoDTOs(loteDTO));
-        redirectAttributes.addFlashAttribute(
-            resultDTO != null ? "success" : "error",
-            resultDTO != null
-                ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
-                : "Hubo un error en la venta de producto.");
-    }
-
-    private static Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
+    private Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
 
         Map<Integer, List<Long>> trazasVentaPorBulto =
             loteDTO.getTrazaDTOs().stream()
@@ -118,12 +79,34 @@ public class BajaVentaProductoController extends AbstractCuController {
                         TrazaDTO::getNroTraza,
                         java.util.stream.Collectors.collectingAndThen(
                             java.util.stream.Collectors.toList(),
-                            list -> { list.sort(java.util.Comparator.naturalOrder()); return list; }
+                            list -> {
+                                list.sort(java.util.Comparator.naturalOrder());
+                                return list;
+                            }
                         )
                     )
                 ));
 
         return trazasVentaPorBulto;
+    }
+
+    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
+        List<LoteDTO> loteVentaDTOs = fromLoteEntities(loteService.findAllForVentaProducto());
+        model.addAttribute("loteVentaDTOs", loteVentaDTOs);
+        model.addAttribute("loteDTO", loteDTO);
+    }
+
+    private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+        loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(ventaProductoService.bajaVentaProducto(loteDTO));
+
+        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute("trazaVentaDTOs", getTrazaPorBultoDTOs(loteDTO));
+        redirectAttributes.addFlashAttribute(
+            resultDTO != null ? "success" : "error",
+            resultDTO != null
+                ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
+                : "Hubo un error en la venta de producto.");
     }
 
 }

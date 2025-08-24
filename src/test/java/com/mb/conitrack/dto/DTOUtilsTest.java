@@ -2,7 +2,8 @@ package com.mb.conitrack.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 
@@ -101,7 +102,7 @@ class DTOUtilsTest {
     void fromBultoEntity_mapeoCompleto() {
         // Crear una entidad Analisis con todos los valores relevantes
         Analisis entity = new Analisis();
-        entity.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 10, 30));
+        entity.setFechaYHoraCreacion(OffsetDateTime.of(2025, 8, 7, 10, 30, 0, 0, ZoneOffset.UTC));
         entity.setLote(lote());
         entity.setNroAnalisis("AN-001");
         entity.setFechaRealizado(LocalDate.of(2025, 8, 1));
@@ -132,7 +133,7 @@ class DTOUtilsTest {
         // --- lote auxiliar ---
         Lote lote = new Lote();
         lote.setId(99L);
-        lote.setCodigoInterno("L-001");
+        lote.setCodigoLote("L-001");
 
         // --- movimiento completo ---
         Movimiento mov = new Movimiento();
@@ -150,7 +151,7 @@ class DTOUtilsTest {
 
         MovimientoDTO dto = DTOUtils.fromMovimientoEntity(mov);
 
-        assertEquals("L-001", dto.getCodigoInternoLote());
+        assertEquals("L-001", dto.getCodigoLote());
         assertEquals(99L, dto.getLoteId());
         assertEquals("BAJA", dto.getTipoMovimiento());
         assertEquals("VENCIMIENTO", dto.getMotivo());
@@ -180,7 +181,7 @@ class DTOUtilsTest {
         MovimientoDTO dto = DTOUtils.fromMovimientoEntity(mov);
 
         assertEquals(LocalDate.of(2025, 8, 7), dto.getFechaMovimiento());
-        assertNull(dto.getCodigoInternoLote());      // sin lote
+        assertNull(dto.getCodigoLote());      // sin lote
         assertEquals(new BigDecimal("5"), dto.getCantidad());
         assertEquals(UnidadMedidaEnum.KILOGRAMO, dto.getUnidadMedida());
         assertNull(dto.getTipoMovimiento());         // enum nulo en origen
@@ -199,7 +200,7 @@ class DTOUtilsTest {
         String nroAnalisis,
         String nroReanalisis) {
         MovimientoDTO dto = new MovimientoDTO();
-        dto.setFechaYHoraCreacion(LocalDateTime.of(2025, 8, 7, 10, 0));
+        dto.setFechaYHoraCreacion(OffsetDateTime.of(2025, 8, 7, 10, 0, 0, 0, ZoneOffset.UTC));
         dto.setObservaciones("obs");
         dto.setNroAnalisis(nroAnalisis);
         dto.setNroReanalisis(nroReanalisis);
@@ -238,9 +239,9 @@ class DTOUtilsTest {
     private Lote lote() {
         Lote l = new Lote();
         l.setActivo(true);
-        l.setCodigoInterno("L-001");
+        l.setCodigoLote("L-001");
         l.setId(99L);
-        l.setFechaYHoraCreacion(LocalDateTime.now());
+        l.setFechaYHoraCreacion(OffsetDateTime.now());
         l.setFechaIngreso(LocalDate.now());
         l.setBultosTotales(1);
         l.setEstado(EstadoEnum.NUEVO);
@@ -301,7 +302,7 @@ class DTOUtilsTest {
         Producto pr = mock(Producto.class);
         when(pr.getId()).thenReturn(1L);
         when(pr.getNombreGenerico()).thenReturn("Paracetamol");
-        when(pr.getCodigoInterno()).thenReturn("P-001");
+        when(pr.getCodigoProducto()).thenReturn("P-001");
         when(pr.getTipoProducto()).thenReturn(TipoProductoEnum.GRANEL_MEZCLA_POLVO);
         when(pr.getProductoDestino()).thenReturn("Tabletas");
         return pr;
@@ -321,7 +322,7 @@ class DTOUtilsTest {
             MovimientoDTO dto = mock(MovimientoDTO.class);
             when(dto.getNroAnalisis()).thenReturn("A-1");
             when(dto.getNroReanalisis()).thenReturn(null);
-            when(dto.getFechaYHoraCreacion()).thenReturn(LocalDateTime.now());
+            when(dto.getFechaYHoraCreacion()).thenReturn(OffsetDateTime.now());
             when(dto.getObservaciones()).thenReturn("obs");
 
             Analisis a = DTOUtils.createAnalisis(dto);

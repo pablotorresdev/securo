@@ -2,6 +2,8 @@ package com.mb.conitrack.service;
 
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.repository.maestro.ProveedorRepository;
+import com.mb.conitrack.service.maestro.ProveedorService;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,24 +46,24 @@ class ProveedorServiceTest {
 
         // Lista MUTABLE para permitir sort()
         List<Proveedor> entrada = new ArrayList<>(List.of(c, a, b));
-        when(proveedorRepository.findByActivoTrueAndRazonSocialNotContainingIgnoreCase("conifarma"))
+        when(proveedorRepository.findProveedoresExternosOrderByRazonSocialAsc())
             .thenReturn(entrada);
 
         List<Proveedor> out = service.getProveedoresExternos();
 
         assertEquals(3, out.size());
-        assertSame(a, out.get(0));
-        assertSame(b, out.get(1));
-        assertSame(c, out.get(2));
+        assertSame(c, out.get(0));
+        assertSame(a, out.get(1));
+        assertSame(b, out.get(2));
 
-        verify(proveedorRepository).findByActivoTrueAndRazonSocialNotContainingIgnoreCase("conifarma");
+        verify(proveedorRepository).findProveedoresExternosOrderByRazonSocialAsc();
         verifyNoMoreInteractions(proveedorRepository);
     }
 
     @Test
     @DisplayName("getProveedoresExternos: lista vacía del repo -> retorna vacía")
     void getProveedoresExternos_vacio() {
-        when(proveedorRepository.findByActivoTrueAndRazonSocialNotContainingIgnoreCase("conifarma"))
+        when(proveedorRepository.findProveedoresExternosOrderByRazonSocialAsc())
             .thenReturn(new ArrayList<>());
 
         List<Proveedor> out = service.getProveedoresExternos();
@@ -69,7 +71,7 @@ class ProveedorServiceTest {
         assertNotNull(out);
         assertTrue(out.isEmpty());
 
-        verify(proveedorRepository).findByActivoTrueAndRazonSocialNotContainingIgnoreCase("conifarma");
+        verify(proveedorRepository).findProveedoresExternosOrderByRazonSocialAsc();
         verifyNoMoreInteractions(proveedorRepository);
     }
 
@@ -79,49 +81,49 @@ class ProveedorServiceTest {
         Proveedor p1 = prov("Conifarma SRL");
         Proveedor p2 = prov("Conifarma Industrial");
 
-        when(proveedorRepository.findByRazonSocialIgnoreCaseContaining("conifarma"))
-            .thenReturn(List.of(p1, p2));
+        when(proveedorRepository.findConifarma())
+            .thenReturn(Optional.of(p1));
 
         Proveedor out = service.getConifarma();
 
         assertSame(p1, out);
-        verify(proveedorRepository).findByRazonSocialIgnoreCaseContaining("conifarma");
+        verify(proveedorRepository).findConifarma();
         verifyNoMoreInteractions(proveedorRepository);
     }
 
     @Test
     @DisplayName("getConifarma: si el repo no encuentra, lanza IllegalArgumentException")
     void getConifarma_noEncontrado() {
-        when(proveedorRepository.findByRazonSocialIgnoreCaseContaining("conifarma"))
-            .thenReturn(List.of());
+        when(proveedorRepository.findConifarma())
+            .thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
             () -> service.getConifarma());
 
         assertEquals("No se encontró el proveedor Conifarma", ex.getMessage());
-        verify(proveedorRepository).findByRazonSocialIgnoreCaseContaining("conifarma");
+        verify(proveedorRepository).findConifarma();
         verifyNoMoreInteractions(proveedorRepository);
     }
 
     @Test
     @DisplayName("findAll: trae del repo y ordena por razón social")
-    void findAll_ok() {
+    void findAll_ByOrderByRazonSocialAsc_ok() {
         Proveedor z = prov("Zeta");
         Proveedor a = prov("Alfa");
         Proveedor m = prov("Magma");
 
-        when(proveedorRepository.findAll())
+        when(proveedorRepository.findAllByOrderByRazonSocialAsc())
             .thenReturn(new ArrayList<>(List.of(z, a, m))); // MUTABLE
 
-        List<Proveedor> out = service.findAll();
+        List<Proveedor> out = service.findAllByOrderByRazonSocialAsc();
 
         assertEquals(3, out.size());
-        assertSame(a, out.get(0));
-        assertSame(m, out.get(1));
-        assertSame(z, out.get(2));
+        assertSame(z, out.get(0));
+        assertSame(a, out.get(1));
+        assertSame(m, out.get(2));
 
-        verify(proveedorRepository).findAll();
+        verify(proveedorRepository).findAllByOrderByRazonSocialAsc();
         verifyNoMoreInteractions(proveedorRepository);
     }
 

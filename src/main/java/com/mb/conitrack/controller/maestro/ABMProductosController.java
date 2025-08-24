@@ -17,7 +17,7 @@ import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.TipoProductoEnum;
-import com.mb.conitrack.service.ProductoService;
+import com.mb.conitrack.service.maestro.ProductoService;
 
 import jakarta.validation.Valid;
 
@@ -35,7 +35,7 @@ public class ABMProductosController {
 
     @GetMapping("/list-productos")
     public String listProductos(Model model) {
-        model.addAttribute("productos", productoService.findAll());
+        model.addAttribute("productos", productoService.findByActivoTrueOrderByCodigoProductoAsc());
         return "productos/list-productos";
     }
 

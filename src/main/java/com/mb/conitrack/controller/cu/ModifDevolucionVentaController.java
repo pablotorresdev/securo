@@ -1,8 +1,7 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,28 +16,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.QueryServiceLote;
-import com.mb.conitrack.service.QueryServiceMovimiento;
+import com.mb.conitrack.service.cu.ModifDevolucionVentaService;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.controller.cu.AbstractCuController.controllerUtils;
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/devolucion")
-public class ModifDevolucionVentaController {
+public class ModifDevolucionVentaController extends AbstractCuController {
 
     @Autowired
-    private LoteService loteService;
-
-    @Autowired
-    private QueryServiceLote queryServiceLote;
-
-    @Autowired
-    private QueryServiceMovimiento queryServiceMovimiento;
+    private ModifDevolucionVentaService devolucionVentaService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -58,13 +47,13 @@ public class ModifDevolucionVentaController {
     }
 
     @PostMapping("/devolucion-venta")
-    public String procesarDevolucionVenta(
+    public String devolucionVenta(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!validateInfoDevolucion(movimientoDTO, bindingResult)) {
+        if (!devolucionVentaService.validateInfoDevolucion(movimientoDTO, bindingResult)) {
             initModelDevolucionVenta(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
             return "ventas/devolucion/devolucion-venta";
@@ -79,12 +68,18 @@ public class ModifDevolucionVentaController {
         return "ventas/devolucion/devolucion-venta-ok";
     }
 
+    private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
+        List<LoteDTO> lotesDevolucion = fromLoteEntities(loteService.findAllForDevolucionVenta());
+        model.addAttribute("lotesDevolucion", lotesDevolucion);
+        model.addAttribute("movimientoDTO", movimientoDTO);
+    }
+
     private void devolucionVenta(
         final @Valid MovimientoDTO movimientoDTO,
         final RedirectAttributes redirectAttributes) {
 
-        movimientoDTO.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(loteService.persistirDevolucionVenta(movimientoDTO));
+        movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
+        final LoteDTO resultDTO = DTOUtils.fromLoteEntity(devolucionVentaService.persistirDevolucionVenta(movimientoDTO));
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);
@@ -93,27 +88,6 @@ public class ModifDevolucionVentaController {
             resultDTO != null
                 ? "Ingreso de stock por devolución exitoso."
                 : "Hubo un error en el ingreso de stock por devolución.");
-    }
-
-    private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
-        List<LoteDTO> lotesDevolucion = fromLoteEntities(queryServiceLote.findAllForDevolucionVenta());
-        model.addAttribute("lotesDevolucion", lotesDevolucion);
-        model.addAttribute("movimientoDTO", movimientoDTO);
-    }
-
-    private boolean validateInfoDevolucion(
-        final @Valid MovimientoDTO movimientoDTO,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-
-        boolean success = controllerUtils().validarTrazasDevolucion(movimientoDTO, bindingResult);
-        final Optional<Movimiento> movOrigen = queryServiceMovimiento.findMovimientoByCodigoInterno(
-            movimientoDTO.getCodigoMovimientoOrigen());
-
-        return success &&
-            controllerUtils().validarMovimientoOrigen(movimientoDTO, bindingResult, movOrigen.orElse(null));
     }
 
 }

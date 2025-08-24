@@ -27,7 +27,7 @@
         <tbody>
         <tr th:each="loteDTO : ${loteDTOs}">
             <td th:text="${loteDTO.nombreProducto}">Producto</td>
-            <td th:text="${loteDTO.codigoInternoLote}">Código Interno</td>
+            <td th:text="${loteDTO.codigoLote}">Código Interno</td>
             <td th:text="${loteDTO.cantidadActual}">Cantidad Actual</td>
             <td th:text="${loteDTO.unidadMedida}">Unidad Medida</td>
             <!-- Días hasta Reanálisis Vigente -->
@@ -48,7 +48,7 @@
             <td th:text="${loteDTO.fechaReanalisisProveedor}">Fecha Reanálisis Proveedor</td>
             <td th:text="${loteDTO.fechaVencimientoProveedor}">Fecha Vencimiento Proveedor</td>
             <td>
-                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/codigoInternoLote/' + ${loteDTO.codigoInternoLote}}">Ver Analisis</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/codigoLote/' + ${loteDTO.codigoLote}}">Ver Analisis</a>
             </td>
         </tr>
         </tbody>

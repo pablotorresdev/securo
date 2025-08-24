@@ -2,7 +2,7 @@ package com.mb.conitrack.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,10 +28,10 @@ import lombok.Data;
 public class LoteDTO {
 
     //Dato del back
-    protected LocalDateTime fechaYHoraCreacion;
+    protected OffsetDateTime fechaYHoraCreacion;
 
     @NotNull(message = "Debe seleccionar un lote", groups = { BajaProduccion.class })
-    protected String codigoInternoLote;
+    protected String codigoLote;
 
     //Datos de ALTA obligatorios
     @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })

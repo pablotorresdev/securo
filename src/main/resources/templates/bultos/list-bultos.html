@@ -27,7 +27,7 @@
         <tr th:each="bulto : ${bultos}">
             <td th:text="${bulto.id}"></td>
             <td th:text="${bulto.nroBulto}"></td>
-            <td th:text="${bulto.lote.getCodigoInterno()}"></td>
+            <td th:text="${bulto.lote.getCodigoLote()}"></td>
             <td th:text="${bulto.cantidadInicial}"/>
             <td th:text="${bulto.cantidadActual}"/>
             <td th:text="${bulto.unidadMedida}"></td>

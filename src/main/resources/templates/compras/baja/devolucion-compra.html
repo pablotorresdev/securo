@@ -19,19 +19,19 @@
 
         <!-- Select de Lotes Devolvibles -->
         <div class="mb-3">
-            <label class="form-label" for="codigoInternoLote">Lote a Devolver:</label>
-            <select class="form-select" id="codigoInternoLote" required th:field="*{codigoInternoLote}">
+            <label class="form-label" for="codigoLote">Lote a Devolver:</label>
+            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
                 <option value="">-- Seleccione un lote --</option>
                 <option th:each="loteDTO : ${lotesDevolvibles}"
-                        th:text="'Codigo Interno: ' + ${loteDTO.codigoInternoLote}
+                        th:text="'Codigo Interno: ' + ${loteDTO.codigoLote}
                     + ' | Proveedor: ' + ${loteDTO.nombreProveedor}
                     + ' | Producto: ' + ${loteDTO.nombreProducto}
                     + ' | Dictamen: ' + ${loteDTO.dictamen}"
-                        th:value="${loteDTO.codigoInternoLote}">
+                        th:value="${loteDTO.codigoLote}">
                 </option>
             </select>
-            <div class="text-danger" th:errors="*{codigoInternoLote}"
-                 th:if="${#fields.hasErrors('codigoInternoLote')}"></div>
+            <div class="text-danger" th:errors="*{codigoLote}"
+                 th:if="${#fields.hasErrors('codigoLote')}"></div>
         </div>
 
         <!-- Fecha de la Devolución -->
@@ -77,7 +77,7 @@
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
             const hoy = new Date();
-            const hoyFormateado = hoy.toISOString().split('T')[0]; // Formato yyyy-MM-dd
+            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
             document.getElementById("fechaMovimiento").value = hoyFormateado;
         }
     });

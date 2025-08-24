@@ -38,8 +38,8 @@ public class LoteEntityUtils {
         final Producto producto,
         final Proveedor proveedor,
         final Proveedor fabricante) {
-        lote.setCodigoInterno("L-" +
-            producto.getCodigoInterno() +
+        lote.setCodigoLote("L-" +
+            producto.getCodigoProducto() +
             "-" +
             loteDTO.getFechaYHoraCreacion().format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss")));
 
@@ -77,8 +77,8 @@ public class LoteEntityUtils {
         final Producto producto,
         final Proveedor conifarma) {
 
-        lote.setCodigoInterno("L-" +
-            producto.getCodigoInterno() +
+        lote.setCodigoLote("L-" +
+            producto.getCodigoProducto() +
             "-" +
             loteDTO.getFechaYHoraCreacion().format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss")));
 
@@ -139,10 +139,9 @@ public class LoteEntityUtils {
         clone.setFechaVencimientoProveedor(lote.getFechaVencimientoProveedor());
         clone.setAnalisisList(lote.getAnalisisList());
         clone.setTrazas(lote.getTrazas());
-        clone.setLoteOrigen(lote);
         clone.setDetalleConservacion(lote.getDetalleConservacion());
         clone.setFechaIngreso(lote.getFechaIngreso());
-        clone.setObservaciones("DEVOLUCIÓN de lote " + lote.getCodigoInterno());
+        clone.setObservaciones("DEVOLUCIÓN de lote " + lote.getCodigoLote());
         clone.setActivo(true);
         return clone;
     }
@@ -211,7 +210,7 @@ public class LoteEntityUtils {
             traza.setObservaciones("CU7 Traza: " +
                 traza.getNroTraza() +
                 "\n - Producto: " +
-                producto.getCodigoInterno() +
+                producto.getCodigoProducto() +
                 " / " +
                 producto.getNombreGenerico());
             traza.setEstado(EstadoEnum.DISPONIBLE);

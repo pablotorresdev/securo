@@ -26,7 +26,7 @@
         <tbody>
         <tr th:each="analisisDTO : ${analisisDTOs}">
             <td th:text="${analisisDTO.nroAnalisis}"></td>
-            <td th:text="${analisisDTO.codigoInternoLote}"></td>
+            <td th:text="${analisisDTO.codigoLote}"></td>
             <td th:text="${analisisDTO.dictamen != null ? analisisDTO.dictamen : 'EN CURSO'}"></td>
             <td th:text="${analisisDTO.fechaRealizado}"></td>
             <td th:text="${analisisDTO.fechaReanalisis}"></td>

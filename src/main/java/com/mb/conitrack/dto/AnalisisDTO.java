@@ -2,7 +2,7 @@ package com.mb.conitrack.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.mb.conitrack.enums.DictamenEnum;
 
@@ -15,9 +15,9 @@ public class AnalisisDTO {
     @NotNull
     private String nroAnalisis;
 
-    private String codigoInternoLote;
+    private String codigoLote;
 
-    private LocalDateTime fechaYHoraCreacion;
+    private OffsetDateTime fechaYHoraCreacion;
 
     private LocalDate fechaRealizado;
 

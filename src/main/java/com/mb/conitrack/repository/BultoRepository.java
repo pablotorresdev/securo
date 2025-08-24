@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
@@ -14,22 +16,21 @@ public interface BultoRepository extends JpaRepository<Bulto, Long> {
 
     List<Bulto> findAllByActivoTrue();
 
-    /**
-     * Spring Data compondrá la siguiente consulta: SELECT l FROM Lote l WHERE l.lote = ?1 AND l.nroBulto = ?2 AND
-     * l.activo = true LIMIT 1
-     */
     Optional<Bulto> findFirstByLoteAndNroBultoAndActivoTrue(Lote lote, int nroBulto);
 
-    // ✅ por id del lote + activo, ordenado
     List<Bulto> findAllByLoteIdAndActivoTrueOrderByNroBultoAsc(Long loteId);
 
-    // ✅ “el primero” por id del lote, ordenado (si solo querés 1)
     Optional<Bulto> findFirstByLoteIdAndActivoTrueOrderByNroBultoAsc(Long loteId);
 
-    // ✅ por entidad Lote completa (si ya la tenés)
     List<Bulto> findAllByLoteAndActivoTrueOrderByNroBultoAsc(Lote lote);
 
-    // ✅ el que buscabas antes pero bien tipado: por código interno del lote + nro
-    Optional<Bulto> findFirstByLoteCodigoInternoAndNroBultoAndActivoTrue(String codigoInterno, int nroBulto);
+    Optional<Bulto> findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue(String codigoLote, int nroBulto);
+
+    List<Bulto> findAllByOrderByIdAsc();
+
+    @Query("select b from Bulto b " +
+        "where b.activo = true and b.lote.codigoLote = :codigoLote " +
+        "order by b.nroBulto asc")
+    List<Bulto> findActivosByLoteCodigoLote(@Param("codigoLote") String codigoLote);
 
 }

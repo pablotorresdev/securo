@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.OffsetDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,30 +12,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Lote;
-import com.mb.conitrack.service.AnalisisService;
-import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.service.QueryServiceLote;
+import com.mb.conitrack.service.cu.ModifDictamenCuarentenaService;
 
 import jakarta.validation.Valid;
-
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/calidad/dictamen")
 public class ModifDictamenCuarentenaController extends AbstractCuController {
 
     @Autowired
-    private LoteService loteService;
-
-    @Autowired
-    private AnalisisService analisisService;
-
-    @Autowired
-    private QueryServiceLote queryServiceLote;
+    private ModifDictamenCuarentenaService dictamenCuarentenaService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -55,35 +42,19 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
     }
 
     @PostMapping("/cuarentena")
-    public String procesarDictamenCuarentena(
+    public String dictamenCuarentena(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        Lote lote = null;
-        boolean success = controllerUtils().validarNroAnalisisNotNull(movimientoDTO, bindingResult);
-        success = success && controllerUtils()
-            .validarNroAnalisisUnico(movimientoDTO, bindingResult, analisisService);
-        if (success) {
-            lote = controllerUtils().getLoteByCodigoInterno(
-                movimientoDTO.getCodigoInternoLote(),
-                bindingResult,
-                queryServiceLote);
-        }
-        success = success && lote != null;
-        success = success && controllerUtils()
-            .validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-        success = success && controllerUtils()
-            .validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote, bindingResult);
-
-        if (!success) {
+        if (!dictamenCuarentenaService.validarDictamenCuarentena(movimientoDTO, bindingResult)) {
             initModelDictamencuarentena(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
             return "calidad/dictamen/cuarentena";
         }
 
-        dictamenCuarentena(movimientoDTO, lote, redirectAttributes);
+        dictamenCuarentena(movimientoDTO, redirectAttributes);
         return "redirect:/calidad/dictamen/cuarentena-ok";
     }
 
@@ -95,12 +66,12 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
 
     void dictamenCuarentena(
         final MovimientoDTO dto,
-        final Lote lote,
         final RedirectAttributes redirectAttributes) {
-        dto.setFechaYHoraCreacion(LocalDateTime.now());
-        final LoteDTO loteDTO = DTOUtils.fromLoteEntity(loteService.persistirDictamenCuarentena(dto, lote));
-        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
 
+        dto.setFechaYHoraCreacion(OffsetDateTime.now());
+        final LoteDTO loteDTO = dictamenCuarentenaService.persistirDictamenCuarentena(dto);
+
+        redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
             loteDTO != null
@@ -109,8 +80,7 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
     }
 
     void initModelDictamencuarentena(final MovimientoDTO movimientoDTO, final Model model) {
-        final List<LoteDTO> loteCuarentenaDTOs = fromLoteEntities(queryServiceLote.findAllForCuarentena());
-        model.addAttribute("loteCuarentenaDTOs", loteCuarentenaDTOs);
+        model.addAttribute("loteCuarentenaDTOs", loteService.findAllForCuarentenaDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 

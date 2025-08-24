@@ -1,24 +1,17 @@
 package com.mb.conitrack.utils;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
-import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.maestro.Producto;
-import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
@@ -31,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 
 class MovimientoEntityUtilsTest {
 
@@ -39,12 +31,12 @@ class MovimientoEntityUtilsTest {
     @DisplayName("createMovimientoAltaIngresoCompra copia y calcula todos los campos correctamente")
     void createMovimientoAltaIngresoCompra_ok() {
         // given (un lote completo y determinista)
-        LocalDateTime fch = LocalDateTime.of(2025, 1, 2, 3, 4, 5);
+        OffsetDateTime fch = OffsetDateTime.of(2025, 1, 2, 3, 4, 5, 0, ZoneOffset.UTC);
         String timestamp = fch.format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
 
         Lote lote = new Lote();
         lote.setFechaYHoraCreacion(fch);
-        lote.setCodigoInterno("L-API-XYZ");
+        lote.setCodigoLote("L-API-XYZ");
         lote.setDictamen(DictamenEnum.RECIBIDO);
         lote.setObservaciones("Obs lote");
 
@@ -78,8 +70,8 @@ class MovimientoEntityUtilsTest {
         // Fechas y código interno
         assertEquals(fch, mov.getFechaYHoraCreacion());
         assertEquals(fch.toLocalDate(), mov.getFecha());  // toLocalDate()
-        String esperadoCodigo = lote.getCodigoInterno() + "-" + timestamp;
-        assertEquals(esperadoCodigo, mov.getCodigoInterno());
+        String esperadoCodigo = lote.getCodigoLote() + "-" + timestamp;
+        assertEquals(esperadoCodigo, mov.getCodigoMovimiento());
 
         // Cantidad, UM, dictamen final
         assertEquals(lote.getCantidadInicial(), mov.getCantidad());

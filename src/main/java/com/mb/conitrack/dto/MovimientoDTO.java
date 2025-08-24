@@ -2,7 +2,7 @@ package com.mb.conitrack.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class MovimientoDTO {
 
     //TODO: completar las validaciones segun el CU, definir las interfaces de validacion
     //Dato del back
-    private LocalDateTime fechaYHoraCreacion;
+    private OffsetDateTime fechaYHoraCreacion;
 
     //Datos Comunes de ingreso
     @NotNull(message = "La fecha del movimiento es obligatoria")
@@ -69,12 +69,12 @@ public class MovimientoDTO {
 
     private Long loteId;
 
-    private String codigoInternoLote;
+    private String codigoLote;
 
     @Size(max = 20, message = "El número de re analisis no debe superar 30 caracteres")
     private String nroReanalisis;
 
-    private String codigoInternoMovimiento;
+    private String codigoMovimiento;
 
     // Campos no usados aun
     private String codigoMovimientoOrigen;
