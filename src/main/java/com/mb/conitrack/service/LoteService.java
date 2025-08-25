@@ -135,9 +135,10 @@ public class LoteService {
     }
 
     //***********CU13 ALTA: DEVOLUCION VENTA***********
+    //***********CU14 MODIFICACION: RETIRO MERCADO***********
     @Transactional(readOnly = true)
-    public List<LoteDTO> findAllForDevolucionVenta() {
-        return fromLoteEntities(loteRepository.findAllForDevolucionVenta());
+    public List<LoteDTO> findAllForDevolucionOrRecallDTOs() {
+        return fromLoteEntities(loteRepository.findAllForDevolucionOrRecall());
     }
 
     //****************************COMMON PUBLIC*****************************

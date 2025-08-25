@@ -53,18 +53,18 @@ public class AltaIngresoCompraService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarIngresoCompra(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    public boolean validarIngresoCompraInput(final LoteDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        if (!validateCantidadIngreso(loteDTO, bindingResult)) {
+        if (!validarCantidadIngreso(dto, bindingResult)) {
             return false;
         }
-        if (!validateFechasProveedor(loteDTO, bindingResult)) {
+        if (!validarFechasProveedor(dto, bindingResult)) {
             return false;
         }
 
-        return validarBultos(loteDTO, bindingResult);
+        return validarBultos(dto, bindingResult);
     }
 
 }

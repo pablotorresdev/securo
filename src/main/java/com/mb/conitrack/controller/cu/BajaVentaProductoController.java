@@ -14,14 +14,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.service.cu.BajaVentaProductoService;
 
 import jakarta.validation.Valid;
-
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 
 @Controller
 @RequestMapping("/ventas/baja")
@@ -58,7 +55,7 @@ public class BajaVentaProductoController extends AbstractCuController {
             return "ventas/baja/venta-producto";
         }
 
-        ventaProducto(loteDTO, redirectAttributes);
+        procesarVentaProducto(loteDTO, redirectAttributes);
         return "redirect:/ventas/baja/venta-producto-ok";
     }
 
@@ -95,7 +92,7 @@ public class BajaVentaProductoController extends AbstractCuController {
         model.addAttribute("loteDTO", loteDTO);
     }
 
-    private void ventaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+    private void procesarVentaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO resultDTO = ventaProductoService.bajaVentaProducto(loteDTO);
 

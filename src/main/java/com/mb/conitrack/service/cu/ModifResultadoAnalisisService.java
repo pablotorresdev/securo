@@ -99,7 +99,7 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
             return false;
         }
 
-        if (!validateFechasAnalisis(dto, bindingResult)) {
+        if (!validarFechasAnalisis(dto, bindingResult)) {
             return false;
         }
 

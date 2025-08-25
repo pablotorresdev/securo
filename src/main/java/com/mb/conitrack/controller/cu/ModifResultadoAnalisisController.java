@@ -49,7 +49,7 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
     }
 
     @PostMapping("/resultado-analisis")
-    public String procesarResultadoAnalisis(
+    public String resultadoAnalisis(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,

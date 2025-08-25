@@ -75,7 +75,7 @@ public class BajaDevolucionCompraService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarDevolucionCompra(final MovimientoDTO dto, final BindingResult bindingResult) {
+    public boolean validarDevolucionCompraInput(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

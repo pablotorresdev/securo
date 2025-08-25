@@ -3,8 +3,6 @@ package com.mb.conitrack.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -231,7 +229,7 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
           )
         order by l.fechaIngreso asc, l.codigoLote asc
     """)
-    List<Lote> findAllForDevolucionVenta();
+    List<Lote> findAllForDevolucionOrRecall();
 
 
     @Query("""

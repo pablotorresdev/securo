@@ -17,6 +17,7 @@ import lombok.Getter;
 
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
+import static com.mb.conitrack.enums.MotivoEnum.RETIRO_MERCADO;
 
 public class MovimientoEntityUtils {
 
@@ -114,6 +115,26 @@ public class MovimientoEntityUtils {
         movimiento.setLote(lote);
         movimiento.setActivo(true);
 
+        return movimiento;
+    }
+
+    //***********CU14 BAJA: RETIRO MERCADO***********
+    public static Movimiento crearMovimientoBajaRecall(final MovimientoDTO dto) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(RETIRO_MERCADO);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        String timestampLoteDTO = dto.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoMovimiento(dto.getCodigoLote() + "-" + timestampLoteDTO);
+        movimiento.setDictamenFinal(DictamenEnum.RETIRO_MERCADO);
+
+        movimiento.setFecha(dto.getFechaMovimiento());
+
+        movimiento.setActivo(true);
+        movimiento.setObservaciones("_CU14_\n" + dto.getObservaciones());
         return movimiento;
     }
 

@@ -111,21 +111,37 @@ public class ModifDevolucionVentaService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validateInfoDevolucion(
-        final @Valid MovimientoDTO movimientoDTO,
+    public boolean validarDevolucionVentaInput(
+        final @Valid MovimientoDTO dto,
         final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
 
-        boolean success = validarTrazasDevolucion(movimientoDTO, bindingResult);
+        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
 
-        final Optional<Movimiento> movOrigen = success ? movimientoRepository.findByCodigoMovimientoAndActivoTrue(
-            movimientoDTO.getCodigoMovimientoOrigen()) : Optional.empty();
+        if (lote.isEmpty()) {
+            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
+            return false;
+        }
+
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult)) {
+            return false;
+        }
+
+        if (!validarTrazasDevolucion(dto, bindingResult)) {
+            return false;
+        }
+
+        final Optional<Movimiento> movOrigen = movimientoRepository.findByCodigoMovimientoAndActivoTrue(
+            dto.getCodigoMovimientoOrigen());
 
         if (movOrigen.isEmpty()) {
             bindingResult.rejectValue("codigoMovimientoOrigen", "", "No se encontro el movimiento de venta origen");
             return true;
         }
 
-        return validarMovimientoOrigen(movimientoDTO, bindingResult, movOrigen.get());
+        return validarMovimientoOrigen(dto, bindingResult, movOrigen.get());
     }
 
 }

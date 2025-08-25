@@ -50,12 +50,12 @@ public class ModifLiberacionVentasController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!modifLiberacionVentasService.validarLiberacionVentas(movimientoDTO, bindingResult)) {
+        if (!modifLiberacionVentasService.validarLiberacionProductoInput(movimientoDTO, bindingResult)) {
             initModelLiberacionProducto(movimientoDTO, model);
             return "ventas/liberacion/inicio-liberacion";
         }
 
-        liberacionProducto(movimientoDTO, redirectAttributes);
+        procesarLiberacionProducto(movimientoDTO, redirectAttributes);
         return "redirect:/ventas/liberacion/inicio-liberacion-ok";
     }
 
@@ -72,7 +72,7 @@ public class ModifLiberacionVentasController extends AbstractCuController {
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void liberacionProducto(
+    private void procesarLiberacionProducto(
         final MovimientoDTO dto,
         final RedirectAttributes redirectAttributes) {
 

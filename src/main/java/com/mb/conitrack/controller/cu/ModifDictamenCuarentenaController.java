@@ -48,12 +48,12 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!dictamenCuarentenaService.validarDictamenCuarentena(movimientoDTO, bindingResult)) {
+        if (!dictamenCuarentenaService.validarDictamenCuarentenaInput(movimientoDTO, bindingResult)) {
             initModelDictamencuarentena(movimientoDTO, model);
             return "calidad/dictamen/cuarentena";
         }
 
-        dictamenCuarentena(movimientoDTO, redirectAttributes);
+        procesarDictamenCuarentena(movimientoDTO, redirectAttributes);
         return "redirect:/calidad/dictamen/cuarentena-ok";
     }
 
@@ -63,7 +63,12 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
         return "calidad/dictamen/cuarentena-ok";
     }
 
-    void dictamenCuarentena(
+    void initModelDictamencuarentena(final MovimientoDTO movimientoDTO, final Model model) {
+        model.addAttribute("loteCuarentenaDTOs", loteService.findAllForCuarentenaDTOs());
+        model.addAttribute("movimientoDTO", movimientoDTO);
+    }
+
+    void procesarDictamenCuarentena(
         final MovimientoDTO dto,
         final RedirectAttributes redirectAttributes) {
 
@@ -76,11 +81,6 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
             loteDTO != null
                 ? "Cambio de calidad a Cuarentena exitoso"
                 : "Hubo un error al realizar el cambio de calidad a Cuarentena.");
-    }
-
-    void initModelDictamencuarentena(final MovimientoDTO movimientoDTO, final Model model) {
-        model.addAttribute("loteCuarentenaDTOs", loteService.findAllForCuarentenaDTOs());
-        model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
 }

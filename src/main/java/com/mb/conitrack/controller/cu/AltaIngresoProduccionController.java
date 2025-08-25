@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.AltaProduccion;
 import com.mb.conitrack.service.cu.AltaIngresoProduccionService;
@@ -59,7 +58,7 @@ public class AltaIngresoProduccionController extends AbstractCuController {
             return "produccion/alta/ingreso-produccion";
         }
 
-        ingresoProduccion(loteDTO, redirectAttributes);
+        procesarIngresoProduccion(loteDTO, redirectAttributes);
         return "redirect:/produccion/alta/ingreso-produccion-ok";
     }
 
@@ -81,7 +80,7 @@ public class AltaIngresoProduccionController extends AbstractCuController {
         model.addAttribute("loteDTO", loteDTO);
     }
 
-    private void ingresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+    private void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
 
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO resultDTO = ingresoProduccionService.altaStockPorProduccion(loteDTO);

@@ -49,12 +49,12 @@ public class BajaDevolucionCompraController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!devolucionCompraService.validarDevolucionCompra(movimientoDTO, bindingResult)) {
+        if (!devolucionCompraService.validarDevolucionCompraInput(movimientoDTO, bindingResult)) {
             initModelDevolucionCompra(model, movimientoDTO);
             return "compras/baja/devolucion-compra";
         }
 
-        devolucionCompra(movimientoDTO, redirectAttributes);
+        procesarDevolucionCompra(movimientoDTO, redirectAttributes);
         return "redirect:/compras/baja/devolucion-compra-ok";
     }
 
@@ -64,7 +64,12 @@ public class BajaDevolucionCompraController extends AbstractCuController {
         return "compras/baja/devolucion-compra-ok";
     }
 
-    void devolucionCompra(final MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {
+    void initModelDevolucionCompra(final Model model, MovimientoDTO movimientoDTO) {
+        model.addAttribute("lotesDevolvibles", loteService.findAllForDevolucionCompraDTOs());
+        model.addAttribute("movimientoDTO", movimientoDTO);
+    }
+
+    void procesarDevolucionCompra(final MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO loteDTO = devolucionCompraService.bajaBultosDevolucionCompra(movimientoDTO);
@@ -73,11 +78,6 @@ public class BajaDevolucionCompraController extends AbstractCuController {
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",
             loteDTO != null ? "Devolucion realizada correctamente." : "Hubo un error en la devolucion de compra.");
-    }
-
-    void initModelDevolucionCompra(final Model model, MovimientoDTO movimientoDTO) {
-        model.addAttribute("lotesDevolvibles", loteService.findAllForDevolucionCompraDTOs());
-        model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
 }

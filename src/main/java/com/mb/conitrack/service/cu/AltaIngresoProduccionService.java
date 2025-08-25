@@ -20,8 +20,6 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.TrazaService;
 import com.mb.conitrack.utils.LoteEntityUtils;
 
-import lombok.AllArgsConstructor;
-
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
 
 @Service
@@ -86,25 +84,28 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        boolean success = validateCantidadIngreso(loteDTO, bindingResult);
-        success = success && validarBultos(loteDTO, bindingResult);
-        success = success && validarTraza(loteDTO, bindingResult);
-        return success;
+        if (!validarCantidadIngreso(loteDTO, bindingResult)) {
+            return false;
+        }
+        if (!validarBultos(loteDTO, bindingResult)) {
+            return false;
+        }
+        return validarTraza(loteDTO, bindingResult);
     }
 
     @Transactional
-    boolean validarTraza(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    boolean validarTraza(final LoteDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
         //TODO: validar que la traza solo se aplique a unidad de venta
-        if (loteDTO.getTrazaInicial() != null) {
-            if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+        if (dto.getTrazaInicial() != null) {
+            if (dto.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
                 bindingResult.rejectValue("trazaInicial", "", "El número de traza solo aplica a unidades de venta");
                 return false;
             }
-            final Long maxNroTraza = trazaService.findMaxNroTraza(loteDTO.getProductoId());
-            if (maxNroTraza > 0 && loteDTO.getTrazaInicial() <= maxNroTraza) {
+            final Long maxNroTraza = trazaService.findMaxNroTraza(dto.getProductoId());
+            if (maxNroTraza > 0 && dto.getTrazaInicial() <= maxNroTraza) {
                 bindingResult.rejectValue(
                     "trazaInicial",
                     "",

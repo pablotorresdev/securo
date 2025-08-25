@@ -130,24 +130,24 @@ public class BajaConsumoProduccionService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarConsumoProduccionInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    public boolean validarConsumoProduccionInput(final LoteDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
         //TODO: caso donde el lote 2/3 se haya usado, pero el 1/3 no ni el 3/3
         final Optional<Lote> lote = loteRepository
-            .findByCodigoLoteAndActivoTrue(loteDTO.getCodigoLote());
+            .findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
 
         if (lote.isEmpty()) {
             bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
             return false;
         }
 
-        if (!validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote.get(), bindingResult)){
+        if (!validarFechaEgresoLoteDtoPosteriorLote(dto, lote.get(), bindingResult)){
             return false;
         }
 
-        return validarCantidadesPorMedidas(loteDTO, lote.get(), bindingResult);
+        return validarCantidadesPorMedidas(dto, lote.get(), bindingResult);
     }
 
 }

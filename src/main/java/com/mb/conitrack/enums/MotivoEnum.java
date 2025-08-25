@@ -13,6 +13,7 @@ public enum MotivoEnum {
     EXPIRACION_ANALISIS("Expiracion analisis"),
     VENCIMIENTO("Vencimiento"),
     DEVOLUCION_VENTA("Devolucion venta"),
+    RETIRO_MERCADO("Retiro mercado"),
     AJUSTE("Ajuste");
 
     private final String valor;

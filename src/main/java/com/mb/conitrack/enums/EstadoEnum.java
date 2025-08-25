@@ -14,6 +14,7 @@ public enum EstadoEnum {
     CONSUMIDO("Consumido", 2), //Baja -> Cant actul = 0 x Producción
     VENDIDO("Vendido", 2), //Baja -> Cant actul = 0 x Venta
     DEVUELTO("Devuelto", 2), //Baja -> Cant actul = 0 x Devolución
+    RECALL("Recall", 2), //Baja -> Cant actul = 0 x Devolución
     DESCARTADO("Descartado", 2);  //Baja -> Cant actul = 0 x Destrucción
 
     private final String valor;

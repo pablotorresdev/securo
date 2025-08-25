@@ -70,7 +70,7 @@
         <!-- Fecha -->
         <div class="mb-2">
             <label class="form-label" for="fechaMovimiento">Fecha Devolucion:</label>
-            <input class="form-control" id="fechaMovimiento"
+            <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
                    required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
                    th:field="*{fechaMovimiento}"

@@ -47,12 +47,12 @@ public class BajaMuestreoBultoController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!muestreoBultoService.validarMuestreoBulto(movimientoDTO, bindingResult)) {
+        if (!muestreoBultoService.validarMuestreoBultoInput(movimientoDTO, bindingResult)) {
             initModelMuestreoBulto(movimientoDTO, model);
             return "calidad/baja/muestreo-bulto";
         }
 
-        muestreoBulto(movimientoDTO, redirectAttributes);
+        procesarMuestreoBulto(movimientoDTO, redirectAttributes);
         return "redirect:/calidad/baja/muestreo-bulto-ok";
     }
 
@@ -67,7 +67,7 @@ public class BajaMuestreoBultoController extends AbstractCuController {
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    void muestreoBulto(
+    void procesarMuestreoBulto(
         final MovimientoDTO movimientoDTO,
         final RedirectAttributes redirectAttributes) {
 
@@ -81,6 +81,5 @@ public class BajaMuestreoBultoController extends AbstractCuController {
             loteDTO != null ? "success" : "error",
             loteDTO != null ? "Muestreo registrado correctamente." : "Hubo un error persistiendo el muestreo.");
     }
-
 
 }

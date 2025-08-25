@@ -14,8 +14,6 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 
-import lombok.AllArgsConstructor;
-
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
@@ -57,7 +55,7 @@ public class ModifReanalisisLoteService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarReanalisisLote(final MovimientoDTO dto, final BindingResult bindingResult) {
+    public boolean validarReanalisisLoteInput(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

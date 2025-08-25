@@ -55,12 +55,12 @@ public class ModifReanalisisLoteController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!reanalisisLoteService.validarReanalisisLote(movimientoDTO, bindingResult)) {
+        if (!reanalisisLoteService.validarReanalisisLoteInput(movimientoDTO, bindingResult)) {
             initModelReanalisisLote(movimientoDTO, model);
             return "calidad/reanalisis/inicio-reanalisis";
         }
 
-        reanalisisLote(movimientoDTO, redirectAttributes);
+        procesarReanalisisLote(movimientoDTO, redirectAttributes);
         return "redirect:/calidad/reanalisis/inicio-reanalisis-ok";
     }
 
@@ -76,7 +76,7 @@ public class ModifReanalisisLoteController extends AbstractCuController {
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void reanalisisLote(final MovimientoDTO dto, final RedirectAttributes redirectAttributes) {
+    private void procesarReanalisisLote(final MovimientoDTO dto, final RedirectAttributes redirectAttributes) {
 
         dto.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO loteDTO = reanalisisLoteService.persistirReanalisisLote(dto);

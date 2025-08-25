@@ -78,7 +78,7 @@ class BajaDevolucionCompraControllerTest {
     // -------------------- GET /devolucion-compra --------------------
 
     @Test
-    void testExitoDevolucionCompra() {
+    void testExitoProcesarDevolucionCompra() {
         assertEquals("compras/baja/devolucion-compra-ok", controller.exitoDevolucionCompra(new LoteDTO()));
     }
 
@@ -87,7 +87,7 @@ class BajaDevolucionCompraControllerTest {
     // -------------------- POST /devolucion-compra (handler) --------------------
 
     @Test
-    void testShowDevolucionCompraForm_InicializaModeloYRetornaView() {
+    void testShowProcesarDevolucionCompraForm_InicializaModeloYRetornaView() {
         // given
         var lista = List.of(new LoteDTO(), new LoteDTO());
         when(loteService.findAllForDevolucionCompraDTOs()).thenReturn(lista);

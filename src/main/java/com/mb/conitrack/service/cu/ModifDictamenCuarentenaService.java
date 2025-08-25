@@ -71,33 +71,33 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarDictamenCuarentena(
-        final @Valid MovimientoDTO movimientoDTO,
+    public boolean validarDictamenCuarentenaInput(
+        final @Valid MovimientoDTO dto,
         final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
 
-        if (!validarNroAnalisisNotNull(movimientoDTO, bindingResult)) {
+        if (!validarNroAnalisisNotNull(dto, bindingResult)) {
             return false;
         }
 
-        if (!validarNroAnalisisUnico(movimientoDTO, bindingResult)) {
+        if (!validarNroAnalisisUnico(dto, bindingResult)) {
             return false;
         }
 
-        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(movimientoDTO.getCodigoLote());
+        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
 
         if (lote.isEmpty()) {
             bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
             return false;
         }
 
-        if (!validarFechaMovimientoPosteriorIngresoLote(movimientoDTO, lote.get().getFechaIngreso(), bindingResult)) {
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult)) {
             return false;
         }
 
-        return validarFechaAnalisisPosteriorIngresoLote(movimientoDTO, lote.get().getFechaIngreso(), bindingResult);
+        return validarFechaAnalisisPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult);
     }
 
 }

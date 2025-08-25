@@ -51,7 +51,7 @@ public class ModifLiberacionVentasService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarLiberacionVentas(final MovimientoDTO dto, final BindingResult bindingResult) {
+    public boolean validarLiberacionProductoInput(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

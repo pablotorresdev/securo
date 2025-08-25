@@ -138,7 +138,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarMuestreoBulto(final MovimientoDTO dto, final BindingResult bindingResult) {
+    public boolean validarMuestreoBultoInput(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

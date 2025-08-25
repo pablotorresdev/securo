@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.AltaCompra;
 import com.mb.conitrack.service.cu.AltaIngresoCompraService;
@@ -55,7 +54,7 @@ public class AltaIngresoCompraController extends AbstractCuController {
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!ingresoCompraService.validarIngresoCompra(loteDTO, bindingResult)) {
+        if (!ingresoCompraService.validarIngresoCompraInput(loteDTO, bindingResult)) {
             initModelIngresoCompra(loteDTO, model);
             return "compras/alta/ingreso-compra";
         }

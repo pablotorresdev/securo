@@ -14,16 +14,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.service.cu.ModifDevolucionVentaService;
+import com.mb.conitrack.service.cu.ModifRetiroMercadoService;
 
 import jakarta.validation.Valid;
 
 @Controller
-@RequestMapping("/ventas/devolucion")
-public class ModifDevolucionVentaController extends AbstractCuController {
+@RequestMapping("/ventas/recall")
+public class ModifRetiroMercadoController extends AbstractCuController {
 
     @Autowired
-    private ModifDevolucionVentaService devolucionVentaService;
+    private ModifRetiroMercadoService retiroMercadoService;
 
     //Salida del CU
     @GetMapping("/cancelar")
@@ -34,47 +34,47 @@ public class ModifDevolucionVentaController extends AbstractCuController {
     //***************************** CU3 Muestreo************************************
     // CU13: Devolución de cliente
     // @PreAuthorize("hasAuthority('ROLE_GERENTE_GARANTIA')")
-    @GetMapping("/devolucion-venta")
-    public String showDevolucionVentaForm(
+    @GetMapping("/retiro-mercado")
+    public String showRetiroMercadoForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
         //TODO: implementar el filtro correcto en base a ventas y Analisis (Fecha, ventas)
-        initModelDevolucionVenta(movimientoDTO, model);
-        return "ventas/devolucion/devolucion-venta";
+        initModelRetiroMercado(movimientoDTO, model);
+        return "ventas/recall/retiro-mercado";
     }
 
-    @PostMapping("/devolucion-venta")
-    public String devolucionVenta(
+    @PostMapping("/retiro-mercado")
+    public String retiroMercado(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!devolucionVentaService.validarDevolucionVentaInput(movimientoDTO, bindingResult)) {
-            initModelDevolucionVenta(movimientoDTO, model);
+        if (!retiroMercadoService.validarRetiroMercadoInput(movimientoDTO, bindingResult)) {
+            initModelRetiroMercado(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
-            return "ventas/devolucion/devolucion-venta";
+            return "ventas/devolucion/retiro-mercado";
         }
-        procesarDevolucionVenta(movimientoDTO, redirectAttributes);
-        return "redirect:/ventas/devolucion/devolucion-venta-ok";
+        prcesarRetiroMercado(movimientoDTO, redirectAttributes);
+        return "redirect:/ventas/recall/retiro-mercado-ok";
     }
 
-    @GetMapping("/devolucion-venta-ok")
-    public String exitoDevolucionVenta(
+    @GetMapping("/retiro-mercado-ok")
+    public String exitoRetiroMercado(
         @ModelAttribute("loteDTO") LoteDTO loteDTO) {
-        return "ventas/devolucion/devolucion-venta-ok";
+        return "ventas/recall/retiro-mercado-ok";
     }
 
-    private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
-        model.addAttribute("lotesDevolucion", loteService.findAllForDevolucionOrRecallDTOs());
+    private void initModelRetiroMercado(final MovimientoDTO movimientoDTO, final Model model) {
+        model.addAttribute("lotesRecall", loteService.findAllForDevolucionOrRecallDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void procesarDevolucionVenta(
+    private void prcesarRetiroMercado(
         final @Valid MovimientoDTO movimientoDTO,
         final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO resultDTO = devolucionVentaService.persistirDevolucionVenta(movimientoDTO);
+        final LoteDTO resultDTO = retiroMercadoService.persistirRetiroMercado(movimientoDTO);
 
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);

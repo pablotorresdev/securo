@@ -107,11 +107,11 @@
             </a>
         </li>
         <li>
-            <a class="disabled" href="javascript:void(0);">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/ventas/recall/retiro-mercado}">
                 CU14. Retiro de mercado [Gerente garantía de calidad]
             </a>
         </li>
-
         <br>
         <h5 class="mb-3 text-primary">Contingencias y Configuracion</h5>
         <li>

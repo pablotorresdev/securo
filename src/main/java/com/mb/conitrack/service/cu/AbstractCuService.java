@@ -805,7 +805,7 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validateCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    boolean validarCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -837,7 +837,7 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validateFechasAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
+    boolean validarFechasAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -853,7 +853,7 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validateFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    boolean validarFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
