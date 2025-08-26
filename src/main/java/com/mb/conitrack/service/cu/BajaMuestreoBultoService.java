@@ -23,6 +23,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.utils.LoteEntityUtils;
 import com.mb.conitrack.utils.UnidadMedidaUtils;
 
+import static com.mb.conitrack.enums.EstadoEnum.*;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
 import static java.lang.Integer.parseInt;
 
@@ -67,7 +68,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantidad.intValue());
 
             for (Traza traza : trazas) {
-                traza.setEstado(EstadoEnum.CONSUMIDO);
+                traza.setEstado(CONSUMIDO);
                 traza.getDetalles().addAll(movimiento.getDetalles());
             }
             trazaRepository.saveAll(trazas);
@@ -75,14 +76,14 @@ public class BajaMuestreoBultoService extends AbstractCuService {
         }
 
         if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
-            bulto.setEstado(EstadoEnum.CONSUMIDO);
+            bulto.setEstado(CONSUMIDO);
         } else {
-            bulto.setEstado(EstadoEnum.EN_USO);
+            bulto.setEstado(EN_USO);
         }
 
         boolean todosConsumidos = lote.getBultos().stream()
-            .allMatch(b -> b.getEstado() == EstadoEnum.CONSUMIDO);
-        lote.setEstado(todosConsumidos ? EstadoEnum.CONSUMIDO : EstadoEnum.EN_USO);
+            .allMatch(b -> b.getEstado() == CONSUMIDO);
+        lote.setEstado(todosConsumidos ? CONSUMIDO : EN_USO);
 
         lote.getMovimientos().add(movimiento);
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));

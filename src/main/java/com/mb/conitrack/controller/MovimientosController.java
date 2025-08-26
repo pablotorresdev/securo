@@ -35,11 +35,31 @@ public class MovimientosController {
     @Autowired
     private MovimientoService movimientoService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
     }
+
+    @GetMapping("/list-movimientos")
+    @Transactional(readOnly = true)
+    public String listMovimientos(Model model) {
+        model.addAttribute("movimientoDTOs", movimientoService.findAllMovimientosAudit());
+        return "movimientos/list-movimientos";
+    }
+
+    @GetMapping("/codigoLote/{codigoLote}")
+    @Transactional(readOnly = true)
+    public String listBultosPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {
+        model.addAttribute("movimientoDTOs", movimientoService.findByCodigoLote(codigoLote));
+        return "movimientos/list-movimientos";
+    }
+
+
+
+
+
+
+    //****************************
 
     @GetMapping("/list-muestreos")
     public String listMuestreos(Model model) {
@@ -47,11 +67,6 @@ public class MovimientosController {
         return "movimientos/list-movimientos"; //
     }
 
-    @GetMapping("/list-movimientos")
-    public String listMovimientos(Model model) {
-        model.addAttribute("movimientos", movimientoService.findAllOrderByFechaAsc());
-        return "movimientos/list-movimientos"; //.html
-    }
 
     //TODO: ver de refactorear a bodyresponse para unificar
     @GetMapping("/loteId/{loteId}")

@@ -122,8 +122,8 @@
     </div>
 
     <!-- Qué trazas fueron devueltas -->
-    <div class="mt-4" th:if="${movimientoDTO != null and movimientoDTO.trazaDTOs != null and !#lists.isEmpty(movimientoDTO.trazaDTOs)}">
-        <h4>Trazas devueltas</h4>
+    <div class="mt-4" th:if="${loteDTO != null and loteDTO.trazaDTOs != null and !#lists.isEmpty(loteDTO.trazaDTOs)}">
+        <h4>Trazas Recall</h4>
 
         <!-- Tabla simple ordenada por Bulto y NroTraza (presentación clara) -->
         <table class="table table-bordered table-sm">
@@ -135,15 +135,14 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="t : ${movimientoDTO.trazaDTOs}">
+            <tr th:each="t : ${loteDTO.trazaDTOs}"
+                th:if="${t.estado == T(com.mb.conitrack.enums.EstadoEnum).RECALL}">
                 <td th:text="${t.nroBulto}"></td>
                 <td th:text="${t.nroTraza}"></td>
                 <td th:text="${t.codigoLote}"></td>
             </tr>
             </tbody>
         </table>
-
-        <!-- Si preferís una vista tipo “lista por bulto”, puedo devolverte una variante que agrupe visualmente -->
     </div>
 
     <!-- Botón -->

@@ -130,7 +130,7 @@ class AltaIngresoCompraControllerTest {
         assertSame(dto, model.getAttribute("loteDTO"));
         assertSame(productosMock, model.getAttribute("productos"));
         assertSame(proveedoresMock, model.getAttribute("proveedores"));
-        assertEquals(controllerUtils().getCountryList(), model.getAttribute("paises"));
+        assertEquals(controller.getCountryList(), model.getAttribute("paises"));
     }
 
 }

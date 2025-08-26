@@ -14,24 +14,22 @@
     <table class="table table-bordered table-sm">
         <thead>
         <tr>
-            <th>ID</th>
-            <th>Nro Bulto</th>
             <th>Lote</th>
+            <th>Nro Bulto</th>
             <th>Cantidad Inicial</th>
             <th>Cantidad Actual</th>
-            <th>unidadMedida</th>
-            <th>estado</th>
+            <th>Unidad de Medida</th>
+            <th>Estado</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="bulto : ${bultos}">
-            <td th:text="${bulto.id}"></td>
-            <td th:text="${bulto.nroBulto}"></td>
-            <td th:text="${bulto.lote.getCodigoLote()}"></td>
-            <td th:text="${bulto.cantidadInicial}"/>
-            <td th:text="${bulto.cantidadActual}"/>
-            <td th:text="${bulto.unidadMedida}"></td>
-            <td th:text="${bulto.estado}"></td>
+        <tr th:each="bultoDTO : ${bultoDTOs}">
+            <td th:text="${bultoDTO.codigoLote}"></td>
+            <td th:text="${bultoDTO.nroBulto}"></td>
+            <td th:text="${bultoDTO.cantidadInicial}"/>
+            <td th:text="${bultoDTO.cantidadActual}"/>
+            <td th:text="${bultoDTO.unidadMedida}"></td>
+            <td th:text="${bultoDTO.estado}"></td>
         </tbody>
     </table>
 

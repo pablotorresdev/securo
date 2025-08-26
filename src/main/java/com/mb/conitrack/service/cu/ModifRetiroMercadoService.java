@@ -33,6 +33,7 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntity;
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
 import static com.mb.conitrack.enums.EstadoEnum.RECALL;
+import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoBajaRecall;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
@@ -94,9 +95,6 @@ public class ModifRetiroMercadoService extends AbstractCuService {
         movimientoBajaRecall.setLote(lote);
 
         for (Bulto bulto : lote.getBultos()) {
-            if (bulto.getEstado() == CONSUMIDO) {
-                continue;
-            }
 
             final DetalleMovimiento det = DetalleMovimiento.builder()
                 .movimiento(movimientoBajaRecall)
@@ -111,7 +109,7 @@ public class ModifRetiroMercadoService extends AbstractCuService {
             final List<Traza> trazasBaja = new ArrayList<>();
 
             for (Traza tr : trazas) {
-                if (tr.getEstado() != DISPONIBLE) {
+                if (tr.getEstado() == CONSUMIDO || tr.getEstado() == VENDIDO) {
                     continue;
                 }
 

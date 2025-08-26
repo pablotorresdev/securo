@@ -1,7 +1,6 @@
 package com.mb.conitrack.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,9 +163,6 @@ public class LoteService {
 
     @Transactional(readOnly = true)
     public List<Lote> findLoteListByCodigoLote(final String codigoLote) {
-        if (codigoLote == null) {
-            return new ArrayList<>();
-        }
         return loteRepository.findAllByCodigoLoteAndActivoTrue(codigoLote);
     }
 
@@ -175,8 +171,9 @@ public class LoteService {
         return fromLoteEntities(loteRepository.findLotesDictaminadosConStock());
     }
 
-    public List<Lote> findAllSortByDateAndCodigoLoteAudit() {
-        return loteRepository.findAllByOrderByFechaIngresoAscCodigoLoteAsc();
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllLotesAudit() {
+        return fromLoteEntities(loteRepository.findAllByOrderByFechaIngresoAscCodigoLoteAsc());
     }
 
 }

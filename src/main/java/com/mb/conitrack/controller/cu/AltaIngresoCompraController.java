@@ -80,7 +80,7 @@ public class AltaIngresoCompraController extends AbstractCuController {
             loteDTO.setUnidadMedidaBultos(new ArrayList<>());
         }
         model.addAttribute("loteDTO", loteDTO);
-        model.addAttribute("paises", controllerUtils().getCountryList());
+        model.addAttribute("paises", getCountryList());
     }
 
     void procesarIngresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {

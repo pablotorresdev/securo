@@ -18,6 +18,7 @@ import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
+import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
 
 @Service
@@ -103,7 +104,7 @@ public class BajaVentaProductoService extends AbstractCuService {
             final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantBulto.intValue());
 
             for (Traza tr : trazas) {
-                tr.setEstado(EstadoEnum.VENDIDO);
+                tr.setEstado(VENDIDO);
             }
             trazaRepository.saveAll(trazas);
 

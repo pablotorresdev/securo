@@ -178,6 +178,14 @@ public class DTOUtils {
         return loteDTO;
     }
 
+    public static List<MovimientoDTO> fromMovimientoEntities(final List<Movimiento> movimientoList) {
+        final List<MovimientoDTO> movimientoDtos = new ArrayList<>();
+        for (Movimiento entity : movimientoList) {
+            movimientoDtos.add(DTOUtils.fromMovimientoEntity(entity));
+        }
+        return movimientoDtos;
+    }
+
     public static MovimientoDTO fromMovimientoEntity(Movimiento entity) {
         if (entity == null) {
             return null;

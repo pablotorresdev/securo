@@ -19,6 +19,8 @@ import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.service.LoteService;
 
+import static java.util.Comparator.comparing;
+
 /**
  * CU1, CU4
  */
@@ -29,7 +31,6 @@ public class LotesController {
     @Autowired
     private LoteService loteService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
@@ -37,7 +38,7 @@ public class LotesController {
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
-        model.addAttribute("lotes", loteService.findAllSortByDateAndCodigoLoteAudit());
+        model.addAttribute("loteDTOs", loteService.findAllLotesAudit());
         return "lotes/list-lotes";
     }
 
@@ -45,12 +46,6 @@ public class LotesController {
     public String listFechasLotes(Model model) {
         model.addAttribute("loteDTOs", loteService.findLotesDictaminadosConStock());
         return "lotes/list-fechas-lotes";
-    }
-
-    @GetMapping("/codigoLote/{codigoLote}")
-    @ResponseBody
-    public List<Lote> getLoteByCodigoLote(@PathVariable("codigoLote") String codigoLote) {
-        return loteService.findLoteListByCodigoLote(codigoLote);
     }
 
     @GetMapping("/codigoLote/muestreo/{codigoLote}")
@@ -67,15 +62,10 @@ public class LotesController {
 
         Lote lote = loteService.findLoteByCodigoLote(codInterno)
             .orElseThrow(() -> new IllegalArgumentException("Lote no existe: " + codInterno));
-
-        // Detalle → Traza; sólo estado VENDIDO; sin duplicados
         return lote.getTrazas().stream()
             .filter(t -> t.getEstado() == EstadoEnum.VENDIDO)
-            .sorted(
-                java.util.Comparator
-                    .comparing(Traza::getNroTraza)
-            )
-            .map(DTOUtils::fromTrazaEntity) // mapea a tu TrazaDTO
+            .sorted(comparing(Traza::getNroTraza))
+            .map(DTOUtils::fromTrazaEntity)
             .toList();
     }
 

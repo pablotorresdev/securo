@@ -7,13 +7,31 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Movimiento;
 
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
-    List<Movimiento> findAllByActivoTrue();
+    @Query("""
+          select m
+          from Movimiento m
+          join m.lote l
+          order by l.codigoLote asc, m.fecha asc, m.fechaYHoraCreacion asc
+        """)
+    List<Movimiento> findAllOrderByLoteFechaCreacion();
+
+    @Query("""
+          select m
+          from Movimiento m
+          join m.lote l
+          where l.codigoLote = :codigoLote
+          order by m.fecha asc, m.fechaYHoraCreacion asc
+        """)
+    List<Movimiento> findAllByLoteCodigoLoteOrderByFechaAsc(String codigoLote);
 
     Optional<Movimiento> findByCodigoMovimientoAndActivoTrue(String codigoMovimiento);
+
+
 
     List<Movimiento> findByActivoTrueOrderByFechaAsc();
 

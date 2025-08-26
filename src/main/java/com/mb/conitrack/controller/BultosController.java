@@ -2,14 +2,13 @@ package com.mb.conitrack.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.mb.conitrack.service.BultoService;
-
-import static com.mb.conitrack.dto.DTOUtils.fromBultoEntities;
 
 @Controller
 @RequestMapping("/bultos")
@@ -30,15 +29,10 @@ public class BultosController {
     }
 
     //TODO: ver de refactorear a bodyresponse para unificar
-    @GetMapping("/loteId/{loteId}")
-    public String listBultosPorLote(@PathVariable("loteId") Long loteId, Model model) {
-        model.addAttribute("bultos", bultoService.findByLoteId(loteId));
-        return "bultos/list-bultos";
-    }
-
-    @GetMapping("/loteId/{codigoLote}")
+    @GetMapping("/codigoLote/{codigoLote}")
+    @Transactional(readOnly = true)
     public String listBultosPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {
-        model.addAttribute("bultos", fromBultoEntities(bultoService.findActivosByLoteCodigoLote(codigoLote)));
+        model.addAttribute("bultoDTOs", bultoService.findByCodigoLote(codigoLote));
         return "bultos/list-bultos";
     }
 

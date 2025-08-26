@@ -11,36 +11,60 @@
     <table class="table table-bordered table-sm">
         <thead>
         <tr>
+            <th>Código Movimiento</th>
             <th>Tipo Movimiento</th>
-            <th>Producto</th>
-            <th>Código Interno Lote</th>
-            <th>Bultos Totales</th>
+            <th>Motivo</th>
+            <th>Código Lote</th>
+            <th>Fecha Movimiento</th>
             <th>Cantidad</th>
             <th>Unidad Medida</th>
-            <th>Motivo</th>
-            <th>Fecha</th>
-            <th>Observaciones</th>
+            <th>Nro Bulto</th>
             <th>Nro Análisis</th>
+            <th>Nro Reanálisis</th>
+            <th>Fecha Realizado Análisis</th>
+            <th>Fecha Reanálisis</th>
+            <th>Fecha Vencimiento</th>
+            <th>Título (%)</th>
             <th>Orden Producción</th>
             <th>Dictamen Inicial</th>
             <th>Dictamen Final</th>
+            <th>Observaciones</th>
+            <th>Fecha/Hora Creación</th>
+            <th>Lote ID</th>
+            <th>Mov. Origen</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="mov : ${movimientos}">
-            <td th:text="${mov.tipoMovimiento}"></td>
-            <td th:text="${mov.lote.producto.nombreGenerico}"></td>
-            <td th:text="${mov.lote.codigoLote}"></td>
-            <td th:text="${mov.lote.bultosTotales}"></td>
-            <td th:text="${mov.cantidad}"></td>
-            <td th:text="${mov.unidadMedida}"></td>
-            <td th:text="${mov.motivo}"></td>
-            <td th:text="${mov.fecha}"></td>
-            <td th:text="${mov.observaciones}"></td>
-            <td th:text="${mov.nroAnalisis}"></td>
-            <td th:text="${mov.ordenProduccion}"></td>
-            <td th:text="${mov.dictamenInicial}"></td>
-            <td th:text="${mov.dictamenFinal}"></td>
+        <tr th:each="movDTO : ${movimientoDTOs}">
+            <td th:text="${movDTO.codigoMovimiento} ?: '-'"></td>
+            <td th:text="${movDTO.tipoMovimiento} ?: '-'"></td>
+            <td th:text="${movDTO.motivo} ?: '-'"></td>
+            <td th:text="${movDTO.codigoLote} ?: '-'"></td>
+
+            <!-- fechas -->
+            <td th:text="${movDTO.fechaMovimiento} ?: '-'"></td>
+            <td th:text="${movDTO.cantidad} ?: '-'"></td>
+            <td th:text="${movDTO.unidadMedida} ?: '-'"></td>
+
+            <td th:text="${movDTO.nroBulto} ?: '-'"></td>
+            <td th:text="${movDTO.nroAnalisis} ?: '-'"></td>
+            <td th:text="${movDTO.nroReanalisis} ?: '-'"></td>
+
+            <td th:text="${movDTO.fechaRealizadoAnalisis} ?: '-'"></td>
+            <td th:text="${movDTO.fechaReanalisis} ?: '-'"></td>
+            <td th:text="${movDTO.fechaVencimiento} ?: '-'"></td>
+
+            <td th:text="${movDTO.titulo} ?: '-'"></td>
+            <td th:text="${movDTO.ordenProduccion} ?: '-'"></td>
+
+            <td th:text="${movDTO.dictamenInicial} ?: '-'"></td>
+            <td th:text="${movDTO.dictamenFinal} ?: '-'"></td>
+
+            <td th:text="${movDTO.observaciones} ?: '-'"></td>
+
+            <td th:text="${movDTO.fechaYHoraCreacion} ?: '-'"></td>
+            <td th:text="${movDTO.loteId} ?: '-'"></td>
+            <td th:text="${movDTO.codigoMovimientoOrigen} ?: '-'"></td>
         </tr>
         </tbody>
     </table>

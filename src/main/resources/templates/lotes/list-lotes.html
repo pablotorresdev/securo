@@ -20,50 +20,80 @@
     <table class="table table-bordered table-sm">
         <thead>
         <tr>
-            <th>Producto</th>
+            <th>Fecha y Hora Creación</th>
+            <th>Código Lote</th>
             <th>Fecha Ingreso</th>
-            <th>Código Interno</th>
-            <th>Nro Analisis</th>
+            <th>Producto Id</th>
+            <th>Nombre Producto</th>
+            <th>Código Producto</th>
+            <th>Tipo Producto</th>
+            <th>Producto Destino</th>
+            <th>Proveedor Id</th>
+            <th>Nombre Proveedor</th>
+            <th>Fabricante Id</th>
+            <th>Nombre Fabricante</th>
+            <th>País Origen</th>
+            <th>Lote Proveedor</th>
+            <th>Nro Remito</th>
+            <th>Fecha Vto Proveedor</th>
+            <th>Fecha Reanálisis Proveedor</th>
             <th>Bultos Totales</th>
             <th>Cant. Inicial</th>
             <th>Cant. Actual</th>
             <th>Unidad Medida</th>
             <th>Dictamen</th>
-            <th>Proveedor</th>
-            <th>País Origen</th>
-            <th>Lote Proveedor</th>
-            <th>Fecha Vto Prov</th>
-            <th>Fecha Reanalisis Prov</th>
-            <th>Estado Lote</th>
+            <th>Estado</th>
+            <th>Fecha Egreso</th>
+            <th>Orden Producción</th>
             <th>Observaciones</th>
-            <th>Activo</th>
+            <th>Lote Origen Id</th>
+            <th>Traza Inicial</th>
+            <th>Traza Final</th>
+            <th>Último Nro Analisis</th>
+            <th>Días hasta Reanálisis Vigente</th>
+            <th>Días hasta Vencimiento Vigente</th>
             <th>Acciones</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="lote : ${lotes}">
-            <td th:text="${lote.producto.nombreGenerico}"></td>
-            <td th:text="${lote.fechaIngreso}"></td>
-            <td th:text="${lote.codigoLote}"></td>
-            <td th:text="${lote.getUltimoNroAnalisis()}"></td>
-            <td th:text="${lote.bultosTotales}"></td>
-            <td th:text="${lote.cantidadInicial}"></td>
-            <td th:text="${lote.cantidadActual}"></td>
-            <td th:text="${lote.unidadMedida}"></td>
-            <td th:text="${lote.dictamen}"></td>
-            <td th:text="${lote.proveedor.razonSocial}"></td>
-            <td th:text="${lote.paisOrigen}"></td>
-            <td th:text="${lote.loteProveedor}"></td>
-            <td th:text="${lote.fechaVencimientoProveedor}"></td>
-            <td th:text="${lote.fechaReanalisisProveedor}"></td>
-            <td th:text="${lote.estado}"></td>
-            <td th:text="${lote.observaciones}"></td>
-            <td th:text="${lote.activo}"></td>
+        <tr th:each="loteDTO : ${loteDTOs}">
+            <td th:text="${loteDTO.fechaYHoraCreacion}"></td>
+            <td th:text="${loteDTO.codigoLote}"></td>
+            <td th:text="${loteDTO.fechaIngreso}"></td>
+            <td th:text="${loteDTO.productoId}"></td>
+            <td th:text="${loteDTO.nombreProducto}"></td>
+            <td th:text="${loteDTO.codigoProducto}"></td>
+            <td th:text="${loteDTO.tipoProducto}"></td>
+            <td th:text="${loteDTO.productoDestino}"></td>
+            <td th:text="${loteDTO.proveedorId}"></td>
+            <td th:text="${loteDTO.nombreProveedor}"></td>
+            <td th:text="${loteDTO.fabricanteId}"></td>
+            <td th:text="${loteDTO.nombreFabricante}"></td>
+            <td th:text="${loteDTO.paisOrigen}"></td>
+            <td th:text="${loteDTO.loteProveedor}"></td>
+            <td th:text="${loteDTO.nroRemito}"></td>
+            <td th:text="${loteDTO.fechaVencimientoProveedor}"></td>
+            <td th:text="${loteDTO.fechaReanalisisProveedor}"></td>
+            <td th:text="${loteDTO.bultosTotales}"></td>
+            <td th:text="${loteDTO.cantidadInicial}"></td>
+            <td th:text="${loteDTO.cantidadActual}"></td>
+            <td th:text="${loteDTO.unidadMedida}"></td>
+            <td th:text="${loteDTO.dictamen}"></td>
+            <td th:text="${loteDTO.estado}"></td>
+            <td th:text="${loteDTO.fechaEgreso}"></td>
+            <td th:text="${loteDTO.ordenProduccion}"></td>
+            <td th:text="${loteDTO.observaciones}"></td>
+            <td th:text="${loteDTO.loteOrigenId}"></td>
+            <td th:text="${loteDTO.trazaInicial}"></td>
+            <td th:text="${loteDTO.trazaFinal}"></td>
+            <td th:text="${loteDTO.ultimoNroAnalisisDto}"></td>
+            <td th:text="${loteDTO.diasHastaFechaReanalisisVigente}"></td>
+            <td th:text="${loteDTO.diasHastaFechaVencimientoVigente}"></td>
             <td>
-                <a class="btn btn-primary btn-sm" th:href="@{'/movimientos/loteId/' + ${lote.id}}">Ver Movimientos</a>
-                <a class="btn btn-primary btn-sm" th:href="@{'/bultos/loteId/' + ${lote.id}}">Ver Bultos</a>
-                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/loteId/' + ${lote.id}}">Ver Analisis</a>
-                <a class="btn btn-primary btn-sm" th:href="@{'/trazas/loteId/' + ${lote.id}}">Ver Trazas</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/movimientos/codigoLote/' + ${loteDTO.codigoLote}}">Ver Movimientos</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/bultos/codigoLote/' + ${loteDTO.codigoLote}}">Ver Bultos</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/analisis/loteId/' + ${loteDTO.codigoLote}}">Ver Analisis</a>
+                <a class="btn btn-primary btn-sm" th:href="@{'/trazas/loteId/' + ${loteDTO.codigoLote}}">Ver Trazas</a>
             </td>
         </tr>
         </tbody>

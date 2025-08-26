@@ -40,16 +40,7 @@ public class ControllerUtils {
         // Utility class
     }
 
-    public List<String> getCountryList() {
-        String[] countryCodes = Locale.getISOCountries();
-        List<String> countries = new ArrayList<>();
-        for (String code : countryCodes) {
-            Locale locale = new Locale("", code);
-            countries.add(locale.getDisplayCountry());
-        }
-        countries.sort(String::compareTo);
-        return countries;
-    }
+
 
     public boolean validarContraFechaVencimientoProveedor(
         final MovimientoDTO movimientoDTO,

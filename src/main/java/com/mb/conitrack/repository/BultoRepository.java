@@ -12,13 +12,13 @@ import com.mb.conitrack.entity.Lote;
 
 public interface BultoRepository extends JpaRepository<Bulto, Long> {
 
+    List<Bulto> findAllByLoteCodigoLoteOrderByNroBultoAsc(String codigoLote);
+
     List<Bulto> findAllByLoteAndActivoTrue(Lote lote);
 
     List<Bulto> findAllByActivoTrue();
 
     Optional<Bulto> findFirstByLoteAndNroBultoAndActivoTrue(Lote lote, int nroBulto);
-
-    List<Bulto> findAllByLoteIdAndActivoTrueOrderByNroBultoAsc(Long loteId);
 
     Optional<Bulto> findFirstByLoteIdAndActivoTrueOrderByNroBultoAsc(Long loteId);
 

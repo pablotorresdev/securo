@@ -70,36 +70,6 @@ public abstract class AbstractCuService {
         return countries;
     }
 
-    Lote getLoteByCodigoLote(String codigoLote, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return null;
-        }
-
-        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(codigoLote);
-        if (lote.isEmpty()) {
-            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
-            return null;
-        }
-        return lote.get();
-    }
-
-    boolean populateLoteListByCodigoLote(
-        final List<Lote> lotesList,
-        String codigoLote,
-        BindingResult bindingResult,
-        final LoteService loteService) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        final List<Lote> lote = loteService.findLoteListByCodigoLote(codigoLote);
-        if (lote.isEmpty()) {
-            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
-            return false;
-        }
-        lotesList.addAll(lote);
-        return true;
-    }
-
     boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
