@@ -33,10 +33,10 @@ VALUES ('Lactosa Monohidrato', 'P-003', 'EXCIPIENTE', 'KILOGRAMO', 'Excipiente p
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida, observaciones, activo)
 VALUES ('Capsula Vacio', 'P-004', 'UNIDAD_VENTA', 'UNIDAD', 'Capsula de gelatina vacia para encapsulamiento de medicamentos', true);
 
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida, observaciones, activo)
-VALUES ('Semielaborado X', 'P-005', 'SEMIELABORADO', 'MILIGRAMO', 'Producto semielaborado destinado a procesos de produccion', true);
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto,  producto_destino, unidad_medida, observaciones, activo)
+VALUES ('Semielaborado X', 'P-005', 'SEMIELABORADO', 'GLUMIC 200 MG X 60 COMPRIMIDOS DISPERSABLES', 'MILIGRAMO', 'Producto semielaborado destinado a procesos de produccion', true);
 
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida, observaciones, activo)
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto,  unidad_medida, observaciones, activo)
 VALUES ('Acond. primario Y', 'P-006', 'ACOND_PRIMARIO', 'UNIDAD', 'Material para empaque primario en la industria farmaceutica', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('ACIDO CARGLUMICO', '1-05700', 'API', 'Glumic 200 mg', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;

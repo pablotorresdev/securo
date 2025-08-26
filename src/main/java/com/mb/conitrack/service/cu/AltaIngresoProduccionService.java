@@ -32,7 +32,6 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         return LoteEntityUtils.getInstance();
     }
 
-    //***********CU10 ALTA: PRODUCCION INTERNA***********
     @Transactional
     public LoteDTO altaStockPorProduccion(final LoteDTO loteDTO) {
         final Proveedor conifarma = proveedorRepository.findConifarma()
@@ -104,7 +103,7 @@ public class AltaIngresoProduccionService extends AbstractCuService {
                 bindingResult.rejectValue("trazaInicial", "", "El número de traza solo aplica a unidades de venta");
                 return false;
             }
-            final Long maxNroTraza = trazaService.findMaxNroTraza(dto.getProductoId());
+            final Long maxNroTraza = trazaService.getMaxNroTrazaByProducto(dto.getProductoId());
             if (maxNroTraza > 0 && dto.getTrazaInicial() <= maxNroTraza) {
                 bindingResult.rejectValue(
                     "trazaInicial",

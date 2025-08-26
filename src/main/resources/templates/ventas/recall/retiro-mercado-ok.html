@@ -123,23 +123,29 @@
 
     <!-- Qué trazas fueron devueltas -->
     <div class="mt-4" th:if="${loteDTO != null and loteDTO.trazaDTOs != null and !#lists.isEmpty(loteDTO.trazaDTOs)}">
-        <h4>Trazas Recall</h4>
+        <h4>Estado Trazas Recall</h4>
 
         <!-- Tabla simple ordenada por Bulto y NroTraza (presentación clara) -->
         <table class="table table-bordered table-sm">
             <thead class="table-light">
             <tr>
-                <th style="width: 140px;">Bulto Nro</th>
+                <th>Código Lote</th>
+                <th>Bulto Nro</th>
+                <th>Codigo Producto</th>
                 <th>Nro Traza</th>
-                <th style="width: 220px;">Código Lote</th>
+                <th>Estado</th>
+                <th>Observaciones</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="t : ${loteDTO.trazaDTOs}"
-                th:if="${t.estado == T(com.mb.conitrack.enums.EstadoEnum).RECALL}">
-                <td th:text="${t.nroBulto}"></td>
-                <td th:text="${t.nroTraza}"></td>
+
+            <tr th:each="t : ${loteDTO.trazaDTOs}">
                 <td th:text="${t.codigoLote}"></td>
+                <td th:text="${t.nroBulto}"></td>
+                <td th:text="${t.codigoProducto}"></td>
+                <td th:text="${t.nroTraza}"></td>
+                <td th:text="${t.estado}"></td>
+                <td th:text="${t.observaciones}"></td>
             </tr>
             </tbody>
         </table>

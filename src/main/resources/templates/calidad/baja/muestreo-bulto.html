@@ -150,7 +150,7 @@
         const cargarBultos = (codigoLote) => {
             bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
 
-            fetch(`/lotes/codigoLote/muestreo/${codigoLote}`, {
+            fetch(`/lotes/muestreo/codigoLote/${codigoLote}`, {
                 headers: { [csrfHeader]: csrfToken }
             })
                 .then(r => r.json())

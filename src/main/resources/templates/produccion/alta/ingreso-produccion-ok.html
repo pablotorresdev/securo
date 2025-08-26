@@ -37,9 +37,8 @@
             </tr>
             <tr>
                 <th>Producto Destino:</th>
-                <td th:text="${loteDTO.productoDestino}"></td>
+                <td th:text="${loteDTO.productoDestino != null ? loteDTO.productoDestino : 'N/A'}"></td>
             </tr>
-
             <!-- Datos de Proveedor y Fabricante -->
             <tr>
                 <th>Nombre Proveedor:</th>
@@ -76,16 +75,8 @@
                 <td th:text="${loteDTO.loteProveedor}"></td>
             </tr>
             <tr>
-                <th>Fecha Reanálisis Proveedor:</th>
-                <td th:text="${loteDTO.fechaReanalisisProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Vencimiento Proveedor:</th>
-                <td th:text="${loteDTO.fechaVencimientoProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Nro Remito:</th>
-                <td th:text="${loteDTO.nroRemito}"></td>
+                <th>Orden produccion:</th>
+                <td th:text="${loteDTO.ordenProduccion}"></td>
             </tr>
             <tr>
                 <th>Detalle Conservación:</th>

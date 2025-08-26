@@ -21,32 +21,40 @@ public class AnalisisService {
     @Autowired
     private AnalisisRepository analisisRepository;
 
-    public List<Analisis> findAll() {
-        return analisisRepository.findActivosOrderByFechaRealizadoDescNullsLast();
+    @Transactional(readOnly = true)
+    public List<AnalisisDTO> findAllBultoAudit() {
+        return fromAnalisisEntities(analisisRepository.findAllAudit());
     }
+
+    // CU5: Resultado QA Aprobado
+    // CU6: Resultado QA Rechazado
+    @Transactional(readOnly = true)
+    public List<AnalisisDTO> findAllEnCursoForLotesCuarentenaDTOs() {
+        return fromAnalisisEntities(analisisRepository.findAllEnCursoForLotesCuarentena());
+    }
+
+    // CU5: Resultado QA Aprobado
+    // CU6: Resultado QA Rechazado
+    @Transactional(readOnly = true)
+    public Analisis findByNroAnalisis(final String nroAnalisis) {
+        return analisisRepository.findByNroAnalisisAndActivoTrue(nroAnalisis);
+    }
+
 
     public List<Analisis> findAllEnCursoForLotesCuarentena() {
         return analisisRepository.findAllEnCursoForLotesCuarentena();
     }
 
-    @Transactional(readOnly = true)
-    public List<AnalisisDTO> findAllEnCursoForLotesCuarentenaDTOs() {
-        return fromAnalisisEntities(analisisRepository.findAllEnCursoForLotesCuarentena());
-    }
 
     @Transactional(readOnly = true)
     public List<AnalisisDTO> findAllByCodigoLoteDTOs() {
         return fromAnalisisEntities(analisisRepository.findAllEnCursoForLotesCuarentena());
     }
 
-    public Analisis findByNroAnalisis(final String nroAnalisis) {
-        return analisisRepository.findByNroAnalisisAndActivoTrue(nroAnalisis);
-    }
 
     public Analisis findByNroAnalisisAndDictamenNotNull(final String nroAnalisis) {
         return analisisRepository.findByNroAnalisisAndDictamenIsNotNullAndActivoTrue(nroAnalisis);
     }
-
 
     public Analisis addResultadoAnalisis(final MovimientoDTO dto) {
         Analisis analisis = analisisRepository.findByNroAnalisisAndActivoTrue(dto.getNroAnalisis());
@@ -63,6 +71,11 @@ public class AnalisisService {
         }
         analisis.setObservaciones(dto.getObservaciones());
         return analisisRepository.save(analisis);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AnalisisDTO> findByCodigoLote(final String codigoLote) {
+        return fromAnalisisEntities(analisisRepository.findByCodigoLote(codigoLote));
     }
 
 }

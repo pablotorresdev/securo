@@ -11,6 +11,8 @@ import com.mb.conitrack.entity.Traza;
 
 public interface TrazaRepository extends JpaRepository<Traza, Long> {
 
+    List<Traza> findByLoteCodigoLoteOrderByNroTrazaAsc(String codigoLote);
+
     Optional<Traza> findTopByProductoIdOrderByNroTrazaDesc(Long productoId);
 
     List<Traza> findByLoteIdOrderByNroTrazaAsc(Long loteId);
@@ -20,5 +22,36 @@ public interface TrazaRepository extends JpaRepository<Traza, Long> {
         "where t.producto.id = :productoId")
     Long findMaxNroTraza(@Param("productoId") Long productoId);
 
-    List<Traza> findAllByOrderByNroTrazaAsc();
+    @Query("""
+          select t
+          from Traza t
+          join t.producto p
+          order by p.codigoProducto asc, t.nroTraza asc
+        """)
+    List<Traza> findAllTrazaAudit();
+
+    @Query("""
+            select distinct t
+            from Traza t
+            join t.detalles d
+            join d.movimiento m
+            where m.codigoMovimiento = :codigoMovimiento
+              and m.activo = true
+              and t.estado = com.mb.conitrack.enums.EstadoEnum.VENDIDO
+            order by t.nroTraza
+        """)
+    List<Traza> findVendidasByCodigoMovimiento(String codigoMovimiento);
+
+    //***********CU14 MODIFICACION: RETIRO MERCADO***********
+    @Query("""
+          select t
+          from Traza t
+            join t.lote l
+          where l.codigoLote = :codigoLote
+            and t.estado = com.mb.conitrack.enums.EstadoEnum.VENDIDO
+            and t.activo = true
+          order by t.nroTraza asc
+        """)
+    List<Traza> findVendidasByCodigoLote(@Param("codigoLote") String codigoLote);
+
 }

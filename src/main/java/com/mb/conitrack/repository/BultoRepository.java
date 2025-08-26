@@ -12,6 +12,14 @@ import com.mb.conitrack.entity.Lote;
 
 public interface BultoRepository extends JpaRepository<Bulto, Long> {
 
+    @Query("""
+          select b
+          from Bulto b
+          join b.lote l
+          order by l.codigoLote asc, b.nroBulto asc
+        """)
+    List<Bulto> findAllAudit();
+
     List<Bulto> findAllByLoteCodigoLoteOrderByNroBultoAsc(String codigoLote);
 
     List<Bulto> findAllByLoteAndActivoTrue(Lote lote);

@@ -15,6 +15,7 @@
         <tr>
             <th>Número de Análisis</th>
             <th>Lote</th>
+            <th>Fecha y Hora Creación</th>
             <th>Dictamen</th>
             <th>Fecha de Realizado</th>
             <th>Fecha de ReAnálisis</th>
@@ -27,6 +28,7 @@
         <tr th:each="analisisDTO : ${analisisDTOs}">
             <td th:text="${analisisDTO.nroAnalisis}"></td>
             <td th:text="${analisisDTO.codigoLote}"></td>
+            <td th:text="${analisisDTO.fechaYHoraCreacion}"></td>
             <td th:text="${analisisDTO.dictamen != null ? analisisDTO.dictamen : 'EN CURSO'}"></td>
             <td th:text="${analisisDTO.fechaRealizado}"></td>
             <td th:text="${analisisDTO.fechaReanalisis}"></td>

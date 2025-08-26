@@ -25,7 +25,6 @@ public class BajaMuestreoBultoController extends AbstractCuController {
     @Autowired
     private BajaMuestreoBultoService muestreoBultoService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";

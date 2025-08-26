@@ -1,7 +1,6 @@
 package com.mb.conitrack.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +10,14 @@ import org.springframework.data.repository.query.Param;
 import com.mb.conitrack.entity.Analisis;
 
 public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
+
+    @Query("""
+          select a
+          from Analisis a
+          join a.lote l
+          order by l.codigoLote asc, a.fechaRealizado asc, a.fechaYHoraCreacion asc
+        """)
+    List<Analisis> findAllAudit();
 
     @EntityGraph(attributePaths = "lote")
     Analisis findByNroAnalisisAndActivoTrue(String nroAnalisis);
@@ -51,5 +58,20 @@ public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
         order by a.fechaYHoraCreacion desc
         """)
     List<Analisis> findUltimoAprobadoConTituloPorCodigoLote(@Param("codigoLote") String codigoLote);
+
+    @Query("""
+        select a
+        from Analisis a
+        join a.lote l
+        where a.activo = true
+        and l.codigoLote = :codigoLote
+        order by a.fechaYHoraCreacion desc
+        """)
+    List<Analisis> findByCodigoLote(String codigoLote);
+
+
+
+
+
 
 }

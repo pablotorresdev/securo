@@ -21,9 +21,6 @@ import com.mb.conitrack.service.LoteService;
 
 import static java.util.Comparator.comparing;
 
-/**
- * CU1, CU4
- */
 @Controller
 @RequestMapping("/lotes")
 public class LotesController {
@@ -48,25 +45,13 @@ public class LotesController {
         return "lotes/list-fechas-lotes";
     }
 
-    @GetMapping("/codigoLote/muestreo/{codigoLote}")
+
+    //***********CU3 BAJA: MUESTREO***********
+    @GetMapping("/muestreo/codigoLote/{codigoLote}")
     @ResponseBody
     public List<BultoDTO> getBultosForMuestreoByCodigoLote(
         @PathVariable String codigoLote) {
         return loteService.findBultosForMuestreoByCodigoLote(codigoLote);
-    }
-
-    @GetMapping("/ventas/trazas-vendidas/{codInterno}")
-    @ResponseBody
-    @Transactional(readOnly = true)
-    public List<TrazaDTO> getTrazasVendidasPorLote(@PathVariable("codInterno") String codInterno) {
-
-        Lote lote = loteService.findLoteByCodigoLote(codInterno)
-            .orElseThrow(() -> new IllegalArgumentException("Lote no existe: " + codInterno));
-        return lote.getTrazas().stream()
-            .filter(t -> t.getEstado() == EstadoEnum.VENDIDO)
-            .sorted(comparing(Traza::getNroTraza))
-            .map(DTOUtils::fromTrazaEntity)
-            .toList();
     }
 
 }

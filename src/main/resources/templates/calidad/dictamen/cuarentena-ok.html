@@ -43,19 +43,19 @@
             </tr>
             <tr>
                 <th>Nro Remito:</th>
-                <td th:text="${loteDTO.nroRemito}"></td>
+                <td th:text="${loteDTO.nroRemito != null ? loteDTO.nroRemito : 'N/A'}"></td>
             </tr>
             <tr>
                 <th>Detalle Conservación:</th>
-                <td th:text="${loteDTO.detalleConservacion}"></td>
+                <td th:text="${loteDTO.detalleConservacion != null ? loteDTO.detalleConservacion : '-'}"></td>
             </tr>
             <tr>
                 <th>Fecha Reanálisis Proveedor:</th>
-                <td th:text="${loteDTO.fechaReanalisisProveedor}"></td>
+                <td th:text="${loteDTO.fechaReanalisisProveedor != null ? loteDTO.fechaReanalisisProveedor : '-'}"></td>
             </tr>
             <tr>
                 <th>Fecha Vencimiento Proveedor:</th>
-                <td th:text="${loteDTO.fechaVencimientoProveedor}"></td>
+                <td th:text="${loteDTO.fechaVencimientoProveedor != null ? loteDTO.fechaVencimientoProveedor : '-'}"></td>
             </tr>
             <tr>
                 <th>Dictamen:</th>
@@ -63,7 +63,7 @@
             </tr>
             <tr>
                 <th>Observaciones:</th>
-                <td th:text="${loteDTO.observaciones}"></td>
+                <td th:text="${loteDTO.observaciones != null ? loteDTO.observaciones : '-'}"></td>
             </tr>
             <tr>
                 <th>Cantidades por Bulto:</th>
@@ -84,7 +84,7 @@
                 <tr>
                     <th>Fecha</th>
                     <th>Cantidad</th>
-                    <th>Unidad</th>
+                    <th>Unidad de Medida</th>
                     <th>Tipo Movimiento</th>
                     <th>Dictamen Inicial</th>
                     <th>Dictamen Final</th>
@@ -96,14 +96,14 @@
                 <tbody>
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.cantidad}"></td>
-                    <td th:text="${mov.unidadMedida}"></td>
+                    <td th:text="${mov.cantidad != null ? mov.cantidad : '-'}"></td>
+                    <td th:text="${mov.unidadMedida != null ? mov.unidadMedida : '-'}"></td>
                     <td th:text="${mov.tipoMovimiento}"></td>
-                    <td th:text="${mov.dictamenInicial}"></td>
+                    <td th:text="${mov.dictamenInicial != null ? mov.dictamenInicial : '-'}"></td>
                     <td th:text="${mov.dictamenFinal}"></td>
                     <td th:text="${mov.motivo}"></td>
                     <td th:text="${mov.observaciones}"></td>
-                    <td th:text="${mov.nroAnalisis}"></td>
+                    <td th:text="${mov.nroAnalisis != null ? mov.nroAnalisis : '-'}"></td>
                 </tr>
                 </tbody>
             </table>

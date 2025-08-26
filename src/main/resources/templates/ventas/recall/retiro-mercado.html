@@ -179,7 +179,7 @@
             clearTrazasUI();
             if (!codLote) return;
 
-            const url = base + 'lotes/ventas/trazas-vendidas/' + encodeURIComponent(codLote);
+            const url = base + 'trazas/trazas-vendidas/codigoLote/' + encodeURIComponent(codLote);
             try {
                 const resp = await fetch(url, { method: 'GET' });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);

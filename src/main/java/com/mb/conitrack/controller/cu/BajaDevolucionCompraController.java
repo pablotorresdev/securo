@@ -25,7 +25,6 @@ public class BajaDevolucionCompraController extends AbstractCuController {
     @Autowired
     private BajaDevolucionCompraService devolucionCompraService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";

@@ -11,6 +11,7 @@
     <table class="table table-bordered table-sm">
         <thead>
         <tr>
+            <th>Fecha y Hora Creación</th>
             <th>Nro Traza</th>
             <th>Producto</th>
             <th>Lote</th>
@@ -19,12 +20,13 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="traza : ${trazas}">
-            <td th:text="${traza.nroTraza}"></td>
-            <td th:text="${traza.producto.nombreGenerico}"></td>
-            <td th:text="${traza.lote.codigoLote}"></td>
-            <td th:text="${traza.estado}"></td>
-            <td th:text="${traza.observaciones}"></td>
+        <tr th:each="trazaDTO : ${trazaDTOs}">
+            <td th:text="${trazaDTO.fechaYHoraCreacion}"></td>
+            <td th:text="${trazaDTO.nroTraza}"></td>
+            <td th:text="${trazaDTO.codigoProducto}"></td>
+            <td th:text="${trazaDTO.codigoLote}"></td>
+            <td th:text="${trazaDTO.estado}"></td>
+            <td th:text="${trazaDTO.observaciones}"></td>
         </tr>
         </tbody>
     </table>

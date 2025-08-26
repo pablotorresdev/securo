@@ -73,6 +73,9 @@ public class Lote {
     @Column(name = "pais_origen")
     private String paisOrigen;
 
+    @Column(name = "orden_produccion_origen", length = 50)
+    private String ordenProduccionOrigen;
+
     @Column(name = "fecha_ingreso", nullable = false)
     private LocalDate fechaIngreso;
 

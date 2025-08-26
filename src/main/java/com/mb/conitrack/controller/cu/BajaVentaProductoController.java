@@ -27,14 +27,11 @@ public class BajaVentaProductoController extends AbstractCuController {
     @Autowired
     private BajaVentaProductoService ventaProductoService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
     }
 
-    //***************************** CU12 Venta de Producto Propio************************************
-    // CU12: Venta de Producto Propio
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/venta-producto")
     public String showVentaProductoForm(

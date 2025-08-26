@@ -13,6 +13,7 @@ import com.mb.conitrack.dto.validation.AltaProduccion;
 import com.mb.conitrack.dto.validation.BajaProduccion;
 import com.mb.conitrack.dto.validation.ValidacionBaja;
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -134,7 +135,7 @@ public class LoteDTO {
 
     protected DictamenEnum dictamen;
 
-    protected String estado;
+    protected EstadoEnum estado;
 
     //********************Utils********************//
     public AnalisisDTO getUltimoAnalisisDto() {

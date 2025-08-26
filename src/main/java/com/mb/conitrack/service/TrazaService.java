@@ -4,9 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.repository.TrazaRepository;
+
+import static com.mb.conitrack.dto.DTOUtils.fromTrazaEntities;
 
 @Service
 public class TrazaService {
@@ -14,16 +17,32 @@ public class TrazaService {
     @Autowired
     private TrazaRepository trazaRepository;
 
-    public Long findMaxNroTraza(Long productoId) {
+    @Transactional(readOnly = true)
+    public List<TrazaDTO> findAllTrazaAudit() {
+        return fromTrazaEntities(trazaRepository.findAllTrazaAudit());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrazaDTO> findByCodigoLote(final String codigoLote) {
+        return fromTrazaEntities(trazaRepository.findByLoteCodigoLoteOrderByNroTrazaAsc(codigoLote));
+    }
+
+    //***********CU10 ALTA: PRODUCCION INTERNA***********
+    @Transactional(readOnly = true)
+    public Long getMaxNroTrazaByProducto(final Long productoId) {
         return trazaRepository.findMaxNroTraza(productoId);
     }
 
-    public List<Traza> findAllByOrderByNroTrazaAsc() {
-        return trazaRepository.findAllByOrderByNroTrazaAsc();
+    //***********CU13 MODIF: DEVOLUCION VENTA***********
+    @Transactional(readOnly = true)
+    public List<TrazaDTO> getTrazasVendidasByCodigoMovimiento(final String codigoMovimiento) {
+        return fromTrazaEntities(trazaRepository.findVendidasByCodigoMovimiento(codigoMovimiento));
     }
 
-    public List<Traza> findByLoteId(final Long loteId) {
-        return trazaRepository.findByLoteIdOrderByNroTrazaAsc(loteId);
+    //***********CU14 MODIF: RECALL***********
+    @Transactional(readOnly = true)
+    public List<TrazaDTO> getTrazasVendidasByCodigoLote(final String codigoLote) {
+        return fromTrazaEntities(trazaRepository.findVendidasByCodigoLote(codigoLote));
     }
 
 }

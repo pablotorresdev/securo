@@ -4,20 +4,19 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.mb.conitrack.dto.BultoDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.repository.MovimientoRepository;
 
 import lombok.AllArgsConstructor;
 
-import static com.mb.conitrack.dto.DTOUtils.fromBultoEntities;
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 import static com.mb.conitrack.dto.DTOUtils.fromMovimientoEntities;
-import static com.mb.conitrack.dto.DTOUtils.fromMovimientoEntity;
 
 @AllArgsConstructor
 @Service
@@ -28,17 +27,20 @@ public class MovimientoService {
 
     @Transactional(readOnly = true)
     public List<MovimientoDTO> findAllMovimientosAudit() {
-        return fromMovimientoEntities(movimientoRepository.findAllOrderByLoteFechaCreacion());
+        return fromMovimientoEntities(movimientoRepository.findAllAudit());
     }
+
     @Transactional(readOnly = true)
     public List<MovimientoDTO> findByCodigoLote(final String codigoLote) {
         return fromMovimientoEntities(movimientoRepository.findAllByLoteCodigoLoteOrderByFechaAsc(codigoLote));
     }
 
+    //***********CU13 MODIF: DEVOLUCION VENTA***********    @Transactional(readOnly = true)
+    public List<MovimientoDTO> getMovimientosVentaByCodigolote(final String codigoLote) {
+        return fromMovimientoEntities(movimientoRepository.findVentasConTrazasVendidasByCodigoLote(codigoLote));
+    }
 
 
-
-    //******************
     public List<Movimiento> findAllOrderByFechaAscNullsLast() {
         return movimientoRepository.findMuestreosActivosOrderByFechaAscNullsLast();
     }
@@ -47,15 +49,12 @@ public class MovimientoService {
         return movimientoRepository.findByCodigoMovimientoAndActivoTrue(codigoMovimiento);
     }
 
-
     public List<Movimiento> findMovimientoByCodigoLote(final String codigoLote) {
         return movimientoRepository.findByLote_CodigoLoteAndActivoTrue(codigoLote);
     }
 
-    public boolean existeMuestreo( final MovimientoDTO movimientoDTO) {
+    public boolean existeMuestreo(final MovimientoDTO movimientoDTO) {
         return movimientoRepository.existeMuestreo(movimientoDTO.getCodigoLote(), movimientoDTO.getNroAnalisis());
     }
-
-
 
 }

@@ -17,13 +17,13 @@ import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
-import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.utils.LoteEntityUtils;
 import com.mb.conitrack.utils.UnidadMedidaUtils;
 
-import static com.mb.conitrack.enums.EstadoEnum.*;
+import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
+import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
 import static java.lang.Integer.parseInt;
 

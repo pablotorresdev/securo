@@ -1,8 +1,8 @@
 package com.mb.conitrack.dto;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.thymeleaf.util.StringUtils;
 
@@ -13,7 +13,6 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
-import com.mb.conitrack.enums.EstadoEnum;
 
 import lombok.Getter;
 
@@ -170,11 +169,16 @@ public class DTOUtils {
             loteDTO.getUnidadMedidaBultos().add(index, bultoEntity.getUnidadMedida());
         }
 
-        loteDTO.setEstado(loteEntity.getEstado().getValor());
+        loteDTO.setEstado(loteEntity.getEstado());
         loteDTO.setTrazaInicial(trazaInicial);
         loteDTO.setCantidadInicial(loteEntity.getCantidadInicial());
         loteDTO.setCantidadActual(loteEntity.getCantidadActual());
         loteDTO.setUnidadMedida(loteEntity.getUnidadMedida());
+
+        loteDTO.getBultosDTOs().sort(Comparator.comparing(BultoDTO::getNroBulto));
+        loteDTO.getAnalisisDTOs().sort(Comparator.comparing(AnalisisDTO::getNroAnalisis));
+        loteDTO.getMovimientoDTOs().sort(Comparator.comparing(MovimientoDTO::getFechaMovimiento));
+        loteDTO.getTrazaDTOs().sort(Comparator.comparing(TrazaDTO::getNroTraza));
         return loteDTO;
     }
 
@@ -212,16 +216,24 @@ public class DTOUtils {
         dto.setOrdenProduccion(entity.getOrdenProduccion());
 
         if (entity.getTipoMovimiento() != null) {
-            dto.setTipoMovimiento(entity.getTipoMovimiento().name());
+            dto.setTipoMovimiento(entity.getTipoMovimiento());
         }
         if (entity.getMotivo() != null) {
-            dto.setMotivo(entity.getMotivo().name());
+            dto.setMotivo(entity.getMotivo());
         }
 
         dto.setDictamenInicial(entity.getDictamenInicial());
         dto.setDictamenFinal(entity.getDictamenFinal());
 
         return dto;
+    }
+
+    public static List<TrazaDTO> fromTrazaEntities(final List<Traza> trazaList) {
+        final List<TrazaDTO> trazaDTOs = new ArrayList<>();
+        for (Traza entity : trazaList) {
+            trazaDTOs.add(DTOUtils.fromTrazaEntity(entity));
+        }
+        return trazaDTOs;
     }
 
     public static TrazaDTO fromTrazaEntity(Traza entity) {
@@ -257,15 +269,13 @@ public class DTOUtils {
     }
 
     static void addEstadoLote(final Lote loteEntity, final LoteDTO loteDTO) {
-        final Optional<EstadoEnum> estadoEnum = EstadoEnum.fromValor(loteDTO.getEstado());
-        if (estadoEnum.isPresent()) {
-            EstadoEnum estado = estadoEnum.get();
-            if (estado.getPrioridad() < loteEntity.getEstado().getPrioridad()) {
-                loteDTO.setEstado(loteEntity.getEstado().getValor());
+        if (loteDTO.getEstado() != null) {
+            if (loteDTO.getEstado().getPrioridad() < loteEntity.getEstado().getPrioridad()) {
+                loteDTO.setEstado(loteEntity.getEstado());
             }
         } else {
             // Si no se encuentra el estado, se asigna el del bulto
-            loteDTO.setEstado(loteEntity.getEstado().getValor());
+            loteDTO.setEstado(loteEntity.getEstado());
         }
     }
 
@@ -273,9 +283,10 @@ public class DTOUtils {
         loteDTO.setCodigoLote(entity.getCodigoLote());
         loteDTO.setFechaIngreso(entity.getFechaIngreso());
         loteDTO.setBultosTotales(entity.getBultosTotales());
-        loteDTO.setEstado(entity.getEstado().getValor());
+        loteDTO.setEstado(entity.getEstado());
         loteDTO.setDictamen(entity.getDictamen());
         loteDTO.setObservaciones(entity.getObservaciones());
+        loteDTO.setOrdenProduccion(entity.getOrdenProduccionOrigen());
     }
 
     static void addInfoProducto(final Lote loteEntity, final LoteDTO loteDTO) {

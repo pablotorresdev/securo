@@ -50,7 +50,7 @@ CREATE TABLE productos
     codigo_producto  VARCHAR(50)  NOT NULL UNIQUE, -- Ejemplo: '9-120'
     tipo_producto    VARCHAR(50)  NOT NULL,
     unidad_medida    VARCHAR(50)  NOT NULL,
-    producto_destino VARCHAR(50),
+    producto_destino VARCHAR(255),
     observaciones    TEXT,
     activo           BOOLEAN      NOT NULL DEFAULT TRUE
 );
@@ -82,30 +82,31 @@ CREATE TABLE configuracion
 --TABLAS DATOS OPERATIVOS--
 CREATE TABLE lotes
 (
-    id                   BIGSERIAL PRIMARY KEY,
-    fecha_creacion       TIMESTAMPTZ NOT NULL,
-    codigo_lote          VARCHAR(70) NOT NULL,
-    producto_id          BIGINT      NOT NULL,
-    proveedor_id         BIGINT      NOT NULL,
-    fabricante_id        BIGINT,
-    pais_origen          TEXT        NOT NULL,
+    id                      BIGSERIAL PRIMARY KEY,
+    fecha_creacion          TIMESTAMPTZ NOT NULL,
+    codigo_lote             VARCHAR(70) NOT NULL,
+    producto_id             BIGINT      NOT NULL,
+    proveedor_id            BIGINT      NOT NULL,
+    fabricante_id           BIGINT,
+    pais_origen             TEXT        NOT NULL,
 
-    fecha_ingreso        DATE        NOT NULL,
-    bultos_totales       INT         NOT NULL,
-    cantidad_inicial     NUMERIC(12, 4),
-    cantidad_actual      NUMERIC(12, 4),
-    unidad_medida        VARCHAR(50) NOT NULL,
+    fecha_ingreso           DATE        NOT NULL,
+    bultos_totales          INT         NOT NULL,
+    cantidad_inicial        NUMERIC(12, 4),
+    cantidad_actual         NUMERIC(12, 4),
+    unidad_medida           VARCHAR(50) NOT NULL,
 
-    lote_proveedor       TEXT        NOT NULL,
-    fecha_reanal_prov    DATE,
-    fecha_vto_prov       DATE,
-    estado               VARCHAR(30) NOT NULL,
-    dictamen             TEXT        NOT NULL,
-    lote_origen_id       BIGINT,
-    nro_remito           TEXT,
-    detalle_conservacion TEXT,
-    observaciones        TEXT,
-    activo               BOOLEAN     NOT NULL DEFAULT TRUE,
+    orden_produccion_origen VARCHAR(30),
+    lote_proveedor          TEXT        NOT NULL,
+    fecha_reanal_prov       DATE,
+    fecha_vto_prov          DATE,
+    estado                  VARCHAR(30) NOT NULL,
+    dictamen                TEXT        NOT NULL,
+    lote_origen_id          BIGINT,
+    nro_remito              TEXT,
+    detalle_conservacion    TEXT,
+    observaciones           TEXT,
+    activo                  BOOLEAN     NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_producto_lote
         FOREIGN KEY (producto_id) REFERENCES productos (id),
     CONSTRAINT fk_lote_origen_lote

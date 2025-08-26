@@ -25,14 +25,11 @@ public class ModifRetiroMercadoController extends AbstractCuController {
     @Autowired
     private ModifRetiroMercadoService retiroMercadoService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
     }
 
-    //***************************** CU3 Muestreo************************************
-    // CU13: Devolución de cliente
     // @PreAuthorize("hasAuthority('ROLE_GERENTE_GARANTIA')")
     @GetMapping("/retiro-mercado")
     public String showRetiroMercadoForm(

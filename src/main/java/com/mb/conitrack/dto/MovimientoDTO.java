@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import jakarta.validation.constraints.Future;
@@ -63,9 +65,9 @@ public class MovimientoDTO {
     private BigDecimal titulo;
 
     //Campos extra
-    private String tipoMovimiento;
+    private TipoMovimientoEnum tipoMovimiento;
 
-    private String motivo;
+    private MotivoEnum motivo;
 
     private Long loteId;
 

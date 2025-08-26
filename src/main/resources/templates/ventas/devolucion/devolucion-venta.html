@@ -151,7 +151,7 @@
 
             if (!codInterno) return;
 
-            const url = base + 'movimientos/ventas/movimientos-venta/' + encodeURIComponent(codInterno);
+            const url = base + 'movimientos/movimientos-venta/' + encodeURIComponent(codInterno);
             try {
                 const resp = await fetch(url, { method: 'GET' });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -187,7 +187,7 @@
             clearTrazasUI();
             if (!codInternoMov) return;
 
-            const url = base + 'movimientos/ventas/trazas-vendidas/' + encodeURIComponent(codInternoMov);
+            const url = base + 'trazas/trazas-vendidas/movimiento/' + encodeURIComponent(codInternoMov);
             try {
                 const resp = await fetch(url, { method: 'GET' });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);

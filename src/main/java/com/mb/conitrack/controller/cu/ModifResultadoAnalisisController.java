@@ -31,7 +31,6 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
     @Autowired
     private AnalisisService analisisService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";

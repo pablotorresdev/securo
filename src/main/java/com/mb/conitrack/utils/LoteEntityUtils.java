@@ -182,6 +182,7 @@ public class LoteEntityUtils {
         lote.setFechaIngreso(loteDTO.getFechaIngreso());
         lote.setBultosTotales(loteDTO.getBultosTotales());
         lote.setLoteProveedor(loteDTO.getLoteProveedor());
+        lote.setOrdenProduccionOrigen(loteDTO.getOrdenProduccion());
 
         //Datos opcionales comunes
         lote.setFechaReanalisisProveedor(loteDTO.getFechaReanalisisProveedor());

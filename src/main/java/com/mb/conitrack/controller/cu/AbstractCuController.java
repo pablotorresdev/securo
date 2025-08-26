@@ -15,6 +15,13 @@ public abstract class AbstractCuController {
     @Autowired
     LoteService loteService;
 
+    static ControllerUtils controllerUtils() {
+        return ControllerUtils.getInstance();
+    }
+
+    static DTOUtils dtoUtils() {
+        return DTOUtils.getInstance();
+    }
 
     List<String> getCountryList() {
         String[] countryCodes = Locale.getISOCountries();
@@ -25,14 +32,6 @@ public abstract class AbstractCuController {
         }
         countries.sort(String::compareTo);
         return countries;
-    }
-
-    static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
-
-    static DTOUtils dtoUtils() {
-        return DTOUtils.getInstance();
     }
 
 }

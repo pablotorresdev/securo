@@ -26,7 +26,6 @@ public class ModifLiberacionVentasController extends AbstractCuController {
     @Autowired
     private ModifLiberacionVentasService modifLiberacionVentasService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";

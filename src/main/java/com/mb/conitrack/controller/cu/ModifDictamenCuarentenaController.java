@@ -25,7 +25,6 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
     @Autowired
     private ModifDictamenCuarentenaService dictamenCuarentenaService;
 
-    //Salida del CU
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";
