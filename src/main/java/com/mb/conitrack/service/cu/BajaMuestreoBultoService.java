@@ -19,22 +19,18 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.utils.LoteEntityUtils;
 import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
+import static com.mb.conitrack.utils.LoteEntityUtils.getAnalisisEnCurso;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
 import static java.lang.Integer.parseInt;
 
+//***********CU3 BAJA: MUESTREO***********
 @Service
 public class BajaMuestreoBultoService extends AbstractCuService {
 
-    private static LoteEntityUtils loteUtils() {
-        return LoteEntityUtils.getInstance();
-    }
-
-    //***********CU3 BAJA: MUESTREO***********
     //TODO: soportar multimuestreo para simplificar la carga
     @Transactional
     public LoteDTO bajaMuestreo(final MovimientoDTO dto) {
@@ -95,7 +91,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
         if (analisisList.isEmpty()) {
             return crearMovimientoMuestreoConPrimerAnalisis(dto, bulto);
         } else {
-            final Optional<Analisis> analisisEnCurso = loteUtils().getAnalisisEnCurso(analisisList);
+            final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
             if (analisisEnCurso.isPresent()) {
                 return crearMovimientoMuestreoConAnalisisEnCurso(dto, bulto, analisisEnCurso);
             } else {

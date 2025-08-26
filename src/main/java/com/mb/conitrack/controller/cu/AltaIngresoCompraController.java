@@ -25,12 +25,6 @@ import com.mb.conitrack.service.maestro.ProveedorService;
 public class AltaIngresoCompraController extends AbstractCuController {
 
     @Autowired
-    private ProductoService productoService;
-
-    @Autowired
-    private ProveedorService proveedorService;
-
-    @Autowired
     private AltaIngresoCompraService ingresoCompraService;
 
     @GetMapping("/cancelar")
@@ -38,7 +32,6 @@ public class AltaIngresoCompraController extends AbstractCuController {
         return "redirect:/";
     }
 
-    // CU1 Ingreso por compra *****************************************************
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/ingreso-compra")
     public String showIngresoCompra(@ModelAttribute("loteDTO") LoteDTO loteDTO, Model model) {
@@ -80,7 +73,7 @@ public class AltaIngresoCompraController extends AbstractCuController {
             loteDTO.setUnidadMedidaBultos(new ArrayList<>());
         }
         model.addAttribute("loteDTO", loteDTO);
-        model.addAttribute("paises", getCountryList());
+        model.addAttribute("paises", ingresoCompraService.getCountryList());
     }
 
     void procesarIngresoCompra(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {

@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.Traza;
 
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
@@ -31,22 +30,6 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
     Optional<Movimiento> findByCodigoMovimientoAndActivoTrue(String codigoMovimiento);
 
-    List<Movimiento> findByActivoTrueOrderByFechaAsc();
-
-    @Query("""
-            select m
-            from Movimiento m
-            where m.activo = true
-              and m.motivo = com.mb.conitrack.enums.MotivoEnum.MUESTREO
-            order by case when m.fecha is null then 1 else 0 end, m.fecha asc
-        """)
-    List<Movimiento> findMuestreosActivosOrderByFechaAscNullsLast();
-
-    List<Movimiento> findByLote_CodigoLote(String codigoLote);
-
-    // (si usás borrado lógico) sólo activos
-    List<Movimiento> findByLote_CodigoLoteAndActivoTrue(String codigoLote);
-
     @Query("""
             SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END
             FROM Movimiento m
@@ -55,10 +38,7 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
               AND m.motivo = com.mb.conitrack.enums.MotivoEnum.MUESTREO
               AND m.nroAnalisis = :nroAnalisis
         """)
-    boolean existeMuestreo(
-        @Param("codigoLote") String codigoLote,
-        @Param("nroAnalisis") String nroAnalisis
-    );
+    boolean existeMuestreo(@Param("codigoLote") String codigoLote, @Param("nroAnalisis") String nroAnalisis);
 
     @Query("""
           select distinct m
@@ -73,18 +53,6 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
           order by m.fecha asc, m.fechaYHoraCreacion asc
         """)
     List<Movimiento> findVentasConTrazasVendidasByCodigoLote(@Param("codigoLote") String codigoLote);
-
-    @Query("""
-          select distinct t
-          from DetalleMovimiento d
-            join d.movimiento m
-            join d.trazas t
-          where m.codigoMovimiento = :codigoMovimiento
-            and m.activo = true
-            and t.estado = com.mb.conitrack.enums.EstadoEnum.VENDIDO
-          order by t.bulto.nroBulto asc, t.nroTraza asc
-        """)
-    List<Traza> findTrazasVendidasByCodigoMovimiento(@Param("codigoMovimiento") String codigoMovimiento);
 
 }
 

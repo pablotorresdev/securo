@@ -17,16 +17,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.AltaProduccion;
 import com.mb.conitrack.service.cu.AltaIngresoProduccionService;
-import com.mb.conitrack.service.maestro.ProductoService;
 
 @Controller
 @RequestMapping("/produccion/alta")
 public class AltaIngresoProduccionController extends AbstractCuController {
 
     //TODO: Sistema FIFO (fecha reanalisis/vencimiento) para lotes que compartan el mismo producto
-
-    @Autowired
-    private ProductoService productoService;
 
     @Autowired
     private AltaIngresoProduccionService ingresoProduccionService;

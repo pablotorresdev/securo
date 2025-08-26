@@ -21,10 +21,10 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaP
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMayorUnidadMedida;
 
+//***********CU7 BAJA: CONSUMO PRODUCCION***********
 @Service
 public class BajaConsumoProduccionService extends AbstractCuService {
 
-    //***********CU7 BAJA: CONSUMO PRODUCCION***********
     @Transactional
     public LoteDTO bajaConsumoProduccion(final LoteDTO loteDTO) {
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(
@@ -143,7 +143,7 @@ public class BajaConsumoProduccionService extends AbstractCuService {
             return false;
         }
 
-        if (!validarFechaEgresoLoteDtoPosteriorLote(dto, lote.get(), bindingResult)){
+        if (!validarFechaEgresoLoteDtoPosteriorLote(dto, lote.get(), bindingResult)) {
             return false;
         }
 

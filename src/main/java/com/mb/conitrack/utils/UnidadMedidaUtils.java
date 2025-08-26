@@ -9,8 +9,6 @@ import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
-import lombok.Getter;
-
 import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
 
@@ -18,13 +16,6 @@ import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
  * Utilidades para el manejo y conversión entre distintas unidades de medida.
  */
 public class UnidadMedidaUtils {
-
-    @Getter
-    private static final UnidadMedidaUtils Instance = new UnidadMedidaUtils();
-
-    private UnidadMedidaUtils() {
-        // Constructor privado para evitar instanciación
-    }
 
     /**
      * Convierte una cantidad desde una unidad de origen a una unidad de destino compatible.

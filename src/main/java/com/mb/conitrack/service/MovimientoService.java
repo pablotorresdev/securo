@@ -1,17 +1,12 @@
 package com.mb.conitrack.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.repository.MovimientoRepository;
 
 import lombok.AllArgsConstructor;
@@ -38,23 +33,6 @@ public class MovimientoService {
     //***********CU13 MODIF: DEVOLUCION VENTA***********    @Transactional(readOnly = true)
     public List<MovimientoDTO> getMovimientosVentaByCodigolote(final String codigoLote) {
         return fromMovimientoEntities(movimientoRepository.findVentasConTrazasVendidasByCodigoLote(codigoLote));
-    }
-
-
-    public List<Movimiento> findAllOrderByFechaAscNullsLast() {
-        return movimientoRepository.findMuestreosActivosOrderByFechaAscNullsLast();
-    }
-
-    public Optional<Movimiento> findMovimientoByCodigoMovimiento(final String codigoMovimiento) {
-        return movimientoRepository.findByCodigoMovimientoAndActivoTrue(codigoMovimiento);
-    }
-
-    public List<Movimiento> findMovimientoByCodigoLote(final String codigoLote) {
-        return movimientoRepository.findByLote_CodigoLoteAndActivoTrue(codigoLote);
-    }
-
-    public boolean existeMuestreo(final MovimientoDTO movimientoDTO) {
-        return movimientoRepository.existeMuestreo(movimientoDTO.getCodigoLote(), movimientoDTO.getNroAnalisis());
     }
 
 }

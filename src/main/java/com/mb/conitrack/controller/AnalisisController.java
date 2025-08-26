@@ -13,7 +13,6 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.service.AnalisisService;
-import com.mb.conitrack.service.LoteService;
 
 @Controller
 @RequestMapping("/analisis")
@@ -21,9 +20,6 @@ public class AnalisisController {
 
     @Autowired
     private AnalisisService analisisService;
-
-    @Autowired
-    private LoteService loteService;
 
     @GetMapping("/cancelar")
     public String cancelar() {

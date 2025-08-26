@@ -12,19 +12,16 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
-import com.mb.conitrack.utils.LoteEntityUtils;
 
+import static com.mb.conitrack.utils.LoteEntityUtils.createLoteIngreso;
+import static com.mb.conitrack.utils.LoteEntityUtils.populateLoteAltaStockCompra;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.addLoteInfoToMovimientoAlta;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoCompra;
 
+//***********CU1 ALTA: COMPRA***********
 @Service
 public class AltaIngresoCompraService extends AbstractCuService {
 
-    private static LoteEntityUtils loteUtils() {
-        return LoteEntityUtils.getInstance();
-    }
-
-    //***********CU1 ALTA: COMPRA***********
     @Transactional
     public LoteDTO altaStockPorCompra(LoteDTO loteDTO) {
         Proveedor proveedor = proveedorRepository.findById(loteDTO.getProveedorId())
@@ -37,8 +34,8 @@ public class AltaIngresoCompraService extends AbstractCuService {
             ? proveedorRepository.findById(loteDTO.getFabricanteId())
             : Optional.empty();
 
-        Lote lote = loteUtils().createLoteIngreso(loteDTO);
-        loteUtils().populateLoteAltaStockCompra(lote, loteDTO, producto, proveedor, fabricante.orElse(null));
+        Lote lote = createLoteIngreso(loteDTO);
+        populateLoteAltaStockCompra(lote, loteDTO, producto, proveedor, fabricante.orElse(null));
 
         Lote loteGuardado = loteRepository.save(lote);
         bultoRepository.saveAll(loteGuardado.getBultos());

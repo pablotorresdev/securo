@@ -16,7 +16,6 @@ import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.utils.ControllerUtils;
 
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoDevolucionCompra;
@@ -24,10 +23,6 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoDevolu
 //***********CU4 BAJA: DEVOLUCION COMPRA***********
 @Service
 public class BajaDevolucionCompraService extends AbstractCuService {
-
-    private static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
 
     @Transactional
     public LoteDTO bajaBultosDevolucionCompra(final MovimientoDTO dto) {
@@ -80,16 +75,14 @@ public class BajaDevolucionCompraService extends AbstractCuService {
             return false;
         }
 
-        final Optional<Lote> lote = loteRepository
-            .findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
+        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
 
         if (lote.isEmpty()) {
             bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
             return false;
         }
 
-        return controllerUtils().validarFechaMovimientoPosteriorIngresoLote(
-            dto, lote.get().getFechaIngreso(), bindingResult);
+        return validarFechaMovimientoPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult);
     }
 
 }

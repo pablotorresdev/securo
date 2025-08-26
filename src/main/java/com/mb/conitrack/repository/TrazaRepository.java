@@ -1,7 +1,6 @@
 package com.mb.conitrack.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,10 +11,6 @@ import com.mb.conitrack.entity.Traza;
 public interface TrazaRepository extends JpaRepository<Traza, Long> {
 
     List<Traza> findByLoteCodigoLoteOrderByNroTrazaAsc(String codigoLote);
-
-    Optional<Traza> findTopByProductoIdOrderByNroTrazaDesc(Long productoId);
-
-    List<Traza> findByLoteIdOrderByNroTrazaAsc(Long loteId);
 
     @Query("select coalesce(max(t.nroTraza), -1) " +
         "from Traza t " +

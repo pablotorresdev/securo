@@ -31,13 +31,12 @@ import jakarta.validation.Valid;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntity;
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
-import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
 import static com.mb.conitrack.enums.EstadoEnum.RECALL;
 import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoBajaRecall;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
-//***********CU13 ALTA: DEVOLUCION VENTA***********
+//***********CU14 ALTA/MODIF: RECALL***********
 @Service
 public class ModifRetiroMercadoService extends AbstractCuService {
 

@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.service.TrazaService;
 
-import static java.util.Comparator.comparing;
-
 @Controller
 @RequestMapping("/trazas")
 public class TrazasController {

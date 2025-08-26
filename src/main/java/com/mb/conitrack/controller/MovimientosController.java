@@ -11,13 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.dto.TrazaDTO;
-import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.Traza;
-import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.MovimientoService;
 
 @Controller

@@ -1,7 +1,6 @@
 package com.mb.conitrack.entity;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -64,11 +63,11 @@ public class Bulto {
     @Column(name = "estado", nullable = false)
     private EstadoEnum estado;
 
-    @OneToMany(mappedBy = "bulto", fetch = FetchType.LAZY, cascade = {PERSIST, MERGE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "bulto", fetch = FetchType.LAZY, cascade = { PERSIST, MERGE }, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();
 
-    @OneToMany(mappedBy = "bulto", fetch = FetchType.LAZY, cascade = {PERSIST, MERGE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "bulto", fetch = FetchType.LAZY, cascade = { PERSIST, MERGE }, orphanRemoval = true)
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @OrderBy("nroTraza ASC")
@@ -109,34 +108,13 @@ public class Bulto {
             .collect(Collectors.toList());
     }
 
-    public Traza getLastActiveTraza() {
-        if (this.trazas.isEmpty()) {
-            return null;
-        } else if (this.trazas.size() == 1) {
-            return this.trazas.stream().filter(Traza::getActivo).findFirst().orElse(null);
-        } else {
-            return this.trazas.stream()
-                .filter(Traza::getActivo).max(Comparator.comparing(Traza::getNroTraza))
-                .orElse(null);
-        }
-    }
-
-    public Traza getTrazaRangeEnd() {
-        if (trazas == null || trazas.isEmpty()) {
-            return null;
-        }
-        return trazas.stream()
-            .max(Comparator.comparing(Traza::getNroTraza))
-            .orElse(null);
-    }
-
     public Traza getTrazaByNro(long nroTraza) {
         if (this.trazas == null || this.trazas.isEmpty()) {
             return null;
         }
         if (this.trazas.size() == 1) {
             Traza unica = this.trazas.stream().filter(Traza::getActivo).findFirst().orElse(null);
-            return (unica!=null && unica.getNroTraza() == nroTraza) ? unica : null;
+            return (unica != null && unica.getNroTraza() == nroTraza) ? unica : null;
         }
         return this.trazas.stream()
             .filter(Traza::getActivo)

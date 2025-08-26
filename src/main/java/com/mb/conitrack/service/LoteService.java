@@ -2,7 +2,6 @@ package com.mb.conitrack.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,40 +23,6 @@ public class LoteService {
 
     //TODO: unificar la logica de activo vs todos para operatoria vs auditoria
     private final LoteRepository loteRepository;
-
-    @Transactional(readOnly = true)
-    public Optional<LocalDate> findFechaIngresoLote(final String codigoLote) {
-        if (codigoLote == null || codigoLote.isBlank()) {
-            return Optional.empty();
-        }
-        return loteRepository
-            .findByCodigoLoteAndActivoTrue(codigoLote.trim())
-            .map(Lote::getFechaIngreso);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<LocalDate> findFechaVencimientoProveedor(final String codigoLote) {
-        if (codigoLote == null || codigoLote.isBlank()) {
-            return Optional.empty();
-        }
-        return loteRepository
-            .findByCodigoLoteAndActivoTrue(codigoLote.trim())
-            .map(Lote::getFechaVencimientoProveedor);
-    }
-
-    @Transactional(readOnly = true)
-    public LoteDTO getLoteDTOByCodigoLote(String codigoLote) {
-        Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(codigoLote)
-            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
-        return DTOUtils.fromLoteEntity(lote);
-    }
-
-    @Transactional(readOnly = true)
-    public LoteDTO getLoteDTOByLoteId(Long id) {
-        Lote lote = loteRepository.findByIdAndActivoTrue(id)
-            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
-        return DTOUtils.fromLoteEntity(lote);
-    }
 
     //***********CU2 MODIFICACION: CUARENTENA***********
     //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
@@ -97,29 +62,9 @@ public class LoteService {
         return DTOUtils.fromLoteEntities(loteRepository.findAllForConsumoProduccion());
     }
 
-    //***********CU8 MODIFICACION: VENCIDO***********
-    @Transactional(readOnly = true)
-    public List<Lote> findAllLotesVencidos() { // OJO: devuelve NO vencidos como tu versión previa
-        LocalDate hoy = LocalDate.now();
-        return loteRepository.findLotesConStockOrder().stream()
-            .filter(l -> {
-                LocalDate f = l.getFechaVencimientoVigente();
-                return f != null && !f.isBefore(hoy); // >= hoy
-            })
-            .toList(); // ya viene ordenado desde la DB
-    }
 
-    //***********CU9 MODIFICACION: ANALSIS EXPIRADO***********
-    @Transactional(readOnly = true)
-    public List<Lote> findAllLotesAnalisisExpirado() {
-        LocalDate hoy = LocalDate.now();
-        return loteRepository.findLotesConStockOrder().stream()
-            .filter(l -> {
-                LocalDate f = l.getFechaReanalisisVigente();
-                return f != null && !f.isBefore(hoy); // >= hoy
-            })
-            .toList();
-    }
+
+
 
     //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
     @Transactional(readOnly = true)
@@ -141,20 +86,6 @@ public class LoteService {
     }
 
     //****************************COMMON PUBLIC*****************************
-    public Lote findLoteById(final Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El id no puede ser nulo.");
-        }
-        return loteRepository.findByIdAndActivoTrue(id)
-            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Lote> findLoteByCodigoLote(final String codigoLote) {
-        return loteRepository.findByCodigoLoteAndActivoTrue(
-            codigoLote);
-    }
-
     @Transactional(readOnly = true)
     public List<BultoDTO> findBultosForMuestreoByCodigoLote(final String codigoLote) {
         return fromBultoEntities(loteRepository.findBultosForMuestreoByCodigoLote(

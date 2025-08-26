@@ -49,7 +49,7 @@ public class Movimiento {
 
     @OneToMany(
         mappedBy = "movimiento", fetch = FetchType.LAZY,
-        cascade = {PERSIST, MERGE}, orphanRemoval = true)
+        cascade = { PERSIST, MERGE }, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();
 

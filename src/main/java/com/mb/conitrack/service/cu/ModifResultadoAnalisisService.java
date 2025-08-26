@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -16,21 +15,17 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.service.AnalisisService;
 
 import static com.mb.conitrack.enums.MotivoEnum.RESULTADO_ANALISIS;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
+//***********CU5/6: RESULTADO ANALISIS***********
 @Service
 public class ModifResultadoAnalisisService extends AbstractCuService {
 
-    @Autowired
-    private AnalisisService analisisService;
-
-    //***********CU5/6: RESULTADO ANALISIS***********
     @Transactional
     public LoteDTO persistirResultadoAnalisis(final MovimientoDTO dto) {
-        final Analisis analisis = analisisService.addResultadoAnalisis(dto);
+        final Analisis analisis = addResultadoAnalisis(dto);
         final Lote lote = analisis.getLote();
         final Movimiento movimiento = persistirMovimientoResultadoAnalisis(dto, lote);
         lote.setDictamen(movimiento.getDictamenFinal());
@@ -115,6 +110,24 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
         }
 
         return validarValorTitulo(dto, analisisList.get(0), bindingResult);
+    }
+
+    @Transactional
+    Analisis addResultadoAnalisis(final MovimientoDTO dto) {
+        Analisis analisis = analisisRepository.findByNroAnalisisAndActivoTrue(dto.getNroAnalisis());
+        if (analisis == null) {
+            analisis = DTOUtils.createAnalisis(dto);
+        }
+
+        analisis.setFechaRealizado(dto.getFechaRealizadoAnalisis());
+        analisis.setDictamen(dto.getDictamenFinal());
+        if (dto.getDictamenFinal() == DictamenEnum.APROBADO) {
+            analisis.setFechaReanalisis(dto.getFechaReanalisis());
+            analisis.setFechaVencimiento(dto.getFechaVencimiento());
+            analisis.setTitulo(dto.getTitulo());
+        }
+        analisis.setObservaciones(dto.getObservaciones());
+        return analisisRepository.save(analisis);
     }
 
 }

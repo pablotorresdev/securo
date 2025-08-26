@@ -27,12 +27,6 @@ public class TrazaService {
         return fromTrazaEntities(trazaRepository.findByLoteCodigoLoteOrderByNroTrazaAsc(codigoLote));
     }
 
-    //***********CU10 ALTA: PRODUCCION INTERNA***********
-    @Transactional(readOnly = true)
-    public Long getMaxNroTrazaByProducto(final Long productoId) {
-        return trazaRepository.findMaxNroTraza(productoId);
-    }
-
     //***********CU13 MODIF: DEVOLUCION VENTA***********
     @Transactional(readOnly = true)
     public List<TrazaDTO> getTrazasVendidasByCodigoMovimiento(final String codigoMovimiento) {

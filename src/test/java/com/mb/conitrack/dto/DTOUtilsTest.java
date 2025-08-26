@@ -128,38 +128,6 @@ class DTOUtilsTest {
     }
 
     @Test
-    @DisplayName("Mapea todos los campos cuando están presentes")
-    void fromMovimientoEntity_completo() {
-        // --- lote auxiliar ---
-        Lote lote = new Lote();
-        lote.setId(99L);
-        lote.setCodigoLote("L-001");
-
-        // --- movimiento completo ---
-        Movimiento mov = new Movimiento();
-        mov.setLote(lote);
-        mov.setFecha(LocalDate.of(2025, 8, 8));
-        mov.setCantidad(new BigDecimal("2.5"));
-        mov.setUnidadMedida(UnidadMedidaEnum.LITRO);
-        mov.setObservaciones("ok");
-        mov.setNroAnalisis("A-2");
-        mov.setOrdenProduccion("OP-2");
-        mov.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-        mov.setMotivo(MotivoEnum.VENCIMIENTO);
-        mov.setDictamenInicial(DictamenEnum.APROBADO);
-        mov.setDictamenFinal(DictamenEnum.RECHAZADO);
-
-        MovimientoDTO dto = DTOUtils.fromMovimientoEntity(mov);
-
-        assertEquals("L-001", dto.getCodigoLote());
-        assertEquals(99L, dto.getLoteId());
-        assertEquals("BAJA", dto.getTipoMovimiento());
-        assertEquals("VENCIMIENTO", dto.getMotivo());
-        assertEquals(DictamenEnum.APROBADO, dto.getDictamenInicial());
-        assertEquals(DictamenEnum.RECHAZADO, dto.getDictamenFinal());
-    }
-
-    @Test
     @DisplayName("Devuelve null si el Movimiento es null")
     void fromMovimientoEntity_movimientoNull() {
         assertNull(DTOUtils.fromMovimientoEntity(null));

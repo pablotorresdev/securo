@@ -9,8 +9,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hibernate.annotations.SQLDelete;
 
@@ -226,31 +224,6 @@ public class Lote {
         }
     }
 
-    public Long getDiasHastaFechaReanalisisVigente() {
-        LocalDate fecha = getFechaReanalisisVigente();
-        return fecha != null ? ChronoUnit.DAYS.between(LocalDate.now(), fecha) : null;
-    }
-
-    public Long getDiasHastaFechaVencimientoVigente() {
-        LocalDate fecha = getFechaVencimientoVigente();
-        return fecha != null ? ChronoUnit.DAYS.between(LocalDate.now(), fecha) : null;
-    }
-
-    public Analisis getUltimoAnalisisDictaminado() {
-        return this.analisisList.stream()
-            .filter(Analisis::getActivo).filter(a -> a.getDictamen() != null)
-            .max(Comparator.comparing(Analisis::getFechaYHoraCreacion))
-            .orElse(null);
-    }
-
-    public String getNroUltimoAnalisisDictaminado() {
-        final Analisis currentAnalisis = getUltimoAnalisisDictaminado();
-        if (currentAnalisis == null) {
-            return null;
-        }
-        return currentAnalisis.getNroAnalisis();
-    }
-
     public String getUltimoNroAnalisis() {
         final Analisis currentAnalisis = getUltimoAnalisis();
         if (currentAnalisis == null) {
@@ -270,61 +243,6 @@ public class Lote {
                 .filter(Traza::getActivo).min(Comparator.comparing(Traza::getNroTraza))
                 .orElse(null);
         }
-    }
-
-    public List<Traza> getFirstAvailableTrazaList(int size) {
-        if (trazas == null || trazas.isEmpty()) {
-            return null;
-        }
-
-        Stream<Traza> stream = trazas.stream();
-
-        if (trazas.size() > size) {
-            stream = stream
-                .filter(Traza::getActivo)
-                .filter(t -> t.getEstado() == EstadoEnum.DISPONIBLE);
-        }
-
-        return stream
-            .sorted(Comparator.comparing(Traza::getNroTraza)) // orden ascendente por nroTraza
-            .limit(size)                                      // máximo 'size' elementos
-            .collect(Collectors.toList());
-    }
-
-    public Traza getLastActiveTraza() {
-        if (this.trazas.isEmpty()) {
-            return null;
-        } else if (this.trazas.size() == 1) {
-            return this.trazas.stream().filter(Traza::getActivo).findFirst().orElse(null);
-        } else {
-            return this.trazas.stream()
-                .filter(Traza::getActivo).max(Comparator.comparing(Traza::getNroTraza))
-                .orElse(null);
-        }
-    }
-
-    public Traza getTrazaRangeEnd() {
-        if (trazas == null || trazas.isEmpty()) {
-            return null;
-        }
-        return trazas.stream()
-            .max(Comparator.comparing(Traza::getNroTraza))
-            .orElse(null);
-    }
-
-    public Traza getTrazaByNro(long nroTraza) {
-        if (this.trazas == null || this.trazas.isEmpty()) {
-            return null;
-        }
-        if (this.trazas.size() == 1) {
-            Traza unica = this.trazas.stream().filter(Traza::getActivo).findFirst().orElse(null);
-            return (unica!=null && unica.getNroTraza() == nroTraza) ? unica : null;
-        }
-        return this.trazas.stream()
-            .filter(Traza::getActivo)
-            .filter(t -> t.getNroTraza() == nroTraza)
-            .findFirst()
-            .orElse(null);
     }
 
 }

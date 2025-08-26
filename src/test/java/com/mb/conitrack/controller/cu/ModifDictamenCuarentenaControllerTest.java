@@ -1,10 +1,7 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.ExtendedModelMap;
@@ -28,10 +24,8 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.cu.ModifDictamenCuarentenaService;
-import com.mb.conitrack.utils.ControllerUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

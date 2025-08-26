@@ -65,7 +65,7 @@ public enum UnidadMedidaEnum {
             from = index;
             to = Math.min(index + 4, size);
         } else if (index == 1) {
-            from = index - 1;
+            from = 0;
             to = Math.min(index + 3, size);
         } else if (index == size - 1) {
             from = Math.max(index - 3, 0);

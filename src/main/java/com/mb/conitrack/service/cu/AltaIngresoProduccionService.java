@@ -2,7 +2,6 @@ package com.mb.conitrack.service.cu;
 
 import java.util.Comparator;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -17,32 +16,25 @@ import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.service.TrazaService;
-import com.mb.conitrack.utils.LoteEntityUtils;
 
+import static com.mb.conitrack.utils.LoteEntityUtils.createLoteIngreso;
+import static com.mb.conitrack.utils.LoteEntityUtils.populateLoteAltaProduccionPropia;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
 
+//***********CU10 ALTA: INGRESO PRODUCCION INTERNA***********
 @Service
 public class AltaIngresoProduccionService extends AbstractCuService {
-
-    @Autowired
-    private TrazaService trazaService;
-
-    private static LoteEntityUtils loteUtils() {
-        return LoteEntityUtils.getInstance();
-    }
 
     @Transactional
     public LoteDTO altaStockPorProduccion(final LoteDTO loteDTO) {
         final Proveedor conifarma = proveedorRepository.findConifarma()
             .orElseThrow(() -> new IllegalArgumentException("El proveedor Conifarma no existe."));
-        ;
 
         final Producto producto = productoRepository.findById(loteDTO.getProductoId())
             .orElseThrow(() -> new IllegalArgumentException("El producto no existe."));
 
-        final Lote lote = loteUtils().createLoteIngreso(loteDTO);
-        loteUtils().populateLoteAltaProduccionPropia(lote, loteDTO, producto, conifarma);
+        final Lote lote = createLoteIngreso(loteDTO);
+        populateLoteAltaProduccionPropia(lote, loteDTO, producto, conifarma);
 
         final Lote loteGuardado = loteRepository.save(lote);
         bultoRepository.saveAll(loteGuardado.getBultos());
@@ -103,7 +95,7 @@ public class AltaIngresoProduccionService extends AbstractCuService {
                 bindingResult.rejectValue("trazaInicial", "", "El número de traza solo aplica a unidades de venta");
                 return false;
             }
-            final Long maxNroTraza = trazaService.getMaxNroTrazaByProducto(dto.getProductoId());
+            final Long maxNroTraza = trazaRepository.findMaxNroTraza(dto.getProductoId());
             if (maxNroTraza > 0 && dto.getTrazaInicial() <= maxNroTraza) {
                 bindingResult.rejectValue(
                     "trazaInicial",

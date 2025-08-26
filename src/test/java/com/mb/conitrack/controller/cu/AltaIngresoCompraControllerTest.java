@@ -3,14 +3,12 @@ package com.mb.conitrack.controller.cu;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.ExtendedModelMap;
@@ -20,7 +18,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
-import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
@@ -29,15 +26,9 @@ import com.mb.conitrack.service.cu.AltaIngresoCompraService;
 import com.mb.conitrack.service.maestro.ProductoService;
 import com.mb.conitrack.service.maestro.ProveedorService;
 
-import static com.mb.conitrack.controller.cu.AbstractCuController.controllerUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -130,7 +121,7 @@ class AltaIngresoCompraControllerTest {
         assertSame(dto, model.getAttribute("loteDTO"));
         assertSame(productosMock, model.getAttribute("productos"));
         assertSame(proveedoresMock, model.getAttribute("proveedores"));
-        assertEquals(controller.getCountryList(), model.getAttribute("paises"));
+        assertEquals(altaIngresoCompraService.getCountryList(), model.getAttribute("paises"));
     }
 
 }

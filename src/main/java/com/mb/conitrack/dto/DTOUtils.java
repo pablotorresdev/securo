@@ -14,28 +14,7 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 
-import lombok.Getter;
-
 public class DTOUtils {
-
-    @Getter
-    private static final DTOUtils Instance = new DTOUtils();
-
-    private DTOUtils() {
-        // Utility class
-    }
-
-    public static BultoDTO addDetalles(BultoDTO dto, Bulto entity) {
-        if (entity == null) {
-            return dto;
-        }
-
-        for (DetalleMovimiento detalleMovimiento : entity.getDetalles()) {
-            dto.getDetalleMovimientoDTOs().add(fromDetalleMovimientoEntity(detalleMovimiento));
-        }
-
-        return dto;
-    }
 
     public static Analisis createAnalisis(final MovimientoDTO dto) {
         final String nroAnalisis = StringUtils.isEmptyOrWhitespace(dto.getNroReanalisis())
@@ -265,17 +244,6 @@ public class DTOUtils {
                 final BultoDTO bultoDto = DTOUtils.fromBultoEntity(bulto);
                 loteDTO.getBultosDTOs().add(bultoDto);
             }
-        }
-    }
-
-    static void addEstadoLote(final Lote loteEntity, final LoteDTO loteDTO) {
-        if (loteDTO.getEstado() != null) {
-            if (loteDTO.getEstado().getPrioridad() < loteEntity.getEstado().getPrioridad()) {
-                loteDTO.setEstado(loteEntity.getEstado());
-            }
-        } else {
-            // Si no se encuentra el estado, se asigna el del bulto
-            loteDTO.setEstado(loteEntity.getEstado());
         }
     }
 

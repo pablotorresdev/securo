@@ -1,37 +1,24 @@
 package com.mb.conitrack.controller.cu;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.mb.conitrack.dto.DTOUtils;
+import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.LoteService;
-import com.mb.conitrack.utils.ControllerUtils;
+import com.mb.conitrack.service.maestro.ProductoService;
+import com.mb.conitrack.service.maestro.ProveedorService;
 
 public abstract class AbstractCuController {
 
     @Autowired
     LoteService loteService;
 
-    static ControllerUtils controllerUtils() {
-        return ControllerUtils.getInstance();
-    }
+    @Autowired
+    ProductoService productoService;
 
-    static DTOUtils dtoUtils() {
-        return DTOUtils.getInstance();
-    }
+    @Autowired
+    ProveedorService proveedorService;
 
-    List<String> getCountryList() {
-        String[] countryCodes = Locale.getISOCountries();
-        List<String> countries = new ArrayList<>();
-        for (String code : countryCodes) {
-            Locale locale = new Locale("", code);
-            countries.add(locale.getDisplayCountry());
-        }
-        countries.sort(String::compareTo);
-        return countries;
-    }
+    @Autowired
+    AnalisisService analisisService;
 
 }

@@ -28,28 +28,39 @@ public class FechaValidatorService extends AbstractCuService {
     private LoteService loteService;
 
     @Scheduled(cron = "0 0 5 * * *") // Todos los días a las 5 AM
+    @Transactional
     public void validarFecha() {
-        procesarLotesAnalisisExpirado(loteService.findAllLotesAnalisisExpirado());
-        procesarLotesVencidos(loteService.findAllLotesVencidos());
+        procesarLotesAnalisisExpirado(findAllLotesAnalisisExpirado());
+        procesarLotesVencidos(findAllLotesVencidos());
+    }
+
+    //***********CU9 MODIFICACION: ANALSIS EXPIRADO***********
+    @Transactional(readOnly = true)
+    List<Lote> findAllLotesAnalisisExpirado() {
+        LocalDate hoy = LocalDate.now();
+        return loteRepository.findLotesConStockOrder().stream()
+            .filter(l -> {
+                LocalDate f = l.getFechaReanalisisVigente();
+                return f != null && !f.isBefore(hoy); // >= hoy
+            })
+            .toList();
     }
 
     //***********CU8 MODIFICACION: VENCIDO***********
-    @Transactional
-    public List<Lote> persistirProductosVencidos(final MovimientoDTO dto, final List<Lote> lotes) {
-        //TODO, eliminar NRO de Reanalisis del DTO
-        List<Lote> result = new ArrayList<>();
-        for (Lote lote : lotes) {
-            final Movimiento movimiento = persistirMovimientoProductoVencido(dto, lote);
-            lote.setDictamen(movimiento.getDictamenFinal());
-            lote.getMovimientos().add(movimiento);
-            result.add(loteRepository.save(lote));
-        }
-        return result;
+    @Transactional(readOnly = true)
+    List<Lote> findAllLotesVencidos() { // OJO: devuelve NO vencidos como tu versión previa
+        LocalDate hoy = LocalDate.now();
+        return loteRepository.findLotesConStockOrder().stream()
+            .filter(l -> {
+                LocalDate f = l.getFechaVencimientoVigente();
+                return f != null && !f.isBefore(hoy); // >= hoy
+            })
+            .toList(); // ya viene ordenado desde la DB
     }
 
     //***********CU9 MODIFICACION: ANALSIS EXPIRADO***********
     @Transactional
-    public List<Lote> persistirExpiracionAnalisis(final MovimientoDTO dto, final List<Lote> lotes) {
+    List<Lote> persistirExpiracionAnalisis(final MovimientoDTO dto, final List<Lote> lotes) {
         List<Lote> result = new ArrayList<>();
         for (Lote lote : lotes) {
             final Movimiento movimiento = persistirMovimientoExpiracionAnalisis(dto, lote);
@@ -62,7 +73,7 @@ public class FechaValidatorService extends AbstractCuService {
 
     //***********CU9 MODIFICACION: VENCIDO***********
     @Transactional
-    public Movimiento persistirMovimientoExpiracionAnalisis(final MovimientoDTO dto, Lote lote) {
+    Movimiento persistirMovimientoExpiracionAnalisis(final MovimientoDTO dto, Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
         movimiento.setFecha(dto.getFechaYHoraCreacion().toLocalDate());
         movimiento.setMotivo(EXPIRACION_ANALISIS);
@@ -75,7 +86,7 @@ public class FechaValidatorService extends AbstractCuService {
 
     //***********CU9 MODIFICACION: VENCIDO***********
     @Transactional
-    public Movimiento persistirMovimientoProductoVencido(final MovimientoDTO dto, Lote lote) {
+    Movimiento persistirMovimientoProductoVencido(final MovimientoDTO dto, Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
         movimiento.setFecha(dto.getFechaYHoraCreacion().toLocalDate());
         movimiento.setMotivo(VENCIMIENTO);
@@ -84,6 +95,20 @@ public class FechaValidatorService extends AbstractCuService {
 
         movimiento.setObservaciones("_CU9_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
+    }
+
+    //***********CU8 MODIFICACION: VENCIDO***********
+    @Transactional
+    List<Lote> persistirProductosVencidos(final MovimientoDTO dto, final List<Lote> lotes) {
+        //TODO, eliminar NRO de Reanalisis del DTO
+        List<Lote> result = new ArrayList<>();
+        for (Lote lote : lotes) {
+            final Movimiento movimiento = persistirMovimientoProductoVencido(dto, lote);
+            lote.setDictamen(movimiento.getDictamenFinal());
+            lote.getMovimientos().add(movimiento);
+            result.add(loteRepository.save(lote));
+        }
+        return result;
     }
 
     @Transactional

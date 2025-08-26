@@ -17,7 +17,7 @@ import com.mb.conitrack.entity.Movimiento;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
-//***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
+//***********CUZ MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
 @Service
 public class ModifReanalisisLoteService extends AbstractCuService {
 

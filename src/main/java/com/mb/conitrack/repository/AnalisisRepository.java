@@ -22,8 +22,6 @@ public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
     @EntityGraph(attributePaths = "lote")
     Analisis findByNroAnalisisAndActivoTrue(String nroAnalisis);
 
-    Analisis findByNroAnalisisAndDictamenIsNotNullAndActivoTrue(String nroAnalisis);
-
     @EntityGraph(attributePaths = "lote") // opcional, evita N+1 si usás a.getLote()
     @Query("""
             select a
@@ -37,15 +35,6 @@ public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
                      a.fechaYHoraCreacion desc
         """)
     List<Analisis> findAllEnCursoForLotesCuarentena();
-
-    @Query("""
-            select a
-            from Analisis a
-            where a.activo = true
-            order by case when a.fechaRealizado is null then 1 else 0 end,
-                     a.fechaRealizado desc
-        """)
-    List<Analisis> findActivosOrderByFechaRealizadoDescNullsLast();
 
     @Query("""
         select a
@@ -68,10 +57,5 @@ public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
         order by a.fechaYHoraCreacion desc
         """)
     List<Analisis> findByCodigoLote(String codigoLote);
-
-
-
-
-
 
 }

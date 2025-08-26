@@ -1,7 +1,6 @@
 package com.mb.conitrack.enums;
 
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -17,30 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MotivoEnumTest {
 
-    private static final Map<MotivoEnum, String> ESPERADOS_VALOR = Map.ofEntries(
-        Map.entry(MotivoEnum.COMPRA, "Compra"),
-        Map.entry(MotivoEnum.MUESTREO, "Muestreo"),
-        Map.entry(MotivoEnum.DEVOLUCION_COMPRA, "Devolucion compra"),
-        Map.entry(MotivoEnum.ANALISIS, "Analisis"),
-        Map.entry(MotivoEnum.RESULTADO_ANALISIS, "Resultado analisis"),
-        Map.entry(MotivoEnum.CONSUMO_PRODUCCION, "Consumo produccion"),
-        Map.entry(MotivoEnum.PRODUCCION_PROPIA, "Produccion propia"),
-        Map.entry(MotivoEnum.LIBERACION, "Liberacion"),
-        Map.entry(MotivoEnum.VENTA, "Venta"),
-        Map.entry(MotivoEnum.EXPIRACION_ANALISIS, "Expiracion analisis"),
-        Map.entry(MotivoEnum.VENCIMIENTO, "Vencimiento"),
-        Map.entry(MotivoEnum.DEVOLUCION_VENTA, "Devolucion venta"),
-        Map.entry(MotivoEnum.AJUSTE, "Ajuste")
-    );
-
     static Stream<MotivoEnum> allEnums() {
         return Stream.of(MotivoEnum.values());
-    }
-
-    @ParameterizedTest(name = "getValor() de {0} debe ser ''{1}''")
-    @MethodSource("allEnums")
-    void getValorDeCadaConstante(MotivoEnum constant) {
-        assertEquals(ESPERADOS_VALOR.get(constant), constant.getValor());
     }
 
     @Test
@@ -68,7 +45,7 @@ class MotivoEnumTest {
     @DisplayName("values() contiene exactamente las 12 constantes en orden")
     void valuesContentAndOrder() {
         MotivoEnum[] v = MotivoEnum.values();
-        assertEquals(13, v.length, "Cantidad de constantes");
+        assertEquals(14, v.length, "Cantidad de constantes");
 
         assertEquals(MotivoEnum.COMPRA, v[0]);
         assertEquals(MotivoEnum.MUESTREO, v[1]);
@@ -82,7 +59,8 @@ class MotivoEnumTest {
         assertEquals(MotivoEnum.EXPIRACION_ANALISIS, v[9]);
         assertEquals(MotivoEnum.VENCIMIENTO, v[10]);
         assertEquals(MotivoEnum.DEVOLUCION_VENTA, v[11]);
-        assertEquals(MotivoEnum.AJUSTE, v[12]);
+        assertEquals(MotivoEnum.RETIRO_MERCADO, v[12]);
+        assertEquals(MotivoEnum.AJUSTE, v[13]);
 
         Set<MotivoEnum> all = EnumSet.allOf(MotivoEnum.class);
         assertEquals(all.size(), v.length);

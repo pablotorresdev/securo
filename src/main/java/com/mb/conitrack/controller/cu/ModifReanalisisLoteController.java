@@ -14,8 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.service.AnalisisService;
-import com.mb.conitrack.service.LoteService;
 import com.mb.conitrack.service.cu.ModifReanalisisLoteService;
 
 import jakarta.validation.Valid;
@@ -26,12 +24,6 @@ public class ModifReanalisisLoteController extends AbstractCuController {
 
     @Autowired
     private ModifReanalisisLoteService reanalisisLoteService;
-
-    @Autowired
-    private AnalisisService analisisService;
-
-    @Autowired
-    private LoteService loteService;
 
     @GetMapping("/cancelar")
     public String cancelar() {

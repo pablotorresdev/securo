@@ -28,8 +28,6 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
     @Autowired
     private ModifResultadoAnalisisService resultadoAnalisisService;
 
-    @Autowired
-    private AnalisisService analisisService;
 
     @GetMapping("/cancelar")
     public String cancelar() {
