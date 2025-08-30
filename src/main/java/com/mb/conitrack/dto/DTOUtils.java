@@ -13,6 +13,7 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.enums.TipoProductoEnum;
 
 public class DTOUtils {
 
@@ -47,6 +48,10 @@ public class DTOUtils {
         dto.setFechaYHoraCreacion(entity.getFechaYHoraCreacion());
         dto.setNroAnalisis(entity.getNroAnalisis());
         dto.setCodigoLote(entity.getLote().getCodigoLote());
+        dto.setEsUnidadVenta(
+            entity.getLote() != null &&
+                entity.getLote().getProducto() != null &&
+                entity.getLote().getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA);
         dto.setFechaRealizado(entity.getFechaRealizado());
         dto.setFechaReanalisis(entity.getFechaReanalisis());
         dto.setFechaVencimiento(entity.getFechaVencimiento());

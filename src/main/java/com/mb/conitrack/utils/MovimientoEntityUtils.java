@@ -13,6 +13,7 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 
+import static com.mb.conitrack.enums.DictamenEnum.DEVOLUCION_CLIENTES;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.RETIRO_MERCADO;
@@ -121,6 +122,14 @@ public class MovimientoEntityUtils {
         return movimiento;
     }
 
+    //***********CU14 ALTA: PRODUCCION INTERNA***********
+    public static Movimiento createMovimientoAltaIngresoDevolucion(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = createMovimientoAlta(dto, lote);
+        movimiento.setObservaciones("_CU14_\n" + dto.getObservaciones());
+        movimiento.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
+        return movimiento;
+    }
+
     //*********************PUBLIC COMMONS************************
     public static Movimiento createMovimientoModificacion(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
@@ -177,6 +186,23 @@ public class MovimientoEntityUtils {
         return movimiento;
     }
 
+    static Movimiento createMovimientoAlta(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        String timestampLoteDTO = dto.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setCantidad(dto.getCantidad());
+        movimiento.setUnidadMedida(dto.getUnidadMedida());
+        movimiento.setDictamenInicial(dto.getDictamenInicial());
+        movimiento.setDictamenFinal(dto.getDictamenFinal());
+        movimiento.setLote(lote);
+        movimiento.setActivo(true);
+        return movimiento;
+    }
+
 
     //***********CU3 BAJA: MUESTREO***********
     static Movimiento createMovimientoPorMuestreo(final MovimientoDTO dto) {
@@ -218,6 +244,13 @@ public class MovimientoEntityUtils {
             .build();
         movimiento.getDetalles().add(det);
         bulto.getDetalles().add(det);
+    }
+
+    public static Movimiento createMovimientoReverso(MovimientoDTO dto, final Movimiento entitiy) {
+        Movimiento movimiento = createMovimientoModificacion(dto, entitiy.getLote());
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setMotivo(MotivoEnum.AJUSTE);
+        return movimiento;
     }
 
 }

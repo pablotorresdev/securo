@@ -49,6 +49,16 @@ public class MovimientosController {
         return movimientoService.getMovimientosVentaByCodigolote(codInterno);
     }
 
+    //***********CU13 MODIF: DEVOLUCION VENTA***********
+
+    @GetMapping("/ultimo-movimiento/{codigoLote}")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public MovimientoDTO getUltimoMovimientoByCodigolote(
+        @PathVariable("codigoLote") String codigoLote) {
+        return movimientoService.getUltimoMovimientosCodigolote(codigoLote);
+    }
+
 }
 
 

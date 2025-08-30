@@ -54,7 +54,19 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
         """)
     List<Movimiento> findVentasConTrazasVendidasByCodigoLote(@Param("codigoLote") String codigoLote);
 
+    @Query("""
+            select m
+            from Movimiento m
+            join m.lote l
+            where l.codigoLote = :codigoLote
+              and m.activo = true
+            order by m.fecha desc, m.fechaYHoraCreacion desc
+        """)
+    List<Movimiento> findLatestByCodigoLote(@Param("codigoLote") String codigoLote);
+
 }
+
+
 
 
 

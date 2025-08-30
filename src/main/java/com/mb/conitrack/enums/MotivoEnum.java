@@ -1,20 +1,21 @@
 package com.mb.conitrack.enums;
 
 public enum MotivoEnum {
-    COMPRA("Compra"),
-    MUESTREO("Muestreo"),
-    DEVOLUCION_COMPRA("Devolucion compra"),
-    ANALISIS("Analisis"),
-    RESULTADO_ANALISIS("Resultado analisis"),
-    CONSUMO_PRODUCCION("Consumo produccion"),
-    PRODUCCION_PROPIA("Produccion propia"),
-    LIBERACION("Liberacion"),
-    VENTA("Venta"),
-    EXPIRACION_ANALISIS("Expiracion analisis"),
-    VENCIMIENTO("Vencimiento"),
-    DEVOLUCION_VENTA("Devolucion venta"),
-    RETIRO_MERCADO("Retiro mercado"),
-    AJUSTE("Ajuste");
+
+    COMPRA("Compra"),//ALTA
+    MUESTREO("Muestreo"),//BAJA
+    DEVOLUCION_COMPRA("Devolucion compra"), //BAJA
+    ANALISIS("Analisis"), //MODIFICACION
+    RESULTADO_ANALISIS("Resultado analisis"), //MODIFICACION
+    CONSUMO_PRODUCCION("Consumo produccion"), //BAJA
+    PRODUCCION_PROPIA("Produccion propia"), //ALTA
+    LIBERACION("Liberacion"), //MODIFICACION
+    VENTA("Venta"), //BAJA
+    EXPIRACION_ANALISIS("Expiracion analisis"), //MODIF SHCEDULLED
+    VENCIMIENTO("Vencimiento"), //MODIFIC SHCEDULLED
+    DEVOLUCION_VENTA("Devolucion venta"), // ALLA / MODIF
+    RETIRO_MERCADO("Retiro mercado"), // ALTA / MODIF
+    AJUSTE("Ajuste"); // BAJA/MODIFICACION
 
     private final String valor;
 

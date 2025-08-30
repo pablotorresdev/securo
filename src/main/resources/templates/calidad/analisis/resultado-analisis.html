@@ -13,7 +13,8 @@
     <form method="post" th:action="@{/calidad/analisis/resultado-analisis}" th:object="${movimientoDTO}">
         <!-- Campo oculto para CSRF -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-        <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}" type="hidden"/>
+        <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"
+               type="hidden"/>
         <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
         <input id="nroAnalisis" th:field="*{nroAnalisis}" type="hidden"/>
 
@@ -26,24 +27,25 @@
             <label class="form-label" for="loteSelector">Seleccione el Lote:</label>
             <select class="form-select" id="loteSelector">
                 <option value="">-- Seleccione un Lote --</option>
-                <option th:attr="attr-codigoLote=${loteDTO.codigoLote}"
-                        th:each="loteDTO : ${loteResultadoAnalisisDTOs}"
+                <option th:each="loteDTO : ${loteResultadoAnalisisDTOs}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoLote} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
-                        th:value="${loteDTO.getNroUltimoAnalisisDto()}">
+                        th:value="${loteDTO.getNroUltimoAnalisisDto()}"
+                        th:attr="attr-codigoLote=${loteDTO.codigoLote},data-es-unidad-venta=${loteDTO.esUnidadVenta}">
                 </option>
             </select>
             <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
         </div>
 
+
         <div class="mb-3">
             <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
             <select class="form-select" id="analisisSelector">
                 <option value="">-- Seleccione un Análisis --</option>
-                <option th:attr="attr-codigoLote=${analisisDTO.codigoLote}"
-                        th:each="analisisDTO : ${analisisDTOs}"
+                <option th:each="analisisDTO : ${analisisDTOs}"
                         th:selected="${analisisDTO.nroAnalisis} == *{nroAnalisis}"
                         th:text="'Nro Análisis: ' + ${analisisDTO.nroAnalisis} + ' | Código Lote: ' + ${analisisDTO.codigoLote}"
-                        th:value="${analisisDTO.nroAnalisis}">
+                        th:value="${analisisDTO.nroAnalisis}"
+                        th:attr="attr-codigoLote=${analisisDTO.codigoLote},data-es-unidad-venta=${analisisDTO.esUnidadVenta}">
                 </option>
             </select>
             <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
@@ -67,20 +69,24 @@
 
         <div class="mb-3">
             <label class="form-label" for="fechaRealizadoAnalisis">Fecha Realizado el Análisis:</label>
-            <input class="form-control" id="fechaRealizadoAnalisis" required th:field="*{fechaRealizadoAnalisis}" type="date">
-            <div class="text-danger" th:errors="*{fechaRealizadoAnalisis}" th:if="${#fields.hasErrors('fechaRealizadoAnalisis')}"></div>
+            <input class="form-control" id="fechaRealizadoAnalisis" required th:field="*{fechaRealizadoAnalisis}"
+                   type="date">
+            <div class="text-danger" th:errors="*{fechaRealizadoAnalisis}"
+                 th:if="${#fields.hasErrors('fechaRealizadoAnalisis')}"></div>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-3" id="groupFechaReanalisis">
             <label class="form-label" for="fechaReanalisis">Fecha de Reanálisis:</label>
             <input class="form-control" id="fechaReanalisis" th:field="*{fechaReanalisis}" type="date">
-            <div class="text-danger" th:errors="*{fechaReanalisis}" th:if="${#fields.hasErrors('fechaReanalisis')}"></div>
+            <div class="text-danger" th:errors="*{fechaReanalisis}"
+                 th:if="${#fields.hasErrors('fechaReanalisis')}"></div>
         </div>
 
         <div class="mb-3">
             <label class="form-label" for="fechaVencimiento">Fecha de Vencimiento:</label>
             <input class="form-control" id="fechaVencimiento" th:field="*{fechaVencimiento}" type="date">
-            <div class="text-danger" th:errors="*{fechaVencimiento}" th:if="${#fields.hasErrors('fechaVencimiento')}"></div>
+            <div class="text-danger" th:errors="*{fechaVencimiento}"
+                 th:if="${#fields.hasErrors('fechaVencimiento')}"></div>
         </div>
 
         <div class="mb-3">
@@ -125,7 +131,7 @@
             document.getElementById("fechaRealizadoAnalisis").value = fechaRealizadoAnalisisDTO;
         } else {
             const hoy = new Date();
-            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
+            const hoyFormateado = hoy.toLocaleDateString("en-CA", {timeZone: "America/Argentina/Buenos_Aires"});
             document.getElementById("fechaRealizadoAnalisis").value = hoyFormateado;
         }
         var fechaReanalisisDTO = /*[[${movimientoDTO.fechaReanalisis}]]*/ [];
@@ -135,6 +141,30 @@
         var fechaVencimientoDTO = /*[[${movimientoDTO.fechaVencimiento}]]*/ [];
         if (fechaVencimientoDTO) {
             document.getElementById("fechaVencimiento").value = fechaVencimientoDTO;
+        }
+
+        function toggleFechaReanalisis(esUnidadVenta) {
+            const group = document.getElementById('groupFechaReanalisis');
+            const input = document.getElementById('fechaReanalisis');
+            if (!group || !input) return;
+
+            if (esUnidadVenta === true) {
+                group.style.display = 'none';
+                input.value = '';
+                input.disabled = true;   // evita que se envíe
+            } else {
+                group.style.display = '';
+                input.disabled = false;
+            }
+        }
+
+        // Lee el flag del option seleccionado
+        function getEsUnidadVentaFromSelect(selectEl) {
+            const opt = selectEl.options[selectEl.selectedIndex];
+            if (!opt) return null;
+            const attr = opt.getAttribute('data-es-unidad-venta');
+            if (attr == null) return null;
+            return attr === 'true';
         }
 
         function actualizarInfo(loteDTO) {
@@ -162,21 +192,27 @@
         }
 
         loteSelector.addEventListener('change', function () {
-            analisisSelector.value = ""; // se resetea el otro select
+            analisisSelector.value = "";
             nroAnalisisField.value = this.value;
             codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoLote') || '';
 
+            // 1) Intento con el dato del option
+            const esUnidadVentaSel = getEsUnidadVentaFromSelect(this);
+            if (esUnidadVentaSel != null) {
+                toggleFechaReanalisis(esUnidadVentaSel);
+            }
+
             if (this.value) {
-                fetch('/analisis/nroAnalisis/' + this.value, {
-                    method: 'GET',
-                    headers: {[csrfHeader]: csrfToken}
-                })
-                    .then(response => response.json())
+                fetch('/analisis/nroAnalisis/' + this.value, {method: 'GET', headers: {[csrfHeader]: csrfToken}})
+                    .then(r => r.json())
                     .then(data => {
                         actualizarInfo(data);
+                        // 2) Fallback si el endpoint devuelve esUnidadVenta
+                        if (typeof data.esUnidadVenta === 'boolean') {
+                            toggleFechaReanalisis(data.esUnidadVenta);
+                        }
                     })
-                    .catch(error => {
-                        console.error("Error al cargar detalles del lote:", error);
+                    .catch(() => {
                         infoSection.innerHTML = '<p>Error al cargar detalles.</p>';
                     });
             } else {
@@ -185,21 +221,25 @@
         });
 
         analisisSelector.addEventListener('change', function () {
-            loteSelector.value = ""; // se resetea el select de Lote
+            loteSelector.value = "";
             nroAnalisisField.value = this.value;
             codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoLote') || '';
 
+            const esUnidadVentaSel = getEsUnidadVentaFromSelect(this);
+            if (esUnidadVentaSel != null) {
+                toggleFechaReanalisis(esUnidadVentaSel);
+            }
+
             if (this.value) {
-                fetch('/analisis/nroAnalisis/' + this.value, {
-                    method: 'GET',
-                    headers: {[csrfHeader]: csrfToken}
-                })
-                    .then(response => response.json())
+                fetch('/analisis/nroAnalisis/' + this.value, {method: 'GET', headers: {[csrfHeader]: csrfToken}})
+                    .then(r => r.json())
                     .then(data => {
                         actualizarInfo(data);
+                        if (typeof data.esUnidadVenta === 'boolean') {
+                            toggleFechaReanalisis(data.esUnidadVenta);
+                        }
                     })
-                    .catch(error => {
-                        console.error("Error al cargar detalles del análisis:", error);
+                    .catch(() => {
                         infoSection.innerHTML = '<p>Error al cargar detalles.</p>';
                     });
             } else {
@@ -207,11 +247,17 @@
             }
         });
 
-        if (analisisSelector.value) {
-            analisisSelector.dispatchEvent(new Event('change'));
-        } else if (loteSelector.value) {
-            loteSelector.dispatchEvent(new Event('change'));
-        }
+        // Estado inicial al cargar
+        (function initToggle() {
+            let flag = getEsUnidadVentaFromSelect(analisisSelector);
+            if (flag == null) flag = getEsUnidadVentaFromSelect(loteSelector);
+            if (flag != null) {
+                toggleFechaReanalisis(flag);
+            } else {
+                // por defecto visible
+                toggleFechaReanalisis(false);
+            }
+        })();
     });
 </script>
 </body>

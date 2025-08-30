@@ -12,6 +12,7 @@ import com.mb.conitrack.repository.MovimientoRepository;
 import lombok.AllArgsConstructor;
 
 import static com.mb.conitrack.dto.DTOUtils.fromMovimientoEntities;
+import static com.mb.conitrack.dto.DTOUtils.fromMovimientoEntity;
 
 @AllArgsConstructor
 @Service
@@ -33,6 +34,10 @@ public class MovimientoService {
     //***********CU13 MODIF: DEVOLUCION VENTA***********    @Transactional(readOnly = true)
     public List<MovimientoDTO> getMovimientosVentaByCodigolote(final String codigoLote) {
         return fromMovimientoEntities(movimientoRepository.findVentasConTrazasVendidasByCodigoLote(codigoLote));
+    }
+
+    public MovimientoDTO getUltimoMovimientosCodigolote(final String codigoLote) {
+        return fromMovimientoEntity(movimientoRepository.findLatestByCodigoLote(codigoLote).get(0));
     }
 
 }

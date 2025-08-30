@@ -25,6 +25,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import static com.mb.conitrack.enums.TipoProductoEnum.UNIDAD_VENTA;
+
 @Data
 public class LoteDTO {
 
@@ -36,7 +38,10 @@ public class LoteDTO {
 
     //Datos de ALTA obligatorios
     @NotNull(message = "La fecha de ingreso es obligatoria", groups = { AltaCompra.class, AltaProduccion.class })
-    @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = { AltaCompra.class, AltaProduccion.class })
+    @PastOrPresent(message = "La fecha de ingreso no puede ser futura", groups = {
+        AltaCompra.class,
+        AltaProduccion.class
+    })
     private LocalDate fechaIngreso;
 
     @NotNull(message = "El producto es obligatorio", groups = { AltaCompra.class, AltaProduccion.class })
@@ -137,7 +142,12 @@ public class LoteDTO {
 
     protected EstadoEnum estado;
 
+
     //********************Utils********************//
+    public boolean esUnidadVenta() {
+        return tipoProducto == UNIDAD_VENTA;
+    }
+
     public AnalisisDTO getUltimoAnalisisDto() {
         if (this.analisisDTOs.isEmpty()) {
             return null;

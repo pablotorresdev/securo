@@ -244,4 +244,6 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
         """)
     List<Bulto> findBultosForMuestreoByCodigoLote(@Param("codigoLote") String codigoLote);
 
+    List<Lote> findAllByActivoTrue();
+
 }

@@ -1,6 +1,5 @@
 package com.mb.conitrack.service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -62,10 +61,6 @@ public class LoteService {
         return DTOUtils.fromLoteEntities(loteRepository.findAllForConsumoProduccion());
     }
 
-
-
-
-
     //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForLiberacionProductoDTOs() {
@@ -107,4 +102,10 @@ public class LoteService {
         return fromLoteEntities(loteRepository.findAllByOrderByFechaIngresoAscCodigoLoteAsc());
     }
 
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllActivo() {
+        return fromLoteEntities(loteRepository.findAllByActivoTrue());
+    }
+
 }
+

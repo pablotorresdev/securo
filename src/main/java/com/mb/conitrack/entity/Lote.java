@@ -125,7 +125,7 @@ public class Lote {
 
     @OneToMany(
         mappedBy = "lote",
-        cascade = {PERSIST, MERGE},
+        cascade = { PERSIST, MERGE },
         orphanRemoval = true,
         fetch = FetchType.LAZY
     )
@@ -150,7 +150,6 @@ public class Lote {
     @Enumerated(EnumType.STRING)
     @Column(name = "unidad_medida", nullable = false)
     private UnidadMedidaEnum unidadMedida;
-
 
     //****** BULTOS ******//
     public Bulto getBultoByNro(int nroBulto) {
@@ -242,6 +241,30 @@ public class Lote {
             return this.trazas.stream()
                 .filter(Traza::getActivo).min(Comparator.comparing(Traza::getNroTraza))
                 .orElse(null);
+        }
+    }
+
+    public int duplicateNumber() {
+        if (this.loteOrigen == null) {
+            return 0;
+        } else {
+            return this.loteOrigen.duplicateNumber() + 1;
+        }
+    }
+
+    public String getRootCodigoLote() {
+        if (this.loteOrigen == null) {
+            return this.codigoLote;
+        } else {
+            return this.loteOrigen.getRootCodigoLote();
+        }
+    }
+
+    public Lote getRootLote() {
+        if (this.loteOrigen == null) {
+            return this;
+        } else {
+            return this.loteOrigen.getRootLote();
         }
     }
 

@@ -61,6 +61,12 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/anulacion/anulacion-analisis}">
+                CUX. Anulacion analisis [Gerente control de calidad]
+            </a>
+        </li>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/reanalisis/inicio-reanalisis}">
                 CUZ. Reanalisis de Producto Aprobado [Gerente control de calidad]
             </a>
@@ -108,6 +114,12 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/ventas/alta/devolucion-venta}">
+                CU13. Devolución de cliente reutilizable [Gerente garantía de calidad]
+            </a>
+        </li>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/recall/retiro-mercado}">
                 CU14. Retiro de mercado [Gerente garantía de calidad]
             </a>
@@ -122,6 +134,13 @@
         <li>
             <a class="disabled" href="javascript:void(0);">
                 CU18. Configuración del sistema [Admin]
+            </a>
+        </li>
+
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/ajustes/reverso-movimiento}">}">
+                CU19. Reverso de Ultimo Movimiento [Analista de planta]
             </a>
         </li>
         <li>
