@@ -26,49 +26,46 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
         switch (movOrigen.getTipoMovimiento()) {
             case ALTA -> {
-
                 if (movOrigen.getMotivo() == MotivoEnum.COMPRA) {
-
-                    return reversarIngreoCompra(dto, movOrigen);
+                    return reversarIngresoCompra(dto, movOrigen);
                 }
-
                 if (movOrigen.getMotivo() == MotivoEnum.PRODUCCION_PROPIA) {
-
+                    return reversarIngresoProduccion(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_VENTA) {
-
+                    System.out.println("REVERSO DEVOLUCION VENTA");
                 }
             }
             case MODIFICACION -> {
                 if (movOrigen.getMotivo() == MotivoEnum.ANALISIS) {
-
+                    System.out.println("REVERSO ANALISIS");
                 }
 
                 if (movOrigen.getMotivo() == MotivoEnum.RESULTADO_ANALISIS) {
-
+                    System.out.println("REVERSO RESULTADO ANALISIS");
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.LIBERACION) {
-
+                    System.out.println("REVERSO LIBERACION");
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_VENTA) {
-
+                    System.out.println("REVERSO DEVOLUCION VENTA");
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.RETIRO_MERCADO) {
-
+                    System.out.println("REVERSO RETIRO MERCADO");
                 }
             }
             case BAJA -> {
                 if (movOrigen.getMotivo() == MotivoEnum.CONSUMO_PRODUCCION) {
-
+                    System.out.println("REVERSO BAJA CONSUMO PRODUCCION");
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_COMPRA) {
-
+                    System.out.println("REVERSO DEVOLUCION COMPRA");
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.MUESTREO) {
-
+                    System.out.println("REVERSO MUESTREO");
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.VENTA) {
-
+                    System.out.println("REVERSO VENTA");
                 }
             }
         }
@@ -84,12 +81,16 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         return true;
     }
 
-    private LoteDTO reversarIngreoCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
+    @Transactional
+    LoteDTO reversarIngresoCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
         Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
 
         movOrigen.setActivo(false);
         movimiento.setActivo(false);
         movOrigen.getLote().setActivo(false);
+
+        movOrigen.getLote().getBultos().forEach(b -> b.setActivo(false));
+        bultoRepository.saveAll(movOrigen.getLote().getBultos());
 
         movimientoRepository.save(movimiento);
         movimientoRepository.save(movOrigen);
@@ -97,5 +98,28 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
         return DTOUtils.fromLoteEntity(movOrigen.getLote());
     }
+
+    @Transactional
+    LoteDTO reversarIngresoProduccion(final MovimientoDTO dto, final Movimiento movOrigen) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+
+        movOrigen.setActivo(false);
+        movimiento.setActivo(false);
+        movOrigen.getLote().setActivo(false);
+
+        movOrigen.getLote().getBultos().forEach(b -> b.setActivo(false));
+        bultoRepository.saveAll(movOrigen.getLote().getBultos());
+
+        movOrigen.getLote().getTrazas().forEach(t -> t.setActivo(false));
+        trazaRepository.saveAll(movOrigen.getLote().getTrazas());
+
+        movimientoRepository.save(movimiento);
+        movimientoRepository.save(movOrigen);
+        loteRepository.save(movOrigen.getLote());
+
+        return DTOUtils.fromLoteEntity(movOrigen.getLote());
+    }
+
+
 
 }

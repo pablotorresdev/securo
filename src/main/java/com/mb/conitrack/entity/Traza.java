@@ -21,13 +21,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(
-    name = "trazas",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_traza_producto_traza",
-        columnNames = { "producto_id", "nro_traza" }
-    )
-)
+@Table(name = "trazas")
 @SQLDelete(sql = "UPDATE trazas SET activo = false WHERE id = ?")
 @ToString(exclude = { "lote", "bulto", "detalles" }) // campos reales
 public class Traza {

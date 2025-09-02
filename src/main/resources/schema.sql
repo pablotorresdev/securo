@@ -1,3 +1,32 @@
+-- -- Índices simples
+-- DROP INDEX IF EXISTS idx_lotes_codigo_activo;
+-- DROP INDEX IF EXISTS idx_lotes_fecha_ingreso;
+-- DROP INDEX IF EXISTS idx_lotes_lote_origen_id;
+-- DROP INDEX IF EXISTS idx_bultos_lote_id;
+-- DROP INDEX IF EXISTS idx_bultos_lote_nro;
+-- DROP INDEX IF EXISTS idx_movs_fecha;
+-- DROP INDEX IF EXISTS idx_movs_codigo;
+-- DROP INDEX IF EXISTS idx_movs_lote_id;
+-- DROP INDEX IF EXISTS idx_movs_mov_origen_id;
+-- DROP INDEX IF EXISTS idx_analisis_nro;
+-- DROP INDEX IF EXISTS idx_analisis_lote_id;
+-- DROP INDEX IF EXISTS idx_trazas_lote_id;
+-- DROP INDEX IF EXISTS idx_trazas_bulto_nro;
+-- DROP INDEX IF EXISTS idx_trazas_producto_id;
+-- DROP INDEX IF EXISTS idx_detmov_mov_id;
+-- DROP INDEX IF EXISTS idx_detmov_bulto_id;
+--
+-- -- Índices parciales
+-- DROP INDEX IF EXISTS idx_lotes_codigo_activo_true;
+-- DROP INDEX IF EXISTS idx_bultos_lote_activo_true;
+-- DROP INDEX IF EXISTS idx_trazas_bulto_activo_true;
+-- DROP INDEX IF EXISTS idx_movs_fecha_activo_true;
+--
+-- -- Índices únicos parciales
+-- DROP INDEX IF EXISTS uk_lotes_codigo_lote_activo;
+-- DROP INDEX IF EXISTS uk_traza_producto_traza_activo;
+-- DROP INDEX IF EXISTS uk_bulto_por_lote_activo;
+
 DROP TABLE IF EXISTS trazas_detalles CASCADE;
 DROP TABLE IF EXISTS detalle_movimientos CASCADE;
 DROP TABLE IF EXISTS trazas CASCADE;
@@ -208,9 +237,7 @@ CREATE TABLE trazas
     CONSTRAINT fk_trazas_bulto
         FOREIGN KEY (bulto_id) REFERENCES bultos (id),
     CONSTRAINT fk_trazas_producto
-        FOREIGN KEY (producto_id) REFERENCES productos (id),
-    CONSTRAINT uk_traza_producto_traza
-        UNIQUE (producto_id, nro_traza)
+        FOREIGN KEY (producto_id) REFERENCES productos (id)
 );
 
 CREATE TABLE trazas_detalles
@@ -253,8 +280,17 @@ CREATE INDEX IF NOT EXISTS idx_trazas_bulto_activo_true ON trazas (bulto_id, nro
 CREATE INDEX IF NOT EXISTS idx_movs_fecha_activo_true ON movimientos (fecha)
     WHERE activo = true;
 
-ALTER TABLE lotes
-    ADD CONSTRAINT uk_lotes_codigo_lote UNIQUE (codigo_lote);
+CREATE UNIQUE INDEX uk_lotes_codigo_lote_activo
+    ON lotes (codigo_lote)
+    WHERE activo = true;
+
+CREATE UNIQUE INDEX uk_traza_producto_traza_activo
+    ON trazas (producto_id, nro_traza)
+    WHERE activo = true;
+
+CREATE UNIQUE INDEX uk_bulto_por_lote_activo
+    ON bultos (lote_id, nro_bulto)
+    WHERE activo = true;
 
 ALTER TABLE lotes
     ADD CONSTRAINT chk_lotes_cant_inicial CHECK (cantidad_inicial >= 0),
@@ -262,9 +298,6 @@ ALTER TABLE lotes
 
 ALTER TABLE lotes
     ADD CONSTRAINT chk_lotes_cant_coherente CHECK (cantidad_actual <= cantidad_inicial);
-
-ALTER TABLE bultos
-    ADD CONSTRAINT uk_bulto_por_lote UNIQUE (lote_id, nro_bulto);
 
 ALTER TABLE bultos
     ADD CONSTRAINT chk_bultos_cant_inicial CHECK (cantidad_inicial >= 0),

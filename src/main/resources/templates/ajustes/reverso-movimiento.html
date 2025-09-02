@@ -73,7 +73,7 @@
         <div class="mb-2">
             <label class="form-label" for="fechaMovimiento">Fecha reverso:</label>
             <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
-                   required
+                   hidden
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
                    th:field="*{fechaMovimiento}"
                    type="date">
@@ -87,6 +87,7 @@
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control"
+                      required
                       id="observaciones"
                       rows="2"
                       th:field="*{observaciones}"></textarea>

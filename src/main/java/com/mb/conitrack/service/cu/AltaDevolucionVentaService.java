@@ -21,7 +21,6 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import jakarta.validation.Valid;
@@ -43,7 +42,11 @@ public class AltaDevolucionVentaService extends AbstractCuService {
 
         Lote loteAltaDevolucion = crearLoteDevolucion(loteOrigen, dto);
 
-        final Movimiento movDevolucionVenta = crearMovimientoDevolucionVenta(dto, loteAltaDevolucion);
+        final Movimiento movDevolucionVenta = createMovimientoAltaIngresoDevolucion(dto, loteAltaDevolucion);
+        final Movimiento movimientoOrigen = movimientoRepository.findByCodigoMovimientoAndActivoTrue(
+                dto.getCodigoMovimientoOrigen())
+            .orElseThrow(() -> new IllegalArgumentException("El movmiento de origen no existe."));
+        movDevolucionVenta.setMovimientoOrigen(movimientoOrigen);
 
         // 2) Agrupar trazas seleccionadas por nro de bulto
         final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
@@ -58,7 +61,6 @@ public class AltaDevolucionVentaService extends AbstractCuService {
             final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
 
             final Bulto bultoOriginal = loteOrigen.getBultoByNro(trazaDTOEnNroBulto);
-
 
             Bulto bulto = new Bulto();
             bulto.setNroBulto(trazaDTOEnNroBulto);
@@ -98,20 +100,6 @@ public class AltaDevolucionVentaService extends AbstractCuService {
 
         loteAltaDevolucion.setBultosTotales(trazaDTOporBultoMap.size());
         return fromLoteEntity(loteRepository.save(loteDevolucionGuardado));
-    }
-
-    @Transactional
-    public Movimiento crearMovimientoDevolucionVenta(MovimientoDTO dto, Lote lote) {
-        final Movimiento movimientoDevolucionVenta = createMovimientoAltaIngresoDevolucion(dto, lote);
-        movimientoDevolucionVenta.setFecha(dto.getFechaMovimiento());
-        movimientoDevolucionVenta.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
-
-        final Movimiento movimientoOrigen = movimientoRepository.findByCodigoMovimientoAndActivoTrue(
-                dto.getCodigoMovimientoOrigen())
-            .orElseThrow(() -> new IllegalArgumentException("El movmiento de origen no existe."));
-        movimientoDevolucionVenta.setMovimientoOrigen(movimientoOrigen);
-
-        return movimientoDevolucionVenta;
     }
 
     @Transactional

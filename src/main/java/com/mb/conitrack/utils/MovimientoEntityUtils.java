@@ -135,6 +135,7 @@ public class MovimientoEntityUtils {
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        movimiento.setFecha(dto.getFechaMovimiento());
         String timestampLoteDTO = dto.getFechaYHoraCreacion()
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
         movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);

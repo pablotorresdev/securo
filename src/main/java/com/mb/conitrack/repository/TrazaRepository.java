@@ -12,9 +12,12 @@ public interface TrazaRepository extends JpaRepository<Traza, Long> {
 
     List<Traza> findByLoteCodigoLoteOrderByNroTrazaAsc(String codigoLote);
 
-    @Query("select coalesce(max(t.nroTraza), -1) " +
-        "from Traza t " +
-        "where t.producto.id = :productoId")
+    @Query("""
+        select coalesce(max(t.nroTraza), -1)
+        from Traza t
+        where t.producto.id = :productoId
+        and t.activo = true
+        """)
     Long findMaxNroTraza(@Param("productoId") Long productoId);
 
     @Query("""

@@ -135,7 +135,7 @@ public class DTOUtils {
 
         for (int i = 1; i <= loteEntity.getBultos().size(); i++) {
             final Bulto bultoEntity = loteEntity.getBultoByNro(i);
-            if (!bultoEntity.getActivo()) {
+            if (bultoEntity==null || !bultoEntity.getActivo()) {
                 continue;
             }
 

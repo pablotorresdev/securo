@@ -12,10 +12,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(
-    name = "detalle_movimientos",
-    uniqueConstraints = @UniqueConstraint(columnNames = { "movimiento_id", "bulto_id" })
-)
+@Table(name = "detalle_movimientos")
 @lombok.Getter
 @lombok.Setter
 @lombok.NoArgsConstructor
