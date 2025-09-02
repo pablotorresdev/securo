@@ -22,6 +22,10 @@ public class MovimientoService {
     private final MovimientoRepository movimientoRepository;
 
     @Transactional(readOnly = true)
+    public List<MovimientoDTO> findAllMovimientos() {
+        return fromMovimientoEntities(movimientoRepository.findAllByActivoTrue());
+    }
+    @Transactional(readOnly = true)
     public List<MovimientoDTO> findAllMovimientosAudit() {
         return fromMovimientoEntities(movimientoRepository.findAllAudit());
     }

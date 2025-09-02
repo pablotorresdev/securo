@@ -14,6 +14,7 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
@@ -25,6 +26,7 @@ import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
 import static com.mb.conitrack.utils.LoteEntityUtils.getAnalisisEnCurso;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.restarMovimientoConvertido;
 import static java.lang.Integer.parseInt;
 
 //***********CU3 BAJA: MUESTREO***********
@@ -46,8 +48,8 @@ public class BajaMuestreoBultoService extends AbstractCuService {
 
         final Movimiento movimiento = persistirMovimientoMuestreo(dto, bulto);
 
-        bulto.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(dto, bulto));
-        lote.setCantidadActual(UnidadMedidaUtils.restarMovimientoConvertido(dto, lote));
+        bulto.setCantidadActual(restarMovimientoConvertido(dto, bulto));
+        lote.setCantidadActual(restarMovimientoConvertido(dto, lote));
 
         boolean unidadVenta = lote.getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
 
@@ -63,10 +65,20 @@ public class BajaMuestreoBultoService extends AbstractCuService {
 
             final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantidad.intValue());
 
+            if(movimiento.getDetalles().size() > 1) {
+                throw new IllegalArgumentException("Multimuestreo no soportado aun");
+            }
+
+            final DetalleMovimiento detalleMovimiento = movimiento.getDetalles().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("El detalle del movimiento de muestreo no existe."));
+
+            //TODO: asociar las trazas al movimiento
             for (Traza traza : trazas) {
                 traza.setEstado(CONSUMIDO);
                 traza.getDetalles().addAll(movimiento.getDetalles());
             }
+            detalleMovimiento.getTrazas().addAll(trazas);
             trazaRepository.saveAll(trazas);
             dto.setTrazaDTOs(trazas.stream().map(DTOUtils::fromTrazaEntity).toList());
         }

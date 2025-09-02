@@ -250,7 +250,8 @@ public class MovimientoEntityUtils {
     public static Movimiento createMovimientoReverso(MovimientoDTO dto, final Movimiento entitiy) {
         Movimiento movimiento = createMovimientoModificacion(dto, entitiy.getLote());
         movimiento.setFecha(dto.getFechaMovimiento());
-        movimiento.setMotivo(MotivoEnum.AJUSTE);
+        movimiento.setMovimientoOrigen(entitiy);
+        movimiento.setMotivo(MotivoEnum.REVERSO);
         return movimiento;
     }
 

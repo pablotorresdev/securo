@@ -7,8 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.Lote;
 
 public interface BultoRepository extends JpaRepository<Bulto, Long> {
+
+    List<Bulto> findAllByActivoTrue();
 
     @Query("""
           select b

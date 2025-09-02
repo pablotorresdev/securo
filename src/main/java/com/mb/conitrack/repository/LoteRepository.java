@@ -13,6 +13,8 @@ import com.mb.conitrack.entity.Lote;
 
 public interface LoteRepository extends JpaRepository<Lote, Long> {
 
+    List<Lote> findAllByActivoTrue();
+
     List<Lote> findAllByOrderByFechaIngresoAscCodigoLoteAsc();
 
     List<Lote> findAllByCodigoLoteAndActivoTrue(String codigoLote);
@@ -243,7 +245,5 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
             order by b.nroBulto asc
         """)
     List<Bulto> findBultosForMuestreoByCodigoLote(@Param("codigoLote") String codigoLote);
-
-    List<Lote> findAllByActivoTrue();
 
 }

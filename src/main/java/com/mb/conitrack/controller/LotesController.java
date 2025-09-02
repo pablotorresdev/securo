@@ -27,7 +27,7 @@ public class LotesController {
 
     @GetMapping("/list-lotes")
     public String listLotes(Model model) {
-        model.addAttribute("loteDTOs", loteService.findAllLotesAudit());
+        model.addAttribute("loteDTOs", loteService.findAllLotes());
         return "lotes/list-lotes";
     }
 

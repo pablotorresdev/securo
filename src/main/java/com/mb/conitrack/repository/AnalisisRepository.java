@@ -8,8 +8,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.entity.Bulto;
 
 public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
+
+    List<Analisis> findAllByActivoTrue();
 
     @Query("""
           select a

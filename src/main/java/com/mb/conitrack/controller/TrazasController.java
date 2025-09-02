@@ -28,7 +28,7 @@ public class TrazasController {
 
     @GetMapping("/list-trazas")
     public String listTrazas(Model model) {
-        model.addAttribute("trazaDTOs", trazaService.findAllTrazaAudit());
+        model.addAttribute("trazaDTOs", trazaService.findAllTrazas());
         return "trazas/list-trazas";
     }
 

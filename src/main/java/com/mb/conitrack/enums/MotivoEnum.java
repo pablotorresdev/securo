@@ -15,7 +15,8 @@ public enum MotivoEnum {
     VENCIMIENTO("Vencimiento"), //MODIFIC SHCEDULLED
     DEVOLUCION_VENTA("Devolucion venta"), // ALLA / MODIF
     RETIRO_MERCADO("Retiro mercado"), // ALTA / MODIF
-    AJUSTE("Ajuste"); // BAJA/MODIFICACION
+    AJUSTE("Ajuste"), // BAJA/MODIFICACION
+    REVERSO("Reverso"); //
 
     private final String valor;
 

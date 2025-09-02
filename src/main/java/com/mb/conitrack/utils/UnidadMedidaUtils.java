@@ -129,6 +129,26 @@ public class UnidadMedidaUtils {
      * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
      * cantidad del movimiento a la unidad del lote.
      *
+     * @param dto  Movimiento a aplicar, expresado en su propia unidad.
+     * @param lote Lote afectado, con su cantidad y unidad actual.
+     *
+     * @return Nueva cantidad resultante del lote después del movimiento.
+     */
+    public static BigDecimal sumarMovimientoConvertido(final MovimientoDTO dto, final Lote lote) {
+        final BigDecimal cantidadLote = lote.getCantidadActual();
+        final double factorLote = lote.getUnidadMedida().getFactorConversion();
+        final double factorDto = dto.getUnidadMedida().getFactorConversion();
+
+        // Convertimos la cantidad del DTO a la unidad del lote
+        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
+
+        return cantidadLote.add(cantidadDtoConvertida);
+    }
+
+    /**
+     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
+     * cantidad del movimiento a la unidad del lote.
+     *
      * @param dto   Movimiento a aplicar, expresado en su propia unidad.
      * @param bulto Bulto afectado, con su cantidad y unidad actual.
      *
@@ -143,6 +163,26 @@ public class UnidadMedidaUtils {
         BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
 
         return cantidadLote.subtract(cantidadDtoConvertida);
+    }
+
+    /**
+     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
+     * cantidad del movimiento a la unidad del lote.
+     *
+     * @param dto   Movimiento a aplicar, expresado en su propia unidad.
+     * @param bulto Bulto afectado, con su cantidad y unidad actual.
+     *
+     * @return Nueva cantidad resultante del lote después del movimiento.
+     */
+    public static BigDecimal sumarMovimientoConvertido(final MovimientoDTO dto, final Bulto bulto) {
+        final BigDecimal cantidadLote = bulto.getCantidadActual();
+        final double factorLote = bulto.getUnidadMedida().getFactorConversion();
+        final double factorDto = dto.getUnidadMedida().getFactorConversion();
+
+        // Convertimos la cantidad del DTO a la unidad del lote
+        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
+
+        return cantidadLote.add(cantidadDtoConvertida);
     }
 
     /**

@@ -23,8 +23,8 @@ public class BultoService {
     }
 
     @Transactional(readOnly = true)
-    public List<BultoDTO> findAllBultoAudit() {
-        return fromBultoEntities(bultoRepository.findAllAudit());
+    public List<BultoDTO> findAllBultos() {
+        return fromBultoEntities(bultoRepository.findAllByActivoTrue());
     }
 
 }

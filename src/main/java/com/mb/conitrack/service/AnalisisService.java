@@ -19,8 +19,8 @@ public class AnalisisService {
     private AnalisisRepository analisisRepository;
 
     @Transactional(readOnly = true)
-    public List<AnalisisDTO> findAllBultoAudit() {
-        return fromAnalisisEntities(analisisRepository.findAllAudit());
+    public List<AnalisisDTO> findAllAnalisis() {
+        return fromAnalisisEntities(analisisRepository.findAllByActivoTrue());
     }
 
     // CU5: Resultado QA Aprobado

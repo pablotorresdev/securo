@@ -191,7 +191,9 @@ public class DTOUtils {
                 }
             }
         }
-
+        if (entity.getMovimientoOrigen() != null) {
+            dto.setCodigoMovimientoOrigen(entity.getMovimientoOrigen().getCodigoMovimiento());
+        }
         dto.setCantidad(entity.getCantidad());
         dto.setUnidadMedida(entity.getUnidadMedida());
 

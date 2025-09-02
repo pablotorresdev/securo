@@ -24,7 +24,7 @@ public class BultosController {
 
     @GetMapping("/list-bultos")
     public String listBultos(Model model) {
-        model.addAttribute("bultoDTOs", bultoService.findAllBultoAudit());
+        model.addAttribute("bultoDTOs", bultoService.findAllBultos());
         return "bultos/list-bultos";
     }
 

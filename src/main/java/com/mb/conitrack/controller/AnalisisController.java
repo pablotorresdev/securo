@@ -28,7 +28,7 @@ public class AnalisisController {
 
     @GetMapping("/list-analisis")
     public String listAnalisis(Model model) {
-        model.addAttribute("analisisDTOs", analisisService.findAllBultoAudit());
+        model.addAttribute("analisisDTOs", analisisService.findAllAnalisis());
         return "analisis/list-analisis"; //.html
     }
 

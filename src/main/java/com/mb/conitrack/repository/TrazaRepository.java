@@ -10,6 +10,8 @@ import com.mb.conitrack.entity.Traza;
 
 public interface TrazaRepository extends JpaRepository<Traza, Long> {
 
+    List<Traza> findAllByActivoTrue();
+
     List<Traza> findByLoteCodigoLoteOrderByNroTrazaAsc(String codigoLote);
 
     @Query("""

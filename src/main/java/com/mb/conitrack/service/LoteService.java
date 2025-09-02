@@ -103,7 +103,7 @@ public class LoteService {
     }
 
     @Transactional(readOnly = true)
-    public List<LoteDTO> findAllActivo() {
+    public List<LoteDTO> findAllLotes() {
         return fromLoteEntities(loteRepository.findAllByActivoTrue());
     }
 

@@ -29,7 +29,7 @@ public class MovimientosController {
     @GetMapping("/list-movimientos")
     @Transactional(readOnly = true)
     public String listMovimientos(Model model) {
-        model.addAttribute("movimientoDTOs", movimientoService.findAllMovimientosAudit());
+        model.addAttribute("movimientoDTOs", movimientoService.findAllMovimientos());
         return "movimientos/list-movimientos";
     }
 

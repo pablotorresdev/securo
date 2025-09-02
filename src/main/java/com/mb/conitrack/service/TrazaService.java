@@ -18,7 +18,7 @@ public class TrazaService {
     private TrazaRepository trazaRepository;
 
     @Transactional(readOnly = true)
-    public List<TrazaDTO> findAllTrazaAudit() {
+    public List<TrazaDTO> findAllTrazas() {
         return fromTrazaEntities(trazaRepository.findAllTrazaAudit());
     }
 
