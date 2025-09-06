@@ -19,7 +19,7 @@ import com.mb.conitrack.service.cu.ModifReversoMovimientoService;
 import jakarta.validation.Valid;
 
 @Controller
-@RequestMapping("ajustes")
+@RequestMapping("/ajustes")
 public class ModifReversoMovimientoController extends AbstractCuController {
 
     @Autowired

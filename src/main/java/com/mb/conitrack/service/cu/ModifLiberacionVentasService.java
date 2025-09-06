@@ -1,6 +1,8 @@
 package com.mb.conitrack.service.cu;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 
@@ -28,9 +31,15 @@ public class ModifLiberacionVentasService extends AbstractCuService {
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
         final Movimiento movimiento = persistirMovimientoLiberacionProducto(dto, lote);
+        final List<Analisis> list = lote.getAnalisisConFechaVenciminentoList();
 
-        lote.setFechaReanalisisProveedor(lote.getFechaReanalisisVigente());
-        lote.setFechaVencimientoProveedor(lote.getFechaVencimientoVigente());
+        if (list.isEmpty()) {
+            throw new IllegalStateException("NO hay Analisis con fecha de vencimiento para el lote");
+        } else if (list.size() == 1) {
+            lote.setFechaVencimientoProveedor(list.get(0).getFechaVencimiento());
+        } else {
+            throw new IllegalStateException("Hay más de un análisis activo con fecha de vencimiento");
+        }
 
         lote.setDictamen(movimiento.getDictamenFinal());
         lote.getMovimientos().add(movimiento);

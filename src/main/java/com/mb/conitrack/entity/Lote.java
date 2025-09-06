@@ -181,11 +181,7 @@ public class Lote {
     }
 
     public LocalDate getFechaVencimientoVigente() {
-        final List<Analisis> list = this.analisisList.stream()
-            .filter(Analisis::getActivo)
-            .filter(a -> a.getDictamen() != null)
-            .filter(a -> a.getFechaVencimiento() != null)
-            .toList();
+        final List<Analisis> list = getAnalisisConFechaVenciminentoList();
         if (list.isEmpty()) {
             return fechaVencimientoProveedor;
         } else if (list.size() == 1) {
@@ -200,6 +196,14 @@ public class Lote {
         } else {
             throw new IllegalStateException("Hay más de un análisis activo con fecha de vencimiento");
         }
+    }
+
+    public List<Analisis> getAnalisisConFechaVenciminentoList() {
+        return this.analisisList.stream()
+            .filter(Analisis::getActivo)
+            .filter(a -> a.getDictamen() != null)
+            .filter(a -> a.getFechaVencimiento() != null)
+            .toList();
     }
 
     public LocalDate getFechaReanalisisVigente() {

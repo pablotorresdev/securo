@@ -1,6 +1,5 @@
 package com.mb.conitrack.service.cu;
 
-import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -15,10 +14,8 @@ import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
-import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import jakarta.validation.Valid;
 
@@ -26,7 +23,6 @@ import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
 import static com.mb.conitrack.enums.EstadoEnum.NUEVO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoReverso;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.sumarMovimientoConvertido;
-import static java.lang.Integer.parseInt;
 
 //***********CUX ALTA: DEVOLUCION VENTA***********
 @Service
@@ -42,45 +38,47 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         switch (movOrigen.getTipoMovimiento()) {
             case ALTA -> {
                 if (movOrigen.getMotivo() == MotivoEnum.COMPRA) {
-                    return reversarIngresoCompra(dto, movOrigen);
+                    return reversarAltaIngresoCompra(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.PRODUCCION_PROPIA) {
-                    return reversarIngresoProduccion(dto, movOrigen);
+                    return reversarAltaIngresoProduccion(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_VENTA) {
-                    System.out.println("REVERSO DEVOLUCION VENTA");
+                    //TODO: implementar
+                    return reversarAltaDevolucionVenta(dto, movOrigen);
                 }
             }
             case MODIFICACION -> {
                 if (movOrigen.getMotivo() == MotivoEnum.ANALISIS) {
-                    return reversarDictamenCuarentena(dto, movOrigen);
+                    return reversarModifDictamenCuarentena(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.RESULTADO_ANALISIS) {
-                    return reversarResultadoAnalisis(dto, movOrigen);
+                    return reversarModifResultadoAnalisis(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.LIBERACION) {
-                    System.out.println("REVERSO LIBERACION");
+                    return reversarModifLiberacionProducto(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_VENTA) {
-                    System.out.println("REVERSO DEVOLUCION VENTA");
+                    //TODO: implementar
+                    return reversarModifDevolucionVenta(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.RETIRO_MERCADO) {
-                    System.out.println("REVERSO RETIRO MERCADO");
+                    //TODO: implementar
+                    return reversarModifRetiroMercado(dto, movOrigen);
                 }
             }
             case BAJA -> {
+                if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_COMPRA) {
+                    return reversarBajaDevolucionCompra(dto, movOrigen);
+                }
                 if (movOrigen.getMotivo() == MotivoEnum.MUESTREO) {
-                    return reversarMuestreoBulto(dto, movOrigen);
+                    return reversarBajaMuestreoBulto(dto, movOrigen);
                 }
                 if (movOrigen.getMotivo() == MotivoEnum.CONSUMO_PRODUCCION) {
-                    System.out.println("REVERSO BAJA CONSUMO PRODUCCION");
+                    return reversarBajaConsumoProduccion(dto, movOrigen);
                 }
-                if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_COMPRA) {
-                    System.out.println("REVERSO DEVOLUCION COMPRA");
-                }
-
                 if (movOrigen.getMotivo() == MotivoEnum.VENTA) {
-                    System.out.println("REVERSO VENTA");
+                    return reversarBajaVentaProducto(dto, movOrigen);
                 }
             }
         }
@@ -97,7 +95,64 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarDictamenCuarentena(final MovimientoDTO dto, final Movimiento movOrigen) {
+    LoteDTO reversarBajaConsumoProduccion(final MovimientoDTO dto, final Movimiento movOrigen) {
+        return reversarBajaGranel(dto, movOrigen);
+    }
+
+    @Transactional
+    LoteDTO reversarBajaGranel(final MovimientoDTO dto, final Movimiento movOrigen) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+        movimiento.setCantidad(movOrigen.getCantidad());
+        movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
+
+        final Set<DetalleMovimiento> detalles = movOrigen.getDetalles();
+
+        for (DetalleMovimiento detalleMovimiento : detalles) {
+            final Bulto bulto = detalleMovimiento.getBulto();
+            dto.setCantidad(detalleMovimiento.getCantidad());
+            dto.setUnidadMedida(detalleMovimiento.getUnidadMedida());
+            bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
+            if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
+                bulto.setEstado(NUEVO);
+            } else {
+                bulto.setEstado(EN_USO);
+            }
+            bultoRepository.save(bulto);
+        }
+
+        final Lote lote = movOrigen.getLote();
+
+        dto.setCantidad(movOrigen.getCantidad());
+        dto.setUnidadMedida(movOrigen.getUnidadMedida());
+        lote.setCantidadActual(sumarMovimientoConvertido(dto, lote));
+
+        if (lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
+            lote.setEstado(NUEVO);
+        } else {
+            lote.setEstado(EN_USO);
+        }
+
+        movOrigen.setActivo(false);
+        movimiento.setActivo(false);
+
+        movimientoRepository.save(movimiento);
+        movimientoRepository.save(movOrigen);
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
+    }
+
+    @Transactional
+    LoteDTO reversarBajaDevolucionCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
+        return reversarBajaGranel(dto, movOrigen);
+    }
+
+    @Transactional
+    LoteDTO reversarAltaDevolucionVenta(final MovimientoDTO dto, final Movimiento movOrigen) {
+        //TODO: implementar
+        return DTOUtils.fromLoteEntity(movOrigen.getLote());
+    }
+
+    @Transactional
+    LoteDTO reversarModifDictamenCuarentena(final MovimientoDTO dto, final Movimiento movOrigen) {
         Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
         final Lote lote = movOrigen.getLote();
         lote.setDictamen(movOrigen.getDictamenInicial());
@@ -121,7 +176,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarIngresoCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
+    LoteDTO reversarAltaIngresoCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
         Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
 
         movOrigen.setActivo(false);
@@ -139,7 +194,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarIngresoProduccion(final MovimientoDTO dto, final Movimiento movOrigen) {
+    LoteDTO reversarAltaIngresoProduccion(final MovimientoDTO dto, final Movimiento movOrigen) {
         Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
 
         movOrigen.setActivo(false);
@@ -160,12 +215,37 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarMuestreoBulto(final MovimientoDTO dto, final Movimiento movOrigen) {
+    public LoteDTO reversarModifLiberacionProducto(final MovimientoDTO dto, final Movimiento movOrigen) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+        final Lote lote = movOrigen.getLote();
+
+        lote.setDictamen(movOrigen.getDictamenInicial());
+
+        movimiento.setDictamenInicial(movOrigen.getDictamenFinal());
+        movimiento.setDictamenFinal(movOrigen.getDictamenInicial());
+        lote.setFechaVencimientoProveedor(null);
+
+        movOrigen.setActivo(false);
+        movimiento.setActivo(false);
+        movimientoRepository.save(movOrigen);
+        movimientoRepository.save(movimiento);
+
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
+    }
+
+    @Transactional
+    LoteDTO reversarModifDevolucionVenta(final MovimientoDTO dto, final Movimiento movOrigen) {
+        //TODO: implementar
+        return DTOUtils.fromLoteEntity(movOrigen.getLote());
+    }
+
+    @Transactional
+    LoteDTO reversarBajaMuestreoBulto(final MovimientoDTO dto, final Movimiento movOrigen) {
         Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
         movimiento.setCantidad(movOrigen.getCantidad());
         movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
 
-        if(movOrigen.getDetalles().size() > 1) {
+        if (movOrigen.getDetalles().size() > 1) {
             throw new IllegalArgumentException("Multimuestreo no soportado aun");
         }
 
@@ -180,18 +260,18 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         dto.setUnidadMedida(movOrigen.getUnidadMedida());
 
         bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
-        if(bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
+        if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
             bulto.setEstado(NUEVO);
-        }else{
+        } else {
             bulto.setEstado(EN_USO);
         }
 
         final Lote lote = movOrigen.getLote();
         lote.setCantidadActual(sumarMovimientoConvertido(dto, lote));
 
-        if(lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
+        if (lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
             lote.setEstado(NUEVO);
-        }else{
+        } else {
             lote.setEstado(EN_USO);
         }
 
@@ -209,7 +289,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarResultadoAnalisis(final MovimientoDTO dto, final Movimiento movOrigen) {
+    LoteDTO reversarModifResultadoAnalisis(final MovimientoDTO dto, final Movimiento movOrigen) {
         Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
         final Lote lote = movOrigen.getLote();
         lote.setDictamen(movOrigen.getDictamenInicial());
@@ -236,6 +316,55 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         loteRepository.save(lote);
 
         return DTOUtils.fromLoteEntity(lote);
+    }
+
+    @Transactional
+    LoteDTO reversarModifRetiroMercado(final MovimientoDTO dto, final Movimiento movOrigen) {
+        //TODO: implementar
+        return DTOUtils.fromLoteEntity(movOrigen.getLote());
+    }
+
+    @Transactional
+    LoteDTO reversarBajaVentaProducto(final MovimientoDTO dto, final Movimiento movOrigen) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+        movimiento.setCantidad(movOrigen.getCantidad());
+        movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
+
+        final Set<DetalleMovimiento> detalles = movOrigen.getDetalles();
+
+        for (DetalleMovimiento detalleMovimiento : detalles) {
+            final Bulto bulto = detalleMovimiento.getBulto();
+            dto.setCantidad(detalleMovimiento.getCantidad());
+            dto.setUnidadMedida(detalleMovimiento.getUnidadMedida());
+            bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
+            if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
+                bulto.setEstado(NUEVO);
+            } else {
+                bulto.setEstado(EN_USO);
+            }
+            detalleMovimiento.getTrazas().forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
+            trazaRepository.saveAll(detalleMovimiento.getTrazas());
+            bultoRepository.save(bulto);
+        }
+
+        final Lote lote = movOrigen.getLote();
+
+        dto.setCantidad(movOrigen.getCantidad());
+        dto.setUnidadMedida(movOrigen.getUnidadMedida());
+        lote.setCantidadActual(sumarMovimientoConvertido(dto, lote));
+
+        if (lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
+            lote.setEstado(NUEVO);
+        } else {
+            lote.setEstado(EN_USO);
+        }
+
+        movOrigen.setActivo(false);
+        movimiento.setActivo(false);
+
+        movimientoRepository.save(movimiento);
+        movimientoRepository.save(movOrigen);
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
 }

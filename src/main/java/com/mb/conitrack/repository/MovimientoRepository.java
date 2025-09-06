@@ -26,6 +26,7 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
           from Movimiento m
           join m.lote l
           where l.codigoLote = :codigoLote
+            and m.activo = true
           order by m.fecha asc, m.fechaYHoraCreacion asc
         """)
     List<Movimiento> findAllByLoteCodigoLoteOrderByFechaAsc(String codigoLote);
