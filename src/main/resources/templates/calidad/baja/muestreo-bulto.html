@@ -31,7 +31,7 @@
             </div>
         </div>
 
-        <!-- 1er Selector: Lote a muestrear  (representante) -->
+        <!-- 1er Selector: Lote a muestrear -->
         <div class="mb-2">
             <label class="form-label" for="loteMuestreo">Lote:</label>
             <select class="form-select"
@@ -40,11 +40,11 @@
                     th:field="*{codigoLote}"
                     th:classappend="${#fields.hasErrors('codigoLote')} ? ' error-field'">
                 <option value="">-- Seleccione el lote a muestrear --</option>
-                <!-- Opciones de LoteDTO; agregamos data con último análisis y dictamen -->
                 <option th:each="loteDTO : ${loteMuestreoDTOs}"
                         th:value="${loteDTO.codigoLote}"
                         th:data-nroanalisis="${loteDTO.nroUltimoAnalisisDto}"
                         th:data-dictamen="${loteDTO.dictamen}"
+                        th:data-es-unidad-venta="${loteDTO.esUnidadVenta}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto}
                          + ' | ID Lote: ' + ${loteDTO.loteProveedor}
                          + ' | Nro Análisis: ' + ${loteDTO.nroUltimoAnalisisDto}
@@ -72,8 +72,21 @@
             <div class="text-danger fw-bold" th:errors="*{nroBulto}" th:if="${#fields.hasErrors('nroBulto')}"></div>
         </div>
 
-        <!-- Cantidad + Unidad para el muestreo real -->
-        <div class="row mb-3 align-items-end">
+        <!-- TRAZAS (solo UNIDAD_DE_VENTA) -->
+        <div class="mb-3" id="wrapperTrazas" style="display:none;">
+            <label class="form-label">Trazas disponibles del bulto (seleccione las que muestreará):</label>
+            <div id="trazasContainer" class="border rounded p-3"></div>
+
+            <div id="trazasError" class="text-danger fw-bold mt-2" style="display:none;">
+                Seleccioná al menos una traza.
+            </div>
+
+            <!-- Inputs ocultos para movimientoDTO.trazaDTOs -->
+            <div id="trazasHidden"></div>
+        </div>
+
+        <!-- Cantidad + Unidad para el muestreo real (se ocultan en UNIDAD_DE_VENTA) -->
+        <div class="row mb-3 align-items-end" id="rowCantidadUnidad">
             <div class="col-md-6 d-flex flex-column">
                 <label class="form-label" for="cantidadBultoElegido">Cantidad:</label>
                 <input class="form-control" id="cantidadBultoElegido" required step="0.01" th:field="*{cantidad}" type="number">
@@ -125,20 +138,29 @@
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
         const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
-        const loteSel   = document.getElementById('loteMuestreo');
-        const bultoSel  = document.getElementById('nroBultoMuestreo');
-        const cantRef   = document.getElementById('refCantBulto');
-        const uniRef    = document.getElementById('refUniMedBulto');
-        const analInfo  = document.getElementById('nroAnalisisInfo');
-        const dictInfo  = document.getElementById('dictamenAnalisisInfo');
-        const uniSel    = document.getElementById('uniMedBultoElegido');
+        const form     = document.querySelector('form');        // <-- NECESARIO para crear ocultos
+        const loteSel  = document.getElementById('loteMuestreo');
+        const bultoSel = document.getElementById('nroBultoMuestreo');
+        const cantRef  = document.getElementById('refCantBulto');
+        const uniRef   = document.getElementById('refUniMedBulto');
+        const analInfo = document.getElementById('nroAnalisisInfo');
+        const dictInfo = document.getElementById('dictamenAnalisisInfo');
+        const uniSel   = document.getElementById('uniMedBultoElegido');
+        const cantInput= document.getElementById('cantidadBultoElegido');
+        const rowCantUn= document.getElementById('rowCantidadUnidad');
+
+        // TRAZAS UI
+        const wrapperTrazas   = document.getElementById('wrapperTrazas');
+        const trazasContainer = document.getElementById('trazasContainer');
+        const trazasError     = document.getElementById('trazasError');
+        const trazasHidden    = document.getElementById('trazasHidden');
 
         /* -------- valores del DTO (cuando volvemos con errores) -------- */
         const dto = {
-            codigoLote: /*[[${movimientoDTO.codigoLote}]]*/ null,
-            nroBulto         : /*[[${movimientoDTO.nroBulto}]]*/ null,
-            unidadMedida     : /*[[${movimientoDTO.unidadMedida}]]*/ null,
-            fechaMovimiento  : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
+            codigoLote      : /*[[${movimientoDTO.codigoLote}]]*/ null,
+            nroBulto        : /*[[${movimientoDTO.nroBulto}]]*/ null,
+            unidadMedida    : /*[[${movimientoDTO.unidadMedida}]]*/ null,
+            fechaMovimiento : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
         };
 
         const setFechaMovimiento = () => {
@@ -146,11 +168,80 @@
             campo.value = dto.fechaMovimiento || new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
         };
 
+        // --- helpers de Unidad de Venta ---
+        function esUnidadDeVentaSeleccionada() {
+            const opt = loteSel.options[loteSel.selectedIndex];
+            return !!opt && opt.getAttribute('data-es-unidad-venta') === 'true';
+        }
+
+        function ensureHiddenCantidadUnidad() {
+            let hCant = document.getElementById('cantidadHidden');
+            let hUni  = document.getElementById('unidadHidden');
+            if (!hCant) {
+                hCant = document.createElement('input');
+                hCant.type = 'hidden';
+                hCant.id = 'cantidadHidden';
+                hCant.name = 'cantidad';             // <- mismo nombre que tu DTO
+                form.appendChild(hCant);
+            }
+            if (!hUni) {
+                hUni = document.createElement('input');
+                hUni.type = 'hidden';
+                hUni.id = 'unidadHidden';
+                hUni.name = 'unidadMedida';          // <- mismo nombre que tu DTO
+                form.appendChild(hUni);
+            }
+            return { hCant, hUni };
+        }
+
+        function removeHiddenCantidadUnidad() {
+            document.getElementById('cantidadHidden')?.remove();
+            document.getElementById('unidadHidden')?.remove();
+        }
+
+        function toggleUIPorUnidadVenta(flag) {
+            if (flag) {
+                // Mostrar trazas, ocultar cantidad/unidad visibles
+                rowCantUn.style.display = 'none';
+                wrapperTrazas.style.display = '';
+
+                // Deshabilitar y quitar required de los visibles (para que no bloquee HTML5)
+                cantInput.required = false;
+                uniSel.required    = false;
+                cantInput.disabled = true;
+                uniSel.disabled    = true;
+
+                // Asegurar ocultos (los llenamos en el submit)
+                ensureHiddenCantidadUnidad();
+
+            } else {
+                // Flujo clásico
+                rowCantUn.style.display = '';
+                wrapperTrazas.style.display = 'none';
+                clearTrazasUI();
+
+                // Habilitar y volver a required los visibles
+                cantInput.disabled = false;
+                uniSel.disabled    = false;
+                cantInput.required = true;
+                uniSel.required    = true;
+
+                // Quitar ocultos para no duplicar binding
+                removeHiddenCantidadUnidad();
+            }
+        }
+
+        function clearTrazasUI() {
+            trazasContainer.innerHTML = '';
+            trazasHidden.innerHTML = '';
+            if (trazasError) trazasError.style.display = 'none';
+        }
+
         /* -------- carga Bultos (BultoDTO) por Lote -------- */
         const cargarBultos = (codigoLote) => {
             bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
 
-            fetch(`/lotes/muestreo/codigoLote/${codigoLote}`, {
+            fetch(`/lotes/muestreo/codigoLote/${encodeURIComponent(codigoLote)}`, {
                 headers: { [csrfHeader]: csrfToken }
             })
                 .then(r => r.json())
@@ -159,11 +250,8 @@
                         const o = document.createElement('option');
                         o.value = b.nroBulto; // viaja al DTO
                         o.textContent = `Bulto: ${b.nroBulto} - Disponible: ${b.cantidadActual} ${b.unidadMedida}`;
-
-                        // extras para la UI desde BultoDTO
                         o.dataset.cant = b.cantidadActual;
                         o.dataset.uni  = b.unidadMedida;
-
                         bultoSel.appendChild(o);
                     });
 
@@ -175,15 +263,87 @@
                 .catch(err => console.error('Error al cargar bultos:', err));
         };
 
+        // --- cargar subunidades (flujo no-UNIDAD_DE_VENTA) ---
+        const cargarSubunidades = (base) => {
+            fetch(`/enums/subunidades?unidad=${encodeURIComponent(base)}`, { headers: { [csrfHeader]: csrfToken } })
+                .then(r => r.json())
+                .then(subs => {
+                    uniSel.innerHTML = '<option value="">-- Seleccione unidad --</option>';
+                    subs.forEach(u => {
+                        const o = document.createElement('option');
+                        o.value = o.textContent = u;
+                        uniSel.appendChild(o);
+                    });
+                    uniSel.value = dto.unidadMedida || base;
+                })
+                .catch(err => console.error('Error al cargar sub-unidades:', err));
+        };
+
+        // --- cargar trazas disponibles por lote + bulto (solo UNIDAD_DE_VENTA) ---
+        async function cargarTrazasDisponibles(codigoLote, nroBulto) {
+            clearTrazasUI();
+            if (!codigoLote || !nroBulto) return;
+
+            try {
+                const resp = await fetch(`/trazas/disponibles/${encodeURIComponent(codigoLote)}/${encodeURIComponent(nroBulto)}`,
+                    { headers: { [csrfHeader]: csrfToken } }
+                );
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const trazas = await resp.json(); // List<TrazaDTO>
+
+                if (!trazas || trazas.length === 0) {
+                    wrapperTrazas.style.display = '';
+                    trazasContainer.innerHTML = `<div class="text-muted">No hay trazas disponibles para este bulto.</div>`;
+                    return;
+                }
+
+                const list = document.createElement('div');
+                list.className = 'd-flex flex-wrap gap-3';
+                trazas.forEach(t => {
+                    const id = `traza_${t.nroBulto}_${t.nroTraza}`;
+                    const item = document.createElement('div');
+                    item.className = 'form-check';
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'form-check-input';
+                    cb.id = id;
+                    cb.dataset.nroTraza  = String(t.nroTraza);
+                    cb.dataset.nroBulto  = String(t.nroBulto);
+                    cb.dataset.codigoLote = t.codigoLote;
+
+                    const lb = document.createElement('label');
+                    lb.className = 'form-check-label';
+                    lb.setAttribute('for', id);
+                    lb.textContent = `[${t.nroTraza}]`;
+
+                    item.appendChild(cb);
+                    item.appendChild(lb);
+                    list.appendChild(item);
+                });
+
+                trazasContainer.appendChild(list);
+                wrapperTrazas.style.display = '';
+            } catch (e) {
+                console.error('Error al cargar trazas:', e);
+                wrapperTrazas.style.display = '';
+                trazasContainer.innerHTML = `<div class="text-danger">No se pudieron cargar las trazas.</div>`;
+            }
+        }
+
         /* -------- cuando cambia el Lote -------- */
         loteSel.addEventListener('change', () => {
             limpiarInfoBulto();
+            clearTrazasUI();
 
             const opt = loteSel.selectedOptions[0];
             const codigo = loteSel.value;
-            if (!codigo) return;
+            if (!codigo) {
+                toggleUIPorUnidadVenta(false);
+                return;
+            }
 
-            // Info de análisis/dictamen viene del Lote (data-* en option)
+            // Info de análisis/dictamen (data-* en option)
             const nroAnalisis = opt?.dataset?.nroanalisis || '';
             const dictamen    = opt?.dataset?.dictamen    || 'EN_CURSO';
 
@@ -195,42 +355,34 @@
                 (dictamen === 'APROBADO'   ? 'text-success' :
                     dictamen === 'RECHAZADO'  ? 'text-danger'  : 'text-warning');
 
+            // toggle por unidad de venta
+            toggleUIPorUnidadVenta(esUnidadDeVentaSeleccionada());
+
             // cargar bultos del lote
             cargarBultos(codigo);
         });
 
         /* -------- cuando cambia el Bulto -------- */
         bultoSel.addEventListener('change', () => {
-            // No tocamos el nro de análisis/dictamen (son del lote)
             const opt = bultoSel.selectedOptions[0];
             if (!opt?.value) {
                 limpiarInfoBulto();
+                clearTrazasUI();
                 return;
             }
 
             cantRef.value = opt.dataset.cant || '';
             uniRef.value  = opt.dataset.uni  || '';
 
-            // cargar subunidades tomando como base la unidad del bulto
-            if (uniRef.value) cargarSubunidades(uniRef.value);
+            if (esUnidadDeVentaSeleccionada()) {
+                // mostrar trazas disponibles del bulto
+                cargarTrazasDisponibles(loteSel.value, Number(opt.value));
+            } else {
+                // flujo clásico: subunidades
+                if (uniRef.value) cargarSubunidades(uniRef.value);
+                clearTrazasUI();
+            }
         });
-
-        /* -------- sub-unidades -------- */
-        const cargarSubunidades = (base) => {
-            fetch(`/enums/subunidades?unidad=${base}`, { headers: { [csrfHeader]: csrfToken } })
-                .then(r => r.json())
-                .then(subs => {
-                    uniSel.innerHTML = '<option value="">-- Seleccione unidad --</option>';
-                    subs.forEach(u => {
-                        const o = document.createElement('option');
-                        o.value = o.textContent = u;
-                        uniSel.appendChild(o);
-                    });
-                    // por defecto dejamos la base o lo que haya en el DTO
-                    uniSel.value = dto.unidadMedida || base;
-                })
-                .catch(err => console.error('Error al cargar sub-unidades:', err));
-        };
 
         const limpiarInfoBulto = () => {
             bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
@@ -238,9 +390,54 @@
             uniRef.value  = '';
         };
 
+        /* -------- submit: construir trazaDTOs y setear cantidad/unidad si es UNIDAD_DE_VENTA -------- */
+        form.addEventListener('submit', (ev) => {
+            if (!esUnidadDeVentaSeleccionada()) return; // flujo clásico, nada especial
+
+            const checks = trazasContainer.querySelectorAll('input[type="checkbox"]:checked');
+            if (wrapperTrazas.style.display !== 'none' && checks.length === 0) {
+                ev.preventDefault();
+                if (trazasError) {
+                    trazasError.style.display = 'block';
+                    trazasError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            } else if (trazasError) {
+                trazasError.style.display = 'none';
+            }
+
+            // construir movimientoDTO.trazaDTOs[i]
+            trazasHidden.innerHTML = '';
+            let i = 0;
+            checks.forEach(cb => {
+                const h1 = document.createElement('input');
+                h1.type = 'hidden';
+                h1.name = `trazaDTOs[${i}].codigoLote`;
+                h1.value = cb.dataset.codigoLote || loteSel.value || '';
+                trazasHidden.appendChild(h1);
+
+                const h2 = document.createElement('input');
+                h2.type = 'hidden';
+                h2.name = `trazaDTOs[${i}].nroBulto`;
+                h2.value = cb.dataset.nroBulto || bultoSel.value || '';
+                trazasHidden.appendChild(h2);
+
+                const h3 = document.createElement('input');
+                h3.type = 'hidden';
+                h3.name = `trazaDTOs[${i}].nroTraza`;
+                h3.value = cb.dataset.nroTraza || '';
+                trazasHidden.appendChild(h3);
+                i++;
+            });
+
+            // Setear los OCULTOS de cantidad/unidad (los visibles están disabled)
+            const { hCant, hUni } = ensureHiddenCantidadUnidad();
+            hCant.value = String(checks.length);
+            hUni.value  = 'UNIDAD';
+        });
+
         /* -------- init -------- */
         setFechaMovimiento();
-
         if (dto.codigoLote) {
             loteSel.value = dto.codigoLote;
             loteSel.dispatchEvent(new Event('change'));

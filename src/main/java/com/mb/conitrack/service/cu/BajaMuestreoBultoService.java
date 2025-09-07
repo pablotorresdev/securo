@@ -2,8 +2,10 @@ package com.mb.conitrack.service.cu;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.DetalleMovimiento;
@@ -63,7 +66,16 @@ public class BajaMuestreoBultoService extends AbstractCuService {
                 throw new IllegalStateException("La cantidad de Unidades debe ser entero");
             }
 
-            final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantidad.intValue());
+            final List<Traza> trazas = new ArrayList<>();
+            for (TrazaDTO trazaDTO : dto.getTrazaDTOs()) {
+                final Long nroTraza = trazaDTO.getNroTraza();
+                for(Traza trazasLote : lote.getTrazas()) {
+                    if(trazasLote.getNroTraza().equals(nroTraza)) {
+                        trazas.add(trazasLote);
+                        break;
+                    }
+                }
+            }
 
             if(movimiento.getDetalles().size() > 1) {
                 throw new IllegalArgumentException("Multimuestreo no soportado aun");
@@ -156,19 +168,27 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             return false;
         }
 
-        final Optional<LocalDate> fechaIngresoLote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
-            .map(Lote::getFechaIngreso);
+        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
 
-        if (fechaIngresoLote.isEmpty()) {
+        if (lote.isEmpty()) {
             bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
             return false;
         }
 
-        if (!validarFechaMovimientoPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
+        final boolean esUnidadVenta = lote.get().getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA; // crea este helper si no lo tenés
+
+        if (esUnidadVenta) {
+            if (dto.getTrazaDTOs() == null || dto.getTrazaDTOs().isEmpty()) {
+                bindingResult.rejectValue("trazaDTOs", "", "Debe seleccionar al menos una unidad a muestrear.");
+                return false;
+            }
+        }
+
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult)) {
             return false;
         }
 
-        if (!validarFechaAnalisisPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
+        if (!validarFechaAnalisisPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult)) {
             return false;
         }
 

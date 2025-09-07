@@ -55,6 +55,14 @@ public class TrazasController {
         return trazaService.getTrazasVendidasByCodigoLote(codigoLote);
     }
 
+    @GetMapping("/disponibles/{codigoLote}/{nroBulto}")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public List<TrazaDTO> getTrazasDisponiblesPorBulto(@PathVariable String codigoLote,
+        @PathVariable Integer nroBulto) {
+        return trazaService.getTrazasByCodigoLoteAndNroBulto(codigoLote, nroBulto);
+     }
+
 }
 
 

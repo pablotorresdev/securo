@@ -39,4 +39,9 @@ public class TrazaService {
         return fromTrazaEntities(trazaRepository.findVendidasByCodigoLote(codigoLote));
     }
 
+    @Transactional(readOnly = true)
+    public List<TrazaDTO> getTrazasByCodigoLoteAndNroBulto(String codigoLote, Integer nroBulto) {
+        return fromTrazaEntities(trazaRepository.findDisponiblesByCodigoLoteAndNroBulto(codigoLote, nroBulto));
+    }
+
 }

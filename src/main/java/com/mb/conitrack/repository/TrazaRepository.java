@@ -54,4 +54,18 @@ public interface TrazaRepository extends JpaRepository<Traza, Long> {
         """)
     List<Traza> findVendidasByCodigoLote(@Param("codigoLote") String codigoLote);
 
+    @Query("""
+        select t
+        from Traza t
+          join t.lote l
+          join t.bulto b
+        where l.codigoLote = :codigoLote
+          and b.nroBulto   = :nroBulto
+          and t.activo = true
+          and t.estado = com.mb.conitrack.enums.EstadoEnum.DISPONIBLE
+        order by t.nroTraza asc
+    """)
+    List<Traza> findDisponiblesByCodigoLoteAndNroBulto(@Param("codigoLote") String codigoLote,
+        @Param("nroBulto") Integer nroBulto);
+
 }
