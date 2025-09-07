@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Reanálisis de Producto Aprobado</title>
+    <!-- Bootstrap para estilos rápidos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
@@ -11,13 +13,23 @@
 <div class="container mt-5">
     <h2 class="mb-4">Reanalizar un Lote Aprobado</h2>
 
+    <!--
+      Formulario principal:
+      - POST a /calidad/reanalisis/inicio-reanalisis
+      - th:object enlaza inputs con movimientoDTO (binding servidor <-> vista)
+    -->
     <form method="post" th:action="@{/calidad/reanalisis/inicio-reanalisis}" th:object="${movimientoDTO}">
+        <!-- Token CSRF en el body para validar la solicitud -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
-        <!-- Select de Lotes -->
+        <!--
+          Selector de Lotes aptos para reanálisis:
+          - th:field="*{codigoLote}" bindea la selección al DTO
+          - Cada option expone data-* usados para mostrar info en la sección informativa
+        -->
         <div class="mb-3">
             <label class="form-label" for="codigoLote">Lote:</label>
             <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
@@ -37,11 +49,20 @@
             </select>
         </div>
 
+        <!--
+          Sección informativa dinámica:
+          - Se completa por JS con detalles del lote y sus análisis previos
+        -->
         <div class="mb-4" id="infoSection">
         </div>
 
+        <!--
+          Fecha del reanálisis:
+          - type="date" bindeado a *{fechaMovimiento}
+          - JS setea "hoy" (yyyy-MM-dd, tz Buenos Aires) si no viene en el DTO
+        -->
         <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha del Reanalisis:</label>
+            <label class="form-label" for="fechaMovimiento">Fecha del Reanálisis:</label>
             <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
                    required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
@@ -54,21 +75,26 @@
             </div>
         </div>
 
-        <!-- Número de Análisis -->
+        <!--
+          Número de Reanálisis:
+          - Obligatorio
+          - th:field bindea a *{nroReanalisis}
+        -->
         <div class="mb-3">
-            <label class="form-label" for="nroReanalisis">Número de Reanalisis:</label>
+            <label class="form-label" for="nroReanalisis">Número de Reanálisis:</label>
             <input class="form-control" id="nroReanalisis" type="text" maxlength="30" required
                    th:field="*{nroReanalisis}" placeholder="Ej: 123456789">
             <div style="color: red; font-weight: bold;" th:errors="*{nroReanalisis}"
                  th:if="${#fields.hasErrors('nroReanalisis')}"></div>
         </div>
 
+        <!-- Observaciones opcionales -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control" id="observaciones" rows="2" th:field="*{observaciones}"></textarea>
         </div>
 
-
+        <!-- Acciones -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/calidad/reanalisis/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Iniciar Reanálisis</button>
@@ -76,28 +102,40 @@
     </form>
 </div>
 
+<!-- Pie de página simple -->
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
 
+<!--
+  Lógica de UI (JS):
+  - Setea fecha por defecto (hoy, tz Buenos Aires) si no viene del DTO
+  - Al cambiar el lote, busca sus datos en loteReanalisisDTOs inyectado por Thymeleaf
+    y renderiza detalles en infoSection
+-->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
 
+        // DTO parcial (valores que pueden volver por validación fallida)
         const dto = {
-            codigoLote: /*[[${movimientoDTO.codigoLote}]]*/ null,
-            fechaMovimiento  : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
+            codigoLote      : /*[[${movimientoDTO.codigoLote}]]*/ null,
+            fechaMovimiento : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
         };
 
+        // Setea fecha por defecto (yyyy-MM-dd en tz Buenos Aires) si no viene en el DTO
         const setFechaMovimiento = () => {
             const campo = document.getElementById('fechaMovimiento');
             campo.value = dto.fechaMovimiento || new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
         };
 
+        // Referencias a elementos de la UI
         const loteSelect = document.getElementById('codigoLote');
+        // Colección de lotes disponible en el template (se usa para pintar info)
         const loteReanalisisDTOs = /*[[${loteReanalisisDTOs}]]*/ [];
 
         const infoSection = document.getElementById('infoSection');
 
+        // Renderiza la sección de detalles del lote y sus análisis
         function actualizarInfo(data) {
             let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
             html += '<p><strong>Código Interno:</strong> ' + (data.codigoLote || 'N/D') + '</p>';
@@ -108,6 +146,8 @@
             if (data.analisisDTOs && data.analisisDTOs.length > 0) {
                 html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
                 data.analisisDTOs.forEach(function (a) {
+                    // Nota: aquí se muestra a.nroReanalisis como "Nro Análisis".
+                    // Si querés diferenciar, cambiá la etiqueta a "Nro Reanálisis".
                     html += '<li>';
                     html += '<strong>Nro Análisis:</strong> ' + (a.nroReanalisis || 'N/A') + ' ';
                     html += '<strong>Fecha Realizado:</strong> ' + (a.fechaRealizado || 'En curso') + ' | ';
@@ -121,22 +161,24 @@
             infoSection.innerHTML = html;
         }
 
+        // Al cambiar el lote, busca el objeto correspondiente y actualiza la info
         loteSelect.addEventListener('change', function () {
             const codigoSeleccionado = this.value;
 
-            // Buscamos en loteReanalisisDTOs por codigoLote
+            // Buscar por codigoLote en el arreglo inyectado
             const lote = loteReanalisisDTOs.find(l => l.codigoLote === codigoSeleccionado);
 
             if (lote) {
                 actualizarInfo(lote);
             } else {
-                infoSection.innerHTML = ''; // Si no hay selección, limpio la sección
+                infoSection.innerHTML = ''; // Sin selección válida, limpiar sección
             }
         });
 
+        // Inicialización de fecha
         setFechaMovimiento();
 
-        // Opcional: si hay un lote ya seleccionado al cargar la página
+        // Si hay un lote ya seleccionado al cargar (o restaurado por validación), mostrar su info
         if (loteSelect.value) {
             const loteInicial = loteReanalisisDTOs.find(l => l.codigoLote === loteSelect.value);
             if (loteInicial) {

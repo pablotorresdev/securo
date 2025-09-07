@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Devolución de Compra</title>
+    <!-- Bootstrap para estilos rápidos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
@@ -11,13 +13,22 @@
 <div class="container mt-5">
     <h2 class="mb-4">Devolución de Compra</h2>
 
+    <!--
+      Formulario principal:
+      - POST a /compras/baja/devolucion-compra
+      - th:object enlaza los campos del form con movimientoDTO (binding servidor <-> vista)
+    -->
     <form method="post" th:action="@{/compras/baja/devolucion-compra}" th:object="${movimientoDTO}">
-        <!-- Token CSRF -->
+        <!-- Token CSRF en el body para validar la solicitud -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
 
-        <!-- Select de Lotes Devolvibles -->
+        <!--
+          Selector de Lote a devolver:
+          - th:field="*{codigoLote}" bindea la selección al DTO
+          - Cada opción muestra info útil (proveedor, producto, dictamen)
+        -->
         <div class="mb-3">
             <label class="form-label" for="codigoLote">Lote a Devolver:</label>
             <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
@@ -30,13 +41,18 @@
                         th:value="${loteDTO.codigoLote}">
                 </option>
             </select>
+            <!-- Mensaje de error para el campo 'codigoLote' en validación server-side -->
             <div class="text-danger" th:errors="*{codigoLote}"
                  th:if="${#fields.hasErrors('codigoLote')}"></div>
         </div>
 
-        <!-- Fecha de la Devolución -->
+        <!--
+          Fecha de la devolución:
+          - type="date" bindeado a *{fechaMovimiento}
+          - JS setea "hoy" (yyyy-MM-dd, tz Buenos Aires) si no viene en el DTO
+        -->
         <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha de Devolucion:</label>
+            <label class="form-label" for="fechaMovimiento">Fecha de Devolución:</label>
             <input class="form-control" id="fechaMovimiento"
                    required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
@@ -48,8 +64,10 @@
                  th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
-
-        <!-- Observaciones (opcional) -->
+        <!--
+          Observaciones (opcional):
+          - Campo libre que viaja como *{observaciones}
+        -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones:</label>
             <textarea class="form-control"
@@ -58,7 +76,7 @@
                       th:field="*{observaciones}"></textarea>
         </div>
 
-        <!-- Botones -->
+        <!-- Acciones del formulario -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/compras/baja/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Devolver</button>
@@ -66,10 +84,16 @@
     </form>
 </div>
 
+<!-- Pie de página simple -->
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
 
+<!--
+  Lógica mínima de UI:
+  - Inicializa la fecha por defecto con "hoy" (zona horaria Buenos Aires)
+    cuando no viene un valor desde el DTO (p.ej., tras la primera carga)
+-->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];

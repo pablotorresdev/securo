@@ -3,23 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Retiro mercado</title>
+    <!-- Bootstrap para estilos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security (token y header a enviar en fetch o formularios) -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Retiro mercado</h2>
+
+    <!--
+      Formulario principal:
+      - Envía un POST a /ventas/recall/retiro-mercado
+      - th:object vincula los campos a movimientoDTO (modelo del backend)
+    -->
     <form method="post" th:action="@{/ventas/recall/retiro-mercado}" th:object="${movimientoDTO}">
+        <!-- Campo oculto con el token CSRF que exige el backend -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
-        <!-- Inputs ocultos para movimientoDTO.trazaDTOs -->
+        <!-- Contenedor donde se crearán inputs ocultos para movimientoDTO.trazaDTOs[i] en el submit -->
         <div id="trazasHidden"></div>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
-        <!-- Lote -->
+        <!--
+          Selector de lote:
+          - Bindeado a movimientoDTO.codigoLote
+          - Las opciones muestran info útil: producto, código interno, fecha ingreso y rango de trazas
+          - El listado ${lotesRecall} llega ya filtrado por el backend
+        -->
         <div class="mb-3">
             <label class="form-label" for="codigoLote">Lote:</label>
             <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
@@ -35,30 +49,40 @@
             </select>
         </div>
 
-        <!-- Trazas (todas juntas, sin agrupar por bulto) -->
+        <!--
+          Selector de trazas:
+          - Se muestra/oculta según si hay error de validación en trazaDTOs
+          - Se cargan dinámicamente (fetch) todas las trazas vendidas del lote elegido (sin agrupar por bulto)
+          - Incluye un “seleccionar todas”
+        -->
         <div class="mb-3" id="wrapperTrazas" th:style="${#fields.hasErrors('trazaDTOs')}? '' : 'display:none;'">
             <label class="form-label">Trazas vendidas del lote (seleccione las unidades a retirar):</label>
 
-            <!-- Maestro seleccionar todas -->
+            <!-- Barra “seleccionar todas” (se hace visible sólo cuando hay trazas) -->
             <div class="form-check mb-2" id="masterBar" style="display:none;">
                 <input class="form-check-input" type="checkbox" id="checkAllTrazas">
                 <label class="form-check-label fw-bold" for="checkAllTrazas">Seleccionar todas las trazas</label>
             </div>
 
+            <!-- Aquí se insertan los checkboxes de trazas -->
             <div id="trazasContainer" class="border rounded p-3"></div>
 
-            <!-- Error client-side -->
+            <!-- Error del lado cliente si intenta enviar sin ninguna traza seleccionada -->
             <div id="trazasError" class="text-danger fw-bold mt-2" style="display:none;">
                 Seleccioná al menos una traza.
             </div>
-            <!-- Error server-side -->
+            <!-- Error server-side (BindingResult.trazaDTOs) -->
             <div class="text-danger fw-bold mt-2"
                  th:errors="*{trazaDTOs}"
                  th:if="${#fields.hasErrors('trazaDTOs')}">
             </div>
         </div>
 
-        <!-- Fecha -->
+        <!--
+          Fecha del recall:
+          - Bindeada a movimientoDTO.fechaMovimiento
+          - El script la setea por defecto a “hoy” (TZ Buenos Aires) si viene vacía
+        -->
         <div class="mb-2">
             <label class="form-label" for="fechaMovimiento">Fecha del Recall:</label>
             <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
@@ -66,13 +90,13 @@
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
                    th:field="*{fechaMovimiento}"
                    type="date">
-
+            <!-- Mensaje de error server-side para fecha -->
             <div style="color: red; font-weight: bold;"
                  th:errors="*{fechaMovimiento}"
                  th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
-        <!-- Observaciones -->
+        <!-- Observaciones libres (opcional) -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control"
@@ -81,7 +105,7 @@
                       th:field="*{observaciones}"></textarea>
         </div>
 
-        <!-- Botones -->
+        <!-- Acciones de la pantalla -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/ventas/recall/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Realizar retiro mercado</button>
@@ -89,13 +113,24 @@
     </form>
 </div>
 
+<!-- Pie de página informativo -->
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
 
+<!-- =========================================================
+     Lógica de UI (sin jQuery)
+     - Carga de trazas vendidas por lote via fetch
+     - “Seleccionar todas”
+     - Validación y construcción de movimientoDTO.trazaDTOs[i] como campos ocultos
+     - Seteo de fecha por defecto
+========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        // Base de URLs resueltas por Thymeleaf (p. ej. "/" o con contexto)
         const base            = /*[[@{/}]]*/ '';
+
+        // Referencias a elementos de UI
         const loteSelect      = document.getElementById('codigoLote');
         const trazasWrapper   = document.getElementById('wrapperTrazas');
         const trazasContainer = document.getElementById('trazasContainer');
@@ -104,12 +139,12 @@
         const trazasError     = document.getElementById('trazasError');
         const trazasHidden    = document.getElementById('trazasHidden');
 
-        // Estado DTO para restaurar selección tras validaciones
+        // Estado proveniente del DTO (para restaurar selección tras un post con errores)
         const selectedCodLote = /*[[${movimientoDTO.codigoLote}]]*/ null;
-        const selectedTrazas  = /*[[${movimientoDTO.trazaDTOs}]]*/ []; // [{nroTraza, nroBulto, codigoLote}...]
+        const selectedTrazas  = /*[[${movimientoDTO.trazaDTOs}]]*/ []; // [{nroTraza, nroBulto?, codigoLote}]
 
-        // Fecha por defecto (como tus otras pantallas)
-        const fechaDTO  = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
+        // Fecha por defecto: si no está seteada, usar hoy en zona "America/Argentina/Buenos_Aires"
+        const fechaDTO   = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
         const fechaInput = document.getElementById('fechaMovimiento');
         if (!fechaInput.value || fechaInput.value.length !== 10) {
             const val = fechaDTO ? String(fechaDTO).slice(0, 10)
@@ -117,7 +152,9 @@
             fechaInput.value = val;
         }
 
-        // Helpers
+        /* -------------------- Helpers de UI -------------------- */
+
+        // Limpia toda la sección de trazas y esconde contenedores
         function clearTrazasUI() {
             trazasContainer.innerHTML = '';
             trazasHidden.innerHTML = '';
@@ -126,9 +163,10 @@
             if (trazasError) trazasError.style.display = 'none';
         }
 
+        // Crea un checkbox + label para una traza
         function buildTrazaItem(t) {
-            // t: TrazaDTO { nroTraza, nroBulto?, ... }
-            const id = `traza_${t.nroTraza}`;
+            // t: { nroTraza, nroBulto? }
+            const id  = `traza_${t.nroTraza}`;
             const div = document.createElement('div');
             div.className = 'form-check form-check-inline me-3 mb-2';
 
@@ -138,7 +176,7 @@
             cb.id = id;
             cb.name = 'nrosTrazasDevolver';
             cb.value = t.nroTraza;
-            if (t.nroBulto != null) cb.dataset.bulto = String(t.nroBulto);
+            if (t.nroBulto != null) cb.dataset.bulto = String(t.nroBulto); // opcional
 
             const lb = document.createElement('label');
             lb.className = 'form-check-label';
@@ -150,6 +188,7 @@
             return div;
         }
 
+        // Marca las trazas según el estado previo; si no hay previo, selecciona todas por defecto
         function restoreOrSelectAll(data, preselected) {
             const hasPre = Array.isArray(preselected) && preselected.length > 0;
             if (hasPre) {
@@ -162,19 +201,20 @@
                     } else if (cands.length > 1 && pt.nroBulto != null) {
                         Array.from(cands).find(x => x.dataset.bulto === String(pt.nroBulto))?.setAttribute('checked', true);
                     } else {
-                        // fallback por nroTraza
+                        // Si no tengo nroBulto para distinguir, selecciono todas las coincidencias del nroTraza
                         cands.forEach(x => x.checked = true);
                     }
                 });
             } else {
-                // Por defecto, todas seleccionadas
+                // Sin estado previo: por defecto seleccionar todas
                 trazasContainer.querySelectorAll('input[name="nrosTrazasDevolver"]').forEach(cb => cb.checked = true);
             }
-            // Sincroniza maestro
+            // Sincroniza el master con el estado actual
             const all = trazasContainer.querySelectorAll('input[name="nrosTrazasDevolver"]');
             masterAll.checked = (all.length > 0) && Array.from(all).every(cb => cb.checked);
         }
 
+        // Carga las trazas vendidas para un código de lote (sin agrupar), pinta la UI y restaura selección
         async function loadTrazasPorLote(codLote, preselected) {
             clearTrazasUI();
             if (!codLote) return;
@@ -186,25 +226,30 @@
                 /** @type {Array} */
                 const data = await resp.json();
 
+                // Si no hay trazas vendidas, no mostramos el bloque
                 if (!Array.isArray(data) || data.length === 0) {
                     trazasWrapper.style.display = 'none';
                     return;
                 }
 
-                // Maestro seleccionar todas visible
+                // Hacer visible la barra “seleccionar todas”
                 masterBar.style.display = 'block';
 
-                // Pinta todas las trazas en una sola lista (sin grupos)
+                // Agregar todas las trazas como checkboxes
                 data.forEach(t => trazasContainer.appendChild(buildTrazaItem(t)));
 
                 // Restaurar selección previa o seleccionar todas
                 restoreOrSelectAll(data, preselected);
 
-                // Listeners
+                // Listener del maestro: tilda/destilda todo
                 masterAll.addEventListener('change', e => {
                     const checked = e.target.checked;
-                    trazasContainer.querySelectorAll('input[name="nrosTrazasDevolver"]').forEach(cb => cb.checked = checked);
+                    trazasContainer.querySelectorAll('input[name="nrosTrazasDevolver"]').forEach(cb => {
+                        cb.checked = checked;
+                    });
                 });
+
+                // Si cambian individuales, sincroniza el estado del maestro
                 trazasContainer.addEventListener('change', e => {
                     if (e.target && e.target.matches('input[name="nrosTrazasDevolver"]')) {
                         const all = trazasContainer.querySelectorAll('input[name="nrosTrazasDevolver"]');
@@ -212,6 +257,7 @@
                     }
                 });
 
+                // Mostrar el bloque de trazas
                 trazasWrapper.style.display = 'block';
             } catch (e) {
                 console.error('Error trazas:', e);
@@ -219,16 +265,22 @@
             }
         }
 
-        // Cambio de lote -> carga trazas vendidas
+        /* -------------------- Eventos de UI -------------------- */
+
+        // Al cambiar el lote, cargar sus trazas vendidas
         loteSelect.addEventListener('change', () => {
             const cod = (loteSelect.value || '').trim();
             loadTrazasPorLote(cod, []);
         });
 
-        // Submit: validar selección y construir movimientoDTO.trazaDTOs[index]
+        // En el submit:
+        // - Valida que haya al menos una traza si el bloque está visible
+        // - Construye inputs ocultos trazaDTOs[i] con {codigoLote, nroBulto?, nroTraza}
         const form = document.querySelector('form');
         form.addEventListener('submit', ev => {
             const checks = trazasContainer.querySelectorAll('input[name="nrosTrazasDevolver"]:checked');
+
+            // Validación cliente: si el bloque está visible, exigir al menos una selección
             if (trazasWrapper.style.display !== 'none' && checks.length === 0) {
                 ev.preventDefault();
                 if (trazasError) {
@@ -240,20 +292,22 @@
                 trazasError.style.display = 'none';
             }
 
-            // reconstruir inputs ocultos
+            // Reconstruir los ocultos para el binding del backend
             trazasHidden.innerHTML = '';
             const codigoLote = (loteSelect.value || '').trim();
             let idx = 0;
             checks.forEach(cb => {
                 const nroTraza = cb.value;
-                const nroBulto = cb.dataset.bulto || ''; // opcional, no agrupamos pero lo mandamos si vino
+                const nroBulto = cb.dataset.bulto || ''; // opcional
 
+                // movimientoDTO.trazaDTOs[idx].codigoLote
                 const h1 = document.createElement('input');
                 h1.type = 'hidden';
                 h1.name = `trazaDTOs[${idx}].codigoLote`;
                 h1.value = codigoLote;
                 trazasHidden.appendChild(h1);
 
+                // movimientoDTO.trazaDTOs[idx].nroBulto (solo si existe)
                 if (nroBulto !== '') {
                     const h2 = document.createElement('input');
                     h2.type = 'hidden';
@@ -262,6 +316,7 @@
                     trazasHidden.appendChild(h2);
                 }
 
+                // movimientoDTO.trazaDTOs[idx].nroTraza
                 const h3 = document.createElement('input');
                 h3.type = 'hidden';
                 h3.name = `trazaDTOs[${idx}].nroTraza`;
@@ -272,13 +327,13 @@
             });
         });
 
-        // Init: si ya viene lote y trazas del DTO (por errores de validación), restaurar
+        // Estado inicial: si el DTO trae lote y trazas (tras error de validación), restaurar la selección
         if (selectedCodLote) {
             loteSelect.value = selectedCodLote;
             loadTrazasPorLote(selectedCodLote, selectedTrazas || []);
         }
 
-        // foco al primer error si existe
+        // Enfocar el primer campo con error si existe
         document.querySelector('.error-field')?.focus();
     });
 </script>

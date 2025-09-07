@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Dictamen: Cuarentena</title>
+    <!-- Bootstrap para estilos rápidos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
@@ -11,13 +13,27 @@
 <div class="container mt-5">
     <h2 class="mb-4">Cambiar Dictamen a Cuarentena</h2>
 
+    <!--
+      Formulario principal:
+      - POST a /calidad/dictamen/cuarentena
+      - th:object enlaza inputs con movimientoDTO (binding servidor <-> vista)
+    -->
     <form method="post" th:action="@{/calidad/dictamen/cuarentena}" th:object="${movimientoDTO}">
+        <!-- Token CSRF en el body para validar la solicitud -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
-        <!-- Select de Lotes disponibles para Cuarentena -->
+        <!--
+          Selector de Lotes elegibles para Cuarentena:
+          - th:field="*{codigoLote}" bindea la selección al DTO
+          - Cada option expone:
+            * data-dictamen: dictamen actual del lote (Recibido/Aprobado/Rechazado/…)
+            * data-nroanalisis: último nro de análisis definido
+            * data-analisisencurso: nro de análisis en curso (si lo hay)
+          - Esos data-* gobiernan qué campos se muestran/ocultan más abajo
+        -->
         <div class="mb-3">
             <label class="form-label" for="codigoLote">Lote:</label>
             <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
@@ -33,17 +49,26 @@
                         th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}">
                 </option>
             </select>
+            <!-- Errores de validación si el lote no se seleccionó -->
             <div class="text-danger fw-bold"
                  th:errors="*{codigoLote}"
                  th:if="${#fields.hasErrors('codigoLote')}">
             </div>
         </div>
 
+        <!--
+          Sección informativa dinámica:
+          - Si quisieras, podés inyectar datos aquí al cambiar el lote
+          - Actualmente se deja vacía; la lógica de visibilidad usa solo data-* del <option>
+        -->
         <div class="mb-4" id="infoSection">
         </div>
 
-
-        <!-- Fecha del Movimiento a Cuarentena -->
+        <!--
+          Fecha del cambio de dictamen:
+          - type="date" bindeado a *{fechaMovimiento}
+          - JS setea "hoy" si no viene en el DTO
+        -->
         <div class="mb-2">
             <label class="form-label" for="fechaMovimiento">Fecha de Cambio de Dictamen:</label>
             <input class="form-control" id="fechaMovimiento"
@@ -57,7 +82,11 @@
                  th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
-        <!-- Campo editable solo si dictamen = Recibido -->
+        <!--
+          Grupo "Número de Análisis" EDITABLE:
+          - Visible cuando dictamen actual del lote es 'Recibido' y NO hay análisis en curso
+          - En ese caso se exige ingresar un número de análisis (required)
+        -->
         <div class="mb-3" id="grupoNroAnalisisEditable">
             <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
             <input class="form-control" id="nroAnalisis"
@@ -70,12 +99,21 @@
                  th:if="${#fields.hasErrors('nroAnalisis')}"></div>
         </div>
 
-        <!-- Campo de solo lectura + campo de ReAnálisis -->
+        <!--
+          Grupo "Número de Análisis" SOLO LECTURA:
+          - Visible cuando existe un análisis (en curso o ya definido)
+          - Muestra el número actual; si hay análisis en curso, se usa ese número
+        -->
         <div class="mb-3" id="grupoNroAnalisisSoloLectura" style="display: none;">
             <label class="form-label">Número de Análisis Actual:</label>
             <input class="form-control" id="nroAnalisisReadonly" readonly type="text" maxlength="30">
         </div>
 
+        <!--
+          Grupo "Número de ReAnálisis":
+          - Visible cuando NO hay análisis en curso y el dictamen del lote NO es 'Recibido'
+          - En ese caso se requiere informar el número de reanálisis
+        -->
         <div class="mb-3" id="grupoNroReanalisis" style="display: none;">
             <label class="form-label" for="nroReanalisis">Número de ReAnálisis:</label>
             <input class="form-control" id="nroReanalisis"
@@ -88,12 +126,13 @@
                  th:if="${#fields.hasErrors('nroReanalisis')}"></div>
         </div>
 
+        <!-- Observaciones opcionales -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control" id="observaciones" rows="2" th:field="*{observaciones}"></textarea>
         </div>
 
-
+        <!-- Acciones -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/calidad/dictamen/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Enviar a Cuarentena</button>
@@ -101,11 +140,25 @@
     </form>
 </div>
 
+<!-- Pie de página simple -->
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
+
+<!--
+  Lógica de UI (JS):
+  - Setea fecha por defecto (hoy, tz Buenos Aires) si no viene del DTO
+  - Cambia la visibilidad/requerimientos de:
+      * Número de Análisis (editable vs readonly)
+      * Número de ReAnálisis
+    en base a:
+      * data-dictamen (valor actual del dictamen del lote)
+      * data-analisisencurso (si existe un análisis en curso)
+      * data-nroanalisis (último análisis ya definido)
+-->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        // Referencias a elementos del DOM
         const loteSelect = document.getElementById('codigoLote');
         const grupoEditable = document.getElementById('grupoNroAnalisisEditable');
         const grupoReadonly = document.getElementById('grupoNroAnalisisSoloLectura');
@@ -114,25 +167,38 @@
         const nroAnalisisInput = document.getElementById('nroAnalisis');
         const nroReanalisisInput = document.getElementById('nroReanalisis');
 
+        // Valores que podrían volver del servidor si hubo errores de validación
         var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
         var nroAnalisisDTO = /*[[${movimientoDTO.nroAnalisis}]]*/ null;
         var nroReanalisisDTO = /*[[${movimientoDTO.nroReanalisis}]]*/ null;
 
+        // Inicializa fecha por defecto (yyyy-MM-dd en tz Buenos Aires) si no viene en el DTO
         if (fechaMovimientoDTO) {
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
             const hoy = new Date();
-            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
+            const hoyFormateado = hoy.toLocaleDateString("en-CA", {timeZone: "America/Argentina/Buenos_Aires"});
             document.getElementById("fechaMovimiento").value = hoyFormateado;
         }
 
+        // Controla qué campos se muestran y cuáles son required
         function actualizarVisibilidadCampos() {
             const selectedOption = loteSelect.options[loteSelect.selectedIndex];
-            const dictamen = selectedOption.getAttribute('data-dictamen');
-            const nroAnalisis = selectedOption.getAttribute('data-nroanalisis');
-            const analisisencurso = selectedOption.getAttribute('data-analisisencurso');
+            if (!selectedOption) {
+                // Sin selección: ocultar todo y limpiar requerimientos
+                grupoEditable.style.display = 'none';
+                grupoReadonly.style.display = 'none';
+                grupoReanalisis.style.display = 'none';
+                nroAnalisisInput.required = false;
+                nroReanalisisInput.required = false;
+                return;
+            }
 
-            // El analisis no tiene dictamen
+            const dictamen = selectedOption.getAttribute('data-dictamen');          // p.ej. 'Recibido'
+            const nroAnalisis = selectedOption.getAttribute('data-nroanalisis');    // último análisis definido
+            const analisisencurso = selectedOption.getAttribute('data-analisisencurso'); // si hay análisis en curso
+
+            // Si no hay dictamen en el option, no forzar nada
             if (!dictamen) {
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'none';
@@ -143,27 +209,29 @@
             }
 
             if (analisisencurso && analisisencurso.trim() !== "") {
-                // Hay análisis en curso
+                // Caso 1: Hay análisis EN CURSO -> mostrar número como solo lectura
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'block';
                 grupoReanalisis.style.display = 'none';
 
-                // Mostrar el análisis en curso como readonly
+                // Mostrar el análisis en curso en readonly
                 nroAnalisisReadonlyInput.value = analisisencurso;
 
-                // También setearlo en el campo oculto para enviar
+                // También reflejarlo en el campo que viaja al backend
                 nroAnalisisInput.value = analisisencurso;
                 nroAnalisisInput.required = true;
                 nroReanalisisInput.required = false;
             } else {
                 // No hay análisis en curso
                 if (dictamen.trim().toLowerCase() === 'recibido') {
+                    // Caso 2: Dictamen 'Recibido' -> se debe ingresar un N° de Análisis nuevo (editable)
                     grupoEditable.style.display = 'block';
                     grupoReadonly.style.display = 'none';
                     grupoReanalisis.style.display = 'none';
                     nroAnalisisInput.required = true;
                     nroReanalisisInput.required = false;
 
+                    // Restaurar si venía cargado por error previo
                     if (nroAnalisisDTO) {
                         nroAnalisisInput.value = nroAnalisisDTO;
                     } else {
@@ -171,28 +239,35 @@
                     }
 
                 } else {
+                    // Caso 3: Otros dictámenes (Aprobado/Rechazado/etc.) -> readonly + pedir ReAnálisis
                     grupoEditable.style.display = 'none';
                     grupoReadonly.style.display = 'block';
                     grupoReanalisis.style.display = 'block';
                     nroAnalisisInput.required = false;
                     nroReanalisisInput.required = true;
 
+                    // Mostrar último análisis en readonly si existe
                     nroAnalisisReadonlyInput.value = nroAnalisis || '';
 
+                    // Restaurar valor de reanálisis si venía del DTO por error previo
                     if (nroReanalisisDTO) {
                         nroReanalisisInput.value = nroReanalisisDTO;
                     } else {
                         nroReanalisisInput.value = ''; // limpiar si no hay info
                     }
 
-                    nroAnalisisInput.value = ''; // aseguramos limpio
+                    // Asegurar que el editable quede limpio
+                    nroAnalisisInput.value = '';
                 }
             }
         }
 
+        // Reaccionar al cambio de lote y aplicar reglas de visibilidad
         loteSelect.addEventListener('change', actualizarVisibilidadCampos);
+        // Aplicar reglas al cargar la pantalla (si ya hay un lote seleccionado o valores en DTO)
         actualizarVisibilidadCampos(); // Ejecutar al cargar
 
+        // Enfocar el primer campo con error (si lo hubiera)
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });

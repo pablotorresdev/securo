@@ -2,11 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Ingreso de Stock y Distribución de Bultos</title>
+    <title>Ingreso de Stock por Compra</title>
+    <!-- Bootstrap para estilos rápidos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
+        /* Utilidad para ocultar secciones via JS */
         .hidden {
             display: none;
         }
@@ -15,17 +18,31 @@
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Ingreso de Stock por Compra</h2>
+
+    <!--
+      Formulario principal:
+      - POST a /compras/alta/ingreso-compra
+      - th:object enlaza inputs con loteDTO (binding servidor <-> vista)
+    -->
     <form method="post" th:action="@{/compras/alta/ingreso-compra}" th:object="${loteDTO}">
+        <!-- Token CSRF en el body para validar la solicitud -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Datos Obligatorios</h4>
+
+        <!-- Fecha de ingreso (default: hoy) -->
         <div class="mb-2">
             <label class="form-label" for="fechaIngreso">Fecha de Ingreso:</label>
             <input class="form-control" id="fechaIngreso" required th:field="*{fechaIngreso}" type="date">
             <div class="text-danger" th:errors="*{fechaIngreso}" th:if="${#fields.hasErrors('fechaIngreso')}"></div>
         </div>
 
+        <!--
+          Producto:
+          - th:field bindea *{productoId}
+          - Cada option expone data-unit con la unidad base del producto (para cargar unidades compatibles)
+        -->
         <div class="mb-2">
             <label class="form-label" for="productoId">Producto:</label>
             <select class="form-select" id="productoId" required th:field="*{productoId}">
@@ -42,6 +59,11 @@
             <div class="text-danger" th:errors="*{productoId}" th:if="${#fields.hasErrors('productoId')}"></div>
         </div>
 
+        <!--
+          Cantidad total + Unidad principal + Cantidad de bultos:
+          - La unidad principal se llena con /enums/unidades-compatibles en base a la unidad del producto
+          - bultosTotales gobierna la sección de distribución
+        -->
         <div class="row mb-3 align-items-end">
             <div class="col-md-6">
                 <label class="form-label" for="cantidadInicial">Cantidad:</label>
@@ -61,6 +83,7 @@
             </div>
         </div>
 
+        <!-- Proveedor (obligatorio) -->
         <div class="mb-2">
             <label class="form-label" for="proveedorId">Proveedor:</label>
             <select class="form-select" id="proveedorId" required th:field="*{proveedorId}">
@@ -72,15 +95,17 @@
             <div class="text-danger" th:errors="*{proveedorId}" th:if="${#fields.hasErrors('proveedorId')}"></div>
         </div>
 
+        <!-- Lote del proveedor -->
         <div class="mb-2">
             <label class="form-label" for="loteProveedor">Lote Proveedor:</label>
             <input class="form-control" id="loteProveedor" required th:field="*{loteProveedor}" type="text">
         </div>
 
-        <!-- ========================================================= -->
-        <!-- Bloque: Distribución de Bultos -->
-        <!-- Se muestra solo si bultosTotales > 1 -->
-        <!-- ========================================================= -->
+        <!-- =========================================================
+             Distribución de Bultos
+             - Solo se muestra si bultosTotales > 1
+             - Debe sumar exactamente "cantidadInicial" (validación de negocio lato sensu)
+        ========================================================== -->
         <div class="hidden" id="distribucionBultos">
             <hr class="my-4">
             <h4 class="mb-3 text-primary">Distribución de Cantidades para los Bultos</h4>
@@ -89,16 +114,18 @@
             <div class="text-danger" th:errors="*{cantidadesBultos}" th:if="${#fields.hasErrors('cantidadesBultos')}"></div>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- Sección: Datos Opcionales -->
-        <!-- ========================================================= -->
+        <!-- =========================================================
+             Datos Opcionales
+        ========================================================== -->
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Datos Opcionales</h4>
+
         <div class="mb-2">
             <label class="form-label" for="nroRemito">Número de Remito:</label>
             <input class="form-control" id="nroRemito" maxlength="30" th:field="*{nroRemito}" type="text">
         </div>
 
+        <!-- Fabricante (puede ser distinto del proveedor comercial) -->
         <div class="mb-2">
             <label class="form-label" for="fabricanteId">Fabricante:</label>
             <select class="form-select" id="fabricanteId" th:field="*{fabricanteId}">
@@ -110,6 +137,7 @@
             <div class="text-danger" th:errors="*{fabricanteId}" th:if="${#fields.hasErrors('fabricanteId')}"></div>
         </div>
 
+        <!-- País de origen -->
         <div class="mb-2">
             <label class="form-label" for="paisOrigen">Pais Origen</label>
             <select class="form-select" id="paisOrigen" th:field="*{paisOrigen}">
@@ -121,6 +149,7 @@
             <div class="text-danger" th:errors="*{paisOrigen}" th:if="${#fields.hasErrors('paisOrigen')}"></div>
         </div>
 
+        <!-- Fechas provistas por el proveedor (si aplica) -->
         <div class="mb-2">
             <label class="form-label" for="fechaReanalisisProveedor">Fecha Re Analisis Proveedor:</label>
             <input class="form-control" id="fechaReanalisisProveedor" th:field="*{fechaReanalisisProveedor}" type="date">
@@ -133,6 +162,7 @@
             <div class="text-danger" th:errors="*{fechaVencimientoProveedor}" th:if="${#fields.hasErrors('fechaVencimientoProveedor')}"></div>
         </div>
 
+        <!-- Detalles adicionales -->
         <div class="mb-2">
             <label class="form-label" for="detalleConservacion">Detalle de Conservación:</label>
             <textarea class="form-control" id="detalleConservacion" th:field="*{detalleConservacion}"></textarea>
@@ -143,9 +173,7 @@
             <textarea class="form-control" id="observaciones" th:field="*{observaciones}"></textarea>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- Botones: Cancelar y Guardar -->
-        <!-- ========================================================= -->
+        <!-- Acciones -->
         <div class="d-flex justify-content-between mt-3">
             <a class="btn btn-secondary" th:href="@{/compras/alta/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Guardar</button>
@@ -153,22 +181,23 @@
     </form>
 </div>
 
-<!-- Pie de página -->
+<!-- Pie de página simple -->
 <footer class="text-center p-3 mt-4" style="color: #aaa;">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
 
-<!-- ========================================================= -->
-<!-- JavaScript: Carga de subunidades y generación dinámica de campos de bultos -->
-<!-- Se asegura de que al cargar la página se repoblen los valores del DTO -->
-<!-- ========================================================= -->
+<!-- =========================================================
+     JS: carga de (sub)unidades y generación dinámica de campos de bultos
+     - Repuebla valores desde el DTO si el servidor devolvió errores
+========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
 
-        // Tokens CSRF para las peticiones
+        // Tokens CSRF para incluir en fetch()
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
 
+        // ---------- Inicialización de fechas ----------
         var fechaIngresoDTO = /*[[${loteDTO.fechaIngreso}]]*/ [];
         if (fechaIngresoDTO) {
             document.getElementById("fechaIngreso").value = fechaIngresoDTO;
@@ -187,9 +216,11 @@
             document.getElementById("fechaVencimientoProveedor").value = fechaVencimientoProveedorDTO;
         }
 
-        // Referencia al select de unidad de medida principal
+        // ---------- Unidades ----------
+        // Select principal de unidad de medida (para la cantidad total)
         const unidadSelect = document.getElementById('unidadMedida');
 
+        // Carga unidades compatibles (p.ej. para KG: {KG, G, MG, ...})
         function cargarUnidadesCompatibles(unidadBase) {
             if (!unidadBase) return;
             fetch('/enums/unidades-compatibles?unidad=' + unidadBase, {
@@ -203,6 +234,7 @@
                         const option = document.createElement('option');
                         option.value = unidad;
                         option.textContent = unidad;
+                        // Por defecto deja seleccionada la base
                         if (unidad === unidadBase) option.selected = true;
                         unidadSelect.appendChild(option);
                     });
@@ -210,22 +242,25 @@
                 .catch(error => console.error("Error al cargar unidades:", error));
         }
 
+        // Unidad actual inyectada desde el DTO (o por defecto 'UNIDAD')
         const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
         cargarUnidadesCompatibles(unidadActual);
 
+        // ---------- Subunidades por bulto ----------
+        const bultosContainer = document.getElementById('bultosContainer'); // contenedor para filas de bultos
 
-        const bultosContainer = document.getElementById('bultosContainer'); // Contenedor donde se crearán los campos
-        // Actualiza el select principal cuando el producto cambia
+        // Al cambiar el producto, recarga unidades compatibles y subunidades de cada bulto
         document.getElementById('productoId').addEventListener('change', function () {
             const unidadBase = this.options[this.selectedIndex].getAttribute('data-unit');
             cargarUnidadesCompatibles(unidadBase);
-            // También actualiza los selects de los bultos si existen
+            // También actualizar los selects de cada bulto (si ya existen)
             const selectsBultos = bultosContainer.querySelectorAll('select');
             selectsBultos.forEach(select => {
                 cargarSubunidades(unidadBase, select);
             });
         });
 
+        // Carga subunidades (G, MG, etc.) para un select de bulto concreto
         function cargarSubunidades(unidadBase, selectElement, preselected) {
             if (!unidadBase) return;
             fetch('/enums/subunidades?unidad=' + unidadBase, {
@@ -239,7 +274,7 @@
                         const option = document.createElement('option');
                         option.value = u;
                         option.textContent = u;
-                        // Si se pasó un valor preseleccionado, se lo marca; de lo contrario, usa la unidad base
+                        // Mantener el valor previo si existe, sino seleccionar la base
                         if (preselected) {
                             if (u === preselected) option.selected = true;
                         } else {
@@ -251,20 +286,22 @@
                 .catch(error => console.error("Error al cargar subunidades:", error));
         }
 
-
+        // Valores de DTO para restauración de la distribución
         var unidadMedidaBultosDTO = /*[[${loteDTO.unidadMedidaBultos != null ? loteDTO.unidadMedidaBultos : '[]'}]]*/ [];
         var cantidadesBultosDTO = /*[[${loteDTO.cantidadesBultos != null ? loteDTO.cantidadesBultos : '[]'}]]*/ [];
 
+        // Genera N filas de "Bulto i" con (cantidad + subunidad)
         function generarCamposBultos(cantidad) {
             bultosContainer.innerHTML = ''; // Limpiar campos previos
-            // Se obtiene la unidad actual del select principal para usarla al cargar subunidades
+            // Usar la unidad del select principal (o la actual) como base de subunidades
             const unidadBaseBultos = unidadSelect.value || unidadActual;
+
             for (let i = 1; i <= cantidad; i++) {
                 // --- Creación de la fila para el bulto ---
                 const divRow = document.createElement('div');
                 divRow.className = 'row mb-3 align-items-end';
 
-                // --- Campo: Cantidad para el bulto ---
+                // --- Cantidad del bulto i ---
                 const divCantidad = document.createElement('div');
                 divCantidad.className = 'col-md-6';
                 const labelCantidad = document.createElement('label');
@@ -275,18 +312,18 @@
                 inputCantidad.type = 'number';
                 inputCantidad.step = '0.01';
                 inputCantidad.id = 'cantidadBulto' + i;
-                // Nombre para el binding en el DTO (lista)
+                // Nombre de lista para binding: cantidadesBultos[i-1]
                 inputCantidad.name = 'cantidadesBultos[' + (i - 1) + ']';
                 inputCantidad.className = 'form-control';
                 inputCantidad.required = true;
-                // Si en el DTO ya hay una cantidad para este bulto, se asigna su valor
+                // Restaurar si el DTO trae valor
                 if (cantidadesBultosDTO && cantidadesBultosDTO[i - 1] != null) {
                     inputCantidad.value = cantidadesBultosDTO[i - 1];
                 }
                 divCantidad.appendChild(labelCantidad);
                 divCantidad.appendChild(inputCantidad);
 
-                // --- Campo: Select de Subunidades para el bulto ---
+                // --- Subunidad del bulto i ---
                 const divUnidad = document.createElement('div');
                 divUnidad.className = 'col-md-3';
                 const labelUnidad = document.createElement('label');
@@ -294,34 +331,36 @@
                 labelUnidad.textContent = 'Unidad:';
                 const selectUnidad = document.createElement('select');
                 selectUnidad.id = 'unidadSelect' + i;
+                // Nombre de lista para binding: unidadMedidaBultos[i-1]
                 selectUnidad.name = 'unidadMedidaBultos[' + (i - 1) + ']';
                 selectUnidad.className = 'form-select';
                 selectUnidad.required = true;
-                // Se determina si en el DTO existe un valor preseleccionado para este bulto
+
+                // Preselección si viene desde DTO
                 let preselected = (unidadMedidaBultosDTO && unidadMedidaBultosDTO[i - 1]) ? unidadMedidaBultosDTO[i - 1] : null;
-                // Se carga el select con las subunidades usando la unidad base y el valor preseleccionado
+                // Poblar opciones
                 cargarSubunidades(unidadBaseBultos, selectUnidad, preselected);
 
                 divUnidad.appendChild(labelUnidad);
                 divUnidad.appendChild(selectUnidad);
 
-                // Se añade la fila con ambos campos al contenedor
+                // Agregar fila al contenedor
                 divRow.appendChild(divCantidad);
                 divRow.appendChild(divUnidad);
                 bultosContainer.appendChild(divRow);
             }
         }
 
-        // =========================================================
-        // Listener para cambios en el input de bultosTotales
-        // =========================================================
+        // ---------- Comportamiento de "bultosTotales" ----------
         const bultosTotalesInput = document.getElementById('bultosTotales'); // Input de cantidad de bultos
         const distribucionDiv = document.getElementById('distribucionBultos'); // Contenedor de la distribución
 
+        // Mostrar/ocultar bloque de distribución y generar filas
         bultosTotalesInput.addEventListener('change', function () {
             const valor = parseInt(this.value);
             if (valor) {
                 if (valor > 15 || valor < 1) {
+                    // Defensa extra (igual hay min/max en el input)
                     this.value = 1; // Limitar a mínimo 1 bulto
                     distribucionDiv.classList.add('hidden');
                     bultosContainer.innerHTML = '';
@@ -335,10 +374,7 @@
             }
         });
 
-        // =========================================================
-        // Listener para actualizar las subunidades de los bultos
-        // Cuando la unidad de medida principal cambia, se actualizan todos los selects de bultos
-        // =========================================================
+        // Si cambia la unidad principal, refrescar subunidades de todos los bultos
         unidadSelect.addEventListener('change', function () {
             const nuevaUnidad = this.value;
             const selectsBultos = bultosContainer.querySelectorAll('select');
@@ -347,6 +383,7 @@
             });
         });
 
+        // Helper para regenerar subunidades en todos los bultos (al inicio)
         function generarUnidadesBultos(unidadActual) {
             const selectsBultos = bultosContainer.querySelectorAll('select');
             selectsBultos.forEach(select => {
@@ -354,10 +391,11 @@
             });
         }
 
+        // Llama al helper (no hará nada si aún no hay selects de bultos)
         generarUnidadesBultos(unidadActual);
-        // Si la página se recarga y el DTO trae un valor mayor a 1 en bultosTotales,
-        // se muestra automáticamente el bloque de distribución y se generan los campos con los datos del DTO.
 
+        // ---------- Restauración automática de la distribución ----------
+        // Si el DTO trae bultosTotales > 1, mostrar bloque y recrear filas con datos previos
         var bultosValue;
         var bultosTotalesDTO = /*[[${loteDTO.bultosTotales}]]*/ [];
         if (bultosTotalesDTO && bultosTotalesDTO !== "null") {
@@ -370,6 +408,7 @@
             generarCamposBultos(bultosValue);
         }
 
+        // Enfocar primer campo con error, si existe
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });

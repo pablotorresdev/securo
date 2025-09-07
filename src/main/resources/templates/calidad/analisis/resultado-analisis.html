@@ -3,26 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Resultado de Análisis en Curso - Dictamen</title>
+    <!-- Bootstrap para estilos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf para proteger requests -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Cargar Resultado de Análisis en Curso</h2>
+
+    <!--
+      Form principal:
+      - POST a /calidad/analisis/resultado-analisis
+      - th:object enlaza los campos del formulario con movimientoDTO
+    -->
     <form method="post" th:action="@{/calidad/analisis/resultado-analisis}" th:object="${movimientoDTO}">
-        <!-- Campo oculto para CSRF -->
+        <!-- Campo oculto CSRF que el servidor espera en el body -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+
+        <!-- Fecha del movimiento: por defecto "hoy" (formato yyyy-MM-dd) -->
         <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"
                type="hidden"/>
+
+        <!-- Campos ocultos que se setean al elegir lote/análisis -->
         <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
         <input id="nroAnalisis" th:field="*{nroAnalisis}" type="hidden"/>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Selección del Lote/Análisis a Dictaminar</h5>
 
-        <!-- Combo para seleccionar el Lote -->
-        <!-- Select sin binding, solo para mostrar opciones de Lote -->
+        <!--
+          Selector de Lote (solo UI, sin th:field):
+          - value del option: nroUltimoAnalisisDto (para buscar detalles)
+          - attr-codigoLote: código del lote que viaja a *{codigoLote} (vía JS)
+          - data-es-unidad-venta: flag para lógica de reanálisis
+        -->
         <div class="mb-3">
             <label class="form-label" for="loteSelector">Seleccione el Lote:</label>
             <select class="form-select" id="loteSelector">
@@ -33,10 +49,15 @@
                         th:attr="attr-codigoLote=${loteDTO.codigoLote},data-es-unidad-venta=${loteDTO.esUnidadVenta}">
                 </option>
             </select>
+            <!-- Errores de validación relacionados con *{codigoLote} -->
             <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
         </div>
 
-
+        <!--
+          Selector de Análisis en curso:
+          - Alternativa al selector de Lote (elige directamente un nroAnalisis)
+          - Lleva data/attrs similares para la misma lógica
+        -->
         <div class="mb-3">
             <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
             <select class="form-select" id="analisisSelector">
@@ -48,16 +69,21 @@
                         th:attr="attr-codigoLote=${analisisDTO.codigoLote},data-es-unidad-venta=${analisisDTO.esUnidadVenta}">
                 </option>
             </select>
+            <!-- Errores de validación para *{nroAnalisis} -->
             <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
         </div>
 
-        <!-- Sección de Información Actual -->
+        <!--
+          Sección informativa dinámica:
+          - Se completa por JS con detalles del lote/análisis (fechas, dictamen, título, etc.)
+        -->
         <div class="mb-4" id="infoSection">
         </div>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Ingrese los Datos del Resultado</h5>
 
+        <!-- Dictamen final del análisis -->
         <div class="mb-3">
             <label class="form-label" for="dictamenFinal">Resultado Análisis (Dictamen):</label>
             <select class="form-select" id="dictamenFinal" required th:field="*{dictamenFinal}">
@@ -67,6 +93,7 @@
             <div class="text-danger" th:errors="*{dictamenFinal}" th:if="${#fields.hasErrors('dictamenFinal')}"></div>
         </div>
 
+        <!-- Fecha en la que se realizó el análisis -->
         <div class="mb-3">
             <label class="form-label" for="fechaRealizadoAnalisis">Fecha Realizado el Análisis:</label>
             <input class="form-control" id="fechaRealizadoAnalisis" required th:field="*{fechaRealizadoAnalisis}"
@@ -75,6 +102,8 @@
                  th:if="${#fields.hasErrors('fechaRealizadoAnalisis')}"></div>
         </div>
 
+        <!-- Fecha de reanálisis:
+             - Se oculta si el producto es UNIDAD_DE_VENTA (regla de negocio) -->
         <div class="mb-3" id="groupFechaReanalisis">
             <label class="form-label" for="fechaReanalisis">Fecha de Reanálisis:</label>
             <input class="form-control" id="fechaReanalisis" th:field="*{fechaReanalisis}" type="date">
@@ -82,6 +111,7 @@
                  th:if="${#fields.hasErrors('fechaReanalisis')}"></div>
         </div>
 
+        <!-- Fecha de vencimiento del dictamen -->
         <div class="mb-3">
             <label class="form-label" for="fechaVencimiento">Fecha de Vencimiento:</label>
             <input class="form-control" id="fechaVencimiento" th:field="*{fechaVencimiento}" type="date">
@@ -89,6 +119,7 @@
                  th:if="${#fields.hasErrors('fechaVencimiento')}"></div>
         </div>
 
+        <!-- Título (porcentaje). Default 100 si viene null en el DTO -->
         <div class="mb-3">
             <label class="form-label" for="titulo">Título (%):</label>
             <input class="form-control" id="titulo" name="titulo" placeholder="Ingrese el título (%)" step="0.01"
@@ -97,11 +128,13 @@
             <div class="text-danger" th:errors="*{titulo}" th:if="${#fields.hasErrors('titulo')}"></div>
         </div>
 
+        <!-- Observaciones libres -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones / Detalles:</label>
             <textarea class="form-control" id="observaciones" rows="3" th:field="*{observaciones}"></textarea>
         </div>
 
+        <!-- Acciones del formulario -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/calidad/analisis/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Enviar Resultado</button>
@@ -109,23 +142,34 @@
     </form>
 </div>
 
+<!-- Footer simple -->
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
 
-<!-- Inyección de datos JSON: en este caso no usamos lotesData para el fetch, solo usamos el endpoint -->
+<!--
+  Script con lógica de UI:
+  - Inicializa fechas por defecto (si no vienen del DTO)
+  - Sincroniza selectores (lote <-> análisis)
+  - Carga detalles del análisis vía fetch
+  - Muestra/oculta "Fecha de Reanálisis" según esUnidadVenta
+-->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
 
+        // Lee encabezado y token CSRF para incluir en fetch()
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
 
+        // Referencias a elementos
         const loteSelector = document.getElementById('loteSelector');
         const analisisSelector = document.getElementById('analisisSelector');
         const infoSection = document.getElementById('infoSection');
-        const nroAnalisisField = document.getElementById('nroAnalisis');
-        const codIntLoteField = document.getElementById('codigoLote');
+        const nroAnalisisField = document.getElementById('nroAnalisis');   // bindea *{nroAnalisis}
+        const codIntLoteField = document.getElementById('codigoLote');     // bindea *{codigoLote}
 
+        // Inicialización de fechas desde el DTO (si vuelven por error de validación),
+        // caso contrario setea "hoy" con tz de Buenos Aires.
         var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ [];
         if (fechaRealizadoAnalisisDTO) {
             document.getElementById("fechaRealizadoAnalisis").value = fechaRealizadoAnalisisDTO;
@@ -143,6 +187,7 @@
             document.getElementById("fechaVencimiento").value = fechaVencimientoDTO;
         }
 
+        // Muestra/oculta el campo "Fecha de Reanálisis" según flag de unidad de venta
         function toggleFechaReanalisis(esUnidadVenta) {
             const group = document.getElementById('groupFechaReanalisis');
             const input = document.getElementById('fechaReanalisis');
@@ -151,14 +196,14 @@
             if (esUnidadVenta === true) {
                 group.style.display = 'none';
                 input.value = '';
-                input.disabled = true;   // evita que se envíe
+                input.disabled = true;   // evita que el input viaje en el submit
             } else {
                 group.style.display = '';
                 input.disabled = false;
             }
         }
 
-        // Lee el flag del option seleccionado
+        // Extrae el flag data-es-unidad-venta del option seleccionado en un <select>
         function getEsUnidadVentaFromSelect(selectEl) {
             const opt = selectEl.options[selectEl.selectedIndex];
             if (!opt) return null;
@@ -167,6 +212,7 @@
             return attr === 'true';
         }
 
+        // Rellena infoSection con datos del lote/análisis devueltos por el backend
         function actualizarInfo(loteDTO) {
             let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
             html += '<p><strong>Código Interno:</strong> ' + (loteDTO.codigoLote || 'N/D') + '</p>';
@@ -191,17 +237,23 @@
             infoSection.innerHTML = html;
         }
 
+        // Cambio en selector de Lote:
+        // - Limpia el otro selector
+        // - Setea campos ocultos *{nroAnalisis} y *{codigoLote}
+        // - Aplica regla de reanálisis por esUnidadVenta
+        // - Pide detalles al backend y pinta infoSection
         loteSelector.addEventListener('change', function () {
             analisisSelector.value = "";
             nroAnalisisField.value = this.value;
             codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoLote') || '';
 
-            // 1) Intento con el dato del option
+            // 1) Usa el flag del option para decidir UI de reanálisis
             const esUnidadVentaSel = getEsUnidadVentaFromSelect(this);
             if (esUnidadVentaSel != null) {
                 toggleFechaReanalisis(esUnidadVentaSel);
             }
 
+            // 2) Trae detalles completos por nroAnalisis (y corrige flag si backend lo envía)
             if (this.value) {
                 fetch('/analisis/nroAnalisis/' + this.value, {method: 'GET', headers: {[csrfHeader]: csrfToken}})
                     .then(r => r.json())
@@ -220,6 +272,11 @@
             }
         });
 
+        // Cambio en selector de Análisis (mismo flujo pero a la inversa):
+        // - Limpia selector de Lote
+        // - Setea campos ocultos
+        // - Aplica regla de reanálisis
+        // - Pide detalles y actualiza la UI
         analisisSelector.addEventListener('change', function () {
             loteSelector.value = "";
             nroAnalisisField.value = this.value;
@@ -247,7 +304,9 @@
             }
         });
 
-        // Estado inicial al cargar
+        // Estado inicial:
+        // - Intenta deducir esUnidadVenta desde alguno de los selectores
+        // - Si no hay data, deja visible fecha de reanálisis por defecto
         (function initToggle() {
             let flag = getEsUnidadVentaFromSelect(analisisSelector);
             if (flag == null) flag = getEsUnidadVentaFromSelect(loteSelector);

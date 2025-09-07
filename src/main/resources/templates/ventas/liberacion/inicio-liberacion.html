@@ -3,20 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>Liberación Unidad de Venta</title>
+    <!-- Bootstrap para estilos básicos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF inyectados por Spring Security para proteger POST/PUT/DELETE -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Liberación Unidad de Venta</h2>
+
+    <!--
+      Form principal:
+      - Método POST contra /ventas/liberacion/inicio-liberacion
+      - th:object vincula los campos al movimientoDTO del backend
+    -->
     <form method="post" th:action="@{/ventas/liberacion/inicio-liberacion}" th:object="${movimientoDTO}">
+        <!-- Token CSRF requerido por el backend -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
-        <!-- Select de Lotes disponibles para Cuarentena -->
+        <!--
+          Selector de Lote a liberar:
+          - Bindeado a movimientoDTO.codigoLote
+          - Las options muestran información útil (producto, código interno, fechas, rango de trazas)
+          - La lógica de negocio (qué lotes aparecen) viene prefiltrada desde el controlador
+        -->
         <div class="mb-3">
             <label class="form-label" for="codigoLote">Lote:</label>
             <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
@@ -32,8 +46,12 @@
             </select>
         </div>
 
-
-        <!-- Fecha del Movimiento a Cuarentena -->
+        <!--
+          Fecha del movimiento de liberación:
+          - Bindeada a movimientoDTO.fechaMovimiento
+          - El script al final setea por defecto la fecha de hoy si viene vacía (TZ Buenos Aires)
+          - th:classappend agrega una clase para enfocar el primer campo con error si lo hay
+        -->
         <div class="mb-2">
             <label class="form-label" for="fechaMovimiento">Fecha de Cambio de Dictamen:</label>
             <input class="form-control" id="fechaMovimiento"
@@ -41,13 +59,17 @@
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
                    th:field="*{fechaMovimiento}"
                    type="date">
-
+            <!-- Mensaje de error server-side para la fecha -->
             <div style="color: red; font-weight: bold;"
                  th:errors="*{fechaMovimiento}"
                  th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
         </div>
 
-        <!-- Observaciones (opcional) -->
+        <!--
+          Observaciones:
+          - Campo opcional para notas adicionales del usuario
+          - Bindeado a movimientoDTO.observaciones
+        -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control"
@@ -56,7 +78,7 @@
                       th:field="*{observaciones}"></textarea>
         </div>
 
-        <!-- Botones -->
+        <!-- Acciones principales de la vista -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/ventas/liberacion/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Liberar Producto</button>
@@ -64,13 +86,22 @@
     </form>
 </div>
 
+<!-- Pie de página meramente informativo -->
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
+
+<!-- =========================================================
+     Script de inicialización de la vista
+     - Setea la fecha por defecto si el DTO no la trae
+     - Enfoca el primer campo con error si existe
+========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        // Fecha proveniente del DTO (si el formulario vuelve con errores)
         var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
 
+        // Si no hay fecha seteada, usar la fecha actual en formato yyyy-MM-dd (en-CA)
         if (fechaMovimientoDTO) {
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
@@ -79,10 +110,10 @@
             document.getElementById("fechaMovimiento").value = hoyFormateado;
         }
 
+        // Si hay errores de validación, enfocar el primer campo marcado con .error-field
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });
 </script>
-
 </body>
 </html>

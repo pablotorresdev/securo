@@ -3,20 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>Devolución Unidad de movimiento</title>
+    <!-- Bootstrap para estilos rápidos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">Devolución Unidad de movimiento</h2>
+    <!--
+      Formulario principal:
+      - POST a /ajustes/reverso-movimiento
+      - th:object enlaza campos con movimientoDTO (binding servidor <-> vista)
+    -->
     <form method="post" th:action="@{/ajustes/reverso-movimiento}" th:object="${movimientoDTO}">
+        <!-- Token CSRF en el body para validar la solicitud -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <hr class="my-4">
         <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
 
-        <!-- Select de Lotes -->
+        <!--
+          Selector de Lotes:
+          - th:field="*{codigoLote}" bindea la selección al DTO
+          - Cada option muestra datos del lote para ayudar al usuario a elegir
+        -->
         <div class="mb-3">
             <label class="form-label" for="codigoLote">Lote:</label>
             <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
@@ -34,22 +46,32 @@
             </select>
         </div>
 
+        <!--
+          Wrapper del movimiento a revertir:
+          - Muestra un resumen del último movimiento del lote elegido
+          - Incluye un hidden con el código del movimiento origen que se envía al backend
+          - Por defecto oculto; se muestra si hay error en 'codigoMovimientoOrigen' o cuando JS carga datos
+        -->
         <div class="mb-3" id="wrapperMovajustes"
              th:style="${#fields.hasErrors('codigoMovimientoOrigen')}? '' : 'display:none;'">
             <label class="form-label" for="movResumen">Movimiento a revertir:</label>
             <input class="form-control" id="movResumen" type="text" readonly
                    placeholder="Se mostrará el último movimiento del lote seleccionado"/>
-            <!-- Hidden que se envía al backend -->
+            <!-- Hidden que viaja al backend (binding con *{codigoMovimientoOrigen}) -->
             <input type="hidden" id="codigoMovimientoOrigen" th:field="*{codigoMovimientoOrigen}"/>
 
-            <!-- Error server-side para el movimiento origen -->
+            <!-- Mensaje de error server-side para el movimiento origen -->
             <div class="text-danger fw-bold mt-2"
                  th:errors="*{codigoMovimientoOrigen}"
                  th:if="${#fields.hasErrors('codigoMovimientoOrigen')}">
             </div>
         </div>
 
-        <!-- Fecha -->
+        <!--
+          Fecha del reverso:
+          - Campo hidden (type="date") bindeado a *{fechaMovimiento}
+          - Se setea por JS a hoy si no viene en el DTO
+        -->
         <div class="mb-2">
             <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
                    hidden
@@ -58,7 +80,11 @@
                    type="date">
         </div>
 
-        <!-- Observaciones -->
+        <!--
+          Observaciones:
+          - Nota: el label dice "opcional", pero el textarea tiene required.
+            Si realmente es opcional, quitá el atributo 'required'.
+        -->
         <div class="mb-3">
             <label class="form-label" for="observaciones">Observaciones (opcional):</label>
             <textarea class="form-control"
@@ -68,7 +94,7 @@
                       th:field="*{observaciones}"></textarea>
         </div>
 
-        <!-- Botones -->
+        <!-- Acciones -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/ajustes/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Realizar devolución</button>
@@ -76,23 +102,37 @@
     </form>
 </div>
 
+<!-- Pie de página simple -->
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
+
+<!--
+  Lógica de interfaz (JS):
+  - Carga el último movimiento del lote seleccionado (vía fetch)
+  - Rellena el resumen y el hidden 'codigoMovimientoOrigen'
+  - Setea fecha por defecto (hoy, zona horaria Buenos Aires)
+  - Restaura estado previo si el servidor devolvió validaciones con errores
+-->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', async function () {
+        // Base del contexto (resuelve @{/})
         const base = /*[[@{/}]]*/ '';
+        // Elementos de la UI
         const loteSelect = document.getElementById('codigoLote');
 
         const movWrapper = document.getElementById('wrapperMovajustes');
         const movResumen = document.getElementById('movResumen');
         const movHidden = document.getElementById('codigoMovimientoOrigen');
 
-        // Restauración de estado (si vuelve con errores del servidor)
+        // Restauración de estado (cuando se vuelve con errores del servidor)
         const selectedCodLote = /*[[${movimientoDTO.codigoLote}]]*/ null;
         const selectedCodMov = /*[[${movimientoDTO.codigoMovimientoOrigen}]]*/ null;
 
+        // Construye una línea de resumen legible del movimiento
         function formatResumen(mov) {
+            // Nota: 'mov.fechaMovimiento ?? mov.fechaMovimiento' está duplicado;
+            // se conserva para no alterar lógica; probablemente querías otro campo como 'mov.fechaCreacion'.
             const fechaMovimiento = mov.fechaMovimiento ?? mov.fechaMovimiento ?? '';
             const tipo = mov.tipoMovimiento ?? '';
             const motivo = mov.motivo ?? '';
@@ -102,7 +142,9 @@
             return `Fecha de movimiento: ${fechaMovimiento} | Tipo: ${tipo} | Motivo: ${motivo} | Cant: ${cant} ${um} | Código: ${cod}`;
         }
 
+        // Consulta el último movimiento del lote y actualiza el UI/hidden
         async function loadMovimiento(codLote, preselectCodigoMov) {
+            // Oculta wrapper y limpia valores previos
             movWrapper.style.display = 'none';
             movResumen.value = '';
             movHidden.value = '';
@@ -115,20 +157,23 @@
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
 
-                // Normalizar: si viene objeto -> [obj]; si array -> array; si null -> []
+                // Normalización defensiva: objeto -> [obj], array -> array, null/undefined -> []
                 const lista = Array.isArray(data) ? data : (data ? [data] : []);
 
-                // Elegir el movimiento a mostrar:
+                // Elección del movimiento a mostrar:
+                // - Si se indicó 'preselectCodigoMov', intenta ese; si no, toma el primero
                 let mov = null;
                 if (preselectCodigoMov) {
                     mov = lista.find(m => m.codigoMovimiento === preselectCodigoMov) || null;
                 }
                 if (!mov) mov = lista[0] || null;
 
+                // Si no hay movimiento para ese lote, no se muestra nada
                 if (!mov) {
                     return;
                 }
 
+                // Rellenar resumen visible e input hidden
                 movResumen.value = formatResumen(mov);
                 movHidden.value = mov.codigoMovimiento || '';
                 movWrapper.style.display = 'block';
@@ -139,28 +184,26 @@
             }
         }
 
-        // Eventos
+        // Evento: al cambiar el lote, busca y muestra el último movimiento a revertir
         loteSelect.addEventListener('change', async () => {
             // al cambiar el lote: buscar el último movimiento
             await loadMovimiento(loteSelect.value, null, []);
         });
 
-        // fecha por defecto
+        // Seteo de fecha por defecto (hoy) si no viene desde el DTO
         const fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
         const fechaInput = document.getElementById("fechaMovimiento");
         fechaInput.value = fechaMovimientoDTO || new Date().toLocaleDateString("en-CA", {timeZone: "America/Argentina/Buenos_Aires"});
 
-        // Restauración automática (si ya viene lote/movimiento seleccionados)
+        // Restauración automática: si ya venía lote/movimiento seleccionados, recarga el resumen
         if (selectedCodLote) {
             await loadMovimiento(selectedCodLote, selectedCodMov);
         }
 
-        // foco si hay error
+        // Enfocar el primer campo con error (si lo hubiera)
         const errorField = document.querySelector('.error-field');
         if (errorField) errorField.focus();
     });
 </script>
-
-
 </body>
 </html>
