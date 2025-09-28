@@ -107,5 +107,11 @@ public class LoteService {
         return fromLoteEntities(loteRepository.findAllByActivoTrue());
     }
 
+    //***********CU BAJA: MUESTREO MULTIBULTO***********
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForMuestreoMultiBultoDTOs() {
+        return DTOUtils.fromLoteEntities(loteRepository.findAllForMuestreoMultiBulto());
+    }
+
 }
 

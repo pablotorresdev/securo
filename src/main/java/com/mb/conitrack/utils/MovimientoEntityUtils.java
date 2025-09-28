@@ -13,7 +13,6 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 
-import static com.mb.conitrack.enums.DictamenEnum.DEVOLUCION_CLIENTES;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.RETIRO_MERCADO;
@@ -104,6 +103,8 @@ public class MovimientoEntityUtils {
 
         return movimiento;
     }
+
+
 
     //***********CU12 BAJA: VENTA***********
     public static Movimiento createMovimientoBajaVenta(final LoteDTO dto, final Lote lote) {
@@ -220,6 +221,30 @@ public class MovimientoEntityUtils {
         movimiento.setActivo(true);
 
         movimiento.setObservaciones("_CU3_\n" + dto.getObservaciones());
+        return movimiento;
+    }
+
+    //***********CU7 BAJA: CONSUMO PRODUCCION***********
+    public static Movimiento createMovimientoPorMuestreoMultiBulto(final LoteDTO dto, final Lote lote) {
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(MUESTREO);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+
+        String timestampLoteDTO = dto.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+
+        movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
+
+        movimiento.setFecha(dto.getFechaEgreso());
+
+        movimiento.setObservaciones("_CU3_\n" + dto.getObservaciones());
+
+        movimiento.setLote(lote);
+        movimiento.setActivo(true);
+
         return movimiento;
     }
 

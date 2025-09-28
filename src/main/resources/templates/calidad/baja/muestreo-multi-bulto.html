@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Muestreo Multi Bulto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSRF -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Muestreo Multi Bulto</h2>
+
+    <!--
+        Formulario principal.
+        - method POST
+        - th:action: endpoint que persiste el movimiento de baja por muestreo
+        - th:object: DTO de respaldo para binding bidireccional de campos
+    -->
+    <form method="post" th:action="@{/calidad/baja/muestreo-multi-bulto}" th:object="${loteDTO}">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+        <!-- Hidden requeridos para back -->
+        <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
+        <!-- N° de análisis del lote, se setea por JS cuando se elige el lote -->
+        <input id="nroAnalisis" name="nroAnalisis" type="hidden"/>
+
+        <!-- Selección del lote -->
+        <div class="mb-3">
+            <label class="form-label" for="loteMuestreo">Seleccione el Lote a Muestrear:</label>
+            <select class="form-select" id="loteMuestreo">
+                <option value="">-- Seleccione un Lote --</option>
+                <!--
+                    Cada option expone:
+                    - value: código de lote (viaja al DTO)
+                    - data-nroanalisis: último análisis del lote
+                    - data-dictamen: dictamen del análisis (APROBADO/RECHAZADO/EN_CURSO)
+                    - data-es-unidad-venta: si el producto se maneja por trazas (true/false)
+                    - th:text: texto informativo visible al usuario
+                -->
+                <option th:each="loteDTO : ${loteMuestreoMultiBultoDTOs}"
+                        th:value="${loteDTO.codigoLote}"
+                        th:data-nroanalisis="${loteDTO.nroUltimoAnalisisDto}"
+                        th:data-dictamen="${loteDTO.dictamen}"
+                        th:text="'Nombre: ' + ${loteDTO.nombreProducto}
+                        + ' | ID Lote: ' + ${loteDTO.loteProveedor}
+                        + ' | Nro Análisis: ' + ${loteDTO.nroUltimoAnalisisDto}
+                        + ' | Dictamen: ' + ${loteDTO.dictamen}">
+                </option>
+            </select>
+            <div class="text-danger fw-bold"
+                 th:errors="*{codigoLote}"
+                 th:if="${#fields.hasErrors('codigoLote')}">
+            </div>
+        </div>
+
+        <!-- Panel informativo (se mantiene) -->
+        <div class="border p-3 bg-light mb-4" id="infoLote" style="display:none;">
+            <h5>Detalles del Lote</h5>
+            <div id="infoContent"></div>
+        </div>
+
+        <!-- Sección dinámica por bulto -->
+        <div class="border p-3 bg-light mb-4" id="MuestreoBultos" style="display:none;">
+            <h5>Cantidades por Bulto a consumir</h5>
+            <small class="text-muted">La suma de todas las cantidades no debe superar el stock disponible del lote.</small>
+            <div class="text-danger fw-bold"
+                 th:errors="*{cantidadesBultos}"
+                 th:if="${#fields.hasErrors('cantidadesBultos')}">
+            </div>
+            <div id="bultosContainer"></div>
+        </div>
+
+        <!-- Fecha -->
+        <div class="mb-3">
+            <label class="form-label" for="fechaEgreso">Fecha de Muestreo Multi Bulto:</label>
+            <input class="form-control" id="fechaEgreso" required th:field="*{fechaEgreso}" type="date">
+            <div class="text-danger fw-bold" th:errors="*{fechaEgreso}" th:if="${#fields.hasErrors('fechaEgreso')}"></div>
+        </div>
+
+        <!-- NUEVO: Info de Análisis (igual que simple) -->
+        <div class="mb-2">
+            <label class="form-label">N° de Análisis (último):</label>
+            <p class="form-control-plaintext bg-light ps-2 rounded border" id="nroAnalisisInfo"></p>
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Dictamen del Análisis:</label>
+            <p class="form-control-plaintext bg-light ps-2 rounded border fw-bold" id="dictamenAnalisisInfo"></p>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="mb-3">
+            <label class="form-label" for="observaciones">Observaciones:</label>
+            <textarea class="form-control" id="observaciones" rows="3" th:field="*{observaciones}"></textarea>
+        </div>
+
+        <!-- Acciones -->
+        <div class="d-flex justify-content-between mt-3">
+            <a class="btn btn-secondary" th:href="@{/calidad/baja/cancelar}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar</button>
+        </div>
+    </form>
+</div>
+
+<footer class="text-center p-3 mt-4" style="color: #aaa;">
+    <p>&copy; 2025 Conitrack. All rights reserved.</p>
+</footer>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        /* ---------- CSRF ---------- */
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+
+        /* ---------- referencias DOM ---------- */
+        const loteMuestreo       = document.getElementById('loteMuestreo');
+        const infoLoteDiv      = document.getElementById('infoLote');
+        const infoContent      = document.getElementById('infoContent');
+        const MuestreoBultosDiv= document.getElementById('MuestreoBultos');
+        const bultosContainer  = document.getElementById('bultosContainer');
+        const codigoLoteHidden = document.getElementById('codigoLote');
+
+        // NUEVO: referencias para análisis/dictamen (igual que simple)
+        const analInfo = document.getElementById('nroAnalisisInfo');
+        const dictInfo = document.getElementById('dictamenAnalisisInfo');
+        const nroAnalisisHidden = document.getElementById('nroAnalisis');
+
+        /* ---------- fecha por defecto ---------- */
+        var fechaEgresoDTO = /*[[${loteDTO.fechaEgreso}]]*/ [];
+        if (fechaEgresoDTO) {
+            document.getElementById("fechaEgreso").value = fechaEgresoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
+            document.getElementById("fechaEgreso").value = hoyFormateado;
+        }
+
+        /* ---------- datos Thymeleaf ---------- */
+        let lotes = /*[[${loteMuestreoMultiBultoDTOs}]]*/ '[]';
+        if (typeof lotes === 'string') lotes = JSON.parse(lotes);
+
+        let nroBultoPrev   = /*[[${loteDTO.nroBultoList}]]*/ '[]';
+        let cantidadesPrev = /*[[${loteDTO.cantidadesBultos}]]*/ '[]';
+        let unidadesPrev   = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
+
+        if (typeof nroBultoPrev === 'string')   nroBultoPrev   = JSON.parse(nroBultoPrev);
+        if (typeof cantidadesPrev === 'string') cantidadesPrev = JSON.parse(cantidadesPrev);
+        if (typeof unidadesPrev === 'string')   unidadesPrev   = JSON.parse(unidadesPrev);
+
+        const codigoSeleccionado = /*[[${loteDTO.codigoLote != null ? loteDTO.codigoLote : ''}]]*/ '';
+
+        /* ---------- cache subunidades ---------- */
+        const cacheSub = new Map();
+        function loadSubunits(base, cb) {
+            if (cacheSub.has(base)) { cb(cacheSub.get(base)); return; }
+            fetch(`/enums/subunidades?unidad=${base}`, { headers: { [csrfHeader]: csrfToken }})
+                .then(r => r.json())
+                .then(arr => { cacheSub.set(base, arr); cb(arr); });
+        }
+
+        /* ---------- eventos ---------- */
+        loteMuestreo.addEventListener('change', e => prepararPantalla(e.target.value));
+
+        if (codigoSeleccionado) {
+            loteMuestreo.value = codigoSeleccionado;
+            prepararPantalla(codigoSeleccionado);
+        }
+
+        /* ---------- helpers ---------- */
+        function prepararPantalla(codigo) {
+            resetearPantalla();
+            if (!codigo) return;
+
+            const lote = lotes.find(l => l.codigoLote === codigo);
+            if (!lote) return;
+
+            // === NUEVO: leer data-* desde el option como en "simple" ===
+            const opt = loteMuestreo.options[loteMuestreo.selectedIndex];
+            const nroAnalisis = opt?.dataset?.nroanalisis || '';
+            const dictamen    = opt?.dataset?.dictamen    || 'EN_CURSO';
+
+            analInfo.textContent = nroAnalisis || '—';
+            if (nroAnalisisHidden) nroAnalisisHidden.value = nroAnalisis || '';
+
+            dictInfo.textContent = dictamen || '—';
+            dictInfo.className = 'form-control-plaintext bg-light ps-2 rounded border fw-bold ' +
+                (dictamen === 'APROBADO'  ? 'text-success'
+                    : dictamen === 'RECHAZADO' ? 'text-danger'
+                        : 'text-warning');
+
+            // Hidden para el back
+            codigoLoteHidden.value = codigo;
+
+            // Info y filas por bulto
+            pintarInfo(lote);
+            generarInputsBultos(lote);
+        }
+
+        function resetearPantalla() {
+            infoContent.innerHTML     = '';
+            bultosContainer.innerHTML = '';
+            infoLoteDiv.style.display = 'none';
+            MuestreoBultosDiv.style.display = 'none';
+            codigoLoteHidden.value    = '';
+            analInfo.textContent      = '';
+            dictInfo.textContent      = '';
+            if (nroAnalisisHidden) nroAnalisisHidden.value = '';
+            dictInfo.className = 'form-control-plaintext bg-light ps-2 rounded border fw-bold';
+        }
+
+        function pintarInfo(loteDTO) {
+            const a = loteDTO.ultimoAnalisisDtoDictaminado || {};
+            infoContent.innerHTML = `
+                <hr>
+                <p><strong>Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
+                <p><strong>Código interno:</strong> ${loteDTO.codigoLote}</p>
+                <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
+                <hr>
+                <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</p>
+                <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual} ${loteDTO.unidadMedida}</p>
+                <p><strong>Bultos totales:</strong> ${loteDTO.bultosTotales}</p>
+                <hr>
+                <p><strong>Nº análisis actual (dictaminado):</strong> ${a.nroAnalisis || '—'}</p>
+                <p><strong>Fecha realizado análisis:</strong> ${a.fechaRealizado || '—'}</p>
+                <p><strong>Fecha re-análisis:</strong> ${a.fechaReanalisis || '—'}</p>
+                <p><strong>Fecha vencimiento análisis:</strong> ${a.fechaVencimiento || '—'}</p>
+                <hr>
+                <p><strong>Re-análisis proveedor:</strong> ${loteDTO.fechaReanalisisProveedor || 'N/D'}</p>
+                <p><strong>Vto. proveedor:</strong> ${loteDTO.fechaVencimientoProveedor || 'N/D'}</p>
+            `;
+            infoLoteDiv.style.display = 'block';
+        }
+
+        function generarInputsBultos(lote) {
+            const totalBultos = lote.bultosTotales != null ? lote.bultosTotales : 0;
+
+            const idBultos  = (lote.nroBultoList ?? []).slice(0, totalBultos);
+            const stocks    = (lote.cantidadesBultos ?? []).slice(0, totalBultos);
+            const baseUnits = (lote.unidadMedidaBultos ?? []).slice(0, totalBultos);
+
+            while (stocks.length < totalBultos)    stocks.push(0);
+            while (baseUnits.length < totalBultos) baseUnits.push(lote.unidadMedida);
+
+            for (let i = 0; i < totalBultos; i++) {
+                const valorPrevio = (cantidadesPrev[i] != null) ? cantidadesPrev[i] : 0;
+                const unidadPrev  = unidadesPrev[i] ?? baseUnits[i];
+
+                const row = document.createElement('div');
+                row.className = 'row g-2 align-items-end mb-2';
+
+                row.innerHTML += `
+                  <div class="col-md-6">
+                     <label class="form-label">
+                       Cant. Bulto ${i + 1} (máx ${stocks[i]} ${baseUnits[i]}):
+                     </label>
+                     <input  type="number"
+                             name="cantidadesBultos[${i}]"
+                             class="form-control"
+                             value="${valorPrevio}"
+                             min="0" step="0.01" required>
+                  </div>`;
+
+                const colUni = document.createElement('div');
+                colUni.className = 'col-md-4';
+                colUni.innerHTML = '<label class="form-label">Unidad:</label>';
+                const sel = document.createElement('select');
+                sel.name = `unidadMedidaBultos[${i}]`;
+                sel.className = 'form-select';
+                sel.required = true;
+                colUni.appendChild(sel);
+                row.appendChild(colUni);
+
+                row.insertAdjacentHTML('beforeend',
+                    `<input type="hidden" name="nroBultoList[${i}]" value="${idBultos[i]}">`);
+
+                bultosContainer.appendChild(row);
+
+                loadSubunits(baseUnits[i], arr => {
+                    sel.innerHTML = arr.map(u =>
+                        `<option value="${u}" ${u === unidadPrev ? 'selected' : ''}>${u}</option>`
+                    ).join('');
+                });
+            }
+
+            MuestreoBultosDiv.style.display = 'block';
+        }
+    });
+</script>
+</body>
+</html>

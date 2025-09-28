@@ -1,15 +1,14 @@
 package com.mb.conitrack.service.cu;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
+import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
@@ -21,14 +20,17 @@ import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.utils.UnidadMedidaUtils;
 
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
 import static com.mb.conitrack.utils.LoteEntityUtils.getAnalisisEnCurso;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoPorMuestreoMultiBulto;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMayorUnidadMedida;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.restarMovimientoConvertido;
 import static java.lang.Integer.parseInt;
 
@@ -69,15 +71,15 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             final List<Traza> trazas = new ArrayList<>();
             for (TrazaDTO trazaDTO : dto.getTrazaDTOs()) {
                 final Long nroTraza = trazaDTO.getNroTraza();
-                for(Traza trazasLote : lote.getTrazas()) {
-                    if(trazasLote.getNroTraza().equals(nroTraza)) {
+                for (Traza trazasLote : lote.getTrazas()) {
+                    if (trazasLote.getNroTraza().equals(nroTraza)) {
                         trazas.add(trazasLote);
                         break;
                     }
                 }
             }
 
-            if(movimiento.getDetalles().size() > 1) {
+            if (movimiento.getDetalles().size() > 1) {
                 throw new IllegalArgumentException("Multimuestreo no soportado aun");
             }
 
@@ -113,22 +115,17 @@ public class BajaMuestreoBultoService extends AbstractCuService {
     public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Bulto bulto) {
         final List<Analisis> analisisList = bulto.getLote().getAnalisisList();
         if (analisisList.isEmpty()) {
-            return crearMovimientoMuestreoConPrimerAnalisis(dto, bulto);
+            throw new IllegalStateException("No hay Analisis con al que asociar el muestreo");
         } else {
             final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
             if (analisisEnCurso.isPresent()) {
+                // Muestreo de un producto con Analisis en Curso
                 return crearMovimientoMuestreoConAnalisisEnCurso(dto, bulto, analisisEnCurso);
             } else {
+                // Muestreo un producto con Analisis Dictaminado
                 return crearMovmimientoMuestreoConAnalisisDictaminado(dto, bulto);
             }
         }
-    }
-
-    @Transactional
-    public Movimiento crearMovimientoMuestreoConPrimerAnalisis(final MovimientoDTO dto, final Bulto bulto) {
-        //Si el lote no tiene analisis realizado (Recibido), se crea uno nuevo y se guarda el movimiento
-        final Analisis newAnalisis = analisisRepository.save(DTOUtils.createAnalisis(dto));
-        return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, newAnalisis));
     }
 
     @Transactional
@@ -175,7 +172,8 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             return false;
         }
 
-        final boolean esUnidadVenta = lote.get().getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA; // crea este helper si no lo tenés
+        final boolean esUnidadVenta = lote.get().getProducto().getTipoProducto() ==
+            TipoProductoEnum.UNIDAD_VENTA; // crea este helper si no lo tenés
 
         if (esUnidadVenta) {
             if (dto.getTrazaDTOs() == null || dto.getTrazaDTOs().isEmpty()) {
@@ -202,6 +200,145 @@ public class BajaMuestreoBultoService extends AbstractCuService {
         }
 
         return validarCantidadesMovimiento(dto, bulto.get(), bindingResult);
+    }
+
+    @Transactional
+    public boolean validarmuestreoMultiBultoInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+
+        final Optional<Lote> lote = loteRepository
+            .findByCodigoLoteAndActivoTrue(loteDTO.getCodigoLote());
+
+        if (lote.isEmpty()) {
+            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
+            return false;
+        }
+
+        if (StringUtils.isEmptyOrWhitespace(lote.get().getUltimoNroAnalisis())) {
+            bindingResult.rejectValue("codigoLote", "", "El lote no tiene Analisis asociado.");
+            return false;
+        }
+
+        if (!validarFechaEgresoLoteDtoPosteriorLote(loteDTO, lote.get(), bindingResult)) {
+            return false;
+        }
+
+        return validarCantidadesPorMedidas(loteDTO, lote.get(), bindingResult);
+    }
+
+    @Transactional
+    public LoteDTO bajamuestreoMultiBulto(final LoteDTO loteDTO) {
+
+        Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(loteDTO.getCodigoLote())
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+
+        final Movimiento movimientoMultiBulto = persistirMovimientoBajaMuestreoMultiBulto(loteDTO, lote);
+
+        final List<Integer> nroBultoList = loteDTO.getNroBultoList();
+        final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
+        final List<UnidadMedidaEnum> unidadMedidaBultos = loteDTO.getUnidadMedidaBultos();
+
+        for (int nroBulto : nroBultoList) {
+            final Bulto bultoEntity = lote.getBultoByNro(nroBulto);
+            final BigDecimal cantidaConsumoBulto = cantidadesBultos.get(nroBulto - 1);
+            final UnidadMedidaEnum uniMedidaConsumoBulto = unidadMedidaBultos.get(nroBulto - 1);
+
+            if (BigDecimal.ZERO.compareTo(cantidaConsumoBulto) == 0) {
+                continue;
+            }
+
+            if (bultoEntity.getUnidadMedida() == uniMedidaConsumoBulto) {
+                bultoEntity.setCantidadActual(bultoEntity.getCantidadActual().subtract(cantidaConsumoBulto));
+                if (lote.getUnidadMedida() == uniMedidaConsumoBulto) {
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidaConsumoBulto));
+                } else {
+                    final BigDecimal cantidadConsumoLoteConvertida = convertirCantidadEntreUnidades(
+                        uniMedidaConsumoBulto,
+                        cantidaConsumoBulto,
+                        lote.getUnidadMedida());
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidadConsumoLoteConvertida));
+                }
+            } else {
+                final BigDecimal cantidadConsumoBultoConvertida = convertirCantidadEntreUnidades(
+                    uniMedidaConsumoBulto,
+                    cantidaConsumoBulto,
+                    bultoEntity.getUnidadMedida());
+                bultoEntity.setCantidadActual(bultoEntity.getCantidadActual().subtract(cantidadConsumoBultoConvertida));
+
+                if (lote.getUnidadMedida() == uniMedidaConsumoBulto) {
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidaConsumoBulto));
+                } else {
+                    final BigDecimal cantidadConsumoLoteConvertida = convertirCantidadEntreUnidades(
+                        uniMedidaConsumoBulto,
+                        cantidaConsumoBulto,
+                        lote.getUnidadMedida());
+                    lote.setCantidadActual(lote.getCantidadActual().subtract(cantidadConsumoLoteConvertida));
+                }
+            }
+            if (bultoEntity.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+                bultoEntity.setEstado(EstadoEnum.CONSUMIDO);
+            } else {
+                bultoEntity.setEstado(EstadoEnum.EN_USO);
+            }
+        }
+        if (lote.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+            lote.setEstado(EstadoEnum.CONSUMIDO);
+        } else {
+            lote.setEstado(EstadoEnum.EN_USO);
+        }
+
+        lote.getMovimientos().add(movimientoMultiBulto);
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
+    }
+
+    @Transactional
+    public Movimiento persistirMovimientoBajaMuestreoMultiBulto(final LoteDTO loteDTO, final Lote loteEntity) {
+        final Movimiento movimiento = createMovimientoPorMuestreoMultiBulto(loteDTO, loteEntity);
+
+        Analisis ultimoAnalisis = loteEntity.getUltimoAnalisis();
+        if (ultimoAnalisis == null) {
+            throw new IllegalStateException("No hay Analisis con al que asociar el muestreo");
+        }
+
+        movimiento.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
+
+        UnidadMedidaEnum uniMedidaMovimiento = loteDTO.getUnidadMedidaBultos().get(0);
+
+        for (int i = 1; i < loteDTO.getCantidadesBultos().size(); i++) {
+            uniMedidaMovimiento = obtenerMayorUnidadMedida(uniMedidaMovimiento, loteDTO.getUnidadMedidaBultos().get(i));
+        }
+
+        BigDecimal cantidad = BigDecimal.ZERO;
+
+        for (int i = 0; i < loteDTO.getCantidadesBultos().size(); i++) {
+            final BigDecimal montoBulto = convertirCantidadEntreUnidades(
+                loteDTO.getUnidadMedidaBultos().get(i),
+                loteDTO.getCantidadesBultos().get(i),
+                uniMedidaMovimiento);
+            cantidad = cantidad.add(montoBulto);
+        }
+
+        movimiento.setCantidad(cantidad);
+        movimiento.setUnidadMedida(uniMedidaMovimiento);
+
+        for (int i = 0; i < loteDTO.getNroBultoList().size(); i++) {
+            final Integer nroBulto = loteDTO.getNroBultoList().get(i);
+            if (BigDecimal.ZERO.compareTo(loteDTO.getCantidadesBultos().get(i)) == 0) {
+                continue;
+            }
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimiento)
+                .bulto(loteEntity.getBultoByNro(nroBulto))
+                .cantidad(loteDTO.getCantidadesBultos().get(i))
+                .unidadMedida(loteDTO.getUnidadMedidaBultos().get(i))
+                .build();
+
+            movimiento.getDetalles().add(det);
+        }
+
+        return movimientoRepository.save(movimiento);
     }
 
 }

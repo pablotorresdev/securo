@@ -55,13 +55,19 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/baja/muestreo-multi-bulto}">
+                CU3 - Retiro por Muestreo Multi Bulto [Analista control de calidad]
+            </a>
+        </li>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/analisis/resultado-analisis}">
                 CU5/CU6. Resultado QA: Aprobado/Rechazado [Gerente control de calidad]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/anulacion/anulacion-analisis}">
+               th:href="@{/calidad/analisis/anulacion-analisis}">
                 CUX. Anulacion analisis [Gerente control de calidad]
             </a>
         </li>
@@ -143,12 +149,6 @@
                 CU19. Reverso de Ultimo Movimiento [Analista de planta]
             </a>
         </li>
-        <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU19. Reverso de Ultimo Movimiento [Analista de planta]
-            </a>
-        </li>
-
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Consultas</h4>
         <li>

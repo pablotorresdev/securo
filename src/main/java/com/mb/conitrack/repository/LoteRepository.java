@@ -145,6 +145,27 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
         """)
     List<Lote> findAllForConsumoProduccion();
 
+    @Query("""
+        select l
+        from Lote l
+        where l.activo = true
+            and (l.dictamen is null or l.dictamen <> com.mb.conitrack.enums.DictamenEnum.RECIBIDO)
+            and (l.producto.tipoProducto is null
+                or l.producto.tipoProducto <> com.mb.conitrack.enums.TipoProductoEnum.UNIDAD_VENTA)
+            and exists (
+                select 1 from Analisis a
+                where a.lote = l and a.nroAnalisis is not null
+            )
+            and exists (
+                select 1 from Bulto b
+                where b.lote = l
+                    and b.cantidadActual > 0
+            )
+        order by case when l.fechaIngreso is null then 1 else 0 end,
+            l.fechaIngreso asc, l.codigoLote asc
+        """)
+    List<Lote> findAllForMuestreoMultiBulto();
+
     @EntityGraph(attributePaths = "analisisList") // evita N+1 al calcular la fecha vigente
     @Query("""
             select l
