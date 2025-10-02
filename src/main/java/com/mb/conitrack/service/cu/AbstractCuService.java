@@ -260,6 +260,22 @@ public abstract class AbstractCuService {
         return true;
     }
 
+
+    boolean validarDatosMandatoriosAnulacionAnalisisInput(
+        final MovimientoDTO dto,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // Verificamos que nroAnalisis no sea vacío
+        if (StringUtils.isEmptyOrWhitespace(dto.getNroAnalisis())) {
+            bindingResult.rejectValue("nroAnalisis", "", "El Nro de Análisis es obligatorio");
+            return false;
+        }
+
+        return true;
+    }
+
     boolean validarDatosResultadoAnalisisAprobadoInput(
         final MovimientoDTO dto,
         final BindingResult bindingResult) {
@@ -353,7 +369,7 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validarFechasAnalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
+    boolean validarFechasReanalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

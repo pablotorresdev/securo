@@ -1,6 +1,5 @@
 package com.mb.conitrack.service.cu;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +47,7 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
     }
 
     @Transactional
+    //TODO: fix this method
     public boolean validarResultadoAnalisisInput(
         final MovimientoDTO dto,
         final BindingResult bindingResult) {
@@ -71,30 +71,24 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
             return false;
         }
 
-        final Optional<LocalDate> fechaIngresoLote = loteRepository
-            .findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
-            .map(Lote::getFechaIngreso);
-
-        if (fechaIngresoLote.isEmpty()) {
-            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
-            return false;
-        }
-
-        if (!validarFechaMovimientoPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
-            return false;
-        }
-
-        if (!validarFechaAnalisisPosteriorIngresoLote(dto, fechaIngresoLote.get(), bindingResult)) {
-            return false;
-        }
-
         final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
+
         if (lote.isEmpty()) {
             bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
             return false;
         }
 
-        if (!validarFechasAnalisis(dto, bindingResult)) {
+        Lote loteActual = lote.get();
+
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, loteActual.getFechaIngreso(), bindingResult)) {
+            return false;
+        }
+
+        if (!validarFechaAnalisisPosteriorIngresoLote(dto, loteActual.getFechaIngreso(), bindingResult)) {
+            return false;
+        }
+
+        if (!validarFechasReanalisis(dto, bindingResult)) {
             return false;
         }
 

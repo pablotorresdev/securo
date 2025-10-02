@@ -43,6 +43,7 @@ public class AnalisisController {
     //***********CU6 MODIFICACION: Resultado QA: Rechazado***********
     @GetMapping("/nroAnalisis/{nroAnalisis}")
     @ResponseBody
+    @Transactional(readOnly = true)
     public LoteDTO analisisDetails(@PathVariable("nroAnalisis") String nroAnalisis) {
         final Analisis analisis = analisisService.findByNroAnalisis(nroAnalisis);
         if (analisis == null) {

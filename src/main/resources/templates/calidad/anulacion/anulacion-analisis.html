@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Anulacion Análisis en Curso</title>
+    <!-- Bootstrap para estilos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf para proteger requests -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Cargar Anulacion Análisis en Curso</h2>
+
+    <!--
+      Form principal:
+      - POST a /calidad/anulacion/anulacion-analisis
+      - th:object enlaza los campos del formulario con movimientoDTO
+    -->
+    <form method="post" th:action="@{/calidad/anulacion/anulacion-analisis}" th:object="${movimientoDTO}">
+        <!-- Campo oculto CSRF que el servidor espera en el body -->
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+
+        <!-- Fecha del movimiento: por defecto "hoy" (formato yyyy-MM-dd) -->
+        <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"
+               type="hidden"/>
+
+        <hr class="my-4">
+        <h5 class="mb-3 text-primary">Selección del Análisis a Anular</h5>
+
+        <!--
+          Selector de Análisis en curso:
+          - Alternativa al selector de Lote (elige directamente un nroAnalisis)
+          - Lleva data/attrs similares para la misma lógica
+        -->
+
+        <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
+
+        <div class="mb-3">
+            <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
+            <select class="form-select" id="analisisSelector" th:field="*{nroAnalisis}">
+                <option value="">-- Seleccione un Análisis --</option>
+                <option th:each="analisisDTO : ${analisisDTOs}"
+                        th:value="${analisisDTO.nroAnalisis}"
+                        th:text="'Nro Análisis: ' + ${analisisDTO.nroAnalisis} + ' | Código Lote: ' + ${analisisDTO.codigoLote}"
+                        th:attr="attr-codigoLote=${analisisDTO.codigoLote}">
+                </option>
+            </select>
+            <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+        </div>
+
+        <!--
+          Sección informativa dinámica:
+          - Se completa por JS con detalles del lote/análisis (fechas, dictamen, título, etc.)
+        -->
+        <div class="mb-4" id="infoSection">
+        </div>
+
+        <hr class="my-4">
+        <h5 class="mb-3 text-primary">Ingrese los Datos del anulacion</h5>
+
+        <!-- Observaciones libres -->
+        <div class="mb-3">
+            <label class="form-label" for="observaciones">Observaciones / Detalles:</label>
+            <textarea class="form-control" id="observaciones" rows="3" th:field="*{observaciones}"></textarea>
+        </div>
+
+        <!-- Acciones del formulario -->
+        <div class="d-flex justify-content-between mt-4">
+            <a class="btn btn-secondary" th:href="@{/calidad/anulacion/cancelar}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Enviar anulacion</button>
+        </div>
+    </form>
+</div>
+
+<!-- Footer simple -->
+<footer class="text-center mt-4 text-muted">
+    <p>&copy; 2025 Conitrack. All rights reserved.</p>
+</footer>
+
+<!--
+  Script con lógica de UI:
+  - Inicializa fechas por defecto (si no vienen del DTO)
+  - Carga detalles del análisis vía fetch
+-->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute("content");
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+
+        const analisisSelector = document.getElementById('analisisSelector');
+        const infoSection      = document.getElementById('infoSection');
+        const codIntLoteField = document.getElementById('codigoLote');     // bindea *{codigoLote}
+
+        function actualizarInfo(loteDTO) {
+            let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
+            html += '<p><strong>Código Interno:</strong> ' + (loteDTO.codigoLote || 'N/D') + '</p>';
+            html += '<p><strong>Producto:</strong> ' + (loteDTO.nombreProducto || 'N/D') + '</p>';
+            html += '<p><strong>Fecha ingreso:</strong> ' + (loteDTO.fechaIngreso || 'N/D') + '</p>';
+            html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (loteDTO.fechaReanalisisProveedor || 'N/D') + '</p>';
+            html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (loteDTO.fechaVencimientoProveedor || 'N/D') + '</p>';
+            if (loteDTO.analisisDTOs && loteDTO.analisisDTOs.length > 0) {
+                html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
+                loteDTO.analisisDTOs.forEach(function (analisisDTO) {
+                    html += '<li>';
+                    html += '<strong>Nro Análisis:</strong> ' + analisisDTO.nroAnalisis + ' ';
+                    html += '<strong>Fecha Realizado:</strong> ' + (analisisDTO.fechaRealizado || 'En curso') + ' | ';
+                    html += '<strong>Fecha Reanálisis:</strong> ' + (analisisDTO.fechaReanalisis || 'N/A') + ' | ';
+                    html += '<strong>Fecha Vencimiento:</strong> ' + (analisisDTO.fechaVencimiento || 'N/A') + ' | ';
+                    html += '<strong>Dictamen:</strong> ' + (analisisDTO.dictamen || 'En curso') + ' | ';
+                    html += '<strong>Título:</strong> ' + (analisisDTO.titulo || 'N/A');
+                    html += '</li>';
+                });
+                html += '</ul>';
+            }
+            infoSection.innerHTML = html;
+        }
+
+        analisisSelector.addEventListener('change', function () {
+            const nro = this.value;           // <-- ya bindeado al DTO por th:field, viaja en el submit
+            infoSection.innerHTML = '';
+            codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoLote') || '';
+
+            if (!nro) return;
+            fetch('/analisis/nroAnalisis/' + encodeURIComponent(nro), {
+                method: 'GET',
+                headers: { [csrfHeader]: csrfToken }
+            })
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .then(data => {
+                    actualizarInfo(data);
+                })
+                .catch(() => { infoSection.innerHTML = '<p class="text-danger">Error al cargar detalles.</p>'; });
+        });
+
+        // Si el DTO ya trae un nroAnalisis (post con error/edición), dispará la carga de info:
+        if (analisisSelector.value) {
+            analisisSelector.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
+</body>
+</html>

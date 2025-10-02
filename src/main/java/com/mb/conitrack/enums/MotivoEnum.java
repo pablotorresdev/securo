@@ -7,6 +7,7 @@ public enum MotivoEnum {
     DEVOLUCION_COMPRA("Devolucion compra"), //BAJA
     ANALISIS("Analisis"), //MODIFICACION
     RESULTADO_ANALISIS("Resultado analisis"), //MODIFICACION
+    ANULACION_ANALISIS("Anulacion analisis"), //MODIFICACION
     CONSUMO_PRODUCCION("Consumo produccion"), //BAJA
     PRODUCCION_PROPIA("Produccion propia"), //ALTA
     LIBERACION("Liberacion"), //MODIFICACION

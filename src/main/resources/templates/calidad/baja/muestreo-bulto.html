@@ -23,8 +23,6 @@
     <form method="post" th:action="@{/calidad/baja/muestreo-bulto}" th:object="${movimientoDTO}">
         <!-- Campo oculto CSRF para compatibilidad con validación del servidor -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-        <!-- Hidden requeridos para back -->
-        <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
         <!-- N° de análisis del lote, se setea por JS cuando se elige el lote -->
         <input id="nroAnalisis" th:field="*{nroAnalisis}" type="hidden"/>
 
