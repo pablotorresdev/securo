@@ -36,13 +36,19 @@ public class LoteService {
         return DTOUtils.fromLoteEntities(loteRepository.findAllForMuestreo());
     }
 
+    //***********CU 3 BAJA: MUESTREO MULTIBULTO***********
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForMuestreoMultiBultoDTOs() {
+        return DTOUtils.fromLoteEntities(loteRepository.findAllForMuestreoMultiBulto());
+    }
+
     //***********CU4 BAJA: DEVOLUCION COMPRA***********
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForDevolucionCompraDTOs() {
         return DTOUtils.fromLoteEntities(loteRepository.findAllForDevolucionCompra());
     }
 
-    //***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
+    //***********CU> MODIFICACION: CU8 Reanalisis de Producto Aprobado***********
     //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForReanalisisLoteDTOs() {
@@ -61,20 +67,20 @@ public class LoteService {
         return DTOUtils.fromLoteEntities(loteRepository.findAllForConsumoProduccion());
     }
 
-    //***********CU11 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
+    //***********CU21 MODIFICACION: LIBERACIÓN UNIDAD DE VENTA***********
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForLiberacionProductoDTOs() {
         return fromLoteEntities(loteRepository.findAllForLiberacionProducto());
     }
 
-    //***********CU12 BAJA: VENTA***********
+    //***********CU22 BAJA: VENTA***********
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForVentaProductoDTOs() {
         return fromLoteEntities(loteRepository.findAllForVentaProducto());
     }
 
-    //***********CU13 ALTA: DEVOLUCION VENTA***********
-    //***********CU14 MODIFICACION: RETIRO MERCADO***********
+    //***********CU23 ALTA: DEVOLUCION VENTA***********
+    //***********CU24 MODIFICACION: RETIRO MERCADO***********
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForDevolucionOrRecallDTOs() {
         return fromLoteEntities(loteRepository.findAllForDevolucionOrRecall());
@@ -106,12 +112,6 @@ public class LoteService {
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForReversoMovimientoDTOs() {
         return fromLoteEntities(loteRepository.findAllForReversoMovimiento());
-    }
-
-    //***********CU BAJA: MUESTREO MULTIBULTO***********
-    @Transactional(readOnly = true)
-    public List<LoteDTO> findAllForMuestreoMultiBultoDTOs() {
-        return DTOUtils.fromLoteEntities(loteRepository.findAllForMuestreoMultiBulto());
     }
 
 }

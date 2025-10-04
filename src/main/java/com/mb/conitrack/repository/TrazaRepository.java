@@ -42,7 +42,7 @@ public interface TrazaRepository extends JpaRepository<Traza, Long> {
         """)
     List<Traza> findVendidasByCodigoMovimiento(String codigoMovimiento);
 
-    //***********CU14 MODIFICACION: RETIRO MERCADO***********
+    //***********CU24 MODIFICACION: RETIRO MERCADO***********
     @Query("""
           select t
           from Traza t

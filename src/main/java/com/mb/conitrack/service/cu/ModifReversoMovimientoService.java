@@ -24,7 +24,7 @@ import static com.mb.conitrack.enums.EstadoEnum.NUEVO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoReverso;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.sumarMovimientoConvertido;
 
-//***********CUX ALTA: DEVOLUCION VENTA***********
+//***********CU23 ALTA: DEVOLUCION VENTA***********
 @Service
 public class ModifReversoMovimientoService extends AbstractCuService {
 

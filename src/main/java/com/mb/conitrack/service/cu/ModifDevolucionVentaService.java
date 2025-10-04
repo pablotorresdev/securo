@@ -27,7 +27,7 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntity;
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
-//***********CU13 ALTA: DEVOLUCION VENTA***********
+//***********CU23 ALTA: DEVOLUCION VENTA***********
 @Service
 public class ModifDevolucionVentaService extends AbstractCuService {
 

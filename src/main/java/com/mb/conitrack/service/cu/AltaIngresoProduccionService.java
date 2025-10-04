@@ -21,7 +21,7 @@ import static com.mb.conitrack.utils.LoteEntityUtils.createLoteIngreso;
 import static com.mb.conitrack.utils.LoteEntityUtils.populateLoteAltaProduccionPropia;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
 
-//***********CU10 ALTA: INGRESO PRODUCCION INTERNA***********
+//***********CU20 ALTA: INGRESO PRODUCCION INTERNA***********
 @Service
 public class AltaIngresoProduccionService extends AbstractCuService {
 

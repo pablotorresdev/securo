@@ -23,7 +23,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 public class LoteEntityUtils {
 
     //***********CU1 ALTA: COMPRA***********
-    //***********CU10 ALTA: INGRESO PRODUCCION INTERNA***********
+    //***********CU20 ALTA: INGRESO PRODUCCION INTERNA***********
     public static Lote createLoteIngreso(final LoteDTO loteDTO) {
         Lote lote = new Lote();
 
@@ -65,7 +65,7 @@ public class LoteEntityUtils {
         }
     }
 
-    //***********CU> MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
+    //***********CU> MODIFICACION: CU8 Reanalisis de Producto Aprobado***********
     public static void populateLoteAltaProduccionPropia(
         final Lote lote,
         final LoteDTO loteDTO,

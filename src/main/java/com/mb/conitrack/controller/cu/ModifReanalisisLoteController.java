@@ -30,8 +30,8 @@ public class ModifReanalisisLoteController extends AbstractCuController {
         return "redirect:/";
     }
 
-    //***************************** CUZ Reanalisis de Producto Aprobado************************************
-    // CUZ: Reanalisis de Producto Aprobado
+    //***************************** CU8 Reanalisis de Producto Aprobado************************************
+    // CU8: Reanalisis de Producto Aprobado
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
     @GetMapping("/inicio-reanalisis")
     public String showReanalisisLoteForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {

@@ -36,7 +36,7 @@ import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoBajaRecall;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
-//***********CU14 ALTA/MODIF: RECALL***********
+//***********CU24 ALTA/MODIF: RECALL***********
 @Service
 public class ModifRetiroMercadoService extends AbstractCuService {
 

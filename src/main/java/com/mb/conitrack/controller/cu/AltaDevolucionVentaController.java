@@ -31,7 +31,7 @@ public class AltaDevolucionVentaController extends AbstractCuController {
     }
 
     //***************************** CU3 Muestreo************************************
-    // CU13: Devolución de cliente
+    // CU23: Devolución de cliente
     // @PreAuthorize("hasAuthority('ROLE_GERENTE_GARANTIA')")
     @GetMapping("/devolucion-venta")
     public String showDevolucionVentaForm(

@@ -17,7 +17,7 @@ import com.mb.conitrack.entity.Movimiento;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
-//***********CUZ MODIFICACION: CUZ Reanalisis de Producto Aprobado***********
+//***********CU8 MODIFICACION: CU8 Reanalisis de Producto Aprobado***********
 @Service
 public class ModifReanalisisLoteService extends AbstractCuService {
 
@@ -50,7 +50,7 @@ public class ModifReanalisisLoteService extends AbstractCuService {
         movimiento.setDictamenFinal(lote.getDictamen());
         movimiento.setNroAnalisis(nroAnalisis);
 
-        movimiento.setObservaciones("_CUZ_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU8_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 

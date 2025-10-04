@@ -48,7 +48,7 @@ public class ModifAnulacionAnalisisService extends AbstractCuService {
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(DictamenEnum.ANULADO);
 
-        movimiento.setObservaciones("_CUX_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU11_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 

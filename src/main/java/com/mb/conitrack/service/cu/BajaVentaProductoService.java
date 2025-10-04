@@ -21,7 +21,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
 
-//***********CU12 BAJA: VENTA***********
+//***********CU22 BAJA: VENTA***********
 @Service
 public class BajaVentaProductoService extends AbstractCuService {
 

@@ -39,7 +39,7 @@ public class TrazasController {
         return "trazas/list-trazas";
     }
 
-    //***********CU13 MODIF: DEVOLUCION VENTA***********
+    //***********CU23 MODIF: DEVOLUCION VENTA***********
     @GetMapping("/trazas-vendidas/movimiento/{codigoMovimiento}")
     @ResponseBody
     @Transactional(readOnly = true)
@@ -47,7 +47,7 @@ public class TrazasController {
         return trazaService.getTrazasVendidasByCodigoMovimiento(codigoMovimiento);
     }
 
-    //***********CU14 MODIFICACION: RETIRO MERCADO***********
+    //***********CU24 MODIFICACION: RETIRO MERCADO***********
     @GetMapping("/trazas-vendidas/codigoLote/{codigoLote}")
     @ResponseBody
     @Transactional(readOnly = true)

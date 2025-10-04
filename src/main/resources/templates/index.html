@@ -67,20 +67,20 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/anulacion/anulacion-analisis}">
-                CUX. Anulacion analisis [Gerente control de calidad]
-            </a>
-        </li>
-        <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/reanalisis/inicio-reanalisis}">
-                CUZ. Reanalisis de Producto Aprobado [Gerente control de calidad]
+                CU8. Reanalisis de Producto Aprobado [Gerente control de calidad]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/lotes/list-fechas-lotes}">
-                CU8/CU9 [AUTOMATICO] -> Consulta Fecha Reanalisis / Vencimiento [A DEFINIR]
+                CU9/CU10 [AUTOMATICO] -> Consulta Fecha Reanalisis / Vencimiento [A DEFINIR]
+            </a>
+        </li>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/anulacion/anulacion-analisis}">
+                CU11. Anulacion analisis [Gerente control de calidad]
             </a>
         </li>
 
@@ -95,7 +95,7 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/produccion/alta/ingreso-produccion}">
-                CU10. Ingreso de stock por Producción Interna [Supervisor de planta]
+                CU20. Ingreso de stock por Producción Interna [Supervisor de planta]
             </a>
         </li>
         <br>
@@ -103,50 +103,44 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/liberacion/inicio-liberacion}">
-                CU11. Liberación Unidad de venta [Gerente garantía de calidad/DT]
+                CU21. Liberación Unidad de venta [Gerente garantía de calidad/DT]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/baja/venta-producto}">
-                CU12. Venta de Producto Propio [Analista de planta]
+                CU22. Venta de Producto Propio [Analista de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/devolucion/devolucion-venta}">
-                CU13. Devolución de cliente [Gerente garantía de calidad]
+                CU23. Devolución de cliente [Gerente garantía de calidad]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/alta/devolucion-venta}">
-                CU13. Devolución de cliente reutilizable [Gerente garantía de calidad]
+                CU23. Devolución de cliente reutilizable [Gerente garantía de calidad]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/recall/retiro-mercado}">
-                CU14. Retiro de mercado [Gerente garantía de calidad]
+                CU24. Retiro de mercado [Gerente garantía de calidad]
             </a>
         </li>
         <br>
         <h5 class="mb-3 text-primary">Contingencias y Configuracion</h5>
         <li>
             <a class="disabled" href="javascript:void(0);">
-                CU15. Ajuste de Inventario [Supervisor de planta]
+                CU25. Ajuste de Inventario [Supervisor de planta]
             </a>
         </li>
-        <li>
-            <a class="disabled" href="javascript:void(0);">
-                CU18. Configuración del sistema [Admin]
-            </a>
-        </li>
-
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ajustes/reverso-movimiento}">
-                CU19. Reverso de Ultimo Movimiento [Analista de planta]
+                CU26. Reverso de Ultimo Movimiento [???]
             </a>
         </li>
         <hr class="my-4">
@@ -188,19 +182,31 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/proveedores/}">
-                CU16. ABM Proveedores [Analista de planta]
+                CU30. ABM Proveedores [Analista de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/productos/}">
-                CU17. ABM Productos [Gerente control de calidad]
+                CU31. ABM Productos [Gerente control de calidad]
+            </a>
+        </li>
+
+        <hr class="my-4">
+        <h4 class="mb-3 text-primary">Admin</h4>
+        <li>
+            <a class="disabled" href="javascript:void(0);">
+                CU32. Configuración del sistema [Admin]
+            </a>
+        </li>        <li>
+            <a class="disabled" href="javascript:void(0);">
+                CU33. ABM Usuarios [Admin]
             </a>
         </li>
 <!--        <li>-->
 <!--            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"-->
 <!--               th:href="@{/users/}">-->
-<!--                CUX. ABM Usuarios [Admin]-->
+<!--                CU33. ABM Usuarios [Admin]-->
 <!--            </a>-->
 <!--        </li>-->
     </ul>

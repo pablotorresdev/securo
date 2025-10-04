@@ -30,7 +30,7 @@ import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoDevolucion;
 import static java.lang.Boolean.TRUE;
 
-//***********CU13 ALTA: DEVOLUCION VENTA***********
+//***********CU23 ALTA: DEVOLUCION VENTA***********
 @Service
 public class AltaDevolucionVentaService extends AbstractCuService {
 

@@ -20,7 +20,7 @@ import static com.mb.conitrack.enums.DictamenEnum.LIBERADO;
 import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
-//***********CU11 MODIFICACION: LIBERACION DE PRODUCTO***********
+//***********CU21 MODIFICACION: LIBERACION DE PRODUCTO***********
 @Service
 public class ModifLiberacionVentasService extends AbstractCuService {
 
@@ -55,7 +55,7 @@ public class ModifLiberacionVentasService extends AbstractCuService {
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(LIBERADO);
 
-        movimiento.setObservaciones("_CU11_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU21_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 

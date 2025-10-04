@@ -36,7 +36,7 @@ public class MovimientoService {
         return fromMovimientoEntities(movimientoRepository.findAllByLoteCodigoLoteOrderByFechaAsc(codigoLote));
     }
 
-    //***********CU13 MODIF: DEVOLUCION VENTA***********    @Transactional(readOnly = true)
+    //***********CU23 MODIF: DEVOLUCION VENTA***********    @Transactional(readOnly = true)
     public List<MovimientoDTO> getMovimientosVentaByCodigolote(final String codigoLote) {
         return fromMovimientoEntities(movimientoRepository.findVentasConTrazasVendidasByCodigoLote(codigoLote));
     }

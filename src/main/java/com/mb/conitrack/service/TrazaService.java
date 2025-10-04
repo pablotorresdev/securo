@@ -27,13 +27,13 @@ public class TrazaService {
         return fromTrazaEntities(trazaRepository.findByLoteCodigoLoteOrderByNroTrazaAsc(codigoLote));
     }
 
-    //***********CU13 MODIF: DEVOLUCION VENTA***********
+    //***********CU23 MODIF: DEVOLUCION VENTA***********
     @Transactional(readOnly = true)
     public List<TrazaDTO> getTrazasVendidasByCodigoMovimiento(final String codigoMovimiento) {
         return fromTrazaEntities(trazaRepository.findVendidasByCodigoMovimiento(codigoMovimiento));
     }
 
-    //***********CU14 MODIF: RECALL***********
+    //***********CU24 MODIF: RECALL***********
     @Transactional(readOnly = true)
     public List<TrazaDTO> getTrazasVendidasByCodigoLote(final String codigoLote) {
         return fromTrazaEntities(trazaRepository.findVendidasByCodigoLote(codigoLote));

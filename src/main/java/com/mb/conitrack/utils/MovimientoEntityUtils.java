@@ -30,7 +30,7 @@ public class MovimientoEntityUtils {
         }
     }
 
-    //***********CU14 BAJA: RETIRO MERCADO***********
+    //***********CU24 BAJA: RETIRO MERCADO***********
     public static Movimiento crearMovimientoBajaRecall(final MovimientoDTO dto) {
         Movimiento movimiento = new Movimiento();
 
@@ -46,7 +46,7 @@ public class MovimientoEntityUtils {
         movimiento.setFecha(dto.getFechaMovimiento());
 
         movimiento.setActivo(true);
-        movimiento.setObservaciones("_CU14_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU24_\n" + dto.getObservaciones());
         return movimiento;
     }
 
@@ -78,10 +78,10 @@ public class MovimientoEntityUtils {
         return movimiento;
     }
 
-    //***********CU10 ALTA: PRODUCCION INTERNA***********
+    //***********CU20 ALTA: PRODUCCION INTERNA***********
     public static Movimiento createMovimientoAltaIngresoProduccion(final Lote lote) {
         Movimiento movimiento = createMovimientoAlta(lote);
-        movimiento.setObservaciones("_CU10_\n" + lote.getObservaciones());
+        movimiento.setObservaciones("_CU20_\n" + lote.getObservaciones());
         movimiento.setMotivo(MotivoEnum.PRODUCCION_PROPIA);
         return movimiento;
     }
@@ -106,7 +106,7 @@ public class MovimientoEntityUtils {
 
 
 
-    //***********CU12 BAJA: VENTA***********
+    //***********CU22 BAJA: VENTA***********
     public static Movimiento createMovimientoBajaVenta(final LoteDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
@@ -116,17 +116,17 @@ public class MovimientoEntityUtils {
             .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
         movimiento.setCodigoMovimiento(lote.getCodigoLote() + "-" + timestampLoteDTO);
         movimiento.setFecha(dto.getFechaEgreso());
-        movimiento.setObservaciones("_CU12_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU22_\n" + dto.getObservaciones());
         movimiento.setLote(lote);
         movimiento.setActivo(true);
 
         return movimiento;
     }
 
-    //***********CU14 ALTA: PRODUCCION INTERNA***********
+    //***********CU24 ALTA: PRODUCCION INTERNA***********
     public static Movimiento createMovimientoAltaIngresoDevolucion(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoAlta(dto, lote);
-        movimiento.setObservaciones("_CU14_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU24_\n" + dto.getObservaciones());
         movimiento.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
         return movimiento;
     }
@@ -171,7 +171,7 @@ public class MovimientoEntityUtils {
     //************************************************************
 
     //***********CU1 ALTA: COMPRA***********
-    //***********CU10 ALTA: PRODUCCION INTERNA***********
+    //***********CU20 ALTA: PRODUCCION INTERNA***********
     static Movimiento createMovimientoAlta(final Lote lote) {
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.ALTA);

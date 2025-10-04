@@ -31,8 +31,8 @@ public class ModifLiberacionVentasController extends AbstractCuController {
         return "redirect:/";
     }
 
-    //***************************** CU11 LIBERACION************************************
-    // CU11: Dictamen Lote a liberacion
+    //***************************** CU21 LIBERACION************************************
+    // CU21: Dictamen Lote a liberacion
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_ventas')")
     @GetMapping("/inicio-liberacion")
     public String showLiberacionProductoForm(

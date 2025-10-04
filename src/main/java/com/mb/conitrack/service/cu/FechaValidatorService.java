@@ -29,7 +29,7 @@ public class FechaValidatorService extends AbstractCuService {
         procesarLotesVencidos(findAllLotesVencidos());
     }
 
-    //***********CU9 MODIFICACION: ANALSIS EXPIRADO***********
+    //***********CU10 MODIFICACION: ANALSIS EXPIRADO***********
     @Transactional(readOnly = true)
     List<Lote> findAllLotesAnalisisExpirado() {
         LocalDate hoy = LocalDate.now();
@@ -41,7 +41,7 @@ public class FechaValidatorService extends AbstractCuService {
             .toList();
     }
 
-    //***********CU8 MODIFICACION: VENCIDO***********
+    //***********CU9 MODIFICACION: VENCIDO***********
     @Transactional(readOnly = true)
     List<Lote> findAllLotesVencidos() { // OJO: devuelve NO vencidos como tu versión previa
         LocalDate hoy = LocalDate.now();
@@ -53,7 +53,7 @@ public class FechaValidatorService extends AbstractCuService {
             .toList(); // ya viene ordenado desde la DB
     }
 
-    //***********CU9 MODIFICACION: ANALSIS EXPIRADO***********
+    //***********CU10 MODIFICACION: ANALSIS EXPIRADO***********
     @Transactional
     List<Lote> persistirExpiracionAnalisis(final MovimientoDTO dto, final List<Lote> lotes) {
         List<Lote> result = new ArrayList<>();
@@ -66,7 +66,7 @@ public class FechaValidatorService extends AbstractCuService {
         return result;
     }
 
-    //***********CU9 MODIFICACION: VENCIDO***********
+    //***********CU10 MODIFICACION: VENCIDO***********
     @Transactional
     Movimiento persistirMovimientoExpiracionAnalisis(final MovimientoDTO dto, Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
@@ -75,11 +75,11 @@ public class FechaValidatorService extends AbstractCuService {
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(ANALISIS_EXPIRADO);
 
-        movimiento.setObservaciones("_CU8_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU9_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
-    //***********CU9 MODIFICACION: VENCIDO***********
+    //***********CU10 MODIFICACION: VENCIDO***********
     @Transactional
     Movimiento persistirMovimientoProductoVencido(final MovimientoDTO dto, Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
@@ -88,11 +88,11 @@ public class FechaValidatorService extends AbstractCuService {
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(VENCIDO);
 
-        movimiento.setObservaciones("_CU9_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU10_\n" + dto.getObservaciones());
         return movimientoRepository.save(movimiento);
     }
 
-    //***********CU8 MODIFICACION: VENCIDO***********
+    //***********CU9 MODIFICACION: VENCIDO***********
     @Transactional
     List<Lote> persistirProductosVencidos(final MovimientoDTO dto, final List<Lote> lotes) {
         //TODO, eliminar NRO de Reanalisis del DTO
@@ -115,7 +115,7 @@ public class FechaValidatorService extends AbstractCuService {
         final MovimientoDTO dto = new MovimientoDTO();
         dto.setFechaMovimiento(hoy);
         dto.setFechaYHoraCreacion(OffsetDateTime.now());
-        dto.setObservaciones("(CU8) ANALISIS EXPIRADO POR FECHA: " + hoy);
+        dto.setObservaciones("(CU9) ANALISIS EXPIRADO POR FECHA: " + hoy);
         final List<Lote> lotes = persistirExpiracionAnalisis(dto, lotesReanalisis);
         for (Lote lote : lotes) {
             //log
@@ -135,7 +135,7 @@ public class FechaValidatorService extends AbstractCuService {
         final MovimientoDTO dto = new MovimientoDTO();
         dto.setFechaMovimiento(hoy);
         dto.setFechaYHoraCreacion(OffsetDateTime.now());
-        dto.setObservaciones("(CU9) VENCIMIENTO AUTOMATICO POR FECHA: " + hoy);
+        dto.setObservaciones("(CU10) VENCIMIENTO AUTOMATICO POR FECHA: " + hoy);
         final List<Lote> lotes = persistirProductosVencidos(dto, lotesVencidos);
         for (Lote lote : lotes) {
             //log

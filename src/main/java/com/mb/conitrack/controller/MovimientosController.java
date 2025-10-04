@@ -40,7 +40,7 @@ public class MovimientosController {
         return "movimientos/list-movimientos";
     }
 
-    //***********CU13 MODIF: DEVOLUCION VENTA***********
+    //***********CU23 MODIF: DEVOLUCION VENTA***********
     @GetMapping("/movimientos-venta/{codInterno}")
     @ResponseBody
     @Transactional(readOnly = true)
@@ -49,7 +49,7 @@ public class MovimientosController {
         return movimientoService.getMovimientosVentaByCodigolote(codInterno);
     }
 
-    //***********CU13 MODIF: DEVOLUCION VENTA***********
+    //***********CU23 MODIF: DEVOLUCION VENTA***********
 
     @GetMapping("/ultimo-movimiento/{codigoLote}")
     @ResponseBody

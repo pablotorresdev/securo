@@ -32,7 +32,7 @@ public class AltaIngresoProduccionController extends AbstractCuController {
         return "redirect:/";
     }
 
-    // CU10 Ingreso por produccion interna *****************************************************
+    // CU20 Ingreso por produccion interna *****************************************************
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/ingreso-produccion")
     public String showIngresoProduccion(@ModelAttribute("loteDTO") LoteDTO loteDTO, Model model) {
