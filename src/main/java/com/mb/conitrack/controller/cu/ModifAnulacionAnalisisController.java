@@ -67,7 +67,7 @@ public class ModifAnulacionAnalisisController extends AbstractCuController {
     void initModelAnulacionAnalisis(final MovimientoDTO movimientoDTO, final Model model) {
         movimientoDTO.setFechaMovimiento(OffsetDateTime.now().toLocalDate());
         model.addAttribute("movimientoDTO", movimientoDTO);
-        model.addAttribute("analisisDTOs", analisisService.findAllEnCursoForLotesCuarentenaDTOs());
+        model.addAttribute("analisisDTOs", analisisService.findAllEnCursoDTOs());
     }
 
     void procesarAnulacionAnalisis(final MovimientoDTO movimientoDTO, final RedirectAttributes redirectAttributes) {

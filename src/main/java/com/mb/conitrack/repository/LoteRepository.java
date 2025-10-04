@@ -17,8 +17,6 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
 
     List<Lote> findAllByOrderByFechaIngresoAscCodigoLoteAsc();
 
-    List<Lote> findAllByCodigoLoteAndActivoTrue(String codigoLote);
-
     Optional<Lote> findFirstByCodigoLoteAndActivoTrue(String codigoLote);
 
     Optional<Lote> findByCodigoLoteAndActivoTrue(String codigoLote);
@@ -245,6 +243,16 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
             order by l.fechaIngreso asc, l.codigoLote asc
         """)
     List<Lote> findAllForDevolucionOrRecall();
+
+    @Query("""
+            select l
+            from Lote l
+            where l.activo = true
+              and l.dictamen != com.mb.conitrack.enums.DictamenEnum.VENCIDO
+              and l.dictamen != com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO
+            order by l.fechaIngreso asc, l.codigoLote asc
+        """)
+    List<Lote> findAllForReversoMovimiento();
 
     @Query("""
             select distinct b

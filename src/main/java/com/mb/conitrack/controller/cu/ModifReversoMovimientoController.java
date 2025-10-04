@@ -63,7 +63,7 @@ public class ModifReversoMovimientoController extends AbstractCuController {
     }
 
     void initModelReversoMovimiento(final MovimientoDTO movimientoDTO, final Model model) {
-        model.addAttribute("loteReversoDTOs", loteService.findAllLotes());
+        model.addAttribute("loteReversoDTOs", loteService.findAllForReversoMovimientoDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 

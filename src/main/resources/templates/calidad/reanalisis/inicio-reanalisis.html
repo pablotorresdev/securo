@@ -145,15 +145,16 @@
             html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (data.fechaVencimientoProveedor || 'N/D') + '</p>';
             if (data.analisisDTOs && data.analisisDTOs.length > 0) {
                 html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
-                data.analisisDTOs.forEach(function (a) {
+                data.analisisDTOs.forEach(function (analisisDTO) {
                     // Nota: aquí se muestra a.nroReanalisis como "Nro Análisis".
                     // Si querés diferenciar, cambiá la etiqueta a "Nro Reanálisis".
                     html += '<li>';
-                    html += '<strong>Nro Análisis:</strong> ' + (a.nroReanalisis || 'N/A') + ' ';
-                    html += '<strong>Fecha Realizado:</strong> ' + (a.fechaRealizado || 'En curso') + ' | ';
-                    html += '<strong>Fecha Reanálisis:</strong> ' + (a.fechaReanalisis || 'N/A') + ' | ';
-                    html += '<strong>Dictamen:</strong> ' + (a.dictamen || 'En curso') + ' | ';
-                    html += '<strong>Título:</strong> ' + (a.titulo || 'N/A');
+                    html += '<strong>Nro Análisis:</strong> ' + analisisDTO.nroAnalisis + ' ';
+                    html += '<strong>Fecha Realizado:</strong> ' + (analisisDTO.fechaRealizado || 'En curso') + ' | ';
+                    html += '<strong>Fecha Reanálisis:</strong> ' + (analisisDTO.fechaReanalisis || 'N/A') + ' | ';
+                    html += '<strong>Fecha Vencimiento:</strong> ' + (analisisDTO.fechaVencimiento || 'N/A') + ' | ';
+                    html += '<strong>Dictamen:</strong> ' + (analisisDTO.dictamen || 'En curso') + ' | ';
+                    html += '<strong>Título:</strong> ' + (analisisDTO.titulo || 'N/A');
                     html += '</li>';
                 });
                 html += '</ul>';

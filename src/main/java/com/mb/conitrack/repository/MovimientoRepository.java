@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 import com.mb.conitrack.entity.Movimiento;
 
+import jakarta.validation.constraints.Size;
+
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
     List<Movimiento> findAllByActivoTrue();
@@ -66,6 +68,15 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
             order by m.fecha desc, m.fechaYHoraCreacion desc
         """)
     List<Movimiento> findLatestByCodigoLote(@Param("codigoLote") String codigoLote);
+
+    @Query("""
+            select m
+            FROM Movimiento m
+            WHERE m.tipoMovimiento = com.mb.conitrack.enums.TipoMovimientoEnum.MODIFICACION
+              AND m.motivo = com.mb.conitrack.enums.MotivoEnum.ANALISIS
+              AND m.nroAnalisis = :nroAnalisis
+        """)
+    List<Movimiento> findMovModifAnalisisByNro(@Param("nroAnalisis") String nroAnalisis);
 
 }
 

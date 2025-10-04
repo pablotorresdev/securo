@@ -23,6 +23,11 @@ public class AnalisisService {
         return fromAnalisisEntities(analisisRepository.findAllByActivoTrue());
     }
 
+    @Transactional(readOnly = true)
+    public List<AnalisisDTO> findAllEnCursoDTOs() {
+        return fromAnalisisEntities(analisisRepository.findAllEnCurso());
+    }
+
     // CU5: Resultado QA Aprobado
     // CU6: Resultado QA Rechazado
     @Transactional(readOnly = true)

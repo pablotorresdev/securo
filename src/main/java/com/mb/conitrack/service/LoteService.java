@@ -88,11 +88,6 @@ public class LoteService {
     }
 
     @Transactional(readOnly = true)
-    public List<Lote> findLoteListByCodigoLote(final String codigoLote) {
-        return loteRepository.findAllByCodigoLoteAndActivoTrue(codigoLote);
-    }
-
-    @Transactional(readOnly = true)
     public List<LoteDTO> findLotesDictaminadosConStock() {
         return fromLoteEntities(loteRepository.findLotesDictaminadosConStock());
     }
@@ -105,6 +100,12 @@ public class LoteService {
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllLotes() {
         return fromLoteEntities(loteRepository.findAllByActivoTrue());
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForReversoMovimientoDTOs() {
+        return fromLoteEntities(loteRepository.findAllForReversoMovimiento());
     }
 
     //***********CU BAJA: MUESTREO MULTIBULTO***********

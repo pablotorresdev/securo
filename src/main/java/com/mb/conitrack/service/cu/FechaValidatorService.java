@@ -5,7 +5,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.service.LoteService;
 
 import static com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO;
 import static com.mb.conitrack.enums.DictamenEnum.VENCIDO;
@@ -23,9 +21,6 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModif
 
 @Service
 public class FechaValidatorService extends AbstractCuService {
-
-    @Autowired
-    private LoteService loteService;
 
     @Scheduled(cron = "0 0 5 * * *") // Todos los días a las 5 AM
     @Transactional
@@ -123,6 +118,7 @@ public class FechaValidatorService extends AbstractCuService {
         dto.setObservaciones("(CU8) ANALISIS EXPIRADO POR FECHA: " + hoy);
         final List<Lote> lotes = persistirExpiracionAnalisis(dto, lotesReanalisis);
         for (Lote lote : lotes) {
+            //log
             System.out.println("Reanalisis expirado: " +
                 lote.getLoteProveedor() +
                 " - " +
@@ -142,6 +138,7 @@ public class FechaValidatorService extends AbstractCuService {
         dto.setObservaciones("(CU9) VENCIMIENTO AUTOMATICO POR FECHA: " + hoy);
         final List<Lote> lotes = persistirProductosVencidos(dto, lotesVencidos);
         for (Lote lote : lotes) {
+            //log
             System.out.println("Vencido: " + lote.getLoteProveedor() + " - " + lote.getFechaVencimientoVigente());
         }
     }

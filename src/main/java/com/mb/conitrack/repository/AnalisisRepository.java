@@ -39,6 +39,20 @@ public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
         """)
     List<Analisis> findAllEnCursoForLotesCuarentena();
 
+
+    @EntityGraph(attributePaths = "lote") // opcional, evita N+1 si usás a.getLote()
+    @Query("""
+            select a
+            from Analisis a
+            join a.lote l
+            where a.activo = true
+              and a.dictamen is null
+              and a.fechaRealizado is null
+            order by case when a.fechaYHoraCreacion is null then 1 else 0 end,
+                     a.fechaYHoraCreacion desc
+        """)
+    List<Analisis> findAllEnCurso();
+
     @Query("""
         select a
         from Analisis a

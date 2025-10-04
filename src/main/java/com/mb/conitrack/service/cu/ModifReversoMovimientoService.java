@@ -66,6 +66,10 @@ public class ModifReversoMovimientoService extends AbstractCuService {
                     //TODO: implementar
                     return reversarModifRetiroMercado(dto, movOrigen);
                 }
+                if (movOrigen.getMotivo() == MotivoEnum.ANULACION_ANALISIS) {
+                    //TODO: implementar
+                    return reversarAnulacionAnalisis(dto, movOrigen);
+                }
             }
             case BAJA -> {
                 if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_COMPRA) {
@@ -320,6 +324,12 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
     @Transactional
     LoteDTO reversarModifRetiroMercado(final MovimientoDTO dto, final Movimiento movOrigen) {
+        //TODO: implementar
+        return DTOUtils.fromLoteEntity(movOrigen.getLote());
+    }
+
+    @Transactional
+    LoteDTO reversarAnulacionAnalisis(final MovimientoDTO dto, final Movimiento movOrigen) {
         //TODO: implementar
         return DTOUtils.fromLoteEntity(movOrigen.getLote());
     }

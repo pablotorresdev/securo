@@ -30,6 +30,11 @@ public class ModifAnulacionAnalisisService extends AbstractCuService {
         final Lote lote = analisis.getLote();
         final Movimiento movimiento = persistirMovimientoAnulacionAnalisis(dto, lote);
         lote.getMovimientos().add(movimiento);
+        final List<Movimiento> movModifAnalisisByNro = movimientoRepository.findMovModifAnalisisByNro(dto.getNroAnalisis());
+        if (movModifAnalisisByNro.size() != 1) {
+            throw new IllegalArgumentException("Existen 2 movimientos de análisis iguales para ese lote");
+        }
+        lote.setDictamen(movModifAnalisisByNro.get(0).getDictamenInicial());
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
@@ -40,6 +45,7 @@ public class ModifAnulacionAnalisisService extends AbstractCuService {
 
         movimiento.setMotivo(ANULACION_ANALISIS);
         movimiento.setNroAnalisis(dto.getNroAnalisis());
+        movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setDictamenFinal(DictamenEnum.ANULADO);
 
         movimiento.setObservaciones("_CUX_\n" + dto.getObservaciones());
