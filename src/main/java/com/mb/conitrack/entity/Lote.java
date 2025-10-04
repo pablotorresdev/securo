@@ -158,7 +158,7 @@ public class Lote {
         }
         if (this.bultos.size() == 1) {
             Bulto unico = this.bultos.get(0);
-            return (nroBulto == 1 && unico.getActivo()) ? unico : null;
+            return (nroBulto == unico.getNroBulto() && unico.getActivo()) ? unico : null;
         }
         return this.bultos.stream()
             .filter(Bulto::getActivo)

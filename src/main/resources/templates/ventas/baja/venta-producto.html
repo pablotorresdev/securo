@@ -118,162 +118,184 @@
 ========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', () => {
-
         /* ---------- datos básicos / CSRF ---------- */
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
 
-        /* ---------- inicialización de fecha (hoy o valor de DTO) ---------- */
-        var fechaEgresoDTO = /*[[${loteDTO.fechaEgreso}]]*/ [];
-        if (fechaEgresoDTO) {
-            document.getElementById("fechaEgreso").value = fechaEgresoDTO;
-        } else {
-            const hoy = new Date();
-            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
-            document.getElementById("fechaEgreso").value = hoyFormateado;
-        }
+        /* ---------- fechaEgreso: valor del DTO o hoy (TZ Buenos Aires) ---------- */
+        const fechaInput = document.getElementById('fechaEgreso');
+        const fechaEgresoDTO = /*[[${loteDTO.fechaEgreso}]]*/ null;
+        (function initFecha() {
+            if (fechaInput) {
+                if (fechaEgresoDTO) {
+                    fechaInput.value = fechaEgresoDTO;
+                } else {
+                    const hoy = new Date();
+                    const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
+                    fechaInput.value = hoyFormateado;
+                }
+            }
+        })();
 
         /* ---------- datasets inyectados por Thymeleaf ---------- */
-        // Lotes candidatos a vender (como JSON serializado por th:inline)
+        // Lotes candidatos (string -> JSON si hace falta)
         let lotes = /*[[${loteVentaDTOs}]]*/ '[]';
-        if (typeof lotes === 'string') lotes = JSON.parse(lotes);
+        if (typeof lotes === 'string') {
+            try { lotes = JSON.parse(lotes); } catch (_) { lotes = []; }
+        }
 
-        // Valores previos del DTO (para restaurar si hubo errores)
-        let cantidadesPrev   = /*[[${loteDTO.cantidadesBultos}]]*/ '[]';
-        let unidadesPrev     = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
+        // Valores previos del DTO (para restaurar tras validación fallida)
+        let cantidadesPrev = /*[[${loteDTO.cantidadesBultos}]]*/ '[]';
+        let unidadesPrev   = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
+        if (typeof cantidadesPrev === 'string') {
+            try { cantidadesPrev = JSON.parse(cantidadesPrev); } catch (_) { cantidadesPrev = []; }
+        }
+        if (typeof unidadesPrev === 'string') {
+            try { unidadesPrev = JSON.parse(unidadesPrev); } catch (_) { unidadesPrev = []; }
+        }
 
-        if (typeof cantidadesPrev === 'string') cantidadesPrev = JSON.parse(cantidadesPrev);
-        if (typeof unidadesPrev   === 'string') unidadesPrev   = JSON.parse(unidadesPrev);
-
-        // Si al volver con errores ya había un lote seleccionado, lo re-seleccionamos
+        // Si hubo selección previa de lote, la recuperamos
         const codigoSeleccionado = /*[[${loteDTO.codigoLote != null ? loteDTO.codigoLote : ''}]]*/ '';
 
-        /* ---------- referencias de DOM ---------- */
-        const loteSelect        = document.getElementById('loteSelect');
-        const infoLoteDiv       = document.getElementById('infoLote');
-        const infoContent       = document.getElementById('infoContent');
+        /* ---------- refs DOM ---------- */
+        const loteSelect       = document.getElementById('loteSelect');
+        const infoLoteDiv      = document.getElementById('infoLote');
+        const infoContent      = document.getElementById('infoContent');
+        const consumoBultosDiv = document.getElementById('consumoBultos');
+        const bultosContainer  = document.getElementById('bultosContainer');
+        const codigoLoteHidden = document.getElementById('codigoLote');
 
-        const consumoBultosDiv  = document.getElementById('consumoBultos');
-        const bultosContainer   = document.getElementById('bultosContainer');
-        const codigoLote        = document.getElementById('codigoLote');
-
-        /* ---------- caché de sub-unidades para no repetir fetch ---------- */
+        /* ---------- caché subunidades ---------- */
         const cacheSub = new Map();
-
-        // Trae subunidades compatibles para una unidad base (con caché simple)
         function loadSubunits(base, cb) {
-            if (cacheSub.has(base)) {
-                cb(cacheSub.get(base));
-                return;
-            }
-            fetch(`/enums/subunidades?unidad=${base}`, {headers: {[csrfHeader]: csrfToken}})
-                .then(r => r.json()).then(arr => {
-                cacheSub.set(base, arr);
-                cb(arr);
-            });
+            if (!base) { cb([ 'UNIDAD' ]); return; }
+            if (cacheSub.has(base)) { cb(cacheSub.get(base)); return; }
+            fetch(`/enums/subunidades?unidad=${encodeURIComponent(base)}`, {
+                headers: { [csrfHeader]: csrfToken }
+            })
+                .then(r => r.ok ? r.json() : [])
+                .then(arr => {
+                    const list = Array.isArray(arr) && arr.length ? arr : [base];
+                    cacheSub.set(base, list);
+                    cb(list);
+                })
+                .catch(() => cb([base]));
         }
 
         /* ---------- eventos ---------- */
-        // Al elegir un lote, preparar la pantalla (info + filas por bulto)
-        loteSelect.addEventListener('change', e => prepararPantalla(e.target.value));
-
-        // Si volvemos con errores y el DTO trae lote elegido, repoblar automáticamente
+        if (loteSelect) {
+            loteSelect.addEventListener('change', e => prepararPantalla(e.target.value));
+        }
         if (codigoSeleccionado) {
-            loteSelect.value = codigoSeleccionado;
+            if (loteSelect) loteSelect.value = codigoSeleccionado;
             prepararPantalla(codigoSeleccionado);
         }
 
-        /* ---------- funciones de UI ---------- */
-        // Resetea secciones dependientes del lote
+        /* ---------- helpers UI ---------- */
         function resetearPantalla() {
-            infoContent.innerHTML = '';
-            bultosContainer.innerHTML = '';
-            infoLoteDiv.style.display = 'none';
-            consumoBultosDiv.style.display = 'none';
-            codigoLote.value = '';
+            if (infoContent) infoContent.innerHTML = '';
+            if (bultosContainer) bultosContainer.innerHTML = '';
+            if (infoLoteDiv) infoLoteDiv.style.display = 'none';
+            if (consumoBultosDiv) consumoBultosDiv.style.display = 'none';
+            if (codigoLoteHidden) codigoLoteHidden.value = '';
         }
 
-        // Carga info del lote y genera inputs por bulto
         function prepararPantalla(codigo) {
             resetearPantalla();
-
             if (!codigo) return;
             const lote = lotes.find(l => l.codigoLote === codigo);
             if (!lote) return;
 
-            // Seteamos el hidden que viaja al backend
-            codigoLote.value = codigo;
+            // seteamos el hidden para el back
+            if (codigoLoteHidden) codigoLoteHidden.value = codigo;
 
-            // Mostrar resumen informativo
+            // tarjeta informativa del lote
             pintarInfo(lote);
 
-            // Generar filas para capturar cantidades/unidades por bulto
+            // filas dinámicas por bulto (nroBulto real + stock disponible)
             generarInputsBultos(lote);
         }
 
-        // Renderiza la tarjeta de detalles del lote (stock, análisis, proveedor)
         function pintarInfo(loteDTO) {
-            const a = loteDTO.ultimoAnalisisDtoDictaminado || {};
-            infoContent.innerHTML = `
-            <hr>
-            <p><strong>Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
-            <p><strong>Código interno:</strong> ${loteDTO.codigoLote}</p>
-            <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
-            <hr>
-            <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</p>
-            <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual} ${loteDTO.unidadMedida}</p>
-            <p><strong>Bultos totales:</strong> ${loteDTO.bultosTotales}</p>
-            <hr>
-            <p><strong>Nº análisis actual:</strong> ${a.nroAnalisis || '—'}</p>
-            <p><strong>Fecha realizado análisis:</strong> ${a.fechaRealizado || '—'}</p>
-            <p><strong>Fecha re-análisis:</strong> ${a.fechaReanalisis || '—'}</p>
-            <p><strong>Fecha vencimiento análisis:</strong> ${a.fechaVencimiento || '—'}</p>
-            <hr>
-            <p><strong>Re-análisis proveedor:</strong> ${loteDTO.fechaReanalisisProveedor || 'N/D'}</p>
-            <p><strong>Vto. proveedor:</strong> ${loteDTO.fechaVencimientoProveedor || 'N/D'}</p>
-        `;
-            infoLoteDiv.style.display = 'block';
+            const a = (loteDTO.ultimoAnalisisDtoDictaminado || {});
+            const html = `
+      <hr>
+      <p><strong>Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
+      <p><strong>Código interno:</strong> ${loteDTO.codigoLote || 'N/D'}</p>
+      <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
+      <hr>
+      <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial ?? '—'} ${loteDTO.unidadMedida || ''}</p>
+      <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual ?? '—'} ${loteDTO.unidadMedida || ''}</p>
+      <p><strong>Bultos totales:</strong> ${loteDTO.bultosTotales ?? '—'}</p>
+      <hr>
+      <p><strong>Nº análisis actual:</strong> ${a.nroAnalisis || '—'}</p>
+      <p><strong>Fecha realizado análisis:</strong> ${a.fechaRealizado || '—'}</p>
+      <p><strong>Fecha re-análisis:</strong> ${a.fechaReanalisis || '—'}</p>
+      <p><strong>Fecha vencimiento análisis:</strong> ${a.fechaVencimiento || '—'}</p>
+      <hr>
+      <p><strong>Re-análisis proveedor:</strong> ${loteDTO.fechaReanalisisProveedor || 'N/D'}</p>
+      <p><strong>Vto. proveedor:</strong> ${loteDTO.fechaVencimientoProveedor || 'N/D'}</p>
+    `;
+            if (infoContent) infoContent.innerHTML = html;
+            if (infoLoteDiv) infoLoteDiv.style.display = 'block';
         }
 
-        // Crea dinámicamente las filas por bulto: cantidad + unidad + hidden nroBulto
+        // ==== NUEVA implementación basada en bultos reales ====
         function generarInputsBultos(lote) {
+            if (!bultosContainer) return;
 
-            /* 1) Cantidad de bultos (defensivo ante nulos) */
-            const totalBultos = lote.bultosTotales != null ? lote.bultosTotales : 0;
+            // Detectamos el arreglo real de bultos en el JSON del lote
+            const bultosCrudos =
+                Array.isArray(lote.bultos)     ? lote.bultos
+                    : Array.isArray(lote.bultosDto)  ? lote.bultosDto
+                        : Array.isArray(lote.bultosDTOs) ? lote.bultosDTOs
+                            : [];
 
-            /* 2) Arrays base con stocks/unidades por bulto (relleno si faltan datos) */
-            const idBultos  = (lote.nroBultoList        ?? []).slice(0, totalBultos);
-            const stocks    = (lote.cantidadesBultos    ?? []).slice(0, totalBultos);
-            const baseUnits = (lote.unidadMedidaBultos  ?? []).slice(0, totalBultos);
+            // Normalizamos: nroBulto, stock (cantidadActual) y unidad
+            // Filtramos por stock > 0 (si querés mostrar todos, cambiar a >= 0 y deshabilitar los vacíos)
+            const bultos = bultosCrudos
+                .map(b => ({
+                    nroBulto: Number(b.nroBulto),
+                    stock: Number(b.cantidadActual ?? 0),
+                    unidad: b.unidadMedida || lote.unidadMedida || 'UNIDAD'
+                }))
+                .filter(b => b.stock > 0)
+                .sort((a, b) => a.nroBulto - b.nroBulto);
 
-            while (stocks.length    < totalBultos) stocks.push(0); //CAMBIO
-            while (baseUnits.length < totalBultos) baseUnits.push(lote.unidadMedida);
+            // Si no hay bultos con stock disponible, ocultamos la sección
+            if (!bultos.length) {
+                consumoBultosDiv && (consumoBultosDiv.style.display = 'none');
+                return;
+            }
 
-            /* 3) Render de cada bulto */
-            for (let i = 0; i < totalBultos; i++) {
+            // Limpiamos contenedor
+            bultosContainer.innerHTML = '';
 
-                // Valores previos (si el back devolvió errores) o defaults
+            // Pintamos una fila por cada bulto con stock
+            for (let i = 0; i < bultos.length; i++) {
+                const b = bultos[i];
+
+                // Restauración de valores previos del DTO (si hubo errores)
                 const valorPrevio = (cantidadesPrev[i] != null) ? cantidadesPrev[i] : 0;
-                const unidadPrev  = unidadesPrev[i] ?? baseUnits[i];
+                const unidadPrev  = (unidadesPrev[i] ?? b.unidad);
 
-                // Contenedor de fila
                 const row = document.createElement('div');
                 row.className = 'row g-2 align-items-end mb-2';
 
-                // Input de cantidad a vender para el bulto i
+                // Columna cantidad
                 row.innerHTML += `
-                  <div class="col-md-6">
-                     <label class="form-label">
-                       Cant. Bulto ${i + 1} (máx ${stocks[i]} ${baseUnits[i]}):
-                     </label>
-                     <input  type="number"
-                             name="cantidadesBultos[${i}]"
-                             class="form-control"
-                             value="${valorPrevio}"
-                             min="0" step="0.01" required>
-                  </div>`;
+        <div class="col-md-6">
+          <label class="form-label">
+            Cant. Bulto #${b.nroBulto} (máx ${b.stock} ${b.unidad}):
+          </label>
+          <input  type="number"
+                  name="cantidadesBultos[${i}]"
+                  class="form-control"
+                  value="${valorPrevio}"
+                  min="0" step="0.01" required>
+        </div>`;
 
-                // Select de unidad (se llena con subunidades vía fetch)
+                // Columna unidad (select, se llena con subunidades)
                 const colUni = document.createElement('div');
                 colUni.className = 'col-md-4';
                 colUni.innerHTML = '<label class="form-label">Unidad:</label>';
@@ -284,27 +306,29 @@
                 colUni.appendChild(sel);
                 row.appendChild(colUni);
 
-                // Hidden con el número de bulto correspondiente (lo requiere el DTO)
-                row.insertAdjacentHTML('beforeend',
-                    `<input type="hidden" name="nroBultoList[${i}]" value=" ${idBultos[i]}">`);
+                // Hidden con el nroBulto real (sin espacios)
+                row.insertAdjacentHTML(
+                    'beforeend',
+                    `<input type="hidden" name="nroBultoList[${i}]" value="${b.nroBulto}">`
+                );
 
                 // Agregamos la fila al contenedor
                 bultosContainer.appendChild(row);
 
-                // Poblar el select de unidad con subunidades compatibles (usa caché)
-                loadSubunits(baseUnits[i], arr => {
+                // Poblar subunidades compatibles (con caché)
+                loadSubunits(b.unidad, arr => {
                     sel.innerHTML = arr.map(u =>
                         `<option value="${u}" ${u === unidadPrev ? 'selected' : ''}>${u}</option>`
                     ).join('');
                 });
             }
 
-            // Mostrar la sección una vez generadas las filas
-            consumoBultosDiv.style.display = 'block';
+            // Mostramos la sección
+            consumoBultosDiv && (consumoBultosDiv.style.display = 'block');
         }
-
     });
 </script>
+
 
 </body>
 </html>

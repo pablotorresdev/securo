@@ -89,7 +89,6 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         if (bindingResult.hasErrors()) {
             return false;
         }
-        //TODO: validar que la traza solo se aplique a unidad de venta
         if (dto.getTrazaInicial() != null) {
             if (dto.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
                 bindingResult.rejectValue("trazaInicial", "", "El número de traza solo aplica a unidades de venta");

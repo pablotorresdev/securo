@@ -35,7 +35,6 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
     @GetMapping("/cuarentena")
     public String showDictamenCuarentenaForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
         initModelDictamencuarentena(movimientoDTO, model);
         return "calidad/dictamen/cuarentena";
     }

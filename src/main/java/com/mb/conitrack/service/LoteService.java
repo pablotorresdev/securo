@@ -20,7 +20,7 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 @Service
 public class LoteService {
 
-    //TODO: unificar la logica de activo vs todos para operatoria vs auditoria
+    //TODO: refactorear la logica de activo vs todos para operatoria vs auditoria
     private final LoteRepository loteRepository;
 
     //***********CU2 MODIFICACION: CUARENTENA***********
@@ -84,6 +84,18 @@ public class LoteService {
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForDevolucionOrRecallDTOs() {
         return fromLoteEntities(loteRepository.findAllForDevolucionOrRecall());
+    }
+
+    //***********CU25 BAJA: AJUSTE STOCK***********
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForAjusteDTOs() {
+        return DTOUtils.fromLoteEntities(loteRepository.findAllForAjuste());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BultoDTO> findBultosForAjusteByCodigoLote(final String codigoLote) {
+        return fromBultoEntities(loteRepository.findBultosForAjusteByCodigoLote(
+            codigoLote));
     }
 
     //****************************COMMON PUBLIC*****************************

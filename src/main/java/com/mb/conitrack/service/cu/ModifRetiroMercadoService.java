@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,42 +25,33 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import jakarta.validation.Valid;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntity;
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
+import static com.mb.conitrack.enums.EstadoEnum.DESCARTADO;
+import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
+import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
 import static com.mb.conitrack.enums.EstadoEnum.RECALL;
-import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoBajaRecall;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoModifRecall;
+import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaRecall;
 
 //***********CU24 ALTA/MODIF: RECALL***********
 @Service
 public class ModifRetiroMercadoService extends AbstractCuService {
 
-    //TODO: fix, no aplica a todas las trazas y algunas quedan en disponibles
     @Transactional
     public LoteDTO persistirRetiroMercado(final MovimientoDTO dto) {
 
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        persistirModifTrazasDevueltas(dto, lote);
-        persistirBajaStockRecall(dto, lote);
+        persistirModifTrazasDisponiblesEnStock(dto, lote);
+        persistirAltaUnidadesRetiradas(dto, lote);
 
         return fromLoteEntity(loteRepository.save(lote));
-    }
-
-    @Transactional
-    public Movimiento persistirMovimientoRetiroMercado(MovimientoDTO dto, Lote lote) {
-        final Movimiento movimientoDevolucionVenta = createMovimientoModificacion(dto, lote);
-        movimientoDevolucionVenta.setFecha(dto.getFechaMovimiento());
-        movimientoDevolucionVenta.setMotivo(MotivoEnum.RETIRO_MERCADO);
-
-        return movimientoRepository.save(movimientoDevolucionVenta);
     }
 
     @Transactional
@@ -85,50 +77,36 @@ public class ModifRetiroMercadoService extends AbstractCuService {
         return validarTrazasDevolucion(dto, bindingResult);
     }
 
+
     @Transactional
-    void persistirBajaStockRecall(final MovimientoDTO dto, final Lote lote) {
-        final Movimiento movimientoBajaRecall = crearMovimientoBajaRecall(dto);
-        movimientoBajaRecall.setDictamenInicial(lote.getDictamen());
-        movimientoBajaRecall.setCantidad(lote.getCantidadActual());
-        movimientoBajaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-        movimientoBajaRecall.setLote(lote);
+    void persistirModifTrazasDisponiblesEnStock(final MovimientoDTO dto, final Lote lote) {
+        final Movimiento movimientoModifRecall = crearMovimientoModifRecall(dto);
+        movimientoModifRecall.setDictamenInicial(lote.getDictamen());
+        movimientoModifRecall.setCantidad(lote.getCantidadActual());
+        movimientoModifRecall.setLote(lote);
 
         for (Bulto bulto : lote.getBultos()) {
-
-            final DetalleMovimiento det = DetalleMovimiento.builder()
-                .movimiento(movimientoBajaRecall)
-                .bulto(bulto)
-                .cantidad(bulto.getCantidadActual())
-                .unidadMedida(bulto.getUnidadMedida())
-                .build();
-
-            movimientoBajaRecall.getDetalles().add(det);
-
             final Set<Traza> trazas = bulto.getTrazas();
-            final List<Traza> trazasBaja = new ArrayList<>();
-
+            final List<Traza> trazasRecall = new ArrayList<>();
             for (Traza tr : trazas) {
-                if (tr.getEstado() == CONSUMIDO || tr.getEstado() == VENDIDO) {
+                if (tr.getEstado() != DISPONIBLE) {
                     continue;
                 }
 
                 tr.setEstado(EstadoEnum.RECALL);
-                trazasBaja.add(tr);
+                trazasRecall.add(tr);
             }
-            trazaRepository.saveAll(trazasBaja);
-            det.getTrazas().addAll(trazasBaja);
+            trazaRepository.saveAll(trazasRecall);
         }
 
-        final Movimiento savedMovimiento = movimientoRepository.save(movimientoBajaRecall);
+        final Movimiento savedMovimiento = movimientoRepository.save(movimientoModifRecall);
 
         for (Bulto bulto : lote.getBultos()) {
-            bulto.setCantidadActual(BigDecimal.ZERO);
             bulto.setEstado(RECALL);
         }
         bultoRepository.saveAll(lote.getBultos());
 
         lote.setEstado(RECALL);
-        lote.setCantidadActual(BigDecimal.ZERO);
         lote.getMovimientos().add(savedMovimiento);
 
         for (Analisis analisis : lote.getAnalisisList()) {
@@ -140,9 +118,10 @@ public class ModifRetiroMercadoService extends AbstractCuService {
     }
 
     @Transactional
-    void persistirModifTrazasDevueltas(final MovimientoDTO dto, final Lote lote) {
-        final Movimiento movimientoRetiroMercado = persistirMovimientoRetiroMercado(dto, lote);
+    void persistirAltaUnidadesRetiradas(final MovimientoDTO dto, final Lote lote) {
+        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, lote);
 
+        //************RECALL************
         final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
             .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
 
@@ -154,15 +133,14 @@ public class ModifRetiroMercadoService extends AbstractCuService {
             final Bulto bulto = lote.getBultoByNro(trazaDTOnroBulto);
 
             final DetalleMovimiento det = DetalleMovimiento.builder()
-                .movimiento(movimientoRetiroMercado)
+                .movimiento(movimientoAltaRecall)
                 .bulto(bulto)
                 .cantidad(BigDecimal.valueOf(trazasDTOsPorBulto.size()))
                 .unidadMedida(UnidadMedidaEnum.UNIDAD)
                 .build();
 
-            movimientoRetiroMercado.getDetalles().add(det);
+            movimientoAltaRecall.getDetalles().add(det);
 
-            //TODO: ver como filtrar el estado
             for (TrazaDTO t : trazasDTOsPorBulto) {
                 final Traza trazaBulto = bulto.getTrazaByNro(t.getNroTraza());
                 trazaBulto.setEstado(RECALL);
@@ -171,10 +149,12 @@ public class ModifRetiroMercadoService extends AbstractCuService {
             bultoRepository.save(bulto);
         }
 
-        movimientoRetiroMercado.setCantidad(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
-        movimientoRetiroMercado.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        movimientoAltaRecall.setCantidad(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
+        movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
 
-        lote.getMovimientos().add(movimientoRepository.save(movimientoRetiroMercado));
+        final Movimiento newMovimiento = movimientoRepository.save(movimientoAltaRecall);
+        lote.getMovimientos().add(newMovimiento);
     }
+
 
 }

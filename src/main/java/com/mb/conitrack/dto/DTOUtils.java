@@ -243,6 +243,13 @@ public class DTOUtils {
                 loteDTO.getAnalisisDTOs().add(DTOUtils.fromAnalisisEntity(analisis));
             }
         }
+        if (entity.getLoteOrigen() != null) {
+            for (Analisis analisis : entity.getLoteOrigen().getAnalisisList()) {
+                if (analisis.getActivo()) {
+                    loteDTO.getAnalisisDTOs().add(DTOUtils.fromAnalisisEntity(analisis));
+                }
+            }
+        }
     }
 
     static void addBultoDTOs(final Lote entity, final LoteDTO loteDTO) {

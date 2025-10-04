@@ -39,8 +39,6 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
     // @PreAuthorize("hasAuthority('ROLE_CONTROL_CALIDAD')")
     @GetMapping("/resultado-analisis")
     public String showResultadoAnalisisForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        //TODO: implementar el filtro correcto en base a Dictamen y Analisis (Fecha, Dictamen)
-        //TODO: pasar a DTO
         initModelResultadoAnalisis(movimientoDTO, model);
         return "calidad/analisis/resultado-analisis";
     }

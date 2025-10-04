@@ -36,8 +36,6 @@ public class ModifAnulacionAnalisisController extends AbstractCuController {
     // @PreAuthorize("hasAuthority('ROLE_CONTROL_CALIDAD')")
     @GetMapping("/anulacion-analisis")
     public String showAnulacionAnalisisForm(@ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        //TODO: implementar el filtro correcto en base a Dictamen y Analisis (Fecha, Dictamen)
-        //TODO: pasar a DTO
         initModelAnulacionAnalisis(movimientoDTO, model);
         return "calidad/anulacion/anulacion-analisis";
     }

@@ -30,13 +30,12 @@ public class AltaDevolucionVentaController extends AbstractCuController {
         return "redirect:/";
     }
 
-    //***************************** CU3 Muestreo************************************
+    //***************************** CU23 DEvolucion Cliente************************************
     // CU23: Devolución de cliente
     // @PreAuthorize("hasAuthority('ROLE_GERENTE_GARANTIA')")
     @GetMapping("/devolucion-venta")
     public String showDevolucionVentaForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        //TODO: implementar el filtro correcto en base a ventas y Analisis (Fecha, ventas)
         initModelDevolucionVenta(movimientoDTO, model);
         return "ventas/alta/devolucion-venta";
     }

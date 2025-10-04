@@ -50,7 +50,7 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/baja/muestreo-bulto}">
-                CU3 - Retiro por Muestreo [Analista control de calidad]
+                CU3 - Retiro por Muestreo Trazable [Analista control de calidad]
             </a>
         </li>
         <li>
@@ -114,14 +114,8 @@
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/ventas/devolucion/devolucion-venta}">
-                CU23. Devolución de cliente [Gerente garantía de calidad]
-            </a>
-        </li>
-        <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/alta/devolucion-venta}">
-                CU23. Devolución de cliente reutilizable [Gerente garantía de calidad]
+                CU23. Devolución de cliente [Gerente garantía de calidad]
             </a>
         </li>
         <li>
@@ -131,15 +125,16 @@
             </a>
         </li>
         <br>
-        <h5 class="mb-3 text-primary">Contingencias y Configuracion</h5>
+        <h5 class="mb-3 text-primary">Contingencias</h5>
         <li>
-            <a class="disabled" href="javascript:void(0);">
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/contingencias/ajuste-stock}">
                 CU25. Ajuste de Inventario [Supervisor de planta]
             </a>
         </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/ajustes/reverso-movimiento}">
+               th:href="@{/contingencias/reverso-movimiento}">
                 CU26. Reverso de Ultimo Movimiento [???]
             </a>
         </li>

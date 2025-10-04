@@ -38,7 +38,6 @@ import static java.lang.Integer.parseInt;
 @Service
 public class BajaMuestreoBultoService extends AbstractCuService {
 
-    //TODO: soportar multimuestreo para simplificar la carga
     @Transactional
     public LoteDTO bajaMuestreo(final MovimientoDTO dto) {
 
@@ -87,7 +86,6 @@ public class BajaMuestreoBultoService extends AbstractCuService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("El detalle del movimiento de muestreo no existe."));
 
-            //TODO: asociar las trazas al movimiento
             for (Traza traza : trazas) {
                 traza.setEstado(CONSUMIDO);
                 traza.getDetalles().addAll(movimiento.getDetalles());

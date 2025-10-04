@@ -31,8 +31,6 @@ public class BajaDevolucionCompraController extends AbstractCuController {
     }
 
     // CU4: Baja por Devolución Compra *****************************************************
-    //TODO: En el caso que existieran más de un bulto, el sistema solicitará ingresar las cantidades individuales para cada bulto, bultos completos o devolución completa.
-    // Esto afectara a cada bulto independientemente o a todo el lote, respectivamente.
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/devolucion-compra")
     public String showDevolucionCompraForm(@ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO, Model model) {

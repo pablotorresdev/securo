@@ -9,8 +9,6 @@ import org.springframework.data.repository.query.Param;
 
 import com.mb.conitrack.entity.Movimiento;
 
-import jakarta.validation.constraints.Size;
-
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
     List<Movimiento> findAllByActivoTrue();

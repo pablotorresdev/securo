@@ -62,7 +62,6 @@ public class ModifReanalisisLoteController extends AbstractCuController {
     }
 
     private void initModelReanalisisLote(final MovimientoDTO movimientoDTO, final Model model) {
-        //TODO: implementar el filtro correcto en base a calidad y Analisis (Fecha, calidad)
         model.addAttribute("loteReanalisisDTOs", loteService.findAllForReanalisisLoteDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }

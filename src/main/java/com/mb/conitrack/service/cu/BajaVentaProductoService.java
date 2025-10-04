@@ -36,9 +36,11 @@ public class BajaVentaProductoService extends AbstractCuService {
 
         final Movimiento movimiento = persistirMovimientoBajaVenta(loteDTO, lote);
 
-        for (int nroBulto : nroBultoList) {
+        for (int i = 0; i < nroBultoList.size(); i++) {
+
+            final int nroBulto = nroBultoList.get(i);
             final Bulto bultoEntity = lote.getBultoByNro(nroBulto);
-            final BigDecimal cantidaConsumoBulto = cantidadesBultos.get(nroBulto - 1);
+            final BigDecimal cantidaConsumoBulto = cantidadesBultos.get(i);
 
             if (BigDecimal.ZERO.compareTo(cantidaConsumoBulto) == 0) {
                 continue;

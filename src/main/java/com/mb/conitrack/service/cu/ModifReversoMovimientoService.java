@@ -95,6 +95,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         if (bindingResult.hasErrors()) {
             return false;
         }
+        //TODO: implementar
         return true;
     }
 

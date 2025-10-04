@@ -62,27 +62,6 @@ public class BajaVentaProductoController extends AbstractCuController {
         return "ventas/baja/venta-producto-ok";
     }
 
-    private Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
-
-        Map<Integer, List<Long>> trazasVentaPorBulto =
-            loteDTO.getTrazaDTOs().stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                    TrazaDTO::getNroBulto,
-                    java.util.TreeMap::new, // TreeMap para que los bultos salgan 1,2,3...
-                    java.util.stream.Collectors.mapping(
-                        TrazaDTO::getNroTraza,
-                        java.util.stream.Collectors.collectingAndThen(
-                            java.util.stream.Collectors.toList(),
-                            list -> {
-                                list.sort(java.util.Comparator.naturalOrder());
-                                return list;
-                            }
-                        )
-                    )
-                ));
-
-        return trazasVentaPorBulto;
-    }
 
     private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
         model.addAttribute("loteVentaDTOs", loteService.findAllForVentaProductoDTOs());
@@ -101,5 +80,27 @@ public class BajaVentaProductoController extends AbstractCuController {
                 ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
                 : "Hubo un error en la venta de producto.");
     }
+
+
+    private Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
+        Map<Integer, List<Long>> trazasVentaPorBulto =
+            loteDTO.getTrazaDTOs().stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                    TrazaDTO::getNroBulto,
+                    java.util.TreeMap::new, // TreeMap para que los bultos salgan 1,2,3...
+                    java.util.stream.Collectors.mapping(
+                        TrazaDTO::getNroTraza,
+                        java.util.stream.Collectors.collectingAndThen(
+                            java.util.stream.Collectors.toList(),
+                            list -> {
+                                list.sort(java.util.Comparator.naturalOrder());
+                                return list;
+                            }
+                        )
+                    )
+                ));
+        return trazasVentaPorBulto;
+    }
+
 
 }

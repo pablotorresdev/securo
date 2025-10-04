@@ -37,7 +37,6 @@ public class ModifLiberacionVentasController extends AbstractCuController {
     @GetMapping("/inicio-liberacion")
     public String showLiberacionProductoForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        //TODO: implementar el filtro correcto en base a ventas y Analisis (Fecha, ventas)
         initModelLiberacionProducto(movimientoDTO, model);
         return "ventas/liberacion/inicio-liberacion";
     }
@@ -66,7 +65,6 @@ public class ModifLiberacionVentasController extends AbstractCuController {
 
     private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
         final List<LoteDTO> loteLiberacionProdDtos = loteService.findAllForLiberacionProductoDTOs();
-        //TODO: unificar nombres de atributos
         model.addAttribute("loteLiberacionProdDtos", loteLiberacionProdDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }

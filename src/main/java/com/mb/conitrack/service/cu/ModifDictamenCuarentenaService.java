@@ -13,11 +13,14 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.enums.DictamenEnum;
 
 import jakarta.validation.Valid;
 
 import static com.mb.conitrack.enums.DictamenEnum.CUARENTENA;
+import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
+import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
@@ -31,7 +34,6 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        //TODO, eliminar NRO de Reanalisis del DTO
         final String nroAnalisis = StringUtils.isEmptyOrWhitespace(dto.getNroReanalisis())
             ? dto.getNroAnalisis()
             : dto.getNroReanalisis();
@@ -50,6 +52,13 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
 
         final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
         Movimiento mov = persistirMovimientoCuarentenaPorAnalisis(dto, lote, nroAnalisisMovimiento);
+
+        if(!lote.getTrazas().isEmpty()){
+            for (Traza traza : lote.getTrazas()) {
+                traza.setEstado(DISPONIBLE);
+            }
+            trazaRepository.saveAll(lote.getTrazas());
+        }
 
         lote.getMovimientos().add(mov);
         lote.setDictamen(DictamenEnum.CUARENTENA);

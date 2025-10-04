@@ -47,7 +47,6 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
     }
 
     @Transactional
-    //TODO: fix this method
     public boolean validarResultadoAnalisisInput(
         final MovimientoDTO dto,
         final BindingResult bindingResult) {

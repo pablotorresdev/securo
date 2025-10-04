@@ -34,7 +34,6 @@ public class ModifRetiroMercadoController extends AbstractCuController {
     @GetMapping("/retiro-mercado")
     public String showRetiroMercadoForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        //TODO: implementar el filtro correcto en base a ventas y Analisis (Fecha, ventas)
         initModelRetiroMercado(movimientoDTO, model);
         return "ventas/recall/retiro-mercado";
     }

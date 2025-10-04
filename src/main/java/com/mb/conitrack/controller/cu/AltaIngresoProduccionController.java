@@ -36,7 +36,6 @@ public class AltaIngresoProduccionController extends AbstractCuController {
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @GetMapping("/ingreso-produccion")
     public String showIngresoProduccion(@ModelAttribute("loteDTO") LoteDTO loteDTO, Model model) {
-        //TODO: validar que la traza solo se pueda ingresar en unidad de venta
         initModelIngresoProduccion(loteDTO, model);
         return "produccion/alta/ingreso-produccion";
     }

@@ -114,12 +114,6 @@
             </div>
         </div>
 
-        <!-- =========================================================
-             Datos Opcionales
-        ========================================================== -->
-        <hr class="my-4">
-        <h4 class="mb-3 text-primary">Datos Opcionales</h4>
-
         <!--
           Traza inicial (solo para productos UNIDAD_VENTA):
           - Visible si data-tipo-producto === 'UNIDAD_VENTA'
@@ -130,6 +124,12 @@
             <input class="form-control" id="trazaInicial" th:field="*{trazaInicial}" type="number">
             <div class="text-danger fw-bold" th:errors="*{trazaInicial}" th:if="${#fields.hasErrors('trazaInicial')}"></div>
         </div>
+
+        <!-- =========================================================
+             Datos Opcionales
+        ========================================================== -->
+        <hr class="my-4">
+        <h4 class="mb-3 text-primary">Datos Opcionales</h4>
 
         <!-- Detalle de conservación a almacenar en el lote -->
         <div class="mb-2">

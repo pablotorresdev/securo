@@ -40,7 +40,6 @@ public class BajaMuestreoBultoController extends AbstractCuController {
     }
 
     @PostMapping("/muestreo-bulto")
-    //TODO: soportar multimuestreo (x cant x cada bulto)
     public String muestreoBulto(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,

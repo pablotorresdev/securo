@@ -12,7 +12,9 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
 
+import static com.mb.conitrack.enums.MotivoEnum.AJUSTE;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.RETIRO_MERCADO;
@@ -30,11 +32,11 @@ public class MovimientoEntityUtils {
         }
     }
 
-    //***********CU24 BAJA: RETIRO MERCADO***********
-    public static Movimiento crearMovimientoBajaRecall(final MovimientoDTO dto) {
+    //***********CU24 MODIF: RETIRO MERCADO***********
+    public static Movimiento crearMovimientoModifRecall(final MovimientoDTO dto) {
         Movimiento movimiento = new Movimiento();
 
-        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
         movimiento.setMotivo(RETIRO_MERCADO);
 
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
@@ -123,11 +125,54 @@ public class MovimientoEntityUtils {
         return movimiento;
     }
 
-    //***********CU24 ALTA: PRODUCCION INTERNA***********
+    //***********CU23 ALTA: PRODUCCION INTERNA***********
     public static Movimiento createMovimientoAltaIngresoDevolucion(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoAlta(dto, lote);
-        movimiento.setObservaciones("_CU24_\n" + dto.getObservaciones());
+        movimiento.setObservaciones("_CU23_\n" + dto.getObservaciones());
         movimiento.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
+        return movimiento;
+    }
+
+    //***********CU24 ALTA: RECALL ***********
+    public static Movimiento createMovimientoAltaRecall(final MovimientoDTO dto, final Lote lote) {
+        Movimiento movimiento = createMovimientoAlta(dto, lote);
+        movimiento.setObservaciones("_CU24_\n" + dto.getObservaciones());
+        movimiento.setMotivo(RETIRO_MERCADO);
+        return movimiento;
+    }
+
+
+    //***********CU25 BAJA: AJUSTE STOCK***********
+    public static Movimiento createMovimientoAjusteStock(
+        final MovimientoDTO dto,
+        final Bulto bulto) {
+
+        Movimiento movimiento = new Movimiento();
+
+        movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+        movimiento.setMotivo(AJUSTE);
+
+        movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
+        movimiento.setFecha(dto.getFechaMovimiento());
+        movimiento.setCantidad(dto.getCantidad());
+        movimiento.setUnidadMedida(dto.getUnidadMedida());
+        movimiento.setNroAnalisis(dto.getNroAnalisis());
+        movimiento.setActivo(true);
+
+
+        populateDetalleMovimiento(movimiento, bulto);
+        String timestampLoteDTO = dto.getFechaYHoraCreacion()
+            .format(DateTimeFormatter.ofPattern("yy.MM.dd_HH.mm.ss"));
+        movimiento.setCodigoMovimiento(bulto.getLote().getCodigoLote() +
+            "-B_" +
+            bulto.getNroBulto() +
+            "-" +
+            timestampLoteDTO);
+
+
+        movimiento.setObservaciones("_CU25_\n" + dto.getObservaciones());
+
+        movimiento.setLote(bulto.getLote());
         return movimiento;
     }
 

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Baja por Ajuste Stock</title>
+    <!-- Bootstrap para estilos rápidos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Baja por Ajuste Stock</h2>
+
+    <!--
+        Formulario principal.
+        - method POST
+        - th:action: endpoint que persiste el movimiento de baja por ajuste
+        - th:object: DTO de respaldo para binding bidireccional de campos
+    -->
+    <form method="post" th:action="@{/contingencias/ajuste-stock}" th:object="${movimientoDTO}">
+        <!-- Campo oculto CSRF para compatibilidad con validación del servidor -->
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+        <!-- N° de análisis del lote, se setea por JS cuando se elige el lote -->
+
+        <hr class="my-4">
+        <h4 class="mb-3 text-primary">Datos Obligatorios</h4>
+
+        <!--
+            Fecha del movimiento.
+            - type="date"
+            - th:field bind a movimientoDTO.fechaMovimiento
+            - th:errors muestra mensajes de validación si los hay
+        -->
+        <div class="mb-2">
+            <label class="form-label" for="fechaMovimiento">Fecha del Ajuste:</label>
+            <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
+                   required
+                   th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
+                   th:field="*{fechaMovimiento}"
+                   type="date">
+
+            <div class="text-danger fw-bold"
+                 th:errors="*{fechaMovimiento}"
+                 th:if="${#fields.hasErrors('fechaMovimiento')}">
+            </div>
+        </div>
+
+        <!--
+            Selector 1: Lote a ajustar.
+            - La opción elegida determina:
+              * Bultos disponibles (carga dinámica por fetch)
+              * Si el producto es UNIDAD_DE_VENTA para alternar entre:
+                - selección de trazas (unidad de venta)
+                - cantidad/unidad libres (no unidad de venta)
+        -->
+        <div class="mb-2">
+            <label class="form-label" for="loteAjuste">Lote:</label>
+            <select class="form-select"
+                    id="loteAjuste"
+                    required
+                    th:field="*{codigoLote}"
+                    th:classappend="${#fields.hasErrors('codigoLote')} ? ' error-field'">
+                <option value="">-- Seleccione el lote a ajustar --</option>
+                <!--
+                    Cada option expone:
+                    - value: código de lote (viaja al DTO)
+                    - data-dictamen: dictamen del análisis (APROBADO/RECHAZADO/EN_CURSO)
+                    - data-es-unidad-venta: si el producto se maneja por trazas (true/false)
+                    - th:text: texto informativo visible al usuario
+                -->
+                <option th:each="loteDTO : ${loteAjusteDTOs}"
+                        th:value="${loteDTO.codigoLote}"
+                        th:data-dictamen="${loteDTO.dictamen}"
+                        th:data-es-unidad-venta="${loteDTO.esUnidadVenta}"
+                        th:text="'Nombre: ' + ${loteDTO.nombreProducto}
+                         + ' | ID Lote: ' + ${loteDTO.loteProveedor}
+                         + ' | Dictamen: ' + ${loteDTO.dictamen}">
+                </option>
+            </select>
+        </div>
+
+        <!--
+            Bloque de Bultos:
+            - Se rellena dinámicamente al elegir un lote
+            - Se muestra cantidad y unidad de referencia del bulto seleccionado
+        -->
+        <div class="row mb-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label" for="nroBultoAjuste">Número del Bulto:</label>
+                <select class="form-select" id="nroBultoAjuste" required th:field="*{nroBulto}">
+                    <option value="">-- Seleccione el bulto a ajustar --</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Cantidad del Bulto:</label>
+                <input class="form-control" disabled id="refCantBulto" type="text">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Unidad:</label>
+                <input class="form-control" disabled id="refUniMedBulto" type="text">
+            </div>
+            <div class="text-danger fw-bold" th:errors="*{nroBulto}" th:if="${#fields.hasErrors('nroBulto')}"></div>
+        </div>
+
+        <!--
+            Bloque de Trazas (solo para UNIDAD_DE_VENTA):
+            - wrapperTrazas se muestra si el lote es unidad de venta
+            - trazasContainer: checkboxes con trazas disponibles del bulto
+            - trazasHidden: inputs ocultos que viajan al backend como movimientoDTO.trazaDTOs
+        -->
+        <div class="mb-3" id="wrapperTrazas" style="display:none;">
+            <label class="form-label">Trazas disponibles del bulto (seleccione las que ajustará):</label>
+            <div id="trazasContainer" class="border rounded p-3"></div>
+
+            <div id="trazasError" class="text-danger fw-bold mt-2" style="display:none;">
+                Seleccioná al menos una traza.
+            </div>
+
+            <!-- Inputs ocultos para movimientoDTO.trazaDTOs -->
+            <div id="trazasHidden"></div>
+        </div>
+
+        <!--
+            Cantidad + Unidad para ajuste "clásico":
+            - Se usa cuando NO es UNIDAD_DE_VENTA.
+            - En UNIDAD_DE_VENTA, se ocultan y se reemplazan por trazas + campos ocultos cantidad/unidad.
+        -->
+        <div class="row mb-3 align-items-end" id="rowCantidadUnidad">
+            <div class="col-md-6 d-flex flex-column">
+                <label class="form-label" for="cantidadBultoElegido">Cantidad:</label>
+                <input class="form-control" id="cantidadBultoElegido" required step="0.01" th:field="*{cantidad}" type="number">
+            </div>
+
+            <div class="col-md-3 d-flex flex-column">
+                <label class="form-label" for="uniMedBultoElegido">Unidad de Medida:</label>
+                <select class="form-select" id="uniMedBultoElegido" required th:field="*{unidadMedida}">
+                    <option value="">-- Seleccione unidad --</option>
+                </select>
+            </div>
+
+            <div class="text-danger fw-bold mt-1"
+                 th:errors="*{cantidad}"
+                 th:if="${#fields.hasErrors('cantidad')}">
+            </div>
+        </div>
+
+        <!-- Observaciones libres (máx. 300 chars) -->
+        <div class="mb-2">
+            <label class="form-label" for="observaciones">Observaciones:</label>
+            <textarea class="form-control" id="observaciones" maxlength="300" th:field="*{observaciones}"></textarea>
+        </div>
+
+        <!-- Acciones -->
+        <div class="d-flex justify-content-between mt-3">
+            <a class="btn btn-secondary" th:href="@{/contingencias/cancelar}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar</button>
+        </div>
+    </form>
+</div>
+
+<!-- Pie de página simple -->
+<footer class="text-center mt-4 text-muted">
+    <p>&copy; 2025 Conitrack. All rights reserved.</p>
+</footer>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- Toma de valores CSRF para incluir en fetch() ---
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+        const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute("content");
+
+        // --- Referencias a elementos del DOM usados recurrentemente ---
+        const form     = document.querySelector('form');        // Necesario para inyectar inputs ocultos
+        const loteSel  = document.getElementById('loteAjuste');
+        const bultoSel = document.getElementById('nroBultoAjuste');
+        const cantRef  = document.getElementById('refCantBulto');
+        const uniRef   = document.getElementById('refUniMedBulto');
+        const uniSel   = document.getElementById('uniMedBultoElegido');
+        const cantInput= document.getElementById('cantidadBultoElegido');
+        const rowCantUn= document.getElementById('rowCantidadUnidad');
+
+        // --- Sección de Trazas (solo UNIDAD_DE_VENTA) ---
+        const wrapperTrazas   = document.getElementById('wrapperTrazas');
+        const trazasContainer = document.getElementById('trazasContainer');
+        const trazasError     = document.getElementById('trazasError');
+        const trazasHidden    = document.getElementById('trazasHidden');
+
+        /*
+         * dto: Valores que vuelven del servidor en caso de errores de validación,
+         * usados para restaurar selección/estado en init.
+         */
+        const dto = {
+            codigoLote      : /*[[${movimientoDTO.codigoLote}]]*/ null,
+            nroBulto        : /*[[${movimientoDTO.nroBulto}]]*/ null,
+            unidadMedida    : /*[[${movimientoDTO.unidadMedida}]]*/ null,
+            fechaMovimiento : /*[[${movimientoDTO.fechaMovimiento}]]*/ null
+        };
+
+        // Setea fecha por defecto si no viene en dto (formato ISO yyyy-MM-dd)
+        const setFechaMovimiento = () => {
+            const campo = document.getElementById('fechaMovimiento');
+            campo.value = dto.fechaMovimiento || new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
+        };
+
+        // --- Helpers para flujo UNIDAD_DE_VENTA ---
+        // Determina si el lote seleccionado se gestiona por trazas (unidad de venta)
+        function esUnidadDeVentaSeleccionada() {
+            const opt = loteSel.options[loteSel.selectedIndex];
+            return !!opt && opt.getAttribute('data-es-unidad-venta') === 'true';
+        }
+
+        // Garantiza existencia de inputs ocultos 'cantidad' y 'unidadMedida' (cuando UI visible está deshabilitada)
+        function ensureHiddenCantidadUnidad() {
+            let hCant = document.getElementById('cantidadHidden');
+            let hUni  = document.getElementById('unidadHidden');
+            if (!hCant) {
+                hCant = document.createElement('input');
+                hCant.type = 'hidden';
+                hCant.id = 'cantidadHidden';
+                hCant.name = 'cantidad';             // Debe coincidir con el nombre del campo en el DTO
+                form.appendChild(hCant);
+            }
+            if (!hUni) {
+                hUni = document.createElement('input');
+                hUni.type = 'hidden';
+                hUni.id = 'unidadHidden';
+                hUni.name = 'unidadMedida';          // Debe coincidir con el nombre del campo en el DTO
+                form.appendChild(hUni);
+            }
+            return { hCant, hUni };
+        }
+
+        // Elimina los ocultos para evitar doble binding cuando no son necesarios
+        function removeHiddenCantidadUnidad() {
+            document.getElementById('cantidadHidden')?.remove();
+            document.getElementById('unidadHidden')?.remove();
+        }
+
+        // Conmuta entre UI de trazas (unidad de venta) y UI clásica (cantidad/unidad)
+        function toggleUIPorUnidadVenta(flag) {
+            if (flag) {
+                // Mostrar trazas, ocultar cantidad/unidad visibles
+                rowCantUn.style.display = 'none';
+                wrapperTrazas.style.display = '';
+
+                // Desactivar y quitar required de campos visibles
+                cantInput.required = false;
+                uniSel.required    = false;
+                cantInput.disabled = true;
+                uniSel.disabled    = true;
+
+                // Asegurar inputs ocultos (se setean en el submit)
+                ensureHiddenCantidadUnidad();
+
+            } else {
+                // Flujo clásico
+                rowCantUn.style.display = '';
+                wrapperTrazas.style.display = 'none';
+                clearTrazasUI();
+
+                // Reactivar y marcar como obligatorios
+                cantInput.disabled = false;
+                uniSel.disabled    = false;
+                cantInput.required = true;
+                uniSel.required    = true;
+
+                // Quitar ocultos para no duplicar envío
+                removeHiddenCantidadUnidad();
+            }
+        }
+
+        // Limpia la sección de trazas (UI y ocultos)
+        function clearTrazasUI() {
+            trazasContainer.innerHTML = '';
+            trazasHidden.innerHTML = '';
+            if (trazasError) trazasError.style.display = 'none';
+        }
+
+        /*
+         * Carga de bultos del lote seleccionado.
+         * - GET /lotes/ajuste/codigoLote/{codigoLote}
+         * - Pinta <option> con data de cantidad y unidad disponibles
+         */
+        const cargarBultos = (codigoLote) => {
+            bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a ajustar --</option>';
+
+            fetch(`/lotes/ajuste/codigoLote/${encodeURIComponent(codigoLote)}`, {
+                headers: { [csrfHeader]: csrfToken }
+            })
+                .then(r => r.json())
+                .then((data /* List<BultoDTO> */) => {
+                    data.forEach(b => {
+                        const o = document.createElement('option');
+                        o.value = b.nroBulto; // Viaja al DTO
+                        o.textContent = `Bulto: ${b.nroBulto} - Disponible: ${b.cantidadActual} ${b.unidadMedida}`;
+                        // Guardamos info para mostrar y para cargar subunidades
+                        o.dataset.cant = b.cantidadActual;
+                        o.dataset.uni  = b.unidadMedida;
+                        bultoSel.appendChild(o);
+                    });
+
+                    // Si volvemos con error y ya había bulto seleccionado, restaurar
+                    if (dto.nroBulto) {
+                        bultoSel.value = dto.nroBulto;
+                        bultoSel.dispatchEvent(new Event('change'));
+                    }
+                })
+                .catch(err => console.error('Error al cargar bultos:', err));
+        };
+
+        /*
+         * Carga de subunidades (cuando NO es unidad de venta).
+         * - GET /enums/subunidades?unidad={base}
+         * - Popular selector de unidad de medida (ej: KG -> G, etc.)
+         */
+        const cargarSubunidades = (base) => {
+            fetch(`/enums/subunidades?unidad=${encodeURIComponent(base)}`, { headers: { [csrfHeader]: csrfToken } })
+                .then(r => r.json())
+                .then(subs => {
+                    uniSel.innerHTML = '<option value="">-- Seleccione unidad --</option>';
+                    subs.forEach(u => {
+                        const o = document.createElement('option');
+                        o.value = o.textContent = u;
+                        uniSel.appendChild(o);
+                    });
+                    // Restaurar unidad elegida si venía en dto
+                    uniSel.value = dto.unidadMedida || base;
+                })
+                .catch(err => console.error('Error al cargar sub-unidades:', err));
+        };
+
+        /*
+         * Carga de trazas disponibles (solo UNIDAD_DE_VENTA).
+         * - GET /trazas/disponibles/{codigoLote}/{nroBulto}
+         * - Renderiza checkboxes con nroTraza; la cantidad total se usará como "cantidad"
+         */
+        async function cargarTrazasDisponibles(codigoLote, nroBulto) {
+            clearTrazasUI();
+            if (!codigoLote || !nroBulto) return;
+
+            try {
+                const resp = await fetch(`/trazas/disponibles/${encodeURIComponent(codigoLote)}/${encodeURIComponent(nroBulto)}`,
+                    { headers: { [csrfHeader]: csrfToken } }
+                );
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const trazas = await resp.json(); // List<TrazaDTO>
+
+                if (!trazas || trazas.length === 0) {
+                    wrapperTrazas.style.display = '';
+                    trazasContainer.innerHTML = `<div class="text-muted">No hay trazas disponibles para este bulto.</div>`;
+                    return;
+                }
+
+                // Contenedor de checkboxes de trazas
+                const list = document.createElement('div');
+                list.className = 'd-flex flex-wrap gap-3';
+                trazas.forEach(t => {
+                    const id = `traza_${t.nroBulto}_${t.nroTraza}`;
+                    const item = document.createElement('div');
+                    item.className = 'form-check';
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'form-check-input';
+                    cb.id = id;
+                    cb.dataset.nroTraza   = String(t.nroTraza);
+                    cb.dataset.nroBulto   = String(t.nroBulto);
+                    cb.dataset.codigoLote = t.codigoLote;
+
+                    const lb = document.createElement('label');
+                    lb.className = 'form-check-label';
+                    lb.setAttribute('for', id);
+                    lb.textContent = `[${t.nroTraza}]`;
+
+                    item.appendChild(cb);
+                    item.appendChild(lb);
+                    list.appendChild(item);
+                });
+
+                trazasContainer.appendChild(list);
+                wrapperTrazas.style.display = '';
+            } catch (e) {
+                console.error('Error al cargar trazas:', e);
+                wrapperTrazas.style.display = '';
+                trazasContainer.innerHTML = `<div class="text-danger">No se pudieron cargar las trazas.</div>`;
+            }
+        }
+
+        // --- Cambio de Lote: resetea bulto/trazas, pinta análisis/dictamen y decide UI según unidad de venta ---
+        loteSel.addEventListener('change', () => {
+            limpiarInfoBulto();
+            clearTrazasUI();
+
+            const opt = loteSel.selectedOptions[0];
+            const codigo = loteSel.value;
+            if (!codigo) {
+                toggleUIPorUnidadVenta(false);
+                return;
+            }
+
+            // Conmutar interfaz según unidad de venta
+            toggleUIPorUnidadVenta(esUnidadDeVentaSeleccionada());
+
+            // Cargar bultos del lote seleccionado
+            cargarBultos(codigo);
+        });
+
+        // --- Cambio de Bulto: muestra cantidad/unidad y dispara carga de trazas o subunidades según el caso ---
+        bultoSel.addEventListener('change', () => {
+            const opt = bultoSel.selectedOptions[0];
+            if (!opt?.value) {
+                limpiarInfoBulto();
+                clearTrazasUI();
+                return;
+            }
+
+            // Mostrar referencias de stock del bulto
+            cantRef.value = opt.dataset.cant || '';
+            uniRef.value  = opt.dataset.uni  || '';
+
+            if (esUnidadDeVentaSeleccionada()) {
+                // Cargar trazas disponibles del bulto
+                cargarTrazasDisponibles(loteSel.value, Number(opt.value));
+            } else {
+                // Cargar subunidades para el selector de unidad de medida
+                if (uniRef.value) cargarSubunidades(uniRef.value);
+                clearTrazasUI();
+            }
+        });
+
+        // Limpia estado del bloque de bultos y referencias
+        const limpiarInfoBulto = () => {
+            bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a ajustar --</option>';
+            cantRef.value = '';
+            uniRef.value  = '';
+        };
+
+        /*
+         * Submit:
+         * - Si NO es UNIDAD_DE_VENTA: el flujo es normal (cantidad/unidad visibles).
+         * - Si es UNIDAD_DE_VENTA:
+         *   * Valida que haya al menos una traza seleccionada.
+         *   * Construye inputs ocultos movimientoDTO.trazaDTOs[i].(codigoLote|nroBulto|nroTraza)
+         *   * Setea cantidad = cantidad de trazas seleccionadas y unidadMedida = 'UNIDAD' (en ocultos)
+         */
+        form.addEventListener('submit', (ev) => {
+            if (!esUnidadDeVentaSeleccionada()) return; // Flujo clásico: no hay cambios
+
+            const checks = trazasContainer.querySelectorAll('input[type="checkbox"]:checked');
+
+            // Validación: al menos una traza
+            if (wrapperTrazas.style.display !== 'none' && checks.length === 0) {
+                ev.preventDefault();
+                if (trazasError) {
+                    trazasError.style.display = 'block';
+                    trazasError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            } else if (trazasError) {
+                trazasError.style.display = 'none';
+            }
+
+            // Construir arreglo movimientoDTO.trazaDTOs[*] como inputs ocultos
+            trazasHidden.innerHTML = '';
+            let i = 0;
+            checks.forEach(cb => {
+                const h1 = document.createElement('input');
+                h1.type = 'hidden';
+                h1.name = `trazaDTOs[${i}].codigoLote`;
+                h1.value = cb.dataset.codigoLote || loteSel.value || '';
+                trazasHidden.appendChild(h1);
+
+                const h2 = document.createElement('input');
+                h2.type = 'hidden';
+                h2.name = `trazaDTOs[${i}].nroBulto`;
+                h2.value = cb.dataset.nroBulto || bultoSel.value || '';
+                trazasHidden.appendChild(h2);
+
+                const h3 = document.createElement('input');
+                h3.type = 'hidden';
+                h3.name = `trazaDTOs[${i}].nroTraza`;
+                h3.value = cb.dataset.nroTraza || '';
+                trazasHidden.appendChild(h3);
+                i++;
+            });
+
+            // Setear cantidad/unidad en ocultos (los visibles están disabled)
+            const { hCant, hUni } = ensureHiddenCantidadUnidad();
+            hCant.value = String(checks.length);
+            hUni.value  = 'UNIDAD';
+        });
+
+        // --- Inicialización al cargar la página ---
+        setFechaMovimiento();
+
+        // Si venimos de un post con errores y había lote seleccionado, restaurar selección/estado
+        if (dto.codigoLote) {
+            loteSel.value = dto.codigoLote;
+            loteSel.dispatchEvent(new Event('change'));
+        }
+
+        // Enfocar el primer campo con error, si existe
+        document.querySelector('.error-field')?.focus();
+    });
+</script>
+</body>
+</html>

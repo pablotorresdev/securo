@@ -36,6 +36,7 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
               and l.estado in (
                    com.mb.conitrack.enums.EstadoEnum.NUEVO,
                    com.mb.conitrack.enums.EstadoEnum.DISPONIBLE,
+                   com.mb.conitrack.enums.EstadoEnum.DEVUELTO,
                    com.mb.conitrack.enums.EstadoEnum.EN_USO
               )
             order by case when l.fechaIngreso is null then 1 else 0 end,
@@ -60,6 +61,19 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
                      l.fechaIngreso asc, l.codigoLote asc
         """)
     List<Lote> findAllForMuestreo();
+
+    @Query("""
+            select l
+            from Lote l
+            where l.activo = true
+              and exists (
+                  select 1 from Bulto b
+                  where b.lote = l and b.cantidadActual > 0
+              )
+            order by case when l.fechaIngreso is null then 1 else 0 end,
+                     l.fechaIngreso asc, l.codigoLote asc
+        """)
+    List<Lote> findAllForAjuste();
 
     @Query("""
             select l
@@ -274,5 +288,18 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
             order by b.nroBulto asc
         """)
     List<Bulto> findBultosForMuestreoByCodigoLote(@Param("codigoLote") String codigoLote);
+
+    @Query("""
+            select distinct b
+            from Bulto b
+            join b.lote l
+            where l.codigoLote = :codigoLote
+              and l.activo = true
+              and b.activo = true
+              and b.cantidadActual is not null
+              and b.cantidadActual > 0
+            order by b.nroBulto asc
+        """)
+    List<Bulto> findBultosForAjusteByCodigoLote(@Param("codigoLote") String codigoLote);
 
 }

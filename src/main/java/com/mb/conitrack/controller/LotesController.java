@@ -45,5 +45,13 @@ public class LotesController {
         return loteService.findBultosForMuestreoByCodigoLote(codigoLote);
     }
 
+    //***********CU25 BAJA: AJUSTE***********
+    @GetMapping("/ajuste/codigoLote/{codigoLote}")
+    @ResponseBody
+    public List<BultoDTO> getBultosForAjusteByCodigoLote(
+        @PathVariable String codigoLote) {
+        return loteService.findBultosForAjusteByCodigoLote(codigoLote);
+    }
+
 }
 

@@ -185,7 +185,7 @@ public class LoteDTO {
 
     public LocalDate getFechaVencimientoVigente() {
         final List<AnalisisDTO> list = this.analisisDTOs.stream().filter(a -> a.getDictamen() != null)
-            .filter(a -> a.getFechaVencimiento() != null).toList();
+            .filter(a -> a.getCodigoLote().equals(this.codigoLote)).filter(a -> a.getFechaVencimiento() != null).toList();
         if (list.isEmpty()) {
             return fechaVencimientoProveedor;
         } else if (list.size() == 1) {

@@ -14,10 +14,10 @@
     <h2 class="mb-4">Reverso de Ultimo Movimiento</h2>
     <!--
       Formulario principal:
-      - POST a /ajustes/reverso-movimiento
+      - POST a /contingencias/reverso-movimiento
       - th:object enlaza campos con movimientoDTO (binding servidor <-> vista)
     -->
-    <form method="post" th:action="@{/ajustes/reverso-movimiento}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/contingencias/reverso-movimiento}" th:object="${movimientoDTO}">
         <!-- Token CSRF en el body para validar la solicitud -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
@@ -52,7 +52,7 @@
           - Incluye un hidden con el código del movimiento origen que se envía al backend
           - Por defecto oculto; se muestra si hay error en 'codigoMovimientoOrigen' o cuando JS carga datos
         -->
-        <div class="mb-3" id="wrapperMovajustes"
+        <div class="mb-3" id="wrapperMovReverso"
              th:style="${#fields.hasErrors('codigoMovimientoOrigen')}? '' : 'display:none;'">
             <label class="form-label" for="movResumen">Movimiento a revertir:</label>
             <input class="form-control" id="movResumen" type="text" readonly
@@ -96,7 +96,7 @@
 
         <!-- Acciones -->
         <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/ajustes/cancelar}">Cancelar</a>
+            <a class="btn btn-secondary" th:href="@{/contingencias/cancelar}">Cancelar</a>
             <button class="btn btn-primary" type="submit">Realizar devolución</button>
         </div>
     </form>
@@ -121,7 +121,7 @@
         // Elementos de la UI
         const loteSelect = document.getElementById('codigoLote');
 
-        const movWrapper = document.getElementById('wrapperMovajustes');
+        const movWrapper = document.getElementById('wrapperMovReverso');
         const movResumen = document.getElementById('movResumen');
         const movHidden = document.getElementById('codigoMovimientoOrigen');
 
