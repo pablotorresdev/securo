@@ -34,6 +34,14 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     Optional<Movimiento> findByCodigoMovimientoAndActivoTrue(String codigoMovimiento);
 
     @Query("""
+          select m
+          from Movimiento m
+          where m.codigoMovimiento = :codigoMovimiento
+            and m.activo = true
+        """)
+    List<Movimiento> findAllByCodigoMovimiento(String codigoMovimiento);
+
+    @Query("""
             SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END
             FROM Movimiento m
             WHERE m.lote.codigoLote = :codigoLote

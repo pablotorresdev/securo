@@ -302,4 +302,14 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
         """)
     List<Bulto> findBultosForAjusteByCodigoLote(@Param("codigoLote") String codigoLote);
 
+
+    @Query("""
+            select l
+            from Lote l
+            where l.activo = true
+              and l.loteOrigen.codigoLote = :codigoLote
+        """)
+    List<Lote> findLotesByLoteOrigen(@Param("codigoLote") String codigoLote);
+
+
 }

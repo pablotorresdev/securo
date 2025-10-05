@@ -19,7 +19,6 @@ import com.mb.conitrack.enums.DictamenEnum;
 import jakarta.validation.Valid;
 
 import static com.mb.conitrack.enums.DictamenEnum.CUARENTENA;
-import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;

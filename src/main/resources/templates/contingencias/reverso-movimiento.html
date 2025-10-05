@@ -44,6 +44,9 @@
                         th:value="${loteDTO.codigoLote}">
                 </option>
             </select>
+            <!-- Mensaje de error para el campo 'codigoLote' en validación server-side -->
+            <div class="text-danger" th:errors="*{codigoLote}"
+                 th:if="${#fields.hasErrors('codigoLote')}"></div>
         </div>
 
         <!--

@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,9 +29,6 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import jakarta.validation.Valid;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntity;
-import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
-import static com.mb.conitrack.enums.EstadoEnum.DESCARTADO;
-import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
 import static com.mb.conitrack.enums.EstadoEnum.RECALL;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoModifRecall;
@@ -77,6 +73,47 @@ public class ModifRetiroMercadoService extends AbstractCuService {
         return validarTrazasDevolucion(dto, bindingResult);
     }
 
+    @Transactional
+    void persistirAltaUnidadesRetiradas(final MovimientoDTO dto, final Lote lote) {
+        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, lote);
+
+        //************RECALL************
+        final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
+            .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
+
+        // 3) Por cada bulto afectado, crear UN DetalleMovimiento y colgar las trazas devueltas
+        for (Map.Entry<Integer, List<TrazaDTO>> trazaDTOporBulto : trazaDTOporBultoMap.entrySet()) {
+            final Integer trazaDTOnroBulto = trazaDTOporBulto.getKey();
+            final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
+
+            final Bulto bulto = lote.getBultoByNro(trazaDTOnroBulto);
+
+            final BigDecimal cantidad = BigDecimal.valueOf(trazasDTOsPorBulto.size());
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimientoAltaRecall)
+                .bulto(bulto)
+                .cantidad(cantidad)
+                .unidadMedida(UnidadMedidaEnum.UNIDAD)
+                .build();
+
+            movimientoAltaRecall.getDetalles().add(det);
+
+            for (TrazaDTO t : trazasDTOsPorBulto) {
+                final Traza trazaBulto = bulto.getTrazaByNro(t.getNroTraza());
+                trazaBulto.setEstado(RECALL);
+                det.getTrazas().add(trazaBulto);
+            }
+            bulto.setCantidadActual(bulto.getCantidadActual().add(cantidad));
+            bultoRepository.save(bulto);
+        }
+
+        movimientoAltaRecall.setCantidad(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
+        movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+
+        final Movimiento newMovimiento = movimientoRepository.save(movimientoAltaRecall);
+        lote.setCantidadActual(lote.getCantidadActual().add(BigDecimal.valueOf(dto.getTrazaDTOs().size())));
+        lote.getMovimientos().add(newMovimiento);
+    }
 
     @Transactional
     void persistirModifTrazasDisponiblesEnStock(final MovimientoDTO dto, final Lote lote) {
@@ -116,45 +153,5 @@ public class ModifRetiroMercadoService extends AbstractCuService {
             }
         }
     }
-
-    @Transactional
-    void persistirAltaUnidadesRetiradas(final MovimientoDTO dto, final Lote lote) {
-        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, lote);
-
-        //************RECALL************
-        final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
-            .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
-
-        // 3) Por cada bulto afectado, crear UN DetalleMovimiento y colgar las trazas devueltas
-        for (Map.Entry<Integer, List<TrazaDTO>> trazaDTOporBulto : trazaDTOporBultoMap.entrySet()) {
-            final Integer trazaDTOnroBulto = trazaDTOporBulto.getKey();
-            final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
-
-            final Bulto bulto = lote.getBultoByNro(trazaDTOnroBulto);
-
-            final DetalleMovimiento det = DetalleMovimiento.builder()
-                .movimiento(movimientoAltaRecall)
-                .bulto(bulto)
-                .cantidad(BigDecimal.valueOf(trazasDTOsPorBulto.size()))
-                .unidadMedida(UnidadMedidaEnum.UNIDAD)
-                .build();
-
-            movimientoAltaRecall.getDetalles().add(det);
-
-            for (TrazaDTO t : trazasDTOsPorBulto) {
-                final Traza trazaBulto = bulto.getTrazaByNro(t.getNroTraza());
-                trazaBulto.setEstado(RECALL);
-                det.getTrazas().add(trazaBulto);
-            }
-            bultoRepository.save(bulto);
-        }
-
-        movimientoAltaRecall.setCantidad(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
-        movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-
-        final Movimiento newMovimiento = movimientoRepository.save(movimientoAltaRecall);
-        lote.getMovimientos().add(newMovimiento);
-    }
-
 
 }
