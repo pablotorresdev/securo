@@ -274,47 +274,69 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         movimiento.setCantidad(movOrigen.getCantidad());
         movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
 
-        if (movOrigen.getDetalles().size() > 1) {
-            throw new IllegalArgumentException("Multimuestreo no soportado aun");
-        }
-
-        final DetalleMovimiento detalleMovimiento = movOrigen.getDetalles().stream()
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("El detalle del movimiento a reversar no existe."));
-
-        final Bulto bulto = detalleMovimiento.getBulto();
-        detalleMovimiento.getTrazas().forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
-
-        dto.setCantidad(movOrigen.getCantidad());
-        dto.setUnidadMedida(movOrigen.getUnidadMedida());
-
-        bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
-        if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
-            bulto.setEstado(NUEVO);
-        } else {
-            bulto.setEstado(EN_USO);
-        }
-
         final Lote lote = movOrigen.getLote();
-        lote.setCantidadActual(sumarMovimientoConvertido(dto, lote));
+        final Set<DetalleMovimiento> detalles = movOrigen.getDetalles();
+        if (detalles.size() > 1) {
 
-        if (lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
-            lote.setEstado(NUEVO);
+            for (DetalleMovimiento detalleMovimiento : detalles) {
+                final Bulto bulto = detalleMovimiento.getBulto();
+                dto.setCantidad(detalleMovimiento.getCantidad());
+                dto.setUnidadMedida(detalleMovimiento.getUnidadMedida());
+                bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
+                if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
+                    bulto.setEstado(NUEVO);
+                } else {
+                    bulto.setEstado(EN_USO);
+                }
+                bultoRepository.save(bulto);
+
+                lote.setCantidadActual(sumarMovimientoConvertido(dto, lote));
+            }
+
+            if (lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
+                lote.setEstado(NUEVO);
+            } else {
+                lote.setEstado(EN_USO);
+            }
+
+            movOrigen.setActivo(false);
+            movimiento.setActivo(false);
         } else {
-            lote.setEstado(EN_USO);
+            final DetalleMovimiento detalleMovimiento = detalles.stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("El detalle del movimiento a reversar no existe."));
+
+            final Bulto bulto = detalleMovimiento.getBulto();
+            detalleMovimiento.getTrazas().forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
+            dto.setCantidad(movOrigen.getCantidad());
+            dto.setUnidadMedida(movOrigen.getUnidadMedida());
+
+            bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
+            if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
+                bulto.setEstado(NUEVO);
+            } else {
+                bulto.setEstado(EN_USO);
+            }
+
+            lote.setCantidadActual(sumarMovimientoConvertido(dto, lote));
+
+            if (lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
+                lote.setEstado(NUEVO);
+            } else {
+                lote.setEstado(EN_USO);
+            }
+
+            movOrigen.setActivo(false);
+            movimiento.setActivo(false);
+
+            trazaRepository.saveAll(detalleMovimiento.getTrazas());
+            bultoRepository.save(bulto);
         }
-
-        movOrigen.setActivo(false);
-        movimiento.setActivo(false);
-
-        trazaRepository.saveAll(detalleMovimiento.getTrazas());
-        bultoRepository.save(bulto);
 
         movimientoRepository.save(movimiento);
         movimientoRepository.save(movOrigen);
-        loteRepository.save(lote);
 
-        return DTOUtils.fromLoteEntity(movOrigen.getLote());
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
     @Transactional
