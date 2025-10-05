@@ -16,7 +16,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.service.AnalisisService;
 import com.mb.conitrack.service.cu.ModifResultadoAnalisisService;
 
 import jakarta.validation.Valid;
@@ -27,7 +26,6 @@ public class ModifResultadoAnalisisController extends AbstractCuController {
 
     @Autowired
     private ModifResultadoAnalisisService resultadoAnalisisService;
-
 
     @GetMapping("/cancelar")
     public String cancelar() {

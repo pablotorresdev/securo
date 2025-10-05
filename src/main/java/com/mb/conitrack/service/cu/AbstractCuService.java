@@ -231,6 +231,21 @@ public abstract class AbstractCuService {
         return true;
     }
 
+    boolean validarDatosMandatoriosAnulacionAnalisisInput(
+        final MovimientoDTO dto,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        // Verificamos que nroAnalisis no sea vacío
+        if (StringUtils.isEmptyOrWhitespace(dto.getNroAnalisis())) {
+            bindingResult.rejectValue("nroAnalisis", "", "El Nro de Análisis es obligatorio");
+            return false;
+        }
+
+        return true;
+    }
+
     boolean validarDatosMandatoriosResultadoAnalisisInput(
         final MovimientoDTO dto,
         final BindingResult bindingResult) {
@@ -257,22 +272,6 @@ public abstract class AbstractCuService {
                 "Debe ingresar la fecha en la que se realizó el análisis");
             return false;
         }
-        return true;
-    }
-
-
-    boolean validarDatosMandatoriosAnulacionAnalisisInput(
-        final MovimientoDTO dto,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        // Verificamos que nroAnalisis no sea vacío
-        if (StringUtils.isEmptyOrWhitespace(dto.getNroAnalisis())) {
-            bindingResult.rejectValue("nroAnalisis", "", "El Nro de Análisis es obligatorio");
-            return false;
-        }
-
         return true;
     }
 
@@ -369,22 +368,6 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validarFechasReanalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-        if (dto.getFechaReanalisis() != null && dto.getFechaVencimiento() != null) {
-            if (dto.getFechaReanalisis().isAfter(dto.getFechaVencimiento())) {
-                bindingResult.rejectValue(
-                    "fechaVencimiento",
-                    "",
-                    "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.");
-                return false;
-            }
-        }
-        return true;
-    }
-
     boolean validarFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
@@ -393,6 +376,22 @@ public abstract class AbstractCuService {
             if (loteDTO.getFechaReanalisisProveedor().isAfter(loteDTO.getFechaVencimientoProveedor())) {
                 bindingResult.rejectValue(
                     "fechaReanalisisProveedor",
+                    "",
+                    "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    boolean validarFechasReanalisis(final MovimientoDTO dto, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (dto.getFechaReanalisis() != null && dto.getFechaVencimiento() != null) {
+            if (dto.getFechaReanalisis().isAfter(dto.getFechaVencimiento())) {
+                bindingResult.rejectValue(
+                    "fechaVencimiento",
                     "",
                     "La fecha de reanálisis no puede ser posterior a la fecha de vencimiento.");
                 return false;

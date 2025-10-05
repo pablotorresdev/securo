@@ -3,7 +3,6 @@ package com.mb.conitrack.service.cu;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,11 +101,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     public boolean validarReversoMovmientoInput(
         final @Valid MovimientoDTO movimientoDTO,
         final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
+        return !bindingResult.hasErrors();
         //TODO: implementar
-        return true;
     }
 
     @Transactional
@@ -423,7 +419,6 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         return DTOUtils.fromLoteEntity(lote);
     }
 
-    //TODO: implementar
     @Transactional
     LoteDTO reversarRetiroMercado(final MovimientoDTO dto, final List<Movimiento> allByCodigoMovimiento) {
         Lote loteOrigen = null;
@@ -433,7 +428,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
                 movOrigen.setActivo(false);
                 movReverso.setActivo(false);
-                if(loteOrigen== null) {
+                if (loteOrigen == null) {
                     loteOrigen = movOrigen.getLote();
                 }
 
@@ -471,7 +466,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
                 movOrigen.setActivo(false);
                 movReverso.setActivo(false);
 
-                if(loteOrigen== null) {
+                if (loteOrigen == null) {
                     loteOrigen = movOrigen.getLote();
                 }
                 loteOrigen.setDictamen(movOrigen.getDictamenInicial());
@@ -485,7 +480,6 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         if (loteOrigen == null) {
             throw new IllegalStateException("No se encontraron movimientos para reversar.");
         }
-
 
         return DTOUtils.fromLoteEntity(loteRepository.save(loteOrigen));
     }

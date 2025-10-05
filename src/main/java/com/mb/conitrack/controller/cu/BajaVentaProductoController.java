@@ -62,26 +62,6 @@ public class BajaVentaProductoController extends AbstractCuController {
         return "ventas/baja/venta-producto-ok";
     }
 
-
-    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
-        model.addAttribute("loteVentaDTOs", loteService.findAllForVentaProductoDTOs());
-        model.addAttribute("loteDTO", loteDTO);
-    }
-
-    private void procesarVentaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
-        loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO resultDTO = ventaProductoService.bajaVentaProducto(loteDTO);
-
-        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
-        redirectAttributes.addFlashAttribute("trazaVentaDTOs", getTrazaPorBultoDTOs(loteDTO));
-        redirectAttributes.addFlashAttribute(
-            resultDTO != null ? "success" : "error",
-            resultDTO != null
-                ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
-                : "Hubo un error en la venta de producto.");
-    }
-
-
     private Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
         Map<Integer, List<Long>> trazasVentaPorBulto =
             loteDTO.getTrazaDTOs().stream()
@@ -102,5 +82,22 @@ public class BajaVentaProductoController extends AbstractCuController {
         return trazasVentaPorBulto;
     }
 
+    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
+        model.addAttribute("loteVentaDTOs", loteService.findAllForVentaProductoDTOs());
+        model.addAttribute("loteDTO", loteDTO);
+    }
+
+    private void procesarVentaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+        loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
+        final LoteDTO resultDTO = ventaProductoService.bajaVentaProducto(loteDTO);
+
+        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute("trazaVentaDTOs", getTrazaPorBultoDTOs(loteDTO));
+        redirectAttributes.addFlashAttribute(
+            resultDTO != null ? "success" : "error",
+            resultDTO != null
+                ? "Venta de producto " + loteDTO.getNombreProducto() + " exitosa"
+                : "Hubo un error en la venta de producto.");
+    }
 
 }

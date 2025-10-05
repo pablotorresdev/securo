@@ -17,8 +17,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.AltaCompra;
 import com.mb.conitrack.service.cu.AltaIngresoCompraService;
-import com.mb.conitrack.service.maestro.ProductoService;
-import com.mb.conitrack.service.maestro.ProveedorService;
 
 @Controller
 @RequestMapping("/compras/alta")

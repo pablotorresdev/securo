@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,7 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.service.cu.ModifAnulacionAnalisisService;
 
 import jakarta.validation.Valid;
@@ -26,7 +24,6 @@ public class ModifAnulacionAnalisisController extends AbstractCuController {
 
     @Autowired
     private ModifAnulacionAnalisisService anulacionAnalisisService;
-
 
     @GetMapping("/cancelar")
     public String cancelar() {

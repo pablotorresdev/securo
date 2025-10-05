@@ -52,7 +52,7 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
         final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
         Movimiento mov = persistirMovimientoCuarentenaPorAnalisis(dto, lote, nroAnalisisMovimiento);
 
-        if(!lote.getTrazas().isEmpty()){
+        if (!lote.getTrazas().isEmpty()) {
             for (Traza traza : lote.getTrazas()) {
                 traza.setEstado(DISPONIBLE);
             }

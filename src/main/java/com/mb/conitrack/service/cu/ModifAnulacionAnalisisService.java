@@ -17,7 +17,6 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 
 import static com.mb.conitrack.enums.MotivoEnum.ANULACION_ANALISIS;
-import static com.mb.conitrack.enums.MotivoEnum.RESULTADO_ANALISIS;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
 
 //***********ANULACION ANALISIS***********
