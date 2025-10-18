@@ -179,6 +179,7 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
             and not exists (
                  select 1 from Traza t
                  where t.lote = l
+                 and t.activo = true
             )
         order by case when l.fechaIngreso is null then 1 else 0 end,
             l.fechaIngreso asc, l.codigoLote asc

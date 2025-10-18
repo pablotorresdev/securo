@@ -39,8 +39,8 @@
                          + ' | Producto: ' + ${loteDTO.getNombreProducto()}
                          + ' | Estado: ' + ${loteDTO.getEstado()}
                          + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
-                         + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
-                         + '/' + ${loteDTO.trazaFinal}"
+                         + ' | Rango Trazas: ' + ${loteDTO.trazaInicial != null ? loteDTO.trazaInicial : 'N'}
+                         + '/' + ${loteDTO.trazaFinal != null ? loteDTO.trazaFinal : 'A'}"
                         th:value="${loteDTO.codigoLote}">
                 </option>
             </select>
@@ -100,7 +100,7 @@
         <!-- Acciones -->
         <div class="d-flex justify-content-between mt-4">
             <a class="btn btn-secondary" th:href="@{/contingencias/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Realizar devolución</button>
+            <button class="btn btn-primary" type="submit">Revertir movimiento</button>
         </div>
     </form>
 </div>
