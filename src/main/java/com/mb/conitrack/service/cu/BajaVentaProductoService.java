@@ -105,12 +105,14 @@ public class BajaVentaProductoService extends AbstractCuService {
 
             final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantBulto.intValue());
 
-            for (Traza tr : trazas) {
-                tr.setEstado(VENDIDO);
-            }
-            trazaRepository.saveAll(trazas);
+            if(trazas != null && !trazas.isEmpty()) {
+                for (Traza tr : trazas) {
+                    tr.setEstado(VENDIDO);
+                }
+                trazaRepository.saveAll(trazas);
 
-            det.getTrazas().addAll(trazas);
+                det.getTrazas().addAll(trazas);
+            }
         }
 
         return movimientoRepository.save(movimiento);

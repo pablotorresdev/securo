@@ -14,6 +14,8 @@ public interface TrazaRepository extends JpaRepository<Traza, Long> {
 
     List<Traza> findByLoteCodigoLoteOrderByNroTrazaAsc(String codigoLote);
 
+    List<Traza> findByLoteCodigoLoteAndActivoTrueOrderByNroTrazaAsc(String codigoLote);
+
     @Query("""
         select coalesce(max(t.nroTraza), -1)
         from Traza t

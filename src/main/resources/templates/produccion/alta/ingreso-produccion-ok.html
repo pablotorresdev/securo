@@ -96,11 +96,6 @@
                         </span>
                 </td>
             </tr>
-            <tr>
-                <th>Rango de Traza:</th>
-                <td th:if="${loteDTO.trazaInicial != null}" th:text="|[${loteDTO.trazaInicial} / ${loteDTO.trazaFinal}]|"></td>
-                <td th:unless="${loteDTO.trazaInicial != null}">N/A</td>
-            </tr>
             </tbody>
         </table>
 

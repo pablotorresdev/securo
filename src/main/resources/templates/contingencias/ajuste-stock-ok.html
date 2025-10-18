@@ -144,6 +144,9 @@
     <div class="alert alert-warning fw-bold"
          th:if="${trazaAjusteDTOs != null and !#lists.isEmpty(trazaAjusteDTOs)}">
 
+        <span class="text-danger">¡ATENCIÓN!</span>
+        Las bajas por ajustes del stock, son las trazas del <b>Bulto Nro <span th:text="${bultoAjuste}"></span></b>:
+
         <span th:each="t, iterStat : ${trazaAjusteDTOs}">
         <span th:text="|[${t.nroTraza}]|"></span>
         <span th:if="${!iterStat.last}">,&nbsp;</span>

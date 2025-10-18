@@ -32,33 +32,33 @@ public class BajaMuestreoBultoController extends AbstractCuController {
     }
 
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
-    @GetMapping("/muestreo-bulto")
-    public String showMuestreoBultoForm(
+    @GetMapping("/muestreo-trazable")
+    public String showMuestreoTrazableForm(
         @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
-        initModelMuestreoBulto(movimientoDTO, model);
-        return "calidad/baja/muestreo-bulto";
+        initModelMuestreoTrazable(movimientoDTO, model);
+        return "calidad/baja/muestreo-trazable";
     }
 
-    @PostMapping("/muestreo-bulto")
-    public String muestreoBulto(
+    @PostMapping("/muestreo-trazable")
+    public String muestreoTrazable(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
         BindingResult bindingResult,
         Model model,
         RedirectAttributes redirectAttributes) {
 
-        if (!muestreoBultoService.validarMuestreoBultoInput(movimientoDTO, bindingResult)) {
-            initModelMuestreoBulto(movimientoDTO, model);
-            return "calidad/baja/muestreo-bulto";
+        if (!muestreoBultoService.validarMuestreoTrazableInput(movimientoDTO, bindingResult)) {
+            initModelMuestreoTrazable(movimientoDTO, model);
+            return "calidad/baja/muestreo-trazable";
         }
 
-        procesarMuestreoBulto(movimientoDTO, redirectAttributes);
-        return "redirect:/calidad/baja/muestreo-bulto-ok";
+        procesarMuestreoTrazable(movimientoDTO, redirectAttributes);
+        return "redirect:/calidad/baja/muestreo-trazable-ok";
     }
 
-    @GetMapping("/muestreo-bulto-ok")
-    public String exitoMuestreo(
+    @GetMapping("/muestreo-trazable-ok")
+    public String exitoMuestreoTrazable(
         @ModelAttribute LoteDTO loteDTO) {
-        return "calidad/baja/muestreo-bulto-ok";
+        return "calidad/baja/muestreo-trazable-ok";
     }
 
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
@@ -93,17 +93,17 @@ public class BajaMuestreoBultoController extends AbstractCuController {
         return "calidad/baja/muestreo-multi-bulto-ok";
     }
 
-    void initModelMuestreoBulto(final MovimientoDTO movimientoDTO, final Model model) {
-        model.addAttribute("loteMuestreoDTOs", loteService.findAllForMuestreoDTOs());
+    void initModelMuestreoTrazable(final MovimientoDTO movimientoDTO, final Model model) {
+        model.addAttribute("loteMuestreoDTOs", loteService.findAllForMuestreoTrazableDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    void procesarMuestreoBulto(
+    void procesarMuestreoTrazable(
         final MovimientoDTO movimientoDTO,
         final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO loteDTO = muestreoBultoService.bajaMuestreo(movimientoDTO);
+        final LoteDTO loteDTO = muestreoBultoService.bajaMuestreoTrazable(movimientoDTO);
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute("bultoMuestreo", movimientoDTO.getNroBulto());

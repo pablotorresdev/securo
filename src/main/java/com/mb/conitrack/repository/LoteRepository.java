@@ -57,10 +57,15 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
                   select 1 from Bulto b
                   where b.lote = l and b.cantidadActual > 0
               )
+              and exists (
+                  select 1 from Traza t
+                  where t.lote = l
+                  and t.activo = true
+              )
             order by case when l.fechaIngreso is null then 1 else 0 end,
                      l.fechaIngreso asc, l.codigoLote asc
         """)
-    List<Lote> findAllForMuestreo();
+    List<Lote> findAllForMuestreoTrazable();
 
     @Query("""
             select l
@@ -162,8 +167,6 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
         from Lote l
         where l.activo = true
             and (l.dictamen is null or l.dictamen <> com.mb.conitrack.enums.DictamenEnum.RECIBIDO)
-            and (l.producto.tipoProducto is null
-                or l.producto.tipoProducto <> com.mb.conitrack.enums.TipoProductoEnum.UNIDAD_VENTA)
             and exists (
                 select 1 from Analisis a
                 where a.lote = l and a.nroAnalisis is not null
@@ -172,6 +175,10 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
                 select 1 from Bulto b
                 where b.lote = l
                     and b.cantidadActual > 0
+            )
+            and not exists (
+                 select 1 from Traza t
+                 where t.lote = l
             )
         order by case when l.fechaIngreso is null then 1 else 0 end,
             l.fechaIngreso asc, l.codigoLote asc
@@ -227,6 +234,25 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
             order by l.fechaIngreso asc, l.codigoLote asc
         """)
     List<Lote> findAllForLiberacionProducto();
+
+    @Query("""
+            select l
+            from Lote l
+            where l.activo = true
+              and l.dictamen = com.mb.conitrack.enums.DictamenEnum.APROBADO
+              and l.producto.tipoProducto = com.mb.conitrack.enums.TipoProductoEnum.UNIDAD_VENTA
+              and exists (
+                  select 1 from Bulto b
+                  where b.lote = l and b.cantidadActual > 0
+              )
+             and not exists (
+                  select 1 from Traza t
+                  where t.lote = l
+                  and t.activo = true
+              )
+            order by l.fechaIngreso asc, l.codigoLote asc
+        """)
+    List<Lote> findAllForTrazadoLote();
 
     @EntityGraph(attributePaths = { "producto" }) // opcional; suma "bultos" si luego los usás
     @Query("""

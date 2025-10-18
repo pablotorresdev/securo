@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.thymeleaf.util.StringUtils;
 
 import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
@@ -81,38 +82,15 @@ public class LoteEntityUtils {
         lote.setProveedor(conifarma);
         lote.setFabricante(conifarma);
         lote.setPaisOrigen(conifarma.getPais());
-
-        boolean unidadVenta = producto.getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
-        List<Traza> trazas = unidadVenta
-            ? createTrazas(loteDTO, producto, loteDTO.getCantidadInicial())
-            : new ArrayList<>();
-
-        for (Traza t : trazas) {
-            t.setLote(lote);
-        }
-
-        int idxTrazaActual = 0;
         int bultos = Math.max(loteDTO.getBultosTotales(), 1);
+
         for (int i = 0; i < bultos; i++) {
             Bulto bulto = createBultoIngreso();
             populateCantidadUdeMBulto(loteDTO, bultos, bulto, i);
             lote.getBultos().add(bulto);
             bulto.setLote(lote);
-
-            if (unidadVenta) {
-                final int indexTrazaFinal = bulto.getCantidadInicial().intValue();
-                List<Traza> trazasBulto = new ArrayList<>(trazas.subList(
-                    idxTrazaActual,
-                    idxTrazaActual + indexTrazaFinal));
-                for (Traza t : trazasBulto) {
-                    t.setBulto(bulto);
-                }
-                bulto.getTrazas().addAll(trazasBulto);
-                idxTrazaActual += indexTrazaFinal;
-            }
         }
 
-        lote.getTrazas().addAll(trazas);
         lote.setBultosTotales(bultos);
         lote.setCantidadInicial(loteDTO.getCantidadInicial());
         lote.setCantidadActual(loteDTO.getCantidadInicial());
@@ -167,23 +145,25 @@ public class LoteEntityUtils {
     }
 
     static List<Traza> createTrazas(
-        final LoteDTO loteDTO,
-        final Producto producto,
-        final BigDecimal cantidadInicialLote) {
+        final MovimientoDTO movimientoDto,
+        final Lote lote) {
+
+        final Producto producto = lote.getProducto();
+
         List<Traza> trazas = new ArrayList<>();
-        if (loteDTO.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+        if (lote.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
             throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
         }
 
-        if (cantidadInicialLote.stripTrailingZeros().scale() > 0) {
+        if (lote.getCantidadActual().stripTrailingZeros().scale() > 0) {
             throw new IllegalStateException("La cantidad de Unidades debe ser entero");
         }
-        for (int i = 0; i < cantidadInicialLote.intValue(); i++) {
+        for (int i = 0; i < lote.getCantidadActual().intValue(); i++) {
             Traza traza = new Traza();
-            traza.setNroTraza(loteDTO.getTrazaInicial() + i);
-            traza.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
+            traza.setNroTraza(movimientoDto.getTrazaInicial() + i);
+            traza.setFechaYHoraCreacion(movimientoDto.getFechaYHoraCreacion());
             traza.setProducto(producto);
-            traza.setObservaciones("CU7 Traza: " +
+            traza.setObservaciones("CU28 Traza: " +
                 traza.getNroTraza() +
                 "\n - Producto: " +
                 producto.getCodigoProducto() +
@@ -211,6 +191,30 @@ public class LoteEntityUtils {
             bulto.setUnidadMedida(loteDTO.getUnidadMedidaBultos().get(i));
         }
         bulto.setNroBulto(i + 1);
+    }
+
+    public static void addTrazasToLote(
+        final Lote lote,
+        final MovimientoDTO movimientoDto) {
+
+        List<Traza> trazas = createTrazas(movimientoDto, lote);
+
+        for (Traza t : trazas) {
+            t.setLote(lote);
+        }
+        int idxTrazaActual = 0;
+        for (Bulto bulto : lote.getBultos()) {
+            final int indexTrazaFinal = bulto.getCantidadActual().intValue();
+            List<Traza> trazasBulto = new ArrayList<>(trazas.subList(
+                idxTrazaActual,
+                idxTrazaActual + indexTrazaFinal));
+            for (Traza t : trazasBulto) {
+                t.setBulto(bulto);
+            }
+            bulto.getTrazas().addAll(trazasBulto);
+            idxTrazaActual += indexTrazaFinal;
+        }
+        lote.getTrazas().addAll(trazas);
     }
 
 }

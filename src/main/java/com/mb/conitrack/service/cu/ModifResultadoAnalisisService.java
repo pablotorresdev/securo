@@ -1,6 +1,5 @@
 package com.mb.conitrack.service.cu;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -91,18 +90,7 @@ public class ModifResultadoAnalisisService extends AbstractCuService {
             return false;
         }
 
-        if (DictamenEnum.RECHAZADO == dto.getDictamenFinal()) {
-            return true;
-        }
-
-        final List<Analisis> analisisList = analisisRepository.findUltimoAprobadoConTituloPorCodigoLote(
-            dto.getCodigoLote());
-
-        if (analisisList.isEmpty()) {
-            return true;
-        }
-
-        return validarValorTitulo(dto, analisisList.get(0), bindingResult);
+        return true;
     }
 
     @Transactional

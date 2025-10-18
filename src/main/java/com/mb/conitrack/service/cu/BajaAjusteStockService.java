@@ -59,7 +59,7 @@ public class BajaAjusteStockService extends AbstractCuService {
             final List<Traza> trazas = new ArrayList<>();
             for (TrazaDTO trazaDTO : dto.getTrazaDTOs()) {
                 final Long nroTraza = trazaDTO.getNroTraza();
-                for (Traza trazasLote : lote.getTrazas()) {
+                for (Traza trazasLote : lote.getActiveTrazas()) {
                     if (trazasLote.getNroTraza().equals(nroTraza)) {
                         trazas.add(trazasLote);
                         break;
@@ -116,10 +116,7 @@ public class BajaAjusteStockService extends AbstractCuService {
             return false;
         }
 
-        final boolean esUnidadVenta = lote.get().getProducto().getTipoProducto() ==
-            TipoProductoEnum.UNIDAD_VENTA; // crea este helper si no lo tenés
-
-        if (esUnidadVenta) {
+        if (!lote.get().getTrazas().isEmpty()) {
             if (dto.getTrazaDTOs() == null || dto.getTrazaDTOs().isEmpty()) {
                 bindingResult.rejectValue("trazaDTOs", "", "Debe seleccionar al menos una unidad a muestrear.");
                 return false;

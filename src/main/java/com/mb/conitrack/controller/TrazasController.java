@@ -27,15 +27,15 @@ public class TrazasController {
     }
 
     @GetMapping("/list-trazas")
-    public String listTrazas(Model model) {
-        model.addAttribute("trazaDTOs", trazaService.findAllTrazas());
+    public String listTrazasActivas(Model model) {
+        model.addAttribute("trazaDTOs", trazaService.findAllByActivoTrue());
         return "trazas/list-trazas";
     }
 
     //TODO: ver de refactorear a bodyresponse para unificar
     @GetMapping("/codigoLote/{codigoLote}")
-    public String listTrazasPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {
-        model.addAttribute("trazaDTOs", trazaService.findByCodigoLote(codigoLote));
+    public String listTrazasActivasPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {
+        model.addAttribute("trazaDTOs", trazaService.findByCodigoLoteAndActivo(codigoLote));
         return "trazas/list-trazas";
     }
 

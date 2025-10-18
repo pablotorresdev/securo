@@ -236,6 +236,11 @@ public class Lote {
     }
 
     //****** TRAZAS ******//
+    public List<Traza> getActiveTrazas() {
+            return this.trazas.stream()
+                .filter(Traza::getActivo).toList();
+    }
+
     public Traza getFirstActiveTraza() {
         if (this.trazas.isEmpty()) {
             return null;

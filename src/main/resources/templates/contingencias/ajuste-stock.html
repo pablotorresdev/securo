@@ -150,7 +150,7 @@
         <!-- Observaciones libres (máx. 300 chars) -->
         <div class="mb-2">
             <label class="form-label" for="observaciones">Observaciones:</label>
-            <textarea class="form-control" id="observaciones" maxlength="300" th:field="*{observaciones}"></textarea>
+            <textarea class="form-control" id="observaciones" maxlength="300" required th:field="*{observaciones}"></textarea>
         </div>
 
         <!-- Acciones -->
@@ -165,22 +165,21 @@
 <footer class="text-center mt-4 text-muted">
     <p>&copy; 2025 Conitrack. All rights reserved.</p>
 </footer>
-
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        // --- Toma de valores CSRF para incluir en fetch() ---
+        // --- CSRF para fetch() ---
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
         const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
         // --- Referencias a elementos del DOM usados recurrentemente ---
-        const form     = document.querySelector('form');        // Necesario para inyectar inputs ocultos
-        const loteSel  = document.getElementById('loteAjuste');
-        const bultoSel = document.getElementById('nroBultoAjuste');
-        const cantRef  = document.getElementById('refCantBulto');
-        const uniRef   = document.getElementById('refUniMedBulto');
-        const uniSel   = document.getElementById('uniMedBultoElegido');
-        const cantInput= document.getElementById('cantidadBultoElegido');
-        const rowCantUn= document.getElementById('rowCantidadUnidad');
+        const form      = document.querySelector('form');        // Necesario para inyectar inputs ocultos
+        const loteSel   = document.getElementById('loteAjuste');
+        const bultoSel  = document.getElementById('nroBultoAjuste');
+        const cantRef   = document.getElementById('refCantBulto');
+        const uniRef    = document.getElementById('refUniMedBulto');
+        const uniSel    = document.getElementById('uniMedBultoElegido');
+        const cantInput = document.getElementById('cantidadBultoElegido');
+        const rowCantUn = document.getElementById('rowCantidadUnidad');
 
         // --- Sección de Trazas (solo UNIDAD_DE_VENTA) ---
         const wrapperTrazas   = document.getElementById('wrapperTrazas');
@@ -281,7 +280,7 @@
 
         /*
          * Carga de bultos del lote seleccionado.
-         * - GET /lotes/ajuste/codigoLote/{codigoLote}
+         * - GET /lotes/muestreo/codigoLote/{codigoLote}
          * - Pinta <option> con data de cantidad y unidad disponibles
          */
         const cargarBultos = (codigoLote) => {
@@ -302,7 +301,7 @@
                         bultoSel.appendChild(o);
                     });
 
-                    // Si volvemos con error y ya había bulto seleccionado, restaurar
+                    // Restaurar bulto si venimos de error
                     if (dto.nroBulto) {
                         bultoSel.value = dto.nroBulto;
                         bultoSel.dispatchEvent(new Event('change'));
@@ -326,7 +325,7 @@
                         o.value = o.textContent = u;
                         uniSel.appendChild(o);
                     });
-                    // Restaurar unidad elegida si venía en dto
+                    // Restaurar unidad elegida si venía en dto, si no, deja base preseleccionable
                     uniSel.value = dto.unidadMedida || base;
                 })
                 .catch(err => console.error('Error al cargar sub-unidades:', err));
@@ -401,7 +400,6 @@
                 return;
             }
 
-            // Conmutar interfaz según unidad de venta
             toggleUIPorUnidadVenta(esUnidadDeVentaSeleccionada());
 
             // Cargar bultos del lote seleccionado
@@ -433,7 +431,7 @@
 
         // Limpia estado del bloque de bultos y referencias
         const limpiarInfoBulto = () => {
-            bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a ajustar --</option>';
+            bultoSel.innerHTML = '<option value="">-- Seleccione el bulto a muestrear --</option>';
             cantRef.value = '';
             uniRef.value  = '';
         };
@@ -499,6 +497,7 @@
         // Si venimos de un post con errores y había lote seleccionado, restaurar selección/estado
         if (dto.codigoLote) {
             loteSel.value = dto.codigoLote;
+            // el handler de 'change' decidirá el modo y cargará bultos
             loteSel.dispatchEvent(new Event('change'));
         }
 

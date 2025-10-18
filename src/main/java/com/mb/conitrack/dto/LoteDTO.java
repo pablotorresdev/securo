@@ -198,7 +198,13 @@ public class LoteDTO {
             long diffAnalisis = Math.abs(ChronoUnit.DAYS.between(hoy, fechaAnalisis));
             return diffAnalisis <= diffProveedor ? fechaAnalisis : fechaVencimientoProveedor;
         } else {
-            throw new IllegalStateException("Hay más de un análisis activo con fecha de vencimiento");
+            LocalDate hoy = LocalDate.now();
+            // elegir la fecha más próxima a hoy
+            LocalDate fechaMasProxima = list.stream()
+                .map(AnalisisDTO::getFechaVencimiento)
+                .min(Comparator.comparingLong(f -> Math.abs(ChronoUnit.DAYS.between(hoy, f))))
+                .orElse(fechaVencimientoProveedor);
+            return fechaMasProxima;
         }
     }
 

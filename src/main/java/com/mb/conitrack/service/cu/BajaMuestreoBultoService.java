@@ -39,7 +39,7 @@ import static java.lang.Integer.parseInt;
 public class BajaMuestreoBultoService extends AbstractCuService {
 
     @Transactional
-    public LoteDTO bajaMuestreo(final MovimientoDTO dto) {
+    public LoteDTO bajaMuestreoTrazable(final MovimientoDTO dto) {
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -70,7 +70,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             final List<Traza> trazas = new ArrayList<>();
             for (TrazaDTO trazaDTO : dto.getTrazaDTOs()) {
                 final Long nroTraza = trazaDTO.getNroTraza();
-                for (Traza trazasLote : lote.getTrazas()) {
+                for (Traza trazasLote : lote.getActiveTrazas()) {
                     if (trazasLote.getNroTraza().equals(nroTraza)) {
                         trazas.add(trazasLote);
                         break;
@@ -154,7 +154,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
     }
 
     @Transactional
-    public boolean validarMuestreoBultoInput(final MovimientoDTO dto, final BindingResult bindingResult) {
+    public boolean validarMuestreoTrazableInput(final MovimientoDTO dto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

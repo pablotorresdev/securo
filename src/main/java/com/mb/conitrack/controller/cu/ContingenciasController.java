@@ -124,6 +124,7 @@ public class ContingenciasController extends AbstractCuController {
         final LoteDTO loteDTO = ajusteStockService.bajaAjusteStock(movimientoDTO);
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
+        redirectAttributes.addFlashAttribute("bultoAjuste", movimientoDTO.getNroBulto());
         redirectAttributes.addFlashAttribute("trazaAjusteDTOs", movimientoDTO.getTrazaDTOs());
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",

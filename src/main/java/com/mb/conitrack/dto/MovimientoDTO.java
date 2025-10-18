@@ -71,6 +71,8 @@ public class MovimientoDTO {
 
     private Long loteId;
 
+    private Long trazaInicial;
+
     private String codigoLote;
 
     @Size(max = 20, message = "El número de re analisis no debe superar 30 caracteres")

@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mb.conitrack.dto.BultoDTO;
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.repository.LoteRepository;
 
 import lombok.AllArgsConstructor;
@@ -32,8 +31,8 @@ public class LoteService {
 
     //***********CU3 BAJA: MUESTREO***********
     @Transactional(readOnly = true)
-    public List<LoteDTO> findAllForMuestreoDTOs() {
-        return DTOUtils.fromLoteEntities(loteRepository.findAllForMuestreo());
+    public List<LoteDTO> findAllForMuestreoTrazableDTOs() {
+        return DTOUtils.fromLoteEntities(loteRepository.findAllForMuestreoTrazable());
     }
 
     //***********CU 3 BAJA: MUESTREO MULTIBULTO***********
@@ -71,6 +70,12 @@ public class LoteService {
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForLiberacionProductoDTOs() {
         return fromLoteEntities(loteRepository.findAllForLiberacionProducto());
+    }
+
+    //***********CU27 MODIFICACION: TRAZADO LOTE***********
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForTrazadoLoteDTOs() {
+        return fromLoteEntities(loteRepository.findAllForTrazadoLote());
     }
 
     //***********CU22 BAJA: VENTA***********

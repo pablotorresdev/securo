@@ -317,6 +317,22 @@ public abstract class AbstractCuService {
         return true;
     }
 
+    boolean validarTrazaInicialLote(
+        final MovimientoDTO dto,
+        final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+        if (dto.getTrazaInicial() == null || dto.getTrazaInicial() <= 0) {
+            bindingResult.rejectValue(
+                "trazaInicial",
+                "",
+                "Ingrese un valor válido para la traza inicial del lote");
+            return false;
+        }
+        return true;
+    }
+
     boolean validarFechaAnalisisPosteriorIngresoLote(
         final MovimientoDTO dto,
         final LocalDate fechaIngresoLote,
@@ -598,26 +614,6 @@ public abstract class AbstractCuService {
             }
         }
 
-        return true;
-    }
-
-    boolean validarValorTitulo(
-        final MovimientoDTO dto,
-        final Analisis ultimoAprobado,
-        final BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return false;
-        }
-
-        if (ultimoAprobado != null && dto.getTitulo().compareTo(ultimoAprobado.getTitulo()) > 0) {
-            bindingResult.rejectValue(
-                "titulo",
-                "",
-                "El valor del título no puede ser mayor al del último análisis aprobado (" +
-                    ultimoAprobado.getTitulo() +
-                    ")");
-            return false;
-        }
         return true;
     }
 

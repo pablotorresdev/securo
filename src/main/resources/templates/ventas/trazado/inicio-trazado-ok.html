@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Venta de Producto propio - Confirmación</title>
+    <title>Trazado de Unidad de Venta - Confirmación</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet"/>
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="mb-4">Venta de Producto propio - Confirmación</h2>
+    <h2 class="mb-4">Trazado de Unidad de Venta - Confirmación</h2>
 
     <!-- Mensaje de éxito (si se pasó como Flash Attribute 'success') -->
     <div class="alert alert-success fw-bold mb-4"
@@ -18,7 +18,7 @@
 
     <!-- Bloque que muestra el LoteDTO si existe en el modelo -->
     <div th:if="${loteDTO != null}">
-        <h4>Detalles del Lote Vendido</h4>
+        <h4>Detalles del Lote Trazado para Venta</h4>
         <table class="table table-bordered table-sm">
             <tbody>
             <tr>
@@ -40,10 +40,6 @@
             <tr>
                 <th>Lote Proveedor:</th>
                 <td th:text="${loteDTO.loteProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Detalle Conservación:</th>
-                <td th:text="${loteDTO.detalleConservacion}"></td>
             </tr>
             <tr>
                 <th>Fecha Vencimiento Proveedor:</th>
@@ -72,6 +68,11 @@
                           th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
                     </span>
                 </td>
+            </tr>
+            <tr>
+                <th>Rango de Traza:</th>
+                <td th:if="${loteDTO.trazaInicial != null}" th:text="|[${loteDTO.trazaInicial} / ${loteDTO.trazaFinal}]|"></td>
+                <td th:unless="${loteDTO.trazaInicial != null}">N/A</td>
             </tr>
             </tbody>
         </table>
@@ -110,25 +111,10 @@
         </div>
 
     </div>
-    <!-- Cartel de unidades a retirar -->
-    <div class="alert alert-warning fw-bold"
-         th:if="${trazaVentaDTOs != null and !#maps.isEmpty(trazaVentaDTOs)}">
 
-        <span class="text-danger">¡ATENCIÓN!</span>
-        Retirar del stock, para su venta, las unidades con los siguientes números de traza:
-
-        <ul class="list-unstyled fs-5">
-            <li th:each="entry : ${trazaVentaDTOs}">
-                <strong th:text="|Bulto Nro ${entry.key} : |"></strong>
-                <span th:each="n, it : ${entry.value}">
-        <span th:text="|[${n}]|"></span><span th:if="${!it.last}">, </span>
-      </span>
-            </li>
-        </ul>
-    </div>
     <!-- Botón para volver al menú principal -->
     <div class="mt-4">
-        <a class="btn btn-primary" th:href="@{/ventas/baja/cancelar}">Continuar</a>
+        <a class="btn btn-primary" th:href="@{/ventas/trazado/cancelar}">Continuar</a>
     </div>
 </div>
 </body>

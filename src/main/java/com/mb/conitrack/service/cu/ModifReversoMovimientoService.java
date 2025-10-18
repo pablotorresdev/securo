@@ -67,6 +67,9 @@ public class ModifReversoMovimientoService extends AbstractCuService {
                     if (movOrigen.getMotivo() == MotivoEnum.LIBERACION) { //CU21
                         return reversarModifLiberacionProducto(dto, movOrigen);
                     }
+                    if (movOrigen.getMotivo() == MotivoEnum.TRAZADO) { //CU27
+                        return reversarModifTrazadoLote(dto, movOrigen);
+                    }
                     if (movOrigen.getMotivo() == MotivoEnum.ANULACION_ANALISIS) {//CU11
                         return reversarAnulacionAnalisis(dto, movOrigen);
                     }
@@ -96,6 +99,25 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         }
 
         return new LoteDTO();
+    }
+
+    private LoteDTO reversarModifTrazadoLote(final MovimientoDTO dto, final Movimiento movOrigen) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+        final Lote lote = movOrigen.getLote();
+
+        final List<Traza> trazasLote = lote.getActiveTrazas();
+        for (Traza t : trazasLote) {
+            t.setActivo(false);
+            t.setEstado(EstadoEnum.DESCARTADO);
+        }
+        trazaRepository.saveAll(trazasLote);
+
+        movOrigen.setActivo(false);
+        movimiento.setActivo(false);
+        movimientoRepository.save(movOrigen);
+        movimientoRepository.save(movimiento);
+
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
     public boolean validarReversoMovmientoInput(
@@ -178,9 +200,6 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
         movOrigen.getLote().getBultos().forEach(b -> b.setActivo(false));
         bultoRepository.saveAll(movOrigen.getLote().getBultos());
-
-        movOrigen.getLote().getTrazas().forEach(t -> t.setActivo(false));
-        trazaRepository.saveAll(movOrigen.getLote().getTrazas());
 
         movimientoRepository.save(movimiento);
         movimientoRepository.save(movOrigen);
@@ -494,7 +513,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
                 loteOrigen.setDictamen(movOrigen.getDictamenInicial());
                 loteOrigen.setEstado(EN_USO);
 
-                final List<Traza> list = loteOrigen.getTrazas().stream().filter(t -> t.getEstado() == RECALL).toList();
+                final List<Traza> trazasLoteOrigen = loteOrigen.getActiveTrazas();
+                final List<Traza> list = trazasLoteOrigen.stream().filter(t -> t.getEstado() == RECALL).toList();
                 list.forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
                 trazaRepository.saveAll(list);
             }

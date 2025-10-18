@@ -39,10 +39,6 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         final Lote loteGuardado = loteRepository.save(lote);
         bultoRepository.saveAll(loteGuardado.getBultos());
 
-        if (loteGuardado.getTrazas() != null && !loteGuardado.getTrazas().isEmpty()) {
-            trazaRepository.saveAll(loteGuardado.getTrazas());
-        }
-
         final Movimiento movimiento = createMovimientoAltaIngresoProduccion(loteGuardado);
         movimientoRepository.save(movimiento);
 
@@ -55,12 +51,6 @@ public class AltaIngresoProduccionService extends AbstractCuService {
                     .cantidad(b.getCantidadInicial())
                     .unidadMedida(b.getUnidadMedida())
                     .build();
-
-                if (b.getTrazas() != null && !b.getTrazas().isEmpty()) {
-                    b.getTrazas().stream()
-                        .sorted(Comparator.comparing(Traza::getNroTraza))
-                        .forEach(det.getTrazas()::add);
-                }
 
                 movimiento.getDetalles().add(det);
             });

@@ -1,5 +1,6 @@
 package com.mb.conitrack.service.cu;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -52,11 +53,12 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
         final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
         Movimiento mov = persistirMovimientoCuarentenaPorAnalisis(dto, lote, nroAnalisisMovimiento);
 
-        if (!lote.getTrazas().isEmpty()) {
-            for (Traza traza : lote.getTrazas()) {
+        final List<Traza> trazasLote = lote.getActiveTrazas();
+        if (!trazasLote.isEmpty()) {
+            for (Traza traza : trazasLote) {
                 traza.setEstado(DISPONIBLE);
             }
-            trazaRepository.saveAll(lote.getTrazas());
+            trazaRepository.saveAll(trazasLote);
         }
 
         lote.getMovimientos().add(mov);

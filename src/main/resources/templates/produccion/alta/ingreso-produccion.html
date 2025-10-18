@@ -43,7 +43,6 @@
           - th:field bindea *{productoId}
           - Cada option expone:
             * data-unit: unidad base del producto (para cargar unidades compatibles)
-            * data-tipo-producto: tipo (p.ej. UNIDAD_VENTA) para mostrar/ocultar campo de traza
         -->
         <div class="mb-2">
             <label class="form-label" for="productoId">Producto:</label>
@@ -106,7 +105,7 @@
             <div class="text-danger" th:errors="*{cantidadesBultos}" th:if="${#fields.hasErrors('cantidadesBultos')}"></div>
         </div>
 
-        <!-- Orden de producción: requerido para trazar el ingreso -->
+        <!-- Orden de producción: requerido para identificar el origen -->
         <div class="mb-3">
             <label class="form-label" for="ordenProduccion">Orden de Producción:</label>
             <input class="form-control" id="ordenProduccion" required th:field="*{ordenProduccion}" type="text">
@@ -114,16 +113,7 @@
             </div>
         </div>
 
-        <!--
-          Traza inicial (solo para productos UNIDAD_VENTA):
-          - Visible si data-tipo-producto === 'UNIDAD_VENTA'
-          - Se pide para inicializar el rango de trazas generadas
-        -->
-        <div class="mb-2 hidden" id="trazaContainer">
-            <label class="form-label" for="trazaInicial">Nro traza inicial:</label>
-            <input class="form-control" id="trazaInicial" th:field="*{trazaInicial}" type="number">
-            <div class="text-danger fw-bold" th:errors="*{trazaInicial}" th:if="${#fields.hasErrors('trazaInicial')}"></div>
-        </div>
+
 
         <!-- =========================================================
              Datos Opcionales
@@ -159,7 +149,6 @@
 <!-- =========================================================
      JS: carga de (sub)unidades y generación dinámica de campos de bultos
      - Repuebla valores desde el DTO si el servidor devolvió errores
-     - Muestra campo de traza según tipo de producto
 ========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
@@ -369,29 +358,6 @@
             distribucionDiv.classList.remove('hidden');
             generarCamposBultos(bultosValue);
         }
-
-        // ---------- Mostrar/ocultar campo de Traza según tipo de producto ----------
-        function toggleTrazaInput() {
-            const selectProd = document.getElementById('productoId');
-            const opt        = selectProd.options[selectProd.selectedIndex];
-            const tipo       = opt.getAttribute('data-tipo-producto'); // p.ej. 'UNIDAD_VENTA'
-            const cont       = document.getElementById('trazaContainer');
-            const inp        = document.getElementById('trazaInicial');
-
-            if (tipo === 'UNIDAD_VENTA') {
-                cont.classList.remove('hidden');
-                inp.required = true;
-            } else {
-                cont.classList.add('hidden');
-                inp.required = false;
-                inp.value = '';
-            }
-        }
-
-        // Al cargar, intenta setear visibilidad correctamente
-        toggleTrazaInput();
-        // Al cambiar el producto, volver a evaluar
-        document.getElementById('productoId').addEventListener('change', toggleTrazaInput);
 
     });
 </script>

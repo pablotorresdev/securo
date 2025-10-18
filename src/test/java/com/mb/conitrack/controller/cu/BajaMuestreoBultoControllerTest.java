@@ -1,7 +1,6 @@
 package com.mb.conitrack.controller.cu;
 
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,8 +12,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
@@ -60,37 +57,37 @@ class BajaMuestreoBultoControllerTest {
         assertEquals("redirect:/", controller.cancelar());
     }
 
-    // ------------------ GET /muestreo-bulto-ok ------------------
+    // ------------------ GET /muestreo-trazable-ok ------------------
     @Test
     @DisplayName("exitoMuestreo -> retorna vista OK")
-    void testExitoMuestreo() {
-        assertEquals("calidad/baja/muestreo-bulto-ok", controller.exitoMuestreo(new LoteDTO()));
+    void testExitoMuestreoTrazable() {
+        assertEquals("calidad/baja/muestreo-trazable-ok", controller.exitoMuestreoTrazable(new LoteDTO()));
     }
 
     @Test
     @DisplayName("initModelMuestreoBulto -> setea atributos en el model")
-    void testInitModelMuestreoBulto() {
+    void testInitModelMuestreoTrazable() {
         MovimientoDTO mov = new MovimientoDTO();
         List<LoteDTO> lista = List.of(new LoteDTO());
-        when(loteService.findAllForMuestreoDTOs()).thenReturn(lista);
+        when(loteService.findAllForMuestreoTrazableDTOs()).thenReturn(lista);
 
-        controller.initModelMuestreoBulto(mov, model);
+        controller.initModelMuestreoTrazable(mov, model);
 
         assertSame(lista, model.getAttribute("loteMuestreoDTOs"));
         assertSame(mov, model.getAttribute("movimientoDTO"));
     }
 
-    // ------------------ POST /muestreo-bulto (handler) ------------------
+    // ------------------ POST /muestreo-trazable (handler) ------------------
     @Test
-    @DisplayName("GET /muestreo-bulto -> llena modelo y retorna vista")
-    void testShowMuestreoBultoForm() {
+    @DisplayName("GET /muestreo-trazable -> llena modelo y retorna vista")
+    void testShowMuestreoTrazableForm() {
         MovimientoDTO mov = new MovimientoDTO();
         List<LoteDTO> lista = List.of(new LoteDTO(), new LoteDTO());
-        when(loteService.findAllForMuestreoDTOs()).thenReturn(lista);
+        when(loteService.findAllForMuestreoTrazableDTOs()).thenReturn(lista);
 
-        String view = controller.showMuestreoBultoForm(mov, model);
+        String view = controller.showMuestreoTrazableForm(mov, model);
 
-        assertEquals("calidad/baja/muestreo-bulto", view);
+        assertEquals("calidad/baja/muestreo-trazable", view);
         assertSame(mov, model.getAttribute("movimientoDTO"));
         assertSame(lista, model.getAttribute("loteMuestreoDTOs"));
     }

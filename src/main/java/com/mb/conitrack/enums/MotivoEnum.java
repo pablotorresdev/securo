@@ -10,6 +10,7 @@ public enum MotivoEnum {
     ANULACION_ANALISIS("Anulacion analisis"), //MODIFICACION
     CONSUMO_PRODUCCION("Consumo produccion"), //BAJA
     PRODUCCION_PROPIA("Produccion propia"), //ALTA
+    TRAZADO("Trazado"), //MODIFICACION
     LIBERACION("Liberacion"), //MODIFICACION
     VENTA("Venta"), //BAJA
     EXPIRACION_ANALISIS("Expiracion analisis"), //MODIF SHCEDULLED

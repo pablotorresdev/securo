@@ -20,7 +20,7 @@
         - th:action: endpoint que persiste el movimiento de baja por muestreo
         - th:object: DTO de respaldo para binding bidireccional de campos
     -->
-    <form method="post" th:action="@{/calidad/baja/muestreo-bulto}" th:object="${movimientoDTO}">
+    <form method="post" th:action="@{/calidad/baja/muestreo-trazable}" th:object="${movimientoDTO}">
         <!-- Campo oculto CSRF para compatibilidad con validación del servidor -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
         <!-- N° de análisis del lote, se setea por JS cuando se elige el lote -->
@@ -36,7 +36,7 @@
             - th:errors muestra mensajes de validación si los hay
         -->
         <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha del Retiro:</label>
+            <label class="form-label" for="fechaMovimiento">Fecha del Muestreo:</label>
             <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
                    required
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
@@ -186,7 +186,7 @@
 
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        // --- Toma de valores CSRF para incluir en fetch() ---
+        // --- CSRF para fetch() ---
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
         const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute("content");
 
@@ -322,7 +322,7 @@
                         bultoSel.appendChild(o);
                     });
 
-                    // Si volvemos con error y ya había bulto seleccionado, restaurar
+                    // Restaurar bulto si venimos de error
                     if (dto.nroBulto) {
                         bultoSel.value = dto.nroBulto;
                         bultoSel.dispatchEvent(new Event('change'));
@@ -346,7 +346,7 @@
                         o.value = o.textContent = u;
                         uniSel.appendChild(o);
                     });
-                    // Restaurar unidad elegida si venía en dto
+                    // Restaurar unidad elegida si venía en dto, si no, deja base preseleccionable
                     uniSel.value = dto.unidadMedida || base;
                 })
                 .catch(err => console.error('Error al cargar sub-unidades:', err));
@@ -532,6 +532,7 @@
         // Si venimos de un post con errores y había lote seleccionado, restaurar selección/estado
         if (dto.codigoLote) {
             loteSel.value = dto.codigoLote;
+            // el handler de 'change' decidirá el modo y cargará bultos
             loteSel.dispatchEvent(new Event('change'));
         }
 

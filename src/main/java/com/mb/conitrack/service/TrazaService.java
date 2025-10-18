@@ -18,13 +18,13 @@ public class TrazaService {
     private TrazaRepository trazaRepository;
 
     @Transactional(readOnly = true)
-    public List<TrazaDTO> findAllTrazas() {
-        return fromTrazaEntities(trazaRepository.findAllTrazaAudit());
+    public List<TrazaDTO> findAllByActivoTrue() {
+        return fromTrazaEntities(trazaRepository.findAllByActivoTrue());
     }
 
     @Transactional(readOnly = true)
-    public List<TrazaDTO> findByCodigoLote(final String codigoLote) {
-        return fromTrazaEntities(trazaRepository.findByLoteCodigoLoteOrderByNroTrazaAsc(codigoLote));
+    public List<TrazaDTO> findByCodigoLoteAndActivo(final String codigoLote) {
+        return fromTrazaEntities(trazaRepository.findByLoteCodigoLoteAndActivoTrueOrderByNroTrazaAsc(codigoLote));
     }
 
     //***********CU23 MODIF: DEVOLUCION VENTA***********

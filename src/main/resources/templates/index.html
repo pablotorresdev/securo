@@ -49,7 +49,7 @@
         <!-- CU3 Retiro por Muestreo -->
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/baja/muestreo-bulto}">
+               th:href="@{/calidad/baja/muestreo-trazable}">
                 CU3 - Retiro por Muestreo Trazable [Analista control de calidad]
             </a>
         </li>
@@ -100,6 +100,12 @@
         </li>
         <br>
         <h5 class="mb-3 text-primary">Ventas</h5>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/ventas/trazado/inicio-trazado}">
+                CU27. Trazado Unidad de venta [Gerente garantía de calidad/DT]
+            </a>
+        </li>
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/ventas/liberacion/inicio-liberacion}">

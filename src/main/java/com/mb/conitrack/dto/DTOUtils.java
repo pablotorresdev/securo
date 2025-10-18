@@ -309,10 +309,8 @@ public class DTOUtils {
     }
 
     static void addTrazaDTOs(final Lote entity, final LoteDTO loteDTO) {
-        for (Traza traza : entity.getTrazas()) {
-            if (traza.getActivo()) {
-                loteDTO.getTrazaDTOs().add(DTOUtils.fromTrazaEntity(traza));
-            }
+        for (Traza traza : entity.getActiveTrazas()) {
+            loteDTO.getTrazaDTOs().add(DTOUtils.fromTrazaEntity(traza));
         }
     }
 
