@@ -205,8 +205,10 @@
         };
 
         // --- Helpers para flujo UNIDAD_DE_VENTA ---
-        // Determina si el lote seleccionado se gestiona por trazas (unidad de venta)
-        function esUnidadDeVentaSeleccionada() {
+        let modoTrazas = false; // true = usar trazas, false = flujo clásico
+
+        // Determina si el lote seleccionado se gestiona por unidades (unidad de venta)
+        function esUnidadDeVentaDeclarada() {
             const opt = loteSel.options[loteSel.selectedIndex];
             return !!opt && opt.getAttribute('data-es-unidad-venta') === 'true';
         }
@@ -239,34 +241,31 @@
         }
 
         // Conmuta entre UI de trazas (unidad de venta) y UI clásica (cantidad/unidad)
-        function toggleUIPorUnidadVenta(flag) {
-            if (flag) {
+        function toggleUI(modoUsaTrazas) {
+            modoTrazas = !!modoUsaTrazas;
+
+            if (modoTrazas) {
                 // Mostrar trazas, ocultar cantidad/unidad visibles
                 rowCantUn.style.display = 'none';
                 wrapperTrazas.style.display = '';
 
-                // Desactivar y quitar required de campos visibles
                 cantInput.required = false;
                 uniSel.required    = false;
                 cantInput.disabled = true;
                 uniSel.disabled    = true;
 
-                // Asegurar inputs ocultos (se setean en el submit)
-                ensureHiddenCantidadUnidad();
-
+                ensureHiddenCantidadUnidad(); // para setear cantidad/unidad en submit
             } else {
                 // Flujo clásico
                 rowCantUn.style.display = '';
                 wrapperTrazas.style.display = 'none';
                 clearTrazasUI();
 
-                // Reactivar y marcar como obligatorios
                 cantInput.disabled = false;
                 uniSel.disabled    = false;
                 cantInput.required = true;
                 uniSel.required    = true;
 
-                // Quitar ocultos para no duplicar envío
                 removeHiddenCantidadUnidad();
             }
         }
@@ -348,12 +347,16 @@
                 const trazas = await resp.json(); // List<TrazaDTO>
 
                 if (!trazas || trazas.length === 0) {
-                    wrapperTrazas.style.display = '';
-                    trazasContainer.innerHTML = `<div class="text-muted">No hay trazas disponibles para este bulto.</div>`;
+                    // Sin trazas: caer a clásico
+                    toggleUI(false);
+                    // Si la unidad base del bulto es UNIDAD, la dejamos seleccionada
+                    if (uniRef.value) {
+                        cargarSubunidades(uniRef.value); // esto llena el combo de unidad visible
+                    }
                     return;
                 }
 
-                // Contenedor de checkboxes de trazas
+                // Hay trazas → armar UI
                 const list = document.createElement('div');
                 list.className = 'd-flex flex-wrap gap-3';
                 trazas.forEach(t => {
@@ -380,27 +383,29 @@
                 });
 
                 trazasContainer.appendChild(list);
-                wrapperTrazas.style.display = '';
+                toggleUI(true); // activar modo trazas
             } catch (e) {
                 console.error('Error al cargar trazas:', e);
-                wrapperTrazas.style.display = '';
-                trazasContainer.innerHTML = `<div class="text-danger">No se pudieron cargar las trazas.</div>`;
+                // En error, también caemos a clásico para no bloquear la operación
+                toggleUI(false);
+                if (uniRef.value) cargarSubunidades(uniRef.value);
             }
         }
+
 
         // --- Cambio de Lote: resetea bulto/trazas, pinta análisis/dictamen y decide UI según unidad de venta ---
         loteSel.addEventListener('change', () => {
             limpiarInfoBulto();
             clearTrazasUI();
 
-            const opt = loteSel.selectedOptions[0];
             const codigo = loteSel.value;
             if (!codigo) {
-                toggleUIPorUnidadVenta(false);
+                toggleUI(false);
                 return;
             }
 
-            toggleUIPorUnidadVenta(esUnidadDeVentaSeleccionada());
+            // Al inicio: flujo clásico; luego el bulto definirá si hay trazas reales
+            toggleUI(false);
 
             // Cargar bultos del lote seleccionado
             cargarBultos(codigo);
@@ -412,6 +417,7 @@
             if (!opt?.value) {
                 limpiarInfoBulto();
                 clearTrazasUI();
+                toggleUI(false);
                 return;
             }
 
@@ -419,13 +425,14 @@
             cantRef.value = opt.dataset.cant || '';
             uniRef.value  = opt.dataset.uni  || '';
 
-            if (esUnidadDeVentaSeleccionada()) {
-                // Cargar trazas disponibles del bulto
+            if (esUnidadDeVentaDeclarada()) {
+                // Intentamos cargar trazas; ahí decidimos el modo final
                 cargarTrazasDisponibles(loteSel.value, Number(opt.value));
             } else {
-                // Cargar subunidades para el selector de unidad de medida
+                // No unidad de venta: flujo clásico
                 if (uniRef.value) cargarSubunidades(uniRef.value);
                 clearTrazasUI();
+                toggleUI(false);
             }
         });
 
@@ -445,7 +452,7 @@
          *   * Setea cantidad = cantidad de trazas seleccionadas y unidadMedida = 'UNIDAD' (en ocultos)
          */
         form.addEventListener('submit', (ev) => {
-            if (!esUnidadDeVentaSeleccionada()) return; // Flujo clásico: no hay cambios
+            if (!modoTrazas) return; // Flujo clásico: no tocar
 
             const checks = trazasContainer.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -461,7 +468,7 @@
                 trazasError.style.display = 'none';
             }
 
-            // Construir arreglo movimientoDTO.trazaDTOs[*] como inputs ocultos
+            // Construir arreglo movimientoDTO.trazaDTOs[*]
             trazasHidden.innerHTML = '';
             let i = 0;
             checks.forEach(cb => {

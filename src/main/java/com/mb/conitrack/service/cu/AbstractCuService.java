@@ -301,11 +301,10 @@ public abstract class AbstractCuService {
             return false;
         }
 
-        // El título es obligatorio y no puede ser mayor al 100%
         if (dto.getTitulo() == null) {
-            bindingResult.rejectValue("titulo", "", "Debe ingresar el valor de título del Análisis");
-            return false;
+            return true;
         }
+        // El no puede ser mayor al 100%
         if (dto.getTitulo().compareTo(BigDecimal.valueOf(100)) > 0) {
             bindingResult.rejectValue("titulo", "", "El título no puede ser mayor al 100%");
             return false;

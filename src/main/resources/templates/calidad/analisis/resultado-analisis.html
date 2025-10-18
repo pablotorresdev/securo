@@ -120,9 +120,13 @@
         </div>
 
         <!-- Título (porcentaje). Default 100 si viene null en el DTO -->
-        <div class="mb-3">
+        <div class="mb-3" id="groupTitulo">
             <label class="form-label" for="titulo">Título (%):</label>
-            <input class="form-control" id="titulo" name="titulo" placeholder="Ingrese el título (%)" step="0.01"
+            <input class="form-control"
+                   id="titulo"
+                   name="titulo"
+                   placeholder="Ingrese el título (%)"
+                   step="0.01"
                    th:value="${movimientoDTO.titulo != null ? movimientoDTO.titulo : 100}"
                    type="number"/>
             <div class="text-danger" th:errors="*{titulo}" th:if="${#fields.hasErrors('titulo')}"></div>
@@ -170,7 +174,7 @@
 
         // Inicialización de fechas desde el DTO (si vuelven por error de validación),
         // caso contrario setea "hoy" con tz de Buenos Aires.
-        var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ [];
+        var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ null;
         if (fechaRealizadoAnalisisDTO) {
             document.getElementById("fechaRealizadoAnalisis").value = fechaRealizadoAnalisisDTO;
         } else {
@@ -178,13 +182,39 @@
             const hoyFormateado = hoy.toLocaleDateString("en-CA", {timeZone: "America/Argentina/Buenos_Aires"});
             document.getElementById("fechaRealizadoAnalisis").value = hoyFormateado;
         }
-        var fechaReanalisisDTO = /*[[${movimientoDTO.fechaReanalisis}]]*/ [];
+        var fechaReanalisisDTO = /*[[${movimientoDTO.fechaReanalisis}]]*/ null;
         if (fechaReanalisisDTO) {
             document.getElementById("fechaReanalisis").value = fechaReanalisisDTO;
         }
-        var fechaVencimientoDTO = /*[[${movimientoDTO.fechaVencimiento}]]*/ [];
+        var fechaVencimientoDTO = /*[[${movimientoDTO.fechaVencimiento}]]*/ null;
         if (fechaVencimientoDTO) {
             document.getElementById("fechaVencimiento").value = fechaVencimientoDTO;
+        }
+
+        function toggleTitulo(esUnidadVenta) {
+            const group = document.getElementById('groupTitulo');
+            const input = document.getElementById('titulo');
+            if (!group || !input) return;
+
+            if (esUnidadVenta === true) {
+                // Ocultar y asegurar que NO se envíe ni se asigne
+                group.style.display = 'none';
+                input.disabled = true;
+                // quitar name para que, incluso si se re-habilitara por error, no se bindee
+                input.setAttribute('data-prev-name', input.getAttribute('name') || 'titulo');
+                input.removeAttribute('name');
+                input.value = ''; // no asignar nada
+            } else {
+                // Mostrar y permitir envío
+                group.style.display = '';
+                input.disabled = false;
+                // restaurar name si fuera necesario
+                if (!input.getAttribute('name')) {
+                    input.setAttribute('name', input.getAttribute('data-prev-name') || 'titulo');
+                }
+                // si quedó vacío, aplicar default 100 (coherente con tu th:value)
+                if (!input.value) input.value = 100;
+            }
         }
 
         // Muestra/oculta el campo "Fecha de Reanálisis" según flag de unidad de venta
@@ -201,6 +231,7 @@
                 group.style.display = '';
                 input.disabled = false;
             }
+            toggleTitulo(esUnidadVenta);
         }
 
         // Extrae el flag data-es-unidad-venta del option seleccionado en un <select>
@@ -251,6 +282,7 @@
             const esUnidadVentaSel = getEsUnidadVentaFromSelect(this);
             if (esUnidadVentaSel != null) {
                 toggleFechaReanalisis(esUnidadVentaSel);
+                toggleTitulo(esUnidadVentaSel);   // <-- agregar
             }
 
             // 2) Trae detalles completos por nroAnalisis (y corrige flag si backend lo envía)
@@ -262,6 +294,7 @@
                         // 2) Fallback si el endpoint devuelve esUnidadVenta
                         if (typeof data.esUnidadVenta === 'boolean') {
                             toggleFechaReanalisis(data.esUnidadVenta);
+                            toggleTitulo(data.esUnidadVenta);
                         }
                     })
                     .catch(() => {
@@ -285,6 +318,7 @@
             const esUnidadVentaSel = getEsUnidadVentaFromSelect(this);
             if (esUnidadVentaSel != null) {
                 toggleFechaReanalisis(esUnidadVentaSel);
+                toggleTitulo(esUnidadVentaSel);   // <-- agregar
             }
 
             if (this.value) {
@@ -294,6 +328,7 @@
                         actualizarInfo(data);
                         if (typeof data.esUnidadVenta === 'boolean') {
                             toggleFechaReanalisis(data.esUnidadVenta);
+                            toggleTitulo(data.esUnidadVenta);
                         }
                     })
                     .catch(() => {
@@ -315,6 +350,11 @@
             } else {
                 // por defecto visible
                 toggleFechaReanalisis(false);
+            }
+            if (flag != null) {
+                toggleTitulo(flag);
+            } else {
+                toggleTitulo(false);
             }
         })();
     });

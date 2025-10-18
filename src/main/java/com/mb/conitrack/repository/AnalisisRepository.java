@@ -59,11 +59,10 @@ public interface AnalisisRepository extends JpaRepository<Analisis, Long> {
         join a.lote l
         where a.activo = true
         and a.dictamen = com.mb.conitrack.enums.DictamenEnum.APROBADO
-        and a.titulo is not null
         and l.codigoLote = :codigoLote
         order by a.fechaYHoraCreacion desc
         """)
-    List<Analisis> findUltimoAprobadoConTituloPorCodigoLote(@Param("codigoLote") String codigoLote);
+    List<Analisis> findUltimoAprobadoPorCodigoLote(@Param("codigoLote") String codigoLote);
 
     @Query("""
         select a

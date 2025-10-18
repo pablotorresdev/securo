@@ -33,7 +33,7 @@
             <td th:text="${analisisDTO.fechaRealizado}"></td>
             <td th:text="${analisisDTO.fechaReanalisis}"></td>
             <td th:text="${analisisDTO.fechaVencimiento}"></td>
-            <td th:text="${analisisDTO.titulo}"></td>
+            <td th:text="${analisisDTO.titulo != null ? analisisDTO.titulo: 'N/A'}"></td>
             <td th:text="${analisisDTO.observaciones}"></td>
         </tr>
         </tbody>
