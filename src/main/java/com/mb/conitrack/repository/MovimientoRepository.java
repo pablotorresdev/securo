@@ -52,18 +52,17 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     boolean existeMuestreo(@Param("codigoLote") String codigoLote, @Param("nroAnalisis") String nroAnalisis);
 
     @Query("""
-          select distinct m
-          from Movimiento m
-          join m.lote l
-          join m.detalles d
-          join d.trazas t
-          where l.codigoLote = :codigoLote
-            and m.activo = true
-            and m.motivo = com.mb.conitrack.enums.MotivoEnum.VENTA
-            and t.estado = com.mb.conitrack.enums.EstadoEnum.VENDIDO
-          order by m.fecha asc, m.fechaYHoraCreacion asc
+        select distinct m
+        from Movimiento m
+        join m.lote l
+        left join m.detalles d
+        left join d.trazas t
+        where l.codigoLote = :codigoLote
+        and m.activo = true
+        and m.motivo = com.mb.conitrack.enums.MotivoEnum.VENTA
+        order by m.fecha asc, m.fechaYHoraCreacion asc
         """)
-    List<Movimiento> findVentasConTrazasVendidasByCodigoLote(@Param("codigoLote") String codigoLote);
+    List<Movimiento> findMovimientosVentaByCodigoLote(@Param("codigoLote") String codigoLote);
 
     @Query("""
             select m

@@ -20,6 +20,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaProduccion;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMayorUnidadMedida;
+import static java.lang.Boolean.TRUE;
 
 //***********CU7 BAJA: CONSUMO PRODUCCION***********
 @Service
@@ -121,6 +122,7 @@ public class BajaConsumoProduccionService extends AbstractCuService {
                 .bulto(loteEntity.getBultoByNro(nroBulto))
                 .cantidad(loteDTO.getCantidadesBultos().get(i))
                 .unidadMedida(loteDTO.getUnidadMedidaBultos().get(i))
+                .activo(TRUE)
                 .build();
 
             movimiento.getDetalles().add(det);

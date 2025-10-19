@@ -33,6 +33,7 @@ import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
 import static com.mb.conitrack.enums.EstadoEnum.RECALL;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoModifRecall;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaRecall;
+import static java.lang.Boolean.TRUE;
 
 //***********CU24 ALTA/MODIF: RECALL***********
 @Service
@@ -94,6 +95,7 @@ public class ModifRetiroMercadoService extends AbstractCuService {
                 .bulto(bulto)
                 .cantidad(cantidad)
                 .unidadMedida(UnidadMedidaEnum.UNIDAD)
+                .activo(TRUE)
                 .build();
 
             movimientoAltaRecall.getDetalles().add(det);

@@ -18,6 +18,7 @@ import static com.mb.conitrack.enums.MotivoEnum.AJUSTE;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
 import static com.mb.conitrack.enums.MotivoEnum.MUESTREO;
 import static com.mb.conitrack.enums.MotivoEnum.RETIRO_MERCADO;
+import static java.lang.Boolean.TRUE;
 
 public class MovimientoEntityUtils {
 
@@ -300,6 +301,7 @@ public class MovimientoEntityUtils {
             .bulto(bulto)
             .cantidad(movimiento.getCantidad())
             .unidadMedida(movimiento.getUnidadMedida())
+            .activo(TRUE)
             .build();
         movimiento.getDetalles().add(det);
         bulto.getDetalles().add(det);
@@ -312,6 +314,7 @@ public class MovimientoEntityUtils {
             .bulto(bulto)
             .cantidad(bulto.getCantidadInicial())
             .unidadMedida(bulto.getUnidadMedida())
+            .activo(TRUE)
             .build();
         movimiento.getDetalles().add(det);
         bulto.getDetalles().add(det);

@@ -21,6 +21,8 @@ import com.mb.conitrack.service.maestro.ProductoService;
 
 import jakarta.validation.Valid;
 
+import static java.lang.Boolean.TRUE;
+
 @Controller
 @RequestMapping("/productos")
 public class ABMProductosController {
@@ -83,7 +85,7 @@ public class ABMProductosController {
         }
 
         final Producto producto = productoOptional.get();
-        if (!producto.getActivo()) {
+        if (!TRUE.equals(producto.getActivo())) {
             model.addAttribute("error", "Producto inactivo");
             return "redirect:/productos/list-productos";
         }
@@ -136,7 +138,7 @@ public class ABMProductosController {
         }
 
         Producto producto = productoOptional.get();
-        if (!producto.getActivo()) {
+        if (!TRUE.equals(producto.getActivo())) {
             redirectAttributes.addFlashAttribute("error", "Producto ya esta inactivo");
             return "redirect:/productos/list-productos";
         }

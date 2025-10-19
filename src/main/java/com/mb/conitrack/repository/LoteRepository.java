@@ -271,19 +271,27 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     List<Lote> findAllForVentaProducto();
 
     @Query("""
-            select l
-            from Lote l
-            where l.activo = true
-              and l.estado != com.mb.conitrack.enums.EstadoEnum.RECALL
-              and exists (
-                  select 1
-                  from Traza t
-                  where t.lote = l
-                    and t.estado = com.mb.conitrack.enums.EstadoEnum.VENDIDO
-              )
-            order by l.fechaIngreso asc, l.codigoLote asc
+          select l
+          from Lote l
+          where l.activo = true
+            and l.estado <> com.mb.conitrack.enums.EstadoEnum.RECALL
+            and (
+                 l.id in (
+                   select t.lote.id
+                   from Traza t
+                   where t.estado = com.mb.conitrack.enums.EstadoEnum.VENDIDO
+                 )
+                 or
+                 l.id in (
+                   select m.lote.id
+                   from Movimiento m
+                   where m.motivo = com.mb.conitrack.enums.MotivoEnum.VENTA
+                 )
+            )
+          order by l.fechaIngreso asc, l.codigoLote asc
         """)
     List<Lote> findAllForDevolucionOrRecall();
+
 
     @Query("""
             select l
@@ -337,6 +345,5 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
               and l.loteOrigen.codigoLote = :codigoLote
         """)
     List<Lote> findLotesByLoteOrigen(@Param("codigoLote") String codigoLote);
-
 
 }

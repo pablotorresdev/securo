@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.SQLDelete;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -19,6 +21,7 @@ import lombok.EqualsAndHashCode;
 @lombok.AllArgsConstructor
 @lombok.Builder
 @lombok.EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@SQLDelete(sql = "UPDATE detalle_movimientos SET activo = false WHERE id = ?")
 public class DetalleMovimiento {
 
     @Id
@@ -42,6 +45,9 @@ public class DetalleMovimiento {
     @Enumerated(EnumType.STRING)
     @Column(name = "unidad_medida", nullable = false, length = 50)
     private UnidadMedidaEnum unidadMedida;
+
+    @Column(nullable = false)
+    private Boolean activo;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

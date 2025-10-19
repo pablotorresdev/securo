@@ -3,6 +3,7 @@ package com.mb.conitrack.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -38,6 +39,16 @@ public class MovimientosController {
     public String listBultosPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {
         model.addAttribute("movimientoDTOs", movimientoService.findByCodigoLote(codigoLote));
         return "movimientos/list-movimientos";
+    }
+
+
+    /** Devuelve array: índice i => nroBulto = i+1, valor = máximo en UNIDAD (0 si no hay). */
+    @GetMapping("/devolucion/maximos/{codigoMovimiento}")
+    public ResponseEntity<List<Integer>> maximosPorBultoNoTrazado(
+        @PathVariable String codigoMovimiento) {
+
+        List<Integer> maximos = movimientoService.calcularMaximoDevolucionPorBulto(codigoMovimiento);
+        return ResponseEntity.ok(maximos);
     }
 
     //***********CU23 MODIF: DEVOLUCION VENTA***********

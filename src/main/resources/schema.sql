@@ -135,6 +135,7 @@ CREATE TABLE lotes
     nro_remito              TEXT,
     detalle_conservacion    TEXT,
     observaciones           TEXT,
+    trazado                 BOOLEAN              DEFAULT FALSE,
     activo                  BOOLEAN     NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_producto_lote
         FOREIGN KEY (producto_id) REFERENCES productos (id),
@@ -195,6 +196,7 @@ CREATE TABLE detalle_movimientos
     bulto_id      BIGINT         NOT NULL,
     cantidad      NUMERIC(12, 4) NOT NULL,
     unidad_medida VARCHAR(50)    NOT NULL,
+    activo        BOOLEAN        NOT NULL DEFAULT TRUE,
 
     CONSTRAINT uk_mov_bulto UNIQUE (movimiento_id, bulto_id),
 

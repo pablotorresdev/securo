@@ -20,6 +20,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import static com.mb.conitrack.utils.LoteEntityUtils.createLoteIngreso;
 import static com.mb.conitrack.utils.LoteEntityUtils.populateLoteAltaProduccionPropia;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
+import static java.lang.Boolean.TRUE;
 
 //***********CU20 ALTA: INGRESO PRODUCCION INTERNA***********
 @Service
@@ -50,6 +51,7 @@ public class AltaIngresoProduccionService extends AbstractCuService {
                     .bulto(b)
                     .cantidad(b.getCantidadInicial())
                     .unidadMedida(b.getUnidadMedida())
+                    .activo(TRUE)
                     .build();
 
                 movimiento.getDetalles().add(det);

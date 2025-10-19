@@ -114,6 +114,9 @@ public class LoteDTO {
     @PositiveOrZero(message = "La cantidad no puede ser negativa")
     private BigDecimal cantidadActual;
 
+
+    protected Boolean trazado;
+
     //Esto junto con cantidad de unidades total, dara el rango de traza para ese lote
     protected Long trazaInicial;
 

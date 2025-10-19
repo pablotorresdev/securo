@@ -32,6 +32,7 @@ import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoPorMu
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMayorUnidadMedida;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.restarMovimientoConvertido;
+import static java.lang.Boolean.TRUE;
 import static java.lang.Integer.parseInt;
 
 //***********CU3 BAJA: MUESTREO***********
@@ -331,6 +332,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
                 .bulto(loteEntity.getBultoByNro(nroBulto))
                 .cantidad(loteDTO.getCantidadesBultos().get(i))
                 .unidadMedida(loteDTO.getUnidadMedidaBultos().get(i))
+                .activo(TRUE)
                 .build();
 
             movimiento.getDetalles().add(det);

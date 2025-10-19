@@ -1,12 +1,15 @@
 package com.mb.conitrack.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.repository.MovimientoRepository;
 
 import lombok.AllArgsConstructor;
@@ -38,11 +41,31 @@ public class MovimientoService {
 
     //***********CU23 MODIF: DEVOLUCION VENTA***********    @Transactional(readOnly = true)
     public List<MovimientoDTO> getMovimientosVentaByCodigolote(final String codigoLote) {
-        return fromMovimientoEntities(movimientoRepository.findVentasConTrazasVendidasByCodigoLote(codigoLote));
+        return fromMovimientoEntities(movimientoRepository.findMovimientosVentaByCodigoLote(codigoLote));
     }
 
     public MovimientoDTO getUltimoMovimientosCodigolote(final String codigoLote) {
         return fromMovimientoEntity(movimientoRepository.findLatestByCodigoLote(codigoLote).get(0));
+    }
+
+    public List<Integer> calcularMaximoDevolucionPorBulto(final String codigoMovimiento) {
+
+        final Optional<Movimiento> byCodigoMovimientoAndActivoTrue = movimientoRepository.findByCodigoMovimientoAndActivoTrue(
+            codigoMovimiento);
+
+        if(byCodigoMovimientoAndActivoTrue.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        final Movimiento movVenta = byCodigoMovimientoAndActivoTrue.get();
+
+
+
+        final ArrayList<Integer> integers = new ArrayList<>();
+        integers.add(0);
+        integers.add(1);
+        integers.add(1);
+        return integers;
     }
 
 }

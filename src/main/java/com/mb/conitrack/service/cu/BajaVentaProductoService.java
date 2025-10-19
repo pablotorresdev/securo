@@ -20,6 +20,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
+import static java.lang.Boolean.TRUE;
 
 //***********CU22 BAJA: VENTA***********
 @Service
@@ -30,6 +31,7 @@ public class BajaVentaProductoService extends AbstractCuService {
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(
                 loteDTO.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+        final boolean loteTrazado = TRUE.equals(lote.getTrazado());
 
         final List<Integer> nroBultoList = loteDTO.getNroBultoList();
         final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
@@ -55,7 +57,9 @@ public class BajaVentaProductoService extends AbstractCuService {
                 bultoEntity.setEstado(EstadoEnum.EN_USO);
             }
 
-            lote.getTrazas().addAll(bultoEntity.getTrazas());
+//            if (loteTrazado) {
+//                lote.getTrazas().addAll(bultoEntity.getTrazas());
+//            }
             bultoRepository.save(bultoEntity);
 
             loteDTO.getBultosDTOs().add(DTOUtils.fromBultoEntity(bultoEntity));
@@ -65,10 +69,12 @@ public class BajaVentaProductoService extends AbstractCuService {
             .allMatch(b -> b.getEstado() == EstadoEnum.CONSUMIDO);
         lote.setEstado(todosConsumidos ? EstadoEnum.CONSUMIDO : EstadoEnum.EN_USO);
 
-        loteDTO.getTrazaDTOs().addAll(movimiento.getDetalles()
-            .stream()
-            .flatMap(d -> d.getTrazas().stream().map(DTOUtils::fromTrazaEntity))
-            .toList());
+        if (loteTrazado) {
+            loteDTO.getTrazaDTOs().addAll(movimiento.getDetalles()
+                .stream()
+                .flatMap(d -> d.getTrazas().stream().map(DTOUtils::fromTrazaEntity))
+                .toList());
+        }
 
         lote.getMovimientos().add(movimiento);
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));
@@ -76,6 +82,7 @@ public class BajaVentaProductoService extends AbstractCuService {
 
     @Transactional
     public Movimiento persistirMovimientoBajaVenta(final LoteDTO loteDTO, final Lote loteEntity) {
+        final boolean loteTrazado = TRUE.equals(loteEntity.getTrazado());
         final Movimiento movimiento = createMovimientoBajaVenta(loteDTO, loteEntity);
 
         BigDecimal cantidad = BigDecimal.ZERO;
@@ -100,18 +107,21 @@ public class BajaVentaProductoService extends AbstractCuService {
                 .bulto(bulto)
                 .cantidad(cantBulto)
                 .unidadMedida(UnidadMedidaEnum.UNIDAD)
+                .activo(TRUE)
                 .build();
             movimiento.getDetalles().add(det);
 
-            final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantBulto.intValue());
+            if (loteTrazado) {
+                final List<Traza> trazas = bulto.getFirstAvailableTrazaList(cantBulto.intValue());
 
-            if(trazas != null && !trazas.isEmpty()) {
-                for (Traza tr : trazas) {
-                    tr.setEstado(VENDIDO);
+                if (trazas != null && !trazas.isEmpty()) {
+                    for (Traza tr : trazas) {
+                        tr.setEstado(VENDIDO);
+                    }
+                    trazaRepository.saveAll(trazas);
+
+                    det.getTrazas().addAll(trazas);
                 }
-                trazaRepository.saveAll(trazas);
-
-                det.getTrazas().addAll(trazas);
             }
         }
 

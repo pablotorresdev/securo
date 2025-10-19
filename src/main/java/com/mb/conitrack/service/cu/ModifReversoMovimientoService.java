@@ -30,6 +30,7 @@ import static com.mb.conitrack.enums.EstadoEnum.NUEVO;
 import static com.mb.conitrack.enums.EstadoEnum.RECALL;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoReverso;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.sumarMovimientoConvertido;
+import static java.lang.Boolean.TRUE;
 
 //***********CU23 ALTA: DEVOLUCION VENTA***********
 @Service
@@ -149,6 +150,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
         final List<Bulto> bultos = loteOrigen.getBultos();
         bultos.forEach(b -> b.setActivo(false));
+        bultos.forEach(b -> b.getDetalles().forEach(d -> d.setActivo(false)));
         bultoRepository.saveAll(bultos);
 
         movimientoRepository.save(movReverso);
@@ -165,6 +167,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         movOrigen.getLote().setActivo(false);
 
         movOrigen.getLote().getBultos().forEach(b -> b.setActivo(false));
+        movOrigen.getLote().getBultos().forEach(b -> b.getDetalles().forEach(d -> d.setActivo(false)));
         bultoRepository.saveAll(movOrigen.getLote().getBultos());
 
         movimientoRepository.save(movimiento);
@@ -183,6 +186,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         movOrigen.getLote().setActivo(false);
 
         movOrigen.getLote().getBultos().forEach(b -> b.setActivo(false));
+        movOrigen.getLote().getBultos().forEach(b -> b.getDetalles().forEach(d -> d.setActivo(false)));
         bultoRepository.saveAll(movOrigen.getLote().getBultos());
 
         movimientoRepository.save(movimiento);
@@ -419,8 +423,10 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             } else {
                 bulto.setEstado(EN_USO);
             }
-            detalleMovimiento.getTrazas().forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
-            trazaRepository.saveAll(detalleMovimiento.getTrazas());
+            if (TRUE.equals(loteOrigen.getTrazado())) {
+                detalleMovimiento.getTrazas().forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
+                trazaRepository.saveAll(detalleMovimiento.getTrazas());
+            }
             bultoRepository.save(bulto);
         }
 
@@ -434,6 +440,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             loteOrigen.setEstado(EN_USO);
         }
 
+        detalles.forEach(d -> d.setActivo(false));
         movOrigen.setActivo(false);
         movimiento.setActivo(false);
 
@@ -570,8 +577,10 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         for (Traza t : trazasLote) {
             t.setActivo(false);
             t.setEstado(EstadoEnum.DESCARTADO);
+            t.getDetalles().forEach(d -> d.setActivo(false));
         }
         trazaRepository.saveAll(trazasLote);
+        lote.setTrazado(false);
 
         movOrigen.setActivo(false);
         movimiento.setActivo(false);

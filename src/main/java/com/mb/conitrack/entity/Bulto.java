@@ -76,7 +76,12 @@ public class Bulto {
     @Column(nullable = false)
     private Boolean activo;
 
-    //****** TRAZAS ******//
+    //****** DETALLES ******//
+    public List<DetalleMovimiento> getActiveDetallesMov() {
+            return this.detalles.stream()
+                .filter(DetalleMovimiento::getActivo).toList();
+    }
+
     public Traza getFirstActiveTraza() {
         if (this.trazas.isEmpty()) {
             return null;

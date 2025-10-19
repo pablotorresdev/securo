@@ -74,10 +74,10 @@
                 <option th:each="loteDTO : ${loteAjusteDTOs}"
                         th:value="${loteDTO.codigoLote}"
                         th:data-dictamen="${loteDTO.dictamen}"
-                        th:data-es-unidad-venta="${loteDTO.esUnidadVenta}"
+                        th:data-trazado="${loteDTO.trazado}"
                         th:text="'Nombre: ' + ${loteDTO.nombreProducto}
-                         + ' | ID Lote: ' + ${loteDTO.loteProveedor}
-                         + ' | Dictamen: ' + ${loteDTO.dictamen}">
+                        + ' | ID Lote: ' + ${loteDTO.loteProveedor}
+                        + ' | Dictamen: ' + ${loteDTO.dictamen}">
                 </option>
             </select>
         </div>
@@ -203,6 +203,11 @@
             const campo = document.getElementById('fechaMovimiento');
             campo.value = dto.fechaMovimiento || new Date().toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
         };
+
+        function esLoteTrazado() {
+            const opt = loteSel.options[loteSel.selectedIndex];
+            return !!opt && opt.getAttribute('data-trazado') === 'true';
+        }
 
         // --- Helpers para flujo UNIDAD_DE_VENTA ---
         let modoTrazas = false; // true = usar trazas, false = flujo clásico
@@ -404,11 +409,11 @@
                 return;
             }
 
-            // Al inicio: flujo clásico; luego el bulto definirá si hay trazas reales
-            toggleUI(false);
+            // Ahora decidimos el modo según el flag trazado
+            const modoTrazado = esLoteTrazado();
+            toggleUI(modoTrazado);
 
-            // Cargar bultos del lote seleccionado
-            cargarBultos(codigo);
+            cargarBultos(codigo); // igual que antes
         });
 
         // --- Cambio de Bulto: muestra cantidad/unidad y dispara carga de trazas o subunidades según el caso ---
@@ -421,20 +426,20 @@
                 return;
             }
 
-            // Mostrar referencias de stock del bulto
             cantRef.value = opt.dataset.cant || '';
             uniRef.value  = opt.dataset.uni  || '';
 
-            if (esUnidadDeVentaDeclarada()) {
-                // Intentamos cargar trazas; ahí decidimos el modo final
+            if (esLoteTrazado()) {
+                // flujo trazado directo
                 cargarTrazasDisponibles(loteSel.value, Number(opt.value));
             } else {
-                // No unidad de venta: flujo clásico
+                // no trazado: mostrar cantidad/unidad
                 if (uniRef.value) cargarSubunidades(uniRef.value);
                 clearTrazasUI();
                 toggleUI(false);
             }
         });
+
 
         // Limpia estado del bloque de bultos y referencias
         const limpiarInfoBulto = () => {

@@ -1,6 +1,5 @@
 package com.mb.conitrack.utils;
 
-import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,6 @@ import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 public class LoteEntityUtils {
@@ -215,6 +213,7 @@ public class LoteEntityUtils {
             idxTrazaActual += indexTrazaFinal;
         }
         lote.getTrazas().addAll(trazas);
+        lote.setTrazado(true);
     }
 
 }

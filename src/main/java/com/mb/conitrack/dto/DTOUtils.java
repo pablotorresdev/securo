@@ -15,6 +15,8 @@ import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.enums.TipoProductoEnum;
 
+import static java.lang.Boolean.TRUE;
+
 public class DTOUtils {
 
     public static Analisis createAnalisis(final MovimientoDTO dto) {
@@ -135,7 +137,7 @@ public class DTOUtils {
 
         for (int i = 1; i <= loteEntity.getBultos().size(); i++) {
             final Bulto bultoEntity = loteEntity.getBultoByNro(i);
-            if (bultoEntity==null || !bultoEntity.getActivo()) {
+            if (bultoEntity == null || !TRUE.equals(bultoEntity.getActivo())) {
                 continue;
             }
 
@@ -185,10 +187,8 @@ public class DTOUtils {
         if (entity.getLote() != null) {
             dto.setCodigoLote(entity.getLote().getCodigoLote());
             dto.setLoteId(entity.getLote().getId());
-            for (Bulto bulto : entity.getLote().getBultos()) {
-                for (DetalleMovimiento detalleMovimiento : bulto.getDetalles()) {
-                    dto.getDetalleMovimientoDTOs().add(fromDetalleMovimientoEntity(detalleMovimiento));
-                }
+            for (DetalleMovimiento detalleMovimiento : entity.getDetalles()) {
+                dto.getDetalleMovimientoDTOs().add(fromDetalleMovimientoEntity(detalleMovimiento));
             }
         }
         if (entity.getMovimientoOrigen() != null) {
@@ -239,13 +239,13 @@ public class DTOUtils {
 
     static void addAnalisisDTOs(final Lote entity, final LoteDTO loteDTO) {
         for (Analisis analisis : entity.getAnalisisList()) {
-            if (analisis.getActivo()) {
+            if (TRUE.equals(analisis.getActivo())) {
                 loteDTO.getAnalisisDTOs().add(DTOUtils.fromAnalisisEntity(analisis));
             }
         }
         if (entity.getLoteOrigen() != null) {
             for (Analisis analisis : entity.getLoteOrigen().getAnalisisList()) {
-                if (analisis.getActivo()) {
+                if (TRUE.equals(analisis.getActivo())) {
                     loteDTO.getAnalisisDTOs().add(DTOUtils.fromAnalisisEntity(analisis));
                 }
             }
@@ -254,7 +254,7 @@ public class DTOUtils {
 
     static void addBultoDTOs(final Lote entity, final LoteDTO loteDTO) {
         for (Bulto bulto : entity.getBultos()) {
-            if (bulto.getActivo()) {
+            if (TRUE.equals(bulto.getActivo())) {
                 final BultoDTO bultoDto = DTOUtils.fromBultoEntity(bulto);
                 loteDTO.getBultosDTOs().add(bultoDto);
             }
@@ -301,7 +301,7 @@ public class DTOUtils {
 
     static void addMovimientoDTOs(final Lote entity, final LoteDTO loteDTO) {
         for (Movimiento movimiento : entity.getMovimientos()) {
-            if (movimiento.getActivo()) {
+            if (TRUE.equals(movimiento.getActivo())) {
                 final MovimientoDTO movimientoDTO = DTOUtils.fromMovimientoEntity(movimiento);
                 loteDTO.getMovimientoDTOs().add(movimientoDTO);
             }
@@ -309,6 +309,7 @@ public class DTOUtils {
     }
 
     static void addTrazaDTOs(final Lote entity, final LoteDTO loteDTO) {
+        loteDTO.setTrazado(entity.getTrazado() != null && entity.getTrazado());
         for (Traza traza : entity.getActiveTrazas()) {
             loteDTO.getTrazaDTOs().add(DTOUtils.fromTrazaEntity(traza));
         }

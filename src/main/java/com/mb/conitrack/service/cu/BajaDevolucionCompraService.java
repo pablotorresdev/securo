@@ -19,6 +19,7 @@ import com.mb.conitrack.enums.DictamenEnum;
 
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoDevolucionCompra;
+import static java.lang.Boolean.TRUE;
 
 //***********CU4 BAJA: DEVOLUCION COMPRA***********
 @Service
@@ -42,6 +43,7 @@ public class BajaDevolucionCompraService extends AbstractCuService {
                 .bulto(bulto)
                 .cantidad(bulto.getCantidadActual())
                 .unidadMedida(bulto.getUnidadMedida())
+                .activo(TRUE)
                 .build();
 
             movimiento.getDetalles().add(det);

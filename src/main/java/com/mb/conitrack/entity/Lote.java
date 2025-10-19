@@ -138,6 +138,9 @@ public class Lote {
     @EqualsAndHashCode.Exclude
     private Set<Traza> trazas = new HashSet<>();
 
+    @Column(name = "trazado")
+    private Boolean trazado;
+
     @Column(nullable = false)
     private Boolean activo;
 
@@ -258,14 +261,6 @@ public class Lote {
             return 0;
         } else {
             return this.loteOrigen.duplicateNumber() + 1;
-        }
-    }
-
-    public String getRootCodigoLote() {
-        if (this.loteOrigen == null) {
-            return this.codigoLote;
-        } else {
-            return this.loteOrigen.getRootCodigoLote();
         }
     }
 
