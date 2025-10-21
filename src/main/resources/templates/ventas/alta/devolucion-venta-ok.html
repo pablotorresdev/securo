@@ -16,71 +16,71 @@
     </div>
 
     <!-- Datos del Lote -->
-    <div th:if="${loteDTO != null}">
+    <div th:if="${loteVentaDTO != null}">
         <h4>Detalles del Lote</h4>
         <table class="table table-bordered table-sm">
             <tbody>
             <tr>
                 <th>Nombre Producto:</th>
-                <td th:text="${loteDTO.nombreProducto}"></td>
+                <td th:text="${loteVentaDTO.nombreProducto}"></td>
             </tr>
             <tr>
                 <th>Proveedor:</th>
-                <td th:text="${loteDTO.nombreProveedor}"></td>
+                <td th:text="${loteVentaDTO.nombreProveedor}"></td>
             </tr>
             <tr>
                 <th>Código interno Lote:</th>
-                <td th:text="${loteDTO.codigoLote}"></td>
+                <td th:text="${loteVentaDTO.codigoLote}"></td>
             </tr>
             <tr>
                 <th>Fecha Ingreso:</th>
-                <td th:text="${loteDTO.fechaIngreso}"></td>
+                <td th:text="${loteVentaDTO.fechaIngreso}"></td>
             </tr>
             <tr>
                 <th>Bultos Totales:</th>
-                <td th:text="${loteDTO.bultosTotales}"></td>
+                <td th:text="${loteVentaDTO.bultosTotales}"></td>
             </tr>
             <tr>
                 <th>Lote Proveedor:</th>
-                <td th:text="${loteDTO.loteProveedor}"></td>
+                <td th:text="${loteVentaDTO.loteProveedor}"></td>
             </tr>
             <tr>
                 <th>Nro Remito:</th>
-                <td th:text="${loteDTO.nroRemito}"></td>
+                <td th:text="${loteVentaDTO.nroRemito}"></td>
             </tr>
             <tr>
                 <th>Detalle Conservación:</th>
-                <td th:text="${loteDTO.detalleConservacion}"></td>
+                <td th:text="${loteVentaDTO.detalleConservacion}"></td>
             </tr>
             <tr>
                 <th>Fecha Reanálisis Proveedor:</th>
-                <td th:text="${loteDTO.fechaReanalisisProveedor}"></td>
+                <td th:text="${loteVentaDTO.fechaReanalisisProveedor}"></td>
             </tr>
             <tr>
                 <th>Fecha Vencimiento Proveedor:</th>
-                <td th:text="${loteDTO.fechaVencimientoProveedor}"></td>
+                <td th:text="${loteVentaDTO.fechaVencimientoProveedor}"></td>
             </tr>
             <tr>
                 <th>Dictamen:</th>
-                <td th:text="${loteDTO.dictamen}"></td>
+                <td th:text="${loteVentaDTO.dictamen}"></td>
             </tr>
             <tr>
                 <th>Traza inicial:</th>
-                <td th:text="${loteDTO.trazaInicial}"></td>
+                <td th:text="${loteVentaDTO.trazaInicial}"></td>
             </tr>
             <tr>
                 <th>Traza final:</th>
-                <td th:text="${loteDTO.trazaFinal}"></td>
+                <td th:text="${loteVentaDTO.trazaFinal}"></td>
             </tr>
             <tr>
                 <th>Observaciones:</th>
-                <td th:text="${loteDTO.observaciones}"></td>
+                <td th:text="${loteVentaDTO.observaciones}"></td>
             </tr>
             <tr>
                 <th>Cantidades por Bulto:</th>
                 <td>
-          <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
+          <span th:each="cant, iterStat : ${loteVentaDTO.cantidadesBultos}"
+                th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteVentaDTO.unidadMedidaBultos[iterStat.index]}] - |">
           </span>
                 </td>
             </tr>
@@ -88,7 +88,7 @@
         </table>
 
         <!-- Movimientos del Lote -->
-        <div th:if="${loteDTO.movimientoDTOs != null and #lists.size(loteDTO.movimientoDTOs) > 0}">
+        <div th:if="${loteVentaDTO.movimientoDTOs != null and #lists.size(loteVentaDTO.movimientoDTOs) > 0}">
             <h4>Movimientos del Lote</h4>
             <table class="table table-striped table-sm">
                 <thead>
@@ -105,7 +105,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="mov : ${loteDTO.movimientoDTOs}">
+                <tr th:each="mov : ${loteVentaDTO.movimientoDTOs}">
                     <td th:text="${mov.fechaMovimiento}"></td>
                     <td th:text="${mov.cantidad}"></td>
                     <td th:text="${mov.unidadMedida}"></td>

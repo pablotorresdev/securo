@@ -65,6 +65,18 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     List<Movimiento> findMovimientosVentaByCodigoLote(@Param("codigoLote") String codigoLote);
 
     @Query("""
+        select distinct m
+        from Movimiento m
+        left join m.detalles d
+        where m.codigoMovimiento = :codigoMovimiento
+        and m.activo = true
+        and m.motivo = com.mb.conitrack.enums.MotivoEnum.VENTA
+        order by m.fecha asc, m.fechaYHoraCreacion asc
+        """)
+    Optional<Movimiento> findMovimientosVentaByCodigoMovimiento(@Param("codigoMovimiento") String codigoMovimiento);
+
+
+    @Query("""
             select m
             from Movimiento m
             join m.lote l
@@ -82,6 +94,15 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
               AND m.nroAnalisis = :nroAnalisis
         """)
     List<Movimiento> findMovModifAnalisisByNro(@Param("nroAnalisis") String nroAnalisis);
+
+    @Query("""
+        select m
+        from Movimiento m
+        where m.movimientoOrigen.codigoMovimiento = :codigoMovimiento
+        and m.activo = true
+        order by m.fecha asc, m.fechaYHoraCreacion asc
+        """)
+    List<Movimiento> findMovimientosDevolucionByMovimientoOriginal(@Param("codigoMovimiento") String codigoMovimiento);
 
 }
 

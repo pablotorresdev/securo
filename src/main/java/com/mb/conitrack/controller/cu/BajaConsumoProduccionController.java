@@ -73,7 +73,6 @@ public class BajaConsumoProduccionController extends AbstractCuController {
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO resultDTO = consumoProduccionService.bajaConsumoProduccion(loteDTO);
 
-        //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",

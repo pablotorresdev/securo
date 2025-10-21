@@ -53,7 +53,6 @@ public class Movimiento {
     @EqualsAndHashCode.Exclude
     private Set<DetalleMovimiento> detalles = new HashSet<>();
 
-    //TODO: unificar con fecha de movimiento??
     @Column(name = "fecha_creacion", nullable = false)
     private OffsetDateTime fechaYHoraCreacion;
 

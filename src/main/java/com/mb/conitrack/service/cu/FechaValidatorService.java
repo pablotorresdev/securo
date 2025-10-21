@@ -95,7 +95,6 @@ public class FechaValidatorService extends AbstractCuService {
     //***********CU9 MODIFICACION: VENCIDO***********
     @Transactional
     List<Lote> persistirProductosVencidos(final MovimientoDTO dto, final List<Lote> lotes) {
-        //TODO, eliminar NRO de Reanalisis del DTO?
         List<Lote> result = new ArrayList<>();
         for (Lote lote : lotes) {
             final Movimiento movimiento = persistirMovimientoProductoVencido(dto, lote);

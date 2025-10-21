@@ -1,6 +1,7 @@
 package com.mb.conitrack.service.cu;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,7 +26,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import jakarta.validation.Valid;
 
-import static com.mb.conitrack.dto.DTOUtils.fromLoteEntity;
+import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoDevolucion;
 import static java.lang.Boolean.TRUE;
@@ -35,7 +36,7 @@ import static java.lang.Boolean.TRUE;
 public class AltaDevolucionVentaService extends AbstractCuService {
 
     @Transactional
-    public LoteDTO persistirDevolucionVenta(final MovimientoDTO dto) {
+    public List<LoteDTO> persistirDevolucionVenta(final MovimientoDTO dto) {
 
         final Lote loteOrigen = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -50,7 +51,7 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         movDevolucionVenta.setMovimientoOrigen(movimientoOrigen);
 
         final Lote loteDevolucionGuardado = loteRepository.save(loteAltaDevolucion);
-
+        BigDecimal cantidadMovimiento = BigDecimal.ZERO;
         if (TRUE.equals(loteOrigen.getTrazado())) {
 
             // 2) Agrupar trazas seleccionadas por nro de bulto
@@ -75,6 +76,8 @@ public class AltaDevolucionVentaService extends AbstractCuService {
                     .activo(TRUE)
                     .build();
 
+                cantidadMovimiento = cantidadMovimiento.add(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
+
                 // Colgar el detalle AL movimiento (habilita cascade para insertar detalle + join table)
                 movDevolucionVenta.getDetalles().add(det);
 
@@ -90,6 +93,8 @@ public class AltaDevolucionVentaService extends AbstractCuService {
                 trazaRepository.saveAll(det.getTrazas());
                 bultoRepository.save(bulto);
             }
+            movDevolucionVenta.setCantidad(cantidadMovimiento);
+            movDevolucionVenta.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
             movimientoRepository.save(movDevolucionVenta);
 
             loteAltaDevolucion.setBultosTotales(trazaDTOporBultoMap.size());
@@ -107,17 +112,25 @@ public class AltaDevolucionVentaService extends AbstractCuService {
                     .activo(TRUE)
                     .build();
 
+                cantidadMovimiento = cantidadMovimiento.add(bultoDevolucion.getCantidadActual());
+
                 // Colgar el detalle AL movimiento (habilita cascade para insertar detalle + join table)
                 movDevolucionVenta.getDetalles().add(det);
 
                 bultoRepository.save(bultoDevolucion);
             }
+            movDevolucionVenta.setCantidad(cantidadMovimiento);
+            movDevolucionVenta.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
             movimientoRepository.save(movDevolucionVenta);
 
             loteAltaDevolucion.setBultosTotales(loteAltaDevolucion.getBultos().size());
         }
 
-        return fromLoteEntity(loteRepository.save(loteDevolucionGuardado));
+        List<Lote> lotes = new ArrayList<>();
+        loteRepository.findById(loteRepository.save(loteDevolucionGuardado).getId()).ifPresent(lotes::add);
+        loteRepository.findById(loteOrigen.getId()).ifPresent(lotes::add);
+        //TODO: corregir la informacion de confirmacion de la devolucion
+        return fromLoteEntities(lotes);
     }
 
     @Transactional
@@ -157,6 +170,66 @@ public class AltaDevolucionVentaService extends AbstractCuService {
     @Transactional
     public Lote crearLoteDevolucion(Lote original, MovimientoDTO dto) {
 
+        Lote clone = initLoteDevolucion(original, dto);
+        if (TRUE.equals(original.getTrazado())) {
+            final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
+                .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
+            for (Map.Entry<Integer, List<TrazaDTO>> trazaDTOporBulto : trazaDTOporBultoMap.entrySet()) {
+
+                final Integer trazaDTOEnNroBulto = trazaDTOporBulto.getKey();
+
+                final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
+
+                Bulto bulto = initBulto(clone);
+                bulto.setNroBulto(trazaDTOEnNroBulto);
+                bulto.setCantidadInicial(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
+                bulto.setCantidadActual(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
+
+                clone.getBultos().add(bulto);
+            }
+            clone.setCantidadInicial(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
+            clone.setCantidadActual(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
+        } else {
+            final List<DetalleMovimientoDTO> detalleMovimientoDTOs = dto.getDetalleMovimientoDTOs();
+            BigDecimal cantidad = BigDecimal.ZERO;
+
+            for (DetalleMovimientoDTO detalleMovimientoDTO : detalleMovimientoDTOs) {
+
+                BigDecimal cantidadDetalle = detalleMovimientoDTO.getCantidad() != null
+                    ? detalleMovimientoDTO.getCantidad()
+                    : BigDecimal.ZERO;
+
+                if (BigDecimal.ZERO.compareTo(cantidadDetalle) == 0) {
+                    continue;
+                }
+
+                cantidad = cantidad.add(cantidadDetalle);
+
+                Bulto bulto = initBulto(clone);
+                bulto.setNroBulto(detalleMovimientoDTO.getNroBulto());
+                bulto.setCantidadInicial(cantidadDetalle);
+                bulto.setCantidadActual(cantidadDetalle);
+
+                clone.getBultos().add(bulto);
+            }
+            clone.setCantidadInicial(cantidad);
+            clone.setCantidadActual(cantidad); // o: original.getCantidadInicial()
+        }
+
+        clone.setBultosTotales(clone.getBultos().size());
+        return clone;
+    }
+
+    private static Bulto initBulto(final Lote clone) {
+        Bulto bulto = new Bulto();
+        bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        bulto.setEstado(DEVUELTO);
+        bulto.setActivo(TRUE);
+        bulto.setLote(clone);
+        return bulto;
+    }
+
+    private Lote initLoteDevolucion(final Lote original, final MovimientoDTO dto) {
         Lote clone = new Lote();
 
         clone.setId(null);
@@ -184,61 +257,6 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         clone.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
         clone.setDetalleConservacion(original.getDetalleConservacion());
         clone.setActivo(TRUE);
-
-        //TODO: Esto hay que cambiarlo
-        if (TRUE.equals(original.getTrazado())) {
-
-            final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
-                .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
-
-            for (Map.Entry<Integer, List<TrazaDTO>> trazaDTOporBulto : trazaDTOporBultoMap.entrySet()) {
-
-                final Integer trazaDTOEnNroBulto = trazaDTOporBulto.getKey();
-
-                final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
-
-                Bulto bulto = new Bulto();
-                bulto.setNroBulto(trazaDTOEnNroBulto);
-                bulto.setCantidadInicial(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
-                bulto.setCantidadActual(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
-                bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-                bulto.setEstado(DEVUELTO);
-                bulto.setActivo(TRUE);
-                bulto.setLote(clone);
-
-                clone.getBultos().add(bulto);
-
-            }
-            clone.setCantidadInicial(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
-            clone.setCantidadActual(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
-        } else {
-            final List<DetalleMovimientoDTO> detalleMovimientoDTOs = dto.getDetalleMovimientoDTOs();
-            BigDecimal cantidad = BigDecimal.ZERO;
-            for (DetalleMovimientoDTO detalleMovimientoDTO : detalleMovimientoDTOs) {
-                cantidad = cantidad.add(detalleMovimientoDTO.getCantidad() != null
-                    ? detalleMovimientoDTO.getCantidad()
-                    : BigDecimal.ZERO);
-
-                Bulto bulto = new Bulto();
-                bulto.setNroBulto(detalleMovimientoDTO.getNroBulto());
-                bulto.setCantidadInicial(detalleMovimientoDTO.getCantidad() != null
-                    ? detalleMovimientoDTO.getCantidad()
-                    : BigDecimal.ZERO);
-                bulto.setCantidadActual(detalleMovimientoDTO.getCantidad() != null
-                    ? detalleMovimientoDTO.getCantidad()
-                    : BigDecimal.ZERO);
-                bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-                bulto.setEstado(DEVUELTO);
-                bulto.setActivo(TRUE);
-                bulto.setLote(clone);
-
-                clone.getBultos().add(bulto);
-            }
-            clone.setCantidadInicial(cantidad);
-            clone.setCantidadActual(cantidad); // o: original.getCantidadInicial()
-        }
-
-        clone.setBultosTotales(dto.getDetalleMovimientoDTOs().size());
         return clone;
     }
 

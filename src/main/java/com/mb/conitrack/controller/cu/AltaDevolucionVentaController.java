@@ -1,6 +1,7 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -72,9 +73,10 @@ public class AltaDevolucionVentaController extends AbstractCuController {
         final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO resultDTO = devolucionVentaService.persistirDevolucionVenta(movimientoDTO);
+        final List<LoteDTO> resultDTO = devolucionVentaService.persistirDevolucionVenta(movimientoDTO);
 
-        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute("loteDevueltoDTO", resultDTO.get(0));
+        redirectAttributes.addFlashAttribute("loteVentaDTO", resultDTO.get(1));
         redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",

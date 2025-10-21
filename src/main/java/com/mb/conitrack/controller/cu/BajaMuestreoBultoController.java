@@ -123,7 +123,6 @@ public class BajaMuestreoBultoController extends AbstractCuController {
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO resultDTO = muestreoBultoService.bajamuestreoMultiBulto(loteDTO);
 
-        //TODO: se puede remover esto?
         redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
         redirectAttributes.addFlashAttribute(
             loteDTO != null ? "success" : "error",

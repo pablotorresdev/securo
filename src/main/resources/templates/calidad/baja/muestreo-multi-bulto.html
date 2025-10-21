@@ -235,6 +235,8 @@
         }
 
         function generarInputsBultos(lote) {
+
+            /* TODO: REVISAR EL CAMBIO DE BULTOS TOTALES PARA DEVOLUCIONES */
             const totalBultos = lote.bultosTotales != null ? lote.bultosTotales : 0;
 
             const idBultos  = (lote.nroBultoList ?? []).slice(0, totalBultos);

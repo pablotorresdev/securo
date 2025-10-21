@@ -109,7 +109,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         final @Valid MovimientoDTO movimientoDTO,
         final BindingResult bindingResult) {
         return !bindingResult.hasErrors();
-        //TODO: implementar
+        //TODO: implementar si es necesario validar los campos de entrada
     }
 
     @Transactional
@@ -198,7 +198,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
     @Transactional
     LoteDTO reversarAltaRetiroMercado(final MovimientoDTO dto, final Movimiento movOrigen) {
-        //TODO: implementar
+        //-TODO: implementar
         return DTOUtils.fromLoteEntity(movOrigen.getLote());
     }
 

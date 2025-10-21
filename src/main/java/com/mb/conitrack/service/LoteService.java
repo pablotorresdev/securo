@@ -23,7 +23,6 @@ public class LoteService {
     private final LoteRepository loteRepository;
 
     //***********CU2 MODIFICACION: CUARENTENA***********
-    //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForCuarentenaDTOs() {
         return DTOUtils.fromLoteEntities(loteRepository.findAllForCuarentena());
@@ -48,7 +47,6 @@ public class LoteService {
     }
 
     //***********CU> MODIFICACION: CU8 Reanalisis de Producto Aprobado***********
-    //TODO: se debe filtrar por aquellos que no tengan analisis con fecha de vencimiento?
     @Transactional(readOnly = true)
     public List<LoteDTO> findAllForReanalisisLoteDTOs() {
         return DTOUtils.fromLoteEntities(loteRepository.findAllForReanalisisLote());
