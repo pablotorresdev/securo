@@ -146,14 +146,17 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
         final Lote loteVentaOrigen = loteAltaDevolucion.getLoteOrigen();
 
-        final Set<DetalleMovimiento> detallesAltaDevolucion = movDevolucionOrigen.getDetalles();
-        for (DetalleMovimiento detalleAltaDevolucion : detallesAltaDevolucion) {
-            final Set<Traza> trazasMovimento = detalleAltaDevolucion.getTrazas();
-            trazasMovimento.forEach(t -> t.setEstado(EstadoEnum.VENDIDO));
-            final Bulto bultoVentaOrigen = loteVentaOrigen.getBultoByNro(detalleAltaDevolucion.getBulto().getNroBulto());
-            trazasMovimento.forEach(t -> t.setBulto(bultoVentaOrigen));
-            trazasMovimento.forEach(t -> t.setLote(loteVentaOrigen));
-            trazaRepository.saveAll(trazasMovimento);
+        if (TRUE.equals(loteVentaOrigen.getTrazado())) {
+            final Set<DetalleMovimiento> detallesAltaDevolucion = movDevolucionOrigen.getDetalles();
+            for (DetalleMovimiento detalleAltaDevolucion : detallesAltaDevolucion) {
+                final Set<Traza> trazasMovimento = detalleAltaDevolucion.getTrazas();
+                trazasMovimento.forEach(t -> t.setEstado(EstadoEnum.VENDIDO));
+                final Bulto bultoVentaOrigen = loteVentaOrigen.getBultoByNro(detalleAltaDevolucion.getBulto()
+                    .getNroBulto());
+                trazasMovimento.forEach(t -> t.setBulto(bultoVentaOrigen));
+                trazasMovimento.forEach(t -> t.setLote(loteVentaOrigen));
+                trazaRepository.saveAll(trazasMovimento);
+            }
         }
 
         bultoRepository.saveAll(bultosDevolucion);

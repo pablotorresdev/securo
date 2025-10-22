@@ -31,54 +31,7 @@ public class AltaIngresoProduccionController extends AbstractCuController {
     @Autowired
     private AltaIngresoProduccionService ingresoProduccionService;
 
-    @GetMapping("/cancelar")
-    public String cancelar() {
-        return "redirect:/";
-    }
-
-    // CU20 Ingreso por produccion interna *****************************************************
-    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
-    @GetMapping("/ingreso-produccion")
-    public String showIngresoProduccion(@ModelAttribute("loteDTO") LoteDTO loteDTO, Model model) {
-        initModelIngresoProduccion(loteDTO, model);
-        return "produccion/alta/ingreso-produccion";
-    }
-
-    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
-    @PostMapping("/ingreso-produccion")
-    public String ingresoProduccion(
-        @Validated(AltaProduccion.class) @ModelAttribute("loteDTO") LoteDTO loteDTO,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes) {
-
-        if (!ingresoProduccionService.validarIngresoProduccionInput(loteDTO, bindingResult)) {
-            initModelIngresoProduccion(loteDTO, model);
-            return "produccion/alta/ingreso-produccion";
-        }
-
-        procesarIngresoProduccion(loteDTO, redirectAttributes);
-        return "redirect:/produccion/alta/ingreso-produccion-ok";
-    }
-
-    @GetMapping("/ingreso-produccion-ok")
-    public String exitoIngresoProduccion(
-        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
-        return "produccion/alta/ingreso-produccion-ok"; // Template Thymeleaf
-    }
-
-    private void initModelIngresoProduccion(final LoteDTO loteDTO, final Model model) {
-        model.addAttribute("productos", productoService.getProductosInternos());
-
-        if (loteDTO.getCantidadesBultos() == null) {
-            loteDTO.setCantidadesBultos(new ArrayList<>());
-        }
-        if (loteDTO.getUnidadMedidaBultos() == null) {
-            loteDTO.setUnidadMedidaBultos(new ArrayList<>());
-        }
-        model.addAttribute("loteDTO", template(loteDTO));
-    }
-
+    //TODO: template
     public static LoteDTO template(LoteDTO dto) {
 
         dto.setFechaYHoraCreacion(null);
@@ -133,6 +86,53 @@ public class AltaIngresoProduccionController extends AbstractCuController {
         return dto;
     }
 
+    @GetMapping("/cancelar")
+    public String cancelar() {
+        return "redirect:/";
+    }
+
+    // CU20 Ingreso por produccion interna *****************************************************
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
+    @GetMapping("/ingreso-produccion")
+    public String showIngresoProduccion(@ModelAttribute("loteDTO") LoteDTO loteDTO, Model model) {
+        initModelIngresoProduccion(loteDTO, model);
+        return "produccion/alta/ingreso-produccion";
+    }
+
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
+    @PostMapping("/ingreso-produccion")
+    public String ingresoProduccion(
+        @Validated(AltaProduccion.class) @ModelAttribute("loteDTO") LoteDTO loteDTO,
+        BindingResult bindingResult,
+        Model model,
+        RedirectAttributes redirectAttributes) {
+
+        if (!ingresoProduccionService.validarIngresoProduccionInput(loteDTO, bindingResult)) {
+            initModelIngresoProduccion(loteDTO, model);
+            return "produccion/alta/ingreso-produccion";
+        }
+
+        procesarIngresoProduccion(loteDTO, redirectAttributes);
+        return "redirect:/produccion/alta/ingreso-produccion-ok";
+    }
+
+    @GetMapping("/ingreso-produccion-ok")
+    public String exitoIngresoProduccion(
+        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
+        return "produccion/alta/ingreso-produccion-ok"; // Template Thymeleaf
+    }
+
+    private void initModelIngresoProduccion(final LoteDTO loteDTO, final Model model) {
+        model.addAttribute("productos", productoService.getProductosInternos());
+
+        if (loteDTO.getCantidadesBultos() == null) {
+            loteDTO.setCantidadesBultos(new ArrayList<>());
+        }
+        if (loteDTO.getUnidadMedidaBultos() == null) {
+            loteDTO.setUnidadMedidaBultos(new ArrayList<>());
+        }
+        model.addAttribute("loteDTO", loteDTO);
+    }
 
     private void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
 
