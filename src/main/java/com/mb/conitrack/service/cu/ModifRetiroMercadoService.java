@@ -51,93 +51,28 @@ public class ModifRetiroMercadoService extends AbstractCuService {
 
     @Transactional
     public List<LoteDTO> persistirRetiroMercado(final MovimientoDTO dto) {
+        List<Lote> result = new ArrayList<>();
 
         final Lote loteOrigenRecall = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        //************ALTA RECALL************
-        Lote loteAltaRecall = crearLoteRecall(loteOrigenRecall, dto);
-
-        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, loteOrigenRecall);
-
         final Movimiento movimientoVentaOrigen = movimientoRepository.findByCodigoMovimientoAndActivoTrue(
                 dto.getCodigoMovimientoOrigen())
             .orElseThrow(() -> new IllegalArgumentException("El movmiento de origen no existe."));
-        movimientoAltaRecall.setMovimientoOrigen(movimientoVentaOrigen);
 
-        final Lote loteRecallGuardado = loteRepository.save(loteAltaRecall);
-
-        BigDecimal cantidadMovimiento = BigDecimal.ZERO;
-        if (TRUE.equals(loteOrigenRecall.getTrazado())) {
-            final Map<Integer, List<TrazaDTO>> trazasDTOporBultoMap = dto.getTrazaDTOs().stream()
-                .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
-
-            for (Entry<Integer, List<TrazaDTO>> mapEntry : trazasDTOporBultoMap.entrySet()) {
-
-                final Integer nroBulto = mapEntry.getKey();
-                final List<TrazaDTO> trazasDTOsPorNroBulto = mapEntry.getValue();
-
-                final Bulto bultoOriginal = loteOrigenRecall.getBultoByNro(nroBulto);
-                final Bulto bultoRecall = loteAltaRecall.getBultoByNro(nroBulto);
-
-                final DetalleMovimiento det = DetalleMovimiento.builder()
-                    .movimiento(movimientoAltaRecall)
-                    .bulto(bultoRecall)
-                    .cantidad(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()))
-                    .unidadMedida(UnidadMedidaEnum.UNIDAD)
-                    .activo(TRUE)
-                    .build();
-
-                cantidadMovimiento = cantidadMovimiento.add(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()));
-
-                movimientoAltaRecall.getDetalles().add(det);
-
-                for (TrazaDTO t : trazasDTOsPorNroBulto) {
-                    final Traza trazaBulto = bultoOriginal.getTrazaByNro(t.getNroTraza());
-                    trazaBulto.setLote(loteAltaRecall);
-                    trazaBulto.setBulto(bultoRecall);
-                    trazaBulto.setEstado(RECALL);
-                    det.getTrazas().add(trazaBulto);
-                }
-                trazaRepository.saveAll(det.getTrazas());
-                bultoRepository.save(bultoRecall);
-            }
-            movimientoAltaRecall.setCantidad(cantidadMovimiento);
-            movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-            movimientoRepository.save(movimientoAltaRecall);
-
-            loteAltaRecall.setBultosTotales(trazasDTOporBultoMap.size());
-        } else {
-            for (Bulto bultoRecall : loteAltaRecall.getBultos()) {
-
-                final DetalleMovimiento det = DetalleMovimiento.builder()
-                    .movimiento(movimientoAltaRecall)
-                    .bulto(bultoRecall)
-                    // Cantidad = cantidad de trazas devueltas (campo NOT NULL) — no impacta stock
-                    .cantidad(bultoRecall.getCantidadActual())
-                    .unidadMedida(UnidadMedidaEnum.UNIDAD)
-                    .activo(TRUE)
-                    .build();
-
-                cantidadMovimiento = cantidadMovimiento.add(bultoRecall.getCantidadActual());
-
-                // Colgar el detalle AL movimiento (habilita cascade para insertar detalle + join table)
-                movimientoAltaRecall.getDetalles().add(det);
-
-                bultoRepository.save(bultoRecall);
-            }
-            movimientoAltaRecall.setCantidad(cantidadMovimiento);
-            movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-            movimientoRepository.save(movimientoAltaRecall);
-
-            loteAltaRecall.setBultosTotales(loteAltaRecall.getBultos().size());
-        }
-
-        List<Lote> lotes = new ArrayList<>();
-        loteRepository.findById(loteRepository.save(loteRecallGuardado).getId()).ifPresent(lotes::add);
-
+        //************ALTA RECALL************
+        procesarAltaRecall(dto, loteOrigenRecall, movimientoVentaOrigen, result);
 
         //************MODIFICACION RECALL************
+        procesarModificacionRecall(dto, loteOrigenRecall, movimientoVentaOrigen, result);
+        return fromLoteEntities(result);
+    }
+
+    private void procesarModificacionRecall(
+        final MovimientoDTO dto,
+        final Lote loteOrigenRecall,
+        final Movimiento movimientoVentaOrigen,
+        final List<Lote> result) {
         final Movimiento movimientoModifRecall = crearMovimientoModifRecall(dto);
         movimientoModifRecall.setDictamenInicial(loteOrigenRecall.getDictamen());
         movimientoModifRecall.setMovimientoOrigen(movimientoVentaOrigen);
@@ -185,8 +120,101 @@ public class ModifRetiroMercadoService extends AbstractCuService {
                 }
             }
         }
-        loteRepository.findById(loteRepository.save(loteOrigenRecall).getId()).ifPresent(lotes::add);
-        return fromLoteEntities(lotes);
+        loteRepository.findById(loteRepository.save(loteOrigenRecall).getId()).ifPresent(result::add);
+    }
+
+    private void procesarAltaRecall(
+        final MovimientoDTO dto,
+        final Lote loteOrigenRecall,
+        final Movimiento movimientoVentaOrigen,
+        final List<Lote> result) {
+        Lote loteAltaRecall = crearLoteRecall(loteOrigenRecall, dto);
+
+        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, loteOrigenRecall);
+        movimientoAltaRecall.setMovimientoOrigen(movimientoVentaOrigen);
+
+        final Lote loteRecallGuardado = loteRepository.save(loteAltaRecall);
+
+        if (TRUE.equals(loteOrigenRecall.getTrazado())) {
+            altaUnidadesTrazadas(dto, loteOrigenRecall, loteAltaRecall, movimientoAltaRecall);
+        } else {
+            altaUnidadesPorBulto(loteAltaRecall, movimientoAltaRecall);
+        }
+
+        loteRepository.findById(loteRepository.save(loteRecallGuardado).getId()).ifPresent(result::add);
+    }
+
+    private void altaUnidadesPorBulto(final Lote loteAltaRecall, final Movimiento movimientoAltaRecall) {
+        BigDecimal cantidadMovimiento = BigDecimal.ZERO;
+        for (Bulto bultoRecall : loteAltaRecall.getBultos()) {
+
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimientoAltaRecall)
+                .bulto(bultoRecall)
+                // Cantidad = cantidad de trazas devueltas (campo NOT NULL) — no impacta stock
+                .cantidad(bultoRecall.getCantidadActual())
+                .unidadMedida(UnidadMedidaEnum.UNIDAD)
+                .activo(TRUE)
+                .build();
+
+            cantidadMovimiento = cantidadMovimiento.add(bultoRecall.getCantidadActual());
+
+            // Colgar el detalle AL movimiento (habilita cascade para insertar detalle + join table)
+            movimientoAltaRecall.getDetalles().add(det);
+
+            bultoRepository.save(bultoRecall);
+        }
+        movimientoAltaRecall.setCantidad(cantidadMovimiento);
+        movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        movimientoRepository.save(movimientoAltaRecall);
+
+        loteAltaRecall.setBultosTotales(loteAltaRecall.getBultos().size());
+    }
+
+    private void altaUnidadesTrazadas(
+        final MovimientoDTO dto,
+        final Lote loteOrigenRecall,
+        final Lote loteAltaRecall,
+        final Movimiento movimientoAltaRecall) {
+        BigDecimal cantidadMovimiento = BigDecimal.ZERO;
+        final Map<Integer, List<TrazaDTO>> trazasDTOporBultoMap = dto.getTrazaDTOs().stream()
+            .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
+
+        for (Entry<Integer, List<TrazaDTO>> mapEntry : trazasDTOporBultoMap.entrySet()) {
+
+            final Integer nroBulto = mapEntry.getKey();
+            final List<TrazaDTO> trazasDTOsPorNroBulto = mapEntry.getValue();
+
+            final Bulto bultoOriginal = loteOrigenRecall.getBultoByNro(nroBulto);
+            final Bulto bultoRecall = loteAltaRecall.getBultoByNro(nroBulto);
+
+            final DetalleMovimiento det = DetalleMovimiento.builder()
+                .movimiento(movimientoAltaRecall)
+                .bulto(bultoRecall)
+                .cantidad(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()))
+                .unidadMedida(UnidadMedidaEnum.UNIDAD)
+                .activo(TRUE)
+                .build();
+
+            cantidadMovimiento = cantidadMovimiento.add(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()));
+
+            movimientoAltaRecall.getDetalles().add(det);
+
+            for (TrazaDTO t : trazasDTOsPorNroBulto) {
+                final Traza trazaBulto = bultoOriginal.getTrazaByNro(t.getNroTraza());
+                trazaBulto.setLote(loteAltaRecall);
+                trazaBulto.setBulto(bultoRecall);
+                trazaBulto.setEstado(RECALL);
+                det.getTrazas().add(trazaBulto);
+            }
+            trazaRepository.saveAll(det.getTrazas());
+            bultoRepository.save(bultoRecall);
+        }
+        movimientoAltaRecall.setCantidad(cantidadMovimiento);
+        movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        movimientoRepository.save(movimientoAltaRecall);
+
+        loteAltaRecall.setBultosTotales(trazasDTOporBultoMap.size());
     }
 
     @Transactional

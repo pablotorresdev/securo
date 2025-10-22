@@ -35,6 +35,15 @@ import static java.lang.Boolean.TRUE;
 @Service
 public class AltaDevolucionVentaService extends AbstractCuService {
 
+    private static Bulto initBulto(final Lote clone) {
+        Bulto bulto = new Bulto();
+        bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        bulto.setEstado(DEVUELTO);
+        bulto.setActivo(TRUE);
+        bulto.setLote(clone);
+        return bulto;
+    }
+
     @Transactional
     public List<LoteDTO> persistirDevolucionVenta(final MovimientoDTO dto) {
 
@@ -215,15 +224,6 @@ public class AltaDevolucionVentaService extends AbstractCuService {
 
         clone.setBultosTotales(clone.getBultos().size());
         return clone;
-    }
-
-    private static Bulto initBulto(final Lote clone) {
-        Bulto bulto = new Bulto();
-        bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-        bulto.setEstado(DEVUELTO);
-        bulto.setActivo(TRUE);
-        bulto.setLote(clone);
-        return bulto;
     }
 
     private Lote initLoteDevolucion(final Lote original, final MovimientoDTO dto) {
