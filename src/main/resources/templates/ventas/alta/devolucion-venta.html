@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="mb-4">Devolución de cliente con desvio QA [Gerente garantía de calidad] </h2>
+    <h2 class="mb-4">Devolución de cliente</h2>
 
     <!--
       Formulario principal:
@@ -19,7 +19,7 @@
       - th:object vincula los campos con movimientoDTO (binding servidor <-> vista)
     -->
     <form method="post" th:action="@{/ventas/alta/devolucion-venta}" th:object="${movimientoDTO}">
-        <!-- Token CSRF (campo oculto) -->
+        <!-- Campo oculto con el token CSRF que exige el backend -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
         <!--
@@ -117,7 +117,7 @@
                    th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
                    th:field="*{fechaMovimiento}"
                    type="date">
-
+            <!-- Mensaje de error server-side para fecha -->
             <div style="color: red; font-weight: bold;"
                  th:errors="*{fechaMovimiento}"
                  th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
@@ -154,6 +154,7 @@
 ========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', async function () {
+        // Base de URLs resueltas por Thymeleaf (p. ej. "/" o con contexto)
         /* ---------- Base y CSRF ---------- */
         const base = /*[[@{/}]]*/ '';
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
@@ -177,6 +178,7 @@
         const cantContainer = document.getElementById('cantidadesContainer');
         const cantError     = document.getElementById('cantidadesError');
 
+
         /* ---------- Estado ---------- */
         let MODO_TRAZAS = false; // true: flujo trazado; false: cantidades por bulto (no trazado)
 
@@ -199,6 +201,9 @@
             }
         }
 
+        /* -------------------- Helpers de UI -------------------- */
+
+        // Limpia toda la sección de trazas y esconde contenedores
         function clearTrazasUI() {
             trazasContainer.innerHTML = '';
             trazasHidden.innerHTML = '';

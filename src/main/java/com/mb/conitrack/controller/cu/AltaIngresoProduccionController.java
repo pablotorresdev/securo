@@ -1,7 +1,10 @@
 package com.mb.conitrack.controller.cu;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.validation.AltaProduccion;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.cu.AltaIngresoProduccionService;
 
 @Controller
@@ -72,8 +76,63 @@ public class AltaIngresoProduccionController extends AbstractCuController {
         if (loteDTO.getUnidadMedidaBultos() == null) {
             loteDTO.setUnidadMedidaBultos(new ArrayList<>());
         }
-        model.addAttribute("loteDTO", loteDTO);
+        model.addAttribute("loteDTO", template(loteDTO));
     }
+
+    public static LoteDTO template(LoteDTO dto) {
+
+        dto.setFechaYHoraCreacion(null);
+        dto.setCodigoLote(null);
+
+        dto.setFechaIngreso(LocalDate.of(2025, 10, 22));
+        dto.setProductoId(5L);
+        dto.setCantidadInicial(new BigDecimal("10"));
+        dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        dto.setBultosTotales(3);
+
+        dto.setProveedorId(null);
+        dto.setLoteProveedor("LP123");
+        dto.setNroRemito(null);
+        dto.setFabricanteId(null);
+        dto.setPaisOrigen(null);
+        dto.setFechaReanalisisProveedor(null);
+        dto.setFechaVencimientoProveedor(null);
+        dto.setDetalleConservacion("");
+
+        dto.setFechaEgreso(null);
+        dto.setOrdenProduccion("OP 123");
+        dto.setObservaciones("");
+        dto.setLoteOrigenId(null);
+
+        dto.setNroBultoList(new ArrayList<>()); // []
+        dto.setCantidadesBultos(new ArrayList<>(List.of(
+            new BigDecimal("5"), new BigDecimal("3"), new BigDecimal("2")
+        )));
+        dto.setUnidadMedidaBultos(new ArrayList<>(List.of(
+            UnidadMedidaEnum.UNIDAD, UnidadMedidaEnum.UNIDAD, UnidadMedidaEnum.UNIDAD
+        )));
+
+        dto.setCantidadActual(null);
+        dto.setTrazado(null);
+        dto.setTrazaInicial(null);
+
+        dto.setBultosDTOs(new ArrayList<>());
+        dto.setMovimientoDTOs(new ArrayList<>());
+        dto.setAnalisisDTOs(new ArrayList<>());
+        dto.setTrazaDTOs(new ArrayList<>());
+
+        dto.setNombreProducto(null);
+        dto.setCodigoProducto(null);
+        dto.setTipoProducto(null);
+        dto.setProductoDestino(null);
+        dto.setNombreProveedor(null);
+        dto.setNombreFabricante(null);
+        dto.setDictamen(null);
+        dto.setEstado(null);
+
+        return dto;
+    }
+
 
     private void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
 

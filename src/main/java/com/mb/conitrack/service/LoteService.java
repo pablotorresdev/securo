@@ -85,8 +85,12 @@ public class LoteService {
     //***********CU23 ALTA: DEVOLUCION VENTA***********
     //***********CU24 MODIFICACION: RETIRO MERCADO***********
     @Transactional(readOnly = true)
-    public List<LoteDTO> findAllForDevolucionOrRecallDTOs() {
-        return fromLoteEntities(loteRepository.findAllForDevolucionOrRecall());
+    public List<LoteDTO> findAllForDevolucionDTOs() {
+        return fromLoteEntities(loteRepository.findAllForDevolucion());
+    }
+    @Transactional(readOnly = true)
+    public List<LoteDTO> findAllForRecallDTOs() {
+        return fromLoteEntities(loteRepository.findAllForRecall());
     }
 
     //***********CU25 BAJA: AJUSTE STOCK***********

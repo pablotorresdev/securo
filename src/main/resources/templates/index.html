@@ -49,12 +49,6 @@
         <!-- CU3 Retiro por Muestreo -->
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
-               th:href="@{/calidad/baja/muestreo-trazable}">
-                CU3 - Retiro por Muestreo Trazable [Analista control de calidad]
-            </a>
-        </li>
-        <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/baja/muestreo-multi-bulto}">
                 CU3 - Retiro por Muestreo Multi Bulto [Analista control de calidad]
             </a>
@@ -69,6 +63,12 @@
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/calidad/reanalisis/inicio-reanalisis}">
                 CU8. Reanalisis de Producto Aprobado [Gerente control de calidad]
+            </a>
+        </li>
+        <li>
+            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+               th:href="@{/calidad/baja/muestreo-trazable}">
+                CU3 - Retiro por Muestreo Trazable [Analista control de calidad]
             </a>
         </li>
         <li>
@@ -141,7 +141,7 @@
         <li>
             <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
                th:href="@{/contingencias/reverso-movimiento}">
-                CU26. Reverso de Ultimo Movimiento [???]
+                CU26. Reverso de Ultimo Movimiento [ADMIN / ROLE ORIGINAL O SUPERIOR]
             </a>
         </li>
         <hr class="my-4">

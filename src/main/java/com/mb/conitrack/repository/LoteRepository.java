@@ -290,7 +290,28 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
             )
           order by l.fechaIngreso asc, l.codigoLote asc
         """)
-    List<Lote> findAllForDevolucionOrRecall();
+    List<Lote> findAllForDevolucion();
+
+    @Query("""
+          select l
+          from Lote l
+          where l.activo = true
+               and (
+                 l.id in (
+                   select t.lote.id
+                   from Traza t
+                   where t.estado = com.mb.conitrack.enums.EstadoEnum.VENDIDO
+                 )
+                 or
+                 l.id in (
+                   select m.lote.id
+                   from Movimiento m
+                   where m.motivo = com.mb.conitrack.enums.MotivoEnum.VENTA
+                 )
+            )
+          order by l.fechaIngreso asc, l.codigoLote asc
+        """)
+    List<Lote> findAllForRecall();
 
 
     @Query("""

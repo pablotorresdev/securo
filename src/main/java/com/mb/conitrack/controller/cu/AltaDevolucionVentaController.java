@@ -64,7 +64,7 @@ public class AltaDevolucionVentaController extends AbstractCuController {
     }
 
     private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
-        model.addAttribute("lotesDevolucion", loteService.findAllForDevolucionOrRecallDTOs());
+        model.addAttribute("lotesDevolucion", loteService.findAllForDevolucionDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 

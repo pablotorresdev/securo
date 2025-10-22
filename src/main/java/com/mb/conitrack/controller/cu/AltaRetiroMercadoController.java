@@ -1,6 +1,7 @@
 package com.mb.conitrack.controller.cu;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,7 +21,7 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/ventas/recall")
-public class ModifRetiroMercadoController extends AbstractCuController {
+public class AltaRetiroMercadoController extends AbstractCuController {
 
     @Autowired
     private ModifRetiroMercadoService retiroMercadoService;
@@ -61,7 +62,7 @@ public class ModifRetiroMercadoController extends AbstractCuController {
     }
 
     private void initModelRetiroMercado(final MovimientoDTO movimientoDTO, final Model model) {
-        model.addAttribute("lotesRecall", loteService.findAllForDevolucionOrRecallDTOs());
+        model.addAttribute("lotesRecall", loteService.findAllForRecallDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
@@ -70,9 +71,10 @@ public class ModifRetiroMercadoController extends AbstractCuController {
         final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
-        final LoteDTO resultDTO = retiroMercadoService.persistirRetiroMercado(movimientoDTO);
+        final List<LoteDTO> resultDTO = retiroMercadoService.persistirRetiroMercado(movimientoDTO);
 
-        redirectAttributes.addFlashAttribute("loteDTO", resultDTO);
+        redirectAttributes.addFlashAttribute("loteRecallDTO", resultDTO.get(0));
+        redirectAttributes.addFlashAttribute("loteVentaDTO", resultDTO.get(1));
         redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);
         redirectAttributes.addFlashAttribute(
             resultDTO != null ? "success" : "error",

@@ -132,30 +132,34 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarAltaDevolucionVenta(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movReverso = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarAltaDevolucionVenta(final MovimientoDTO dto, final Movimiento movDevolucionOrigen) {
+        Movimiento movReverso = createMovimientoReverso(dto, movDevolucionOrigen);
 
-        movOrigen.setActivo(false);
+        movDevolucionOrigen.setActivo(false);
         movReverso.setActivo(false);
-        final Lote loteOrigen = movOrigen.getLote();
-        loteOrigen.setActivo(false);
 
-        final Set<DetalleMovimiento> detalles = movOrigen.getDetalles();
+        final Lote loteAltaDevolucion = movDevolucionOrigen.getLote();
+        loteAltaDevolucion.setActivo(false);
+        final List<Bulto> bultosDevolucion = loteAltaDevolucion.getBultos();
+        bultosDevolucion.forEach(b -> b.setActivo(false));
+        bultosDevolucion.forEach(b -> b.getDetalles().forEach(d -> d.setActivo(false)));
 
-        for (DetalleMovimiento detalleMovimiento : detalles) {
-            final Set<Traza> trazas = detalleMovimiento.getTrazas();
-            trazas.forEach(t -> t.setEstado(EstadoEnum.VENDIDO));
-            trazaRepository.saveAll(trazas);
+        final Lote loteVentaOrigen = loteAltaDevolucion.getLoteOrigen();
+
+        final Set<DetalleMovimiento> detallesAltaDevolucion = movDevolucionOrigen.getDetalles();
+        for (DetalleMovimiento detalleAltaDevolucion : detallesAltaDevolucion) {
+            final Set<Traza> trazasMovimento = detalleAltaDevolucion.getTrazas();
+            trazasMovimento.forEach(t -> t.setEstado(EstadoEnum.VENDIDO));
+            final Bulto bultoVentaOrigen = loteVentaOrigen.getBultoByNro(detalleAltaDevolucion.getBulto().getNroBulto());
+            trazasMovimento.forEach(t -> t.setBulto(bultoVentaOrigen));
+            trazasMovimento.forEach(t -> t.setLote(loteVentaOrigen));
+            trazaRepository.saveAll(trazasMovimento);
         }
 
-        final List<Bulto> bultos = loteOrigen.getBultos();
-        bultos.forEach(b -> b.setActivo(false));
-        bultos.forEach(b -> b.getDetalles().forEach(d -> d.setActivo(false)));
-        bultoRepository.saveAll(bultos);
-
+        bultoRepository.saveAll(bultosDevolucion);
         movimientoRepository.save(movReverso);
-        movimientoRepository.save(movOrigen);
-        return DTOUtils.fromLoteEntity(loteRepository.save(loteOrigen));
+        movimientoRepository.save(movDevolucionOrigen);
+        return DTOUtils.fromLoteEntity(loteRepository.save(loteAltaDevolucion));
     }
 
     @Transactional
@@ -198,8 +202,53 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
     @Transactional
     LoteDTO reversarAltaRetiroMercado(final MovimientoDTO dto, final Movimiento movOrigen) {
-        //-TODO: implementar
-        return DTOUtils.fromLoteEntity(movOrigen.getLote());
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+        final Lote loteOrigen = movOrigen.getLote();
+        final List<Lote> lotesByLoteOrigen = loteRepository.findLotesByLoteOrigen(loteOrigen.getCodigoLote());
+        if (!lotesByLoteOrigen.isEmpty()) {
+            throw new IllegalStateException(
+                "El lote origen tiene una devolucion asociada, no se puede reversar el movimiento.");
+        }
+
+        movimiento.setCantidad(movOrigen.getCantidad());
+        movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
+
+        final Set<DetalleMovimiento> detalles = movOrigen.getDetalles();
+
+        for (DetalleMovimiento detalleMovimiento : detalles) {
+            final Bulto bulto = detalleMovimiento.getBulto();
+            dto.setCantidad(detalleMovimiento.getCantidad());
+            dto.setUnidadMedida(detalleMovimiento.getUnidadMedida());
+            bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
+            if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
+                bulto.setEstado(NUEVO);
+            } else {
+                bulto.setEstado(EN_USO);
+            }
+            if (TRUE.equals(loteOrigen.getTrazado())) {
+                detalleMovimiento.getTrazas().forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
+                trazaRepository.saveAll(detalleMovimiento.getTrazas());
+            }
+            bultoRepository.save(bulto);
+        }
+
+        dto.setCantidad(movOrigen.getCantidad());
+        dto.setUnidadMedida(movOrigen.getUnidadMedida());
+        loteOrigen.setCantidadActual(sumarMovimientoConvertido(dto, loteOrigen));
+
+        if (loteOrigen.getCantidadInicial().compareTo(loteOrigen.getCantidadActual()) == 0) {
+            loteOrigen.setEstado(NUEVO);
+        } else {
+            loteOrigen.setEstado(EN_USO);
+        }
+
+        detalles.forEach(d -> d.setActivo(false));
+        movOrigen.setActivo(false);
+        movimiento.setActivo(false);
+
+        movimientoRepository.save(movimiento);
+        movimientoRepository.save(movOrigen);
+        return DTOUtils.fromLoteEntity(loteRepository.save(loteOrigen));
     }
 
     @Transactional

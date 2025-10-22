@@ -116,7 +116,7 @@ public class BajaAjusteStockService extends AbstractCuService {
             return false;
         }
 
-        if (!lote.get().getTrazas().isEmpty()) {
+        if (lote.get().getTrazado()) {
             if (dto.getTrazaDTOs() == null || dto.getTrazaDTOs().isEmpty()) {
                 bindingResult.rejectValue("trazaDTOs", "", "Debe seleccionar al menos una unidad a muestrear.");
                 return false;

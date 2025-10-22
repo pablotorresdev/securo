@@ -55,52 +55,49 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         if (TRUE.equals(loteOrigen.getTrazado())) {
 
             // 2) Agrupar trazas seleccionadas por nro de bulto
-            final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
+            final Map<Integer, List<TrazaDTO>> trazasDTOporBultoMap = dto.getTrazaDTOs().stream()
                 .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
 
-            for (Map.Entry<Integer, List<TrazaDTO>> trazaDTOporBulto : trazaDTOporBultoMap.entrySet()) {
+            for (Map.Entry<Integer, List<TrazaDTO>> mapEntry : trazasDTOporBultoMap.entrySet()) {
 
-                final Integer trazaDTOEnNroBulto = trazaDTOporBulto.getKey();
+                final Integer nroBulto = mapEntry.getKey();
+                final List<TrazaDTO> trazasDTOsPorNroBulto = mapEntry.getValue();
 
-                final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
+                final Bulto bultoOriginal = loteOrigen.getBultoByNro(nroBulto);
+                Bulto bultoDevolucion = loteAltaDevolucion.getBultoByNro(nroBulto);
 
-                final Bulto bultoOriginal = loteOrigen.getBultoByNro(trazaDTOEnNroBulto);
-
-                Bulto bulto = loteAltaDevolucion.getBultoByNro(trazaDTOEnNroBulto);
                 final DetalleMovimiento det = DetalleMovimiento.builder()
                     .movimiento(movDevolucionVenta)
-                    .bulto(bulto)
+                    .bulto(bultoDevolucion)
                     // Cantidad = cantidad de trazas devueltas (campo NOT NULL) — no impacta stock
-                    .cantidad(BigDecimal.valueOf(trazasDTOsPorBulto.size()))
+                    .cantidad(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()))
                     .unidadMedida(UnidadMedidaEnum.UNIDAD)
                     .activo(TRUE)
                     .build();
 
-                cantidadMovimiento = cantidadMovimiento.add(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
+                cantidadMovimiento = cantidadMovimiento.add(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()));
 
                 // Colgar el detalle AL movimiento (habilita cascade para insertar detalle + join table)
                 movDevolucionVenta.getDetalles().add(det);
 
                 // Marcar trazas como DEVUELTO y vincularlas al detalle (trazas_detalles)
-                for (TrazaDTO t : trazasDTOsPorBulto) {
+                for (TrazaDTO t : trazasDTOsPorNroBulto) {
                     final Traza trazaBulto = bultoOriginal.getTrazaByNro(t.getNroTraza());
                     trazaBulto.setLote(loteAltaDevolucion);
-                    trazaBulto.setBulto(bulto);
+                    trazaBulto.setBulto(bultoDevolucion);
                     trazaBulto.setEstado(DEVUELTO);
                     det.getTrazas().add(trazaBulto);
                 }
 
                 trazaRepository.saveAll(det.getTrazas());
-                bultoRepository.save(bulto);
+                bultoRepository.save(bultoDevolucion);
             }
             movDevolucionVenta.setCantidad(cantidadMovimiento);
             movDevolucionVenta.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
             movimientoRepository.save(movDevolucionVenta);
 
-            loteAltaDevolucion.setBultosTotales(trazaDTOporBultoMap.size());
+            loteAltaDevolucion.setBultosTotales(trazasDTOporBultoMap.size());
         } else {
-
-            // 2) Agrupar trazas seleccionadas por nro de bulto
             for (Bulto bultoDevolucion : loteAltaDevolucion.getBultos()) {
 
                 final DetalleMovimiento det = DetalleMovimiento.builder()
