@@ -58,6 +58,15 @@ public class MovimientoService {
     @Transactional(readOnly = true)
     public List<Integer> calcularMaximoDevolucionPorBulto(final String codigoMovimiento) {
 
+        return calcularMaximoRetornoPorBulto(codigoMovimiento);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Integer> calcularMaximoRecallPorBulto(final String codigoMovimiento) {
+        return calcularMaximoRetornoPorBulto(codigoMovimiento);
+    }
+
+    private ArrayList<Integer> calcularMaximoRetornoPorBulto(final String codigoMovimiento) {
         final Optional<Movimiento> movVentaMaybe = movimientoRepository.findMovimientosVentaByCodigoMovimiento(
             codigoMovimiento);
 
@@ -66,7 +75,7 @@ public class MovimientoService {
         }
         final Movimiento movVenta = movVentaMaybe.get();
 
-        final List<Movimiento> movimientosDevolucion = movimientoRepository.findMovimientosDevolucionByMovimientoOriginal(
+        final List<Movimiento> movimientosDevolucion = movimientoRepository.findByMovimientoOrigen(
             movVenta.getCodigoMovimiento());
 
         Map<Integer, BigDecimal> devolucionesPorBulto = new HashMap<>();
@@ -100,7 +109,7 @@ public class MovimientoService {
         for (int i = 1; i <= maxKey; i++) {
             if (devolucionesPorBulto.containsKey(i)) {
                 final int unidadesSaldoBulto = devolucionesPorBulto.get(i).intValue();
-                if(unidadesSaldoBulto < 0){
+                if (unidadesSaldoBulto < 0) {
                     throw new IllegalStateException("La cantidad de devuelta no puede ser negativa.");
                 }
                 integers.add(unidadesSaldoBulto);

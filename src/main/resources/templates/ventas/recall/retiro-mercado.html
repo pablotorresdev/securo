@@ -16,13 +16,16 @@
     <!--
       Formulario principal:
       - Envía un POST a /ventas/recall/retiro-mercado
-      - th:object vincula los campos a movimientoDTO (modelo del backend)
+      - th:object vincula los campos con movimientoDTO (binding servidor <-> vista)
     -->
     <form method="post" th:action="@{/ventas/recall/retiro-mercado}" th:object="${movimientoDTO}">
         <!-- Campo oculto con el token CSRF que exige el backend -->
         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
-        <!-- Contenedor donde se crearán inputs ocultos para movimientoDTO.trazaDTOs[i] en el submit -->
+        <!--
+          Contenedor donde se crearán inputs ocultos para movimientoDTO.trazaDTOs[i]
+          durante el submit (desde JS), a partir de los checkboxes tildados.
+        -->
         <div id="trazasHidden"></div>
 
         <hr class="my-4">
@@ -39,14 +42,13 @@
             <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
                 <option value="">-- Seleccione un Lote --</option>
                 <option th:each="loteDTO : ${lotesRecall}"
-
                         th:value="${loteDTO.codigoLote}"
                         th:data-trazado="${loteDTO.trazado}"
                         th:text="'Producto: ' + ${loteDTO.nombreProducto}
-                         + ' | Codigo interno: ' + ${loteDTO.codigoLote}
-                         + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
-                         + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
-                         + '/' + ${loteDTO.trazaFinal}">
+                     + ' | Codigo interno: ' + ${loteDTO.codigoLote}
+                     + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
+                     + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
+                     + '/' + ${loteDTO.trazaFinal}">
                 </option>
             </select>
         </div>
@@ -105,10 +107,10 @@
         </div>
 
         <!--
-           Fecha de la devolución (obligatoria):
-           - type="date" bindeado a *{fechaMovimiento}
-           - JS inicializa a “hoy” (TZ Buenos Aires) si no viene desde el DTO
-         -->
+          Fecha del Recall (obligatoria):
+          - type="date" bindeado a *{fechaMovimiento}
+          - JS inicializa a “hoy” (TZ Buenos Aires) si no viene desde el DTO
+        -->
         <div class="mb-2">
             <label class="form-label" for="fechaMovimiento">Fecha del Recall:</label>
             <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
@@ -246,7 +248,7 @@
 
         /* ---------- NO TRAZADO: pedir máximos al back (unidad = UNIDAD) ----------
            Endpoint esperado:
-             GET /movimientos/devolucion/maximos/{codigoLote}/{codigoMovimiento}
+             GET /movimientos/recall/maximos/{codigoLote}/{codigoMovimiento}
              → Array<Integer> donde índice i => nroBulto = i+1; 0 = sin saldo/ausente
         -------------------------------------------------------------------------- */
         async function loadMaximosNoTrazado(codigoMov) {
@@ -254,7 +256,7 @@
             if (!codigoMov) return;
 
             try {
-                const url = base + 'movimientos/devolucion/maximos/' + encodeURIComponent(codigoMov);
+                const url = base + 'movimientos/recall/maximos/' + encodeURIComponent(codigoMov);
                 const resp = await fetch(url, { headers: authHeaders });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const arr = await resp.json(); // Array<Integer>

@@ -41,13 +41,20 @@ public class MovimientosController {
         return "movimientos/list-movimientos";
     }
 
-
     /** Devuelve array: índice i => nroBulto = i+1, valor = máximo en UNIDAD (0 si no hay). */
     @GetMapping("/devolucion/maximos/{codigoMovimiento}")
-    public ResponseEntity<List<Integer>> maximosPorBultoNoTrazado(
+    public ResponseEntity<List<Integer>> maximosDevolucionPorBultoNoTrazado(
         @PathVariable String codigoMovimiento) {
 
         List<Integer> maximos = movimientoService.calcularMaximoDevolucionPorBulto(codigoMovimiento);
+        return ResponseEntity.ok(maximos);
+    }
+
+    /** Devuelve array: índice i => nroBulto = i+1, valor = máximo en UNIDAD (0 si no hay). */
+    @GetMapping("/recall/maximos/{codigoMovimiento}")
+    public ResponseEntity<List<Integer>> maximosRecallPorBultoNoTrazado(
+        @PathVariable String codigoMovimiento) {
+        List<Integer> maximos = movimientoService.calcularMaximoRecallPorBulto(codigoMovimiento);
         return ResponseEntity.ok(maximos);
     }
 

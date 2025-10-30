@@ -12,7 +12,6 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
-import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import static com.mb.conitrack.enums.MotivoEnum.AJUSTE;
 import static com.mb.conitrack.enums.MotivoEnum.DEVOLUCION_COMPRA;
@@ -127,16 +126,16 @@ public class MovimientoEntityUtils {
     }
 
     //***********CU23 ALTA: PRODUCCION INTERNA***********
-    public static Movimiento createMovimientoAltaIngresoDevolucion(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = createMovimientoAlta(dto, lote);
+    public static Movimiento createMovimientoAltaDevolucion(final MovimientoDTO dto, final Lote loteAltaDevolucion) {
+        Movimiento movimiento = createMovimientoAlta(dto, loteAltaDevolucion);
         movimiento.setObservaciones("_CU23_\n" + dto.getObservaciones());
         movimiento.setMotivo(MotivoEnum.DEVOLUCION_VENTA);
         return movimiento;
     }
 
     //***********CU24 ALTA: RECALL ***********
-    public static Movimiento createMovimientoAltaRecall(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = createMovimientoAlta(dto, lote);
+    public static Movimiento createMovimientoAltaRecall(final MovimientoDTO dto, final Lote loteAltaRecall) {
+        Movimiento movimiento = createMovimientoAlta(dto, loteAltaRecall);
         movimiento.setObservaciones("_CU24_\n" + dto.getObservaciones());
         movimiento.setMotivo(RETIRO_MERCADO);
         return movimiento;

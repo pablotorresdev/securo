@@ -102,7 +102,7 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
         and m.activo = true
         order by m.fecha asc, m.fechaYHoraCreacion asc
         """)
-    List<Movimiento> findMovimientosDevolucionByMovimientoOriginal(@Param("codigoMovimiento") String codigoMovimiento);
+    List<Movimiento> findByMovimientoOrigen(@Param("codigoMovimiento") String codigoMovimiento);
 
 }
 

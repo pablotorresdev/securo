@@ -53,7 +53,7 @@ public class ModifRetiroMercadoService extends AbstractCuService {
     public List<LoteDTO> persistirRetiroMercado(final MovimientoDTO dto) {
         List<Lote> result = new ArrayList<>();
 
-        final Lote loteOrigenRecall = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
+        final Lote loteVentaOrigen = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
         final Movimiento movimientoVentaOrigen = movimientoRepository.findByCodigoMovimientoAndActivoTrue(
@@ -61,10 +61,10 @@ public class ModifRetiroMercadoService extends AbstractCuService {
             .orElseThrow(() -> new IllegalArgumentException("El movmiento de origen no existe."));
 
         //************ALTA RECALL************
-        procesarAltaRecall(dto, loteOrigenRecall, movimientoVentaOrigen, result);
+        procesarAltaRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result);
 
         //************MODIFICACION RECALL************
-        procesarModificacionRecall(dto, loteOrigenRecall, movimientoVentaOrigen, result);
+        procesarModificacionRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result);
         return fromLoteEntities(result);
     }
 
@@ -128,23 +128,24 @@ public class ModifRetiroMercadoService extends AbstractCuService {
         final Lote loteOrigenRecall,
         final Movimiento movimientoVentaOrigen,
         final List<Lote> result) {
+
         Lote loteAltaRecall = crearLoteRecall(loteOrigenRecall, dto);
 
-        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, loteOrigenRecall);
+        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, loteAltaRecall);
         movimientoAltaRecall.setMovimientoOrigen(movimientoVentaOrigen);
 
         final Lote loteRecallGuardado = loteRepository.save(loteAltaRecall);
 
         if (TRUE.equals(loteOrigenRecall.getTrazado())) {
-            altaUnidadesTrazadas(dto, loteOrigenRecall, loteAltaRecall, movimientoAltaRecall);
+            altaRecallUnidadesTrazadas(dto, loteOrigenRecall, loteAltaRecall, movimientoAltaRecall);
         } else {
-            altaUnidadesPorBulto(loteAltaRecall, movimientoAltaRecall);
+            altaRecallUnidadesPorBulto(loteAltaRecall, movimientoAltaRecall);
         }
 
         loteRepository.findById(loteRepository.save(loteRecallGuardado).getId()).ifPresent(result::add);
     }
 
-    private void altaUnidadesPorBulto(final Lote loteAltaRecall, final Movimiento movimientoAltaRecall) {
+    private void altaRecallUnidadesPorBulto(final Lote loteAltaRecall, final Movimiento movimientoAltaRecall) {
         BigDecimal cantidadMovimiento = BigDecimal.ZERO;
         for (Bulto bultoRecall : loteAltaRecall.getBultos()) {
 
@@ -171,7 +172,7 @@ public class ModifRetiroMercadoService extends AbstractCuService {
         loteAltaRecall.setBultosTotales(loteAltaRecall.getBultos().size());
     }
 
-    private void altaUnidadesTrazadas(
+    private void altaRecallUnidadesTrazadas(
         final MovimientoDTO dto,
         final Lote loteOrigenRecall,
         final Lote loteAltaRecall,

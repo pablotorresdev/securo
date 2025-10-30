@@ -261,6 +261,7 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
             from Lote l
             where l.activo = true
               and l.dictamen = com.mb.conitrack.enums.DictamenEnum.LIBERADO
+              and l.estado <> com.mb.conitrack.enums.EstadoEnum.RECALL
               and l.producto.tipoProducto = com.mb.conitrack.enums.TipoProductoEnum.UNIDAD_VENTA
               and exists (
                   select 1 from Bulto b
