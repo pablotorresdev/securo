@@ -60,7 +60,7 @@ public class ContingenciasController extends AbstractCuController {
             bindingResult.rejectValue(
                 "codigoLote",
                 "",
-                "El lote origen tiene una devolucion asociada, no se puede reversar el movimiento.");
+                e.getMessage());
             initModelReversoMovimiento(movimientoDTO, model);
             return "contingencias/reverso-movimiento";
         }

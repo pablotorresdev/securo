@@ -69,55 +69,59 @@ public class ModifRetiroMercadoService extends AbstractCuService {
     }
 
     private void procesarModificacionRecall(
-        final MovimientoDTO dto,
-        final Lote loteOrigenRecall,
-        final Movimiento movimientoVentaOrigen,
-        final List<Lote> result) {
+            final MovimientoDTO dto,
+            final Lote loteOrigenRecall,
+            final Movimiento movimientoVentaOrigen,
+            final List<Lote> result) {
+
+        if (loteOrigenRecall.getEstado() == RECALL) {
+            loteRepository.findById(loteOrigenRecall.getId()).ifPresent(result::add);
+            return;
+        }
+
         final Movimiento movimientoModifRecall = crearMovimientoModifRecall(dto);
         movimientoModifRecall.setDictamenInicial(loteOrigenRecall.getDictamen());
         movimientoModifRecall.setMovimientoOrigen(movimientoVentaOrigen);
         movimientoModifRecall.setLote(loteOrigenRecall);
 
-        if (loteOrigenRecall.getEstado() != RECALL) {
-            if (TRUE.equals(loteOrigenRecall.getTrazado())) {
-                for (Bulto bulto : loteOrigenRecall.getBultos()) {
-                    final Set<Traza> trazas = bulto.getTrazas();
-                    final List<Traza> trazasRecall = new ArrayList<>();
-                    boolean recall = false;
-                    for (Traza tr : trazas) {
-                        if (tr.getEstado() != DISPONIBLE) {
-                            continue;
-                        }
+        if (TRUE.equals(loteOrigenRecall.getTrazado())) {
+            for (Bulto bulto : loteOrigenRecall.getBultos()) {
+                final Set<Traza> trazas = bulto.getTrazas();
+                final List<Traza> trazasRecall = new ArrayList<>();
+                boolean recall = false;
+                for (Traza tr : trazas) {
+                    if (tr.getEstado() != DISPONIBLE) {
+                        continue;
+                    }
 
-                        tr.setEstado(RECALL);
-                        trazasRecall.add(tr);
-                        recall = true;
-                    }
-                    if (recall) {
-                        bulto.setEstado(RECALL);
-                    }
-                    trazaRepository.saveAll(trazasRecall);
+                    tr.setEstado(RECALL);
+                    trazasRecall.add(tr);
+                    recall = true;
                 }
-            } else {
-                for (Bulto bultoRecall : loteOrigenRecall.getBultos()) {
-                    if (bultoRecall.getCantidadActual().compareTo(BigDecimal.ZERO) > 0) {
-                        bultoRecall.setEstado(RECALL);
-                    }
+                if (recall) {
+                    bulto.setEstado(RECALL);
+                }
+                trazaRepository.saveAll(trazasRecall);
+            }
+        } else {
+            for (Bulto bultoRecall : loteOrigenRecall.getBultos()) {
+                if (bultoRecall.getCantidadActual().compareTo(BigDecimal.ZERO) > 0) {
+                    bultoRecall.setEstado(RECALL);
                 }
             }
+        }
 
-            final Movimiento savedMovModifRecall = movimientoRepository.save(movimientoModifRecall);
+        final Movimiento savedMovModifRecall = movimientoRepository.save(movimientoModifRecall);
 
-            bultoRepository.saveAll(loteOrigenRecall.getBultos());
+        bultoRepository.saveAll(loteOrigenRecall.getBultos());
 
-            loteOrigenRecall.setEstado(RECALL);
-            loteOrigenRecall.getMovimientos().add(savedMovModifRecall);
+        loteOrigenRecall.setEstado(RECALL);
+        loteOrigenRecall.getMovimientos().add(savedMovModifRecall);
 
-            for (Analisis analisis : loteOrigenRecall.getAnalisisList()) {
-                if (analisis.getDictamen() == null) {
-                    analisis.setDictamen(DictamenEnum.ANULADO);
-                    analisisRepository.save(analisis);
-                }
+        for (Analisis analisis : loteOrigenRecall.getAnalisisList()) {
+            if (analisis.getDictamen() == null) {
+                analisis.setDictamen(DictamenEnum.ANULADO);
+                analisisRepository.save(analisis);
             }
         }
         loteRepository.findById(loteRepository.save(loteOrigenRecall).getId()).ifPresent(result::add);
