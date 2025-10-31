@@ -46,7 +46,6 @@ public class Producto {
     @Column(name = "unidad_medida", nullable = false)
     private UnidadMedidaEnum unidadMedida;
 
-    //TODO: Obligatorio para: API, Semielaborado, Acond. secundario
     @Column(name = "producto_destino", length = 50)
     private String productoDestino;
 

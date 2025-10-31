@@ -28,7 +28,6 @@ public class BultosController {
         return "bultos/list-bultos";
     }
 
-    //TODO: ver de refactorear a bodyresponse para unificar
     @GetMapping("/codigoLote/{codigoLote}")
     @Transactional(readOnly = true)
     public String listBultosPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {

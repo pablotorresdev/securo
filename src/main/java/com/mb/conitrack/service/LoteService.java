@@ -19,7 +19,6 @@ import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 @Service
 public class LoteService {
 
-    //TODO: refactorear la logica de activo vs todos para operatoria vs auditoria
     private final LoteRepository loteRepository;
 
     //***********CU2 MODIFICACION: CUARENTENA***********

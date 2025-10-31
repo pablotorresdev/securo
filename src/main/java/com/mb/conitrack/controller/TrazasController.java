@@ -32,7 +32,6 @@ public class TrazasController {
         return "trazas/list-trazas";
     }
 
-    //TODO: ver de refactorear a bodyresponse para unificar
     @GetMapping("/codigoLote/{codigoLote}")
     public String listTrazasActivasPorLote(@PathVariable("codigoLote") String codigoLote, Model model) {
         model.addAttribute("trazaDTOs", trazaService.findByCodigoLoteAndActivo(codigoLote));

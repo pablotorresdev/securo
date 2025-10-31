@@ -1,25 +1,18 @@
 package com.mb.conitrack.controller.maestro;
 
-import java.util.Optional;
-
+import com.mb.conitrack.entity.maestro.Producto;
+import com.mb.conitrack.enums.TipoProductoEnum;
+import com.mb.conitrack.service.maestro.ProductoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.thymeleaf.util.StringUtils;
 
-import com.mb.conitrack.entity.maestro.Producto;
-import com.mb.conitrack.enums.TipoProductoEnum;
-import com.mb.conitrack.service.maestro.ProductoService;
-
-import jakarta.validation.Valid;
+import java.util.Optional;
 
 import static java.lang.Boolean.TRUE;
 
@@ -61,9 +54,9 @@ public class ABMProductosController {
         if (tipoProducto.isRequiereProductoDestino()) {
             if (StringUtils.isEmptyOrWhitespace(producto.getProductoDestino())) {
                 bindingResult.rejectValue(
-                    "productoDestino",
-                    "error.productoDestino",
-                    "Indique el producto destino para este tipo de producto.");
+                        "productoDestino",
+                        "error.productoDestino",
+                        "Indique el producto destino para este tipo de producto.");
                 model.addAttribute("productosDestino", productoService.getProductosInternos());
                 return "productos/add-producto";
             }
@@ -98,29 +91,30 @@ public class ABMProductosController {
 
     @PostMapping("/edit-producto/{id}")
     public String editProducto(
-        @PathVariable Long id,
-        @Valid @ModelAttribute("producto") Producto producto,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes) {
+            @PathVariable Long id,
+            @Valid @ModelAttribute("producto") Producto producto,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("productosDestino", productoService.getProductosInternos());
             return "productos/edit-producto";
         }
 
-        //TODO: validar logica de producto de destino
-        //        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
-        //        if(tipoProducto.requiereProductoDestino()) {
-        //            if (producto.getProductoDestino() == null) {
-        //                bindingResult.rejectValue("productoDestino", "error.productoDestino", "Indique el producto destino para este tipo de producto.");
-        //                model.addAttribute("productosDestino", productoService.getProductosDestinoActive());
-        //                return "productos/edit-producto";
-        //            }
-        //        }
-        //        if(!tipoProducto.requiereProductoDestino()) {
-        //            producto.setProductoDestino(null);
-        //        }
+        final TipoProductoEnum tipoProducto = producto.getTipoProducto();
+        if (tipoProducto.isRequiereProductoDestino()) {
+            if (StringUtils.isEmptyOrWhitespace(producto.getProductoDestino())) {
+                bindingResult.rejectValue(
+                        "productoDestino",
+                        "error.productoDestino",
+                        "Indique el producto destino para este tipo de producto.");
+                model.addAttribute("productosDestino", productoService.getProductosInternos());
+                return "productos/add-producto";
+            }
+        } else {
+            producto.setProductoDestino(null);
+        }
 
         producto.setId(id);
         producto.setActivo(true);  // Aseguramos que se guarde como activo

@@ -23,7 +23,6 @@ import lombok.Data;
 @Data
 public class MovimientoDTO {
 
-    //TODO: completar las validaciones segun el CU, definir las interfaces de validacion
     //Dato del back
     private OffsetDateTime fechaYHoraCreacion;
 

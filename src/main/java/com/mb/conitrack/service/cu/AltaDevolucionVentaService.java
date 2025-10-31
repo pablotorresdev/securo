@@ -69,7 +69,6 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         List<Lote> lotes = new ArrayList<>();
         loteRepository.findById(loteRepository.save(loteDevolucionGuardado).getId()).ifPresent(lotes::add);
         loteRepository.findById(loteVentaOrigen.getId()).ifPresent(lotes::add);
-        //TODO: corregir la informacion de confirmacion de la devolucion
         return fromLoteEntities(lotes);
     }
 

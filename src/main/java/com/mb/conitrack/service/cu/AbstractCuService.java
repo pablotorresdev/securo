@@ -448,7 +448,6 @@ public abstract class AbstractCuService {
             return false;
         }
 
-        //TODO: fix validacion Analisis (usar codigo lote)
         Analisis analisis;
         final boolean isAnalisis = StringUtils.isEmptyOrWhitespace(movimientoDTO.getNroReanalisis());
         if (isAnalisis) {
@@ -513,8 +512,6 @@ public abstract class AbstractCuService {
             sumaConvertida = sumaConvertida.add(cantidadConvertida);
         }
 
-        //TODO: ver tema suma de cantidades
-        // Redondear la suma a 3 decimales para comparar y mostrar
         BigDecimal sumaRedondeada = sumaConvertida.setScale(6, RoundingMode.HALF_UP);
         BigDecimal totalEsperado = loteDTO.getCantidadInicial().setScale(6, RoundingMode.HALF_UP);
 

@@ -22,8 +22,6 @@ import com.mb.conitrack.service.cu.BajaConsumoProduccionService;
 @RequestMapping("/produccion/baja")
 public class BajaConsumoProduccionController extends AbstractCuController {
 
-    //TODO: Sistema FIFO (fecha reanalisis/vencimiento) para lotes que compartan el mismo producto
-
     @Autowired
     private BajaConsumoProduccionService consumoProduccionService;
 

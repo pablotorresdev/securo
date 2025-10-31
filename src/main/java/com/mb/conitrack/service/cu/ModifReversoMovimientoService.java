@@ -101,7 +101,6 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             final @Valid MovimientoDTO movimientoDTO,
             final BindingResult bindingResult) {
         return !bindingResult.hasErrors();
-        //TODO: implementar si es necesario validar los campos de entrada
     }
 
     @Transactional

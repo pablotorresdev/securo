@@ -27,38 +27,6 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
     @Autowired
     private ModifDictamenCuarentenaService dictamenCuarentenaService;
 
-    //TODO: delete
-    public static MovimientoDTO template(MovimientoDTO dto) {
-        dto.setFechaYHoraCreacion(null);
-        dto.setFechaMovimiento(LocalDate.of(2025, 10, 22));
-        dto.setDictamenInicial(null);
-        dto.setDictamenFinal(null);
-        dto.setObservaciones("");
-        dto.setCantidad(null);
-        dto.setUnidadMedida(null);
-        dto.setNroAnalisis("1234");
-        dto.setNroBulto(null);
-        dto.setFechaRealizadoAnalisis(null);
-        dto.setFechaReanalisis(null);
-        dto.setFechaVencimiento(null);
-        dto.setTitulo(null);
-        dto.setTipoMovimiento(null);
-        dto.setMotivo(null);
-        dto.setLoteId(null);
-        dto.setTrazaInicial(null);
-        dto.setCodigoLote("L-P-004-25.10.22_17.23.47");
-        dto.setNroReanalisis("");
-        dto.setCodigoMovimiento(null);
-        dto.setCodigoMovimientoOrigen(null);
-        dto.setOrdenProduccion(null);
-
-        dto.setBultoDTOS(new ArrayList<>());
-        dto.setDetalleMovimientoDTOs(new ArrayList<>());
-        dto.setTrazaDTOs(new ArrayList<>());
-
-        return dto;
-    }
-
     @GetMapping("/cancelar")
     public String cancelar() {
         return "redirect:/";

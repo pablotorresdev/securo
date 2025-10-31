@@ -49,7 +49,6 @@ public class ModifTrazadoLoteService extends AbstractCuService {
     public Movimiento persistirMovimientoTrazadoLote(final MovimientoDTO dto, final Lote lote) {
         Movimiento movimiento = createMovimientoModificacion(dto, lote);
 
-        //TODO: mover logica de asignacion de trazas aca
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setMotivo(TRAZADO);
         movimiento.setDictamenInicial(lote.getDictamen());
