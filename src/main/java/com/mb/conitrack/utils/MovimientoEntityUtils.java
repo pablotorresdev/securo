@@ -106,8 +106,6 @@ public class MovimientoEntityUtils {
         return movimiento;
     }
 
-
-
     //***********CU22 BAJA: VENTA***********
     public static Movimiento createMovimientoBajaVenta(final LoteDTO dto, final Lote lote) {
         Movimiento movimiento = new Movimiento();
