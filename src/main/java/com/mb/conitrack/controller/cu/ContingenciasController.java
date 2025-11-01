@@ -1,7 +1,10 @@
 package com.mb.conitrack.controller.cu;
 
-import java.time.OffsetDateTime;
-
+import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.service.cu.BajaAjusteStockService;
+import com.mb.conitrack.service.cu.ModifReversoMovimientoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,12 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.mb.conitrack.dto.LoteDTO;
-import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.service.cu.BajaAjusteStockService;
-import com.mb.conitrack.service.cu.ModifReversoMovimientoService;
-
-import jakarta.validation.Valid;
+import java.time.OffsetDateTime;
 
 @Controller
 @RequestMapping("/contingencias")
@@ -45,12 +43,12 @@ public class ContingenciasController extends AbstractCuController {
 
     @PostMapping("/reverso-movimiento")
     public String ReversoMovimiento(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes) {
+            @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
-        if (!reeversoMovimientoService.validarReversoMovmientoInput(movimientoDTO, bindingResult)) {
+        if (bindingResult.hasErrors()) {
             initModelReversoMovimiento(movimientoDTO, model);
             return "contingencias/reverso-movimiento";
         }
@@ -58,9 +56,9 @@ public class ContingenciasController extends AbstractCuController {
             procesarReversoMovimiento(movimientoDTO, redirectAttributes);
         } catch (IllegalStateException e) {
             bindingResult.rejectValue(
-                "codigoLote",
-                "",
-                e.getMessage());
+                    "codigoLote",
+                    "",
+                    e.getMessage());
             initModelReversoMovimiento(movimientoDTO, model);
             return "contingencias/reverso-movimiento";
         }
@@ -70,7 +68,7 @@ public class ContingenciasController extends AbstractCuController {
 
     @GetMapping("/reverso-movimiento-ok")
     public String exitoReversoMovimiento(
-        @ModelAttribute("loteDTO") LoteDTO loteDTO) {
+            @ModelAttribute("loteDTO") LoteDTO loteDTO) {
         return "contingencias/reverso-movimiento-ok";
     }
 
@@ -79,17 +77,17 @@ public class ContingenciasController extends AbstractCuController {
     // @PreAuthorize("???')")
     @GetMapping("/ajuste-stock")
     public String showAjusteStockForm(
-        @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
+            @ModelAttribute MovimientoDTO movimientoDTO, Model model) {
         initModelAjusteStock(movimientoDTO, model);
         return "contingencias/ajuste-stock";
     }
 
     @PostMapping("/ajuste-stock")
     public String ajusteStock(
-        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
-        BindingResult bindingResult,
-        Model model,
-        RedirectAttributes redirectAttributes) {
+            @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
         if (!ajusteStockService.validarAjusteStockInput(movimientoDTO, bindingResult)) {
             initModelAjusteStock(movimientoDTO, model);
@@ -102,7 +100,7 @@ public class ContingenciasController extends AbstractCuController {
 
     @GetMapping("/ajuste-stock-ok")
     public String exitoAjuste(
-        @ModelAttribute LoteDTO loteDTO) {
+            @ModelAttribute LoteDTO loteDTO) {
         return "contingencias/ajuste-stock-ok";
     }
 
@@ -117,8 +115,8 @@ public class ContingenciasController extends AbstractCuController {
     }
 
     void procesarAjusteStock(
-        final MovimientoDTO movimientoDTO,
-        final RedirectAttributes redirectAttributes) {
+            final MovimientoDTO movimientoDTO,
+            final RedirectAttributes redirectAttributes) {
 
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO loteDTO = ajusteStockService.bajaAjusteStock(movimientoDTO);
@@ -127,23 +125,23 @@ public class ContingenciasController extends AbstractCuController {
         redirectAttributes.addFlashAttribute("bultoAjuste", movimientoDTO.getNroBulto());
         redirectAttributes.addFlashAttribute("trazaAjusteDTOs", movimientoDTO.getTrazaDTOs());
         redirectAttributes.addFlashAttribute(
-            loteDTO != null ? "success" : "error",
-            loteDTO != null ? "Ajuste registrado correctamente." : "Hubo un error persistiendo el ajuste.");
+                loteDTO != null ? "success" : "error",
+                loteDTO != null ? "Ajuste registrado correctamente." : "Hubo un error persistiendo el ajuste.");
     }
 
     void procesarReversoMovimiento(
-        final MovimientoDTO dto,
-        final RedirectAttributes redirectAttributes) {
+            final MovimientoDTO dto,
+            final RedirectAttributes redirectAttributes) {
 
         dto.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO loteDTO = reeversoMovimientoService.persistirReversoMovmiento(dto);
 
         redirectAttributes.addFlashAttribute("loteDTO", loteDTO);
         redirectAttributes.addFlashAttribute(
-            loteDTO != null ? "success" : "error",
-            loteDTO != null
-                ? "Reverso de Movimiento exitoso"
-                : "Hubo un error al realizar el Reverso de Movimiento.");
+                loteDTO != null ? "success" : "error",
+                loteDTO != null
+                        ? "Reverso de Movimiento exitoso"
+                        : "Hubo un error al realizar el Reverso de Movimiento.");
     }
 
 }

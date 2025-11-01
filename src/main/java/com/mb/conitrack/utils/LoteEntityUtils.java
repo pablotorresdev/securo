@@ -3,6 +3,7 @@ package com.mb.conitrack.utils;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.thymeleaf.util.StringUtils;
@@ -19,11 +20,17 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
+/** Utilidades para creación y población de entidades Lote (CU1, CU20, CU28). */
 public class LoteEntityUtils {
 
-    //***********CU1 ALTA: COMPRA***********
-    //***********CU20 ALTA: INGRESO PRODUCCION INTERNA***********
+    private LoteEntityUtils() {
+        throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    }
+
+    /** Crea lote nuevo para ingreso (compra/producción) con campos base inicializados. */
     public static Lote createLoteIngreso(final LoteDTO loteDTO) {
+        Objects.requireNonNull(loteDTO, "loteDTO cannot be null");
+
         Lote lote = new Lote();
 
         lote.setFechaYHoraCreacion(loteDTO.getFechaYHoraCreacion());
@@ -31,14 +38,14 @@ public class LoteEntityUtils {
         lote.setDictamen(DictamenEnum.RECIBIDO);
         lote.setActivo(Boolean.TRUE);
 
-        //Datos obligatorios comunes
+        // Required common fields
         lote.setPaisOrigen(loteDTO.getPaisOrigen());
         lote.setFechaIngreso(loteDTO.getFechaIngreso());
         lote.setBultosTotales(loteDTO.getBultosTotales());
         lote.setLoteProveedor(loteDTO.getLoteProveedor());
         lote.setOrdenProduccionOrigen(loteDTO.getOrdenProduccion());
 
-        //Datos opcionales comunes
+        // Optional common fields
         lote.setFechaReanalisisProveedor(loteDTO.getFechaReanalisisProveedor());
         lote.setFechaVencimientoProveedor(loteDTO.getFechaVencimientoProveedor());
         lote.setNroRemito(loteDTO.getNroRemito());
@@ -48,8 +55,10 @@ public class LoteEntityUtils {
         return lote;
     }
 
-    //***********CU3 BAJA: MUESTREO***********
+    /** Busca análisis en curso (activo, sin dictamen, sin fecha realizado). */
     public static Optional<Analisis> getAnalisisEnCurso(final List<Analisis> analisisList) {
+        Objects.requireNonNull(analisisList, "analisisList cannot be null");
+
         List<Analisis> enCurso = analisisList.stream()
             .filter(Analisis::getActivo)
             .filter(analisis -> analisis.getDictamen() == null)
@@ -64,12 +73,16 @@ public class LoteEntityUtils {
         }
     }
 
-    //***********CU> MODIFICACION: CU8 Reanalisis de Producto Aprobado***********
+    /** Puebla lote para ingreso por producción interna (CU20). Genera código, crea bultos. */
     public static void populateLoteAltaProduccionPropia(
         final Lote lote,
         final LoteDTO loteDTO,
         final Producto producto,
         final Proveedor conifarma) {
+        Objects.requireNonNull(lote, "lote cannot be null");
+        Objects.requireNonNull(loteDTO, "loteDTO cannot be null");
+        Objects.requireNonNull(producto, "producto cannot be null");
+        Objects.requireNonNull(conifarma, "conifarma cannot be null");
 
         lote.setCodigoLote("L-" +
             producto.getCodigoProducto() +
@@ -95,13 +108,18 @@ public class LoteEntityUtils {
         lote.setUnidadMedida(loteDTO.getUnidadMedida());
     }
 
-    //***********CU1 ALTA: COMPRA***********
+    /** Puebla lote para ingreso por compra (CU1). Genera código, determina país origen, crea bultos. */
     public static void populateLoteAltaStockCompra(
         final Lote lote,
         final LoteDTO loteDTO,
         final Producto producto,
         final Proveedor proveedor,
         final Proveedor fabricante) {
+        Objects.requireNonNull(lote, "lote cannot be null");
+        Objects.requireNonNull(loteDTO, "loteDTO cannot be null");
+        Objects.requireNonNull(producto, "producto cannot be null");
+        Objects.requireNonNull(proveedor, "proveedor cannot be null");
+
         lote.setCodigoLote("L-" +
             producto.getCodigoProducto() +
             "-" +
@@ -134,7 +152,7 @@ public class LoteEntityUtils {
         lote.setUnidadMedida(loteDTO.getUnidadMedida());
     }
 
-    //***********PRIVATE COMMONS***********
+    /** Crea bulto para operaciones de ingreso (estado NUEVO, activo). */
     static Bulto createBultoIngreso() {
         Bulto bulto = new Bulto();
         bulto.setEstado(EstadoEnum.NUEVO);
@@ -142,9 +160,12 @@ public class LoteEntityUtils {
         return bulto;
     }
 
+    /** Crea trazas individuales para lote trazable (solo UNIDAD, cantidad entera). */
     static List<Traza> createTrazas(
         final MovimientoDTO movimientoDto,
         final Lote lote) {
+        Objects.requireNonNull(movimientoDto, "movimientoDto cannot be null");
+        Objects.requireNonNull(lote, "lote cannot be null");
 
         final Producto producto = lote.getProducto();
 
@@ -174,11 +195,15 @@ public class LoteEntityUtils {
         return trazas;
     }
 
+    /** Asigna cantidad y unidad de medida al bulto según cantidad total y distribución. */
     static void populateCantidadUdeMBulto(
         final LoteDTO loteDTO,
         final int bultosTotales,
         final Bulto bulto,
         final int i) {
+        Objects.requireNonNull(loteDTO, "loteDTO cannot be null");
+        Objects.requireNonNull(bulto, "bulto cannot be null");
+
         if (bultosTotales == 1) {
             bulto.setCantidadInicial(loteDTO.getCantidadInicial());
             bulto.setCantidadActual(loteDTO.getCantidadInicial());
@@ -191,9 +216,12 @@ public class LoteEntityUtils {
         bulto.setNroBulto(i + 1);
     }
 
+    /** CU28 - Agrega trazas al lote y las distribuye entre bultos. Marca lote como trazado. */
     public static void addTrazasToLote(
         final Lote lote,
         final MovimientoDTO movimientoDto) {
+        Objects.requireNonNull(lote, "lote cannot be null");
+        Objects.requireNonNull(movimientoDto, "movimientoDto cannot be null");
 
         List<Traza> trazas = createTrazas(movimientoDto, lote);
 

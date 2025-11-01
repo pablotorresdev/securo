@@ -32,6 +32,7 @@ import jakarta.validation.Valid;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMenorUnidadMedida;
 
+/** Servicio base con validaciones comunes para todos los casos de uso. */
 public abstract class AbstractCuService {
 
     @Autowired

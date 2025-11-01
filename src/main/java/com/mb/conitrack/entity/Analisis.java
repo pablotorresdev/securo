@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/** Entidad: Análisis de calidad de lote con dictamen y fechas de vencimiento. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

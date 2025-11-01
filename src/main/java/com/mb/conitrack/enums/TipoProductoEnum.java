@@ -2,6 +2,7 @@ package com.mb.conitrack.enums;
 
 import lombok.Getter;
 
+/** Tipo de producto (materia prima, acondicionamiento, semielaborado, unidad venta). */
 @Getter
 public enum TipoProductoEnum {
     API("Api", "MatPrima", 1, true),

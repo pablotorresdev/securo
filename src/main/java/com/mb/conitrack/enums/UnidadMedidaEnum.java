@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** Unidades de medida con conversión automática (masa, volumen, superficie, longitud). */
 public enum UnidadMedidaEnum {
     UNIDAD("Unidad", "Generica", "U", 1.0),
 

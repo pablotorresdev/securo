@@ -3,6 +3,7 @@ package com.mb.conitrack.utils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Bulto;
@@ -13,23 +14,60 @@ import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
 
 /**
- * Utilidades para el manejo y conversión entre distintas unidades de medida.
+ * Utility class for handling and converting between different units of measure.
+ * <p>
+ * This class provides static methods for:
+ * <ul>
+ *   <li>Converting quantities between compatible units (kg ↔ g, L ↔ mL, etc.)</li>
+ *   <li>Finding minimum/maximum units between two compatible measures</li>
+ *   <li>Calculating order of magnitude for BigDecimal values</li>
+ *   <li>Applying movement conversions to lots and bultos</li>
+ *   <li>Suggesting optimal units for displaying quantities</li>
+ * </ul>
+ * </p>
+ * <p>
+ * All conversions use the {@link UnidadMedidaEnum#getFactorConversion()} for calculations.
+ * Note that conversions may introduce small floating-point precision errors due to
+ * internal use of double arithmetic.
+ * </p>
+ * <p>
+ * This is a utility class and cannot be instantiated.
+ * </p>
+ *
+ * @see UnidadMedidaEnum
  */
 public class UnidadMedidaUtils {
 
     /**
-     * Convierte una cantidad desde una unidad de origen a una unidad de destino compatible.
+     * Private constructor to prevent instantiation of utility class.
      *
-     * @param unidadOrigen  Unidad en la que está expresada originalmente la cantidad.
-     * @param cantidad      Cantidad a convertir.
-     * @param unidadDestino Unidad a la cual se desea convertir la cantidad.
+     * @throws UnsupportedOperationException always thrown when called
+     */
+    private UnidadMedidaUtils() {
+        throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    }
+
+    /**
+     * Converts a quantity from a source unit to a compatible target unit.
+     * <p>
+     * If the units are the same, returns the quantity unchanged. Otherwise, performs
+     * conversion using the conversion factors from both units.
+     * </p>
      *
-     * @return Cantidad convertida a la unidad de destino.
+     * @param unidadOrigen  Source unit in which the quantity is expressed (must not be null)
+     * @param cantidad      Quantity to convert (must not be null)
+     * @param unidadDestino Target unit to convert to (must not be null)
+     * @return Quantity converted to the target unit
+     * @throws NullPointerException if any parameter is null
      */
     public static BigDecimal convertirCantidadEntreUnidades(
-        UnidadMedidaEnum unidadOrigen,
-        BigDecimal cantidad,
-        UnidadMedidaEnum unidadDestino) {
+        final UnidadMedidaEnum unidadOrigen,
+        final BigDecimal cantidad,
+        final UnidadMedidaEnum unidadDestino) {
+        Objects.requireNonNull(unidadOrigen, "unidadOrigen cannot be null");
+        Objects.requireNonNull(cantidad, "cantidad cannot be null");
+        Objects.requireNonNull(unidadDestino, "unidadDestino cannot be null");
+
         if (unidadOrigen == unidadDestino) {
             return cantidad;
         }
@@ -39,17 +77,24 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Devuelve la unidad de medida más pequeña (la de menor magnitud) entre dos unidades del mismo tipo.
+     * Returns the smaller (lower magnitude) unit between two units of the same type.
+     * <p>
+     * The smaller unit is the one with the lower conversion factor (e.g., mg is smaller than g).
+     * </p>
      *
-     * @param unidadUno Primera unidad de medida a comparar.
-     * @param unidadDos Segunda unidad de medida a comparar.
-     *
-     * @return La unidad de menor magnitud (es decir, la que tiene el menor factor de conversión).
-     *
-     * @throws IllegalArgumentException si las unidades no pertenecen al mismo tipo (masa, volumen, etc.).
+     * @param unidadUno First unit to compare (must not be null)
+     * @param unidadDos Second unit to compare (must not be null)
+     * @return The unit with lower magnitude (lower conversion factor)
+     * @throws NullPointerException     if any parameter is null
+     * @throws IllegalArgumentException if the units are not of the same type (mass, volume, etc.)
      */
-    public static UnidadMedidaEnum obtenerMenorUnidadMedida(UnidadMedidaEnum unidadUno, UnidadMedidaEnum unidadDos) {
-        if (unidadUno==unidadDos) {
+    public static UnidadMedidaEnum obtenerMenorUnidadMedida(
+        final UnidadMedidaEnum unidadUno,
+        final UnidadMedidaEnum unidadDos) {
+        Objects.requireNonNull(unidadUno, "unidadUno cannot be null");
+        Objects.requireNonNull(unidadDos, "unidadDos cannot be null");
+
+        if (unidadUno == unidadDos) {
             return unidadUno;
         }
         if (!unidadUno.getTipo().equals(unidadDos.getTipo())) {
@@ -63,17 +108,24 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Devuelve la unidad de medida más grande (la de mayor magnitud) entre dos unidades del mismo tipo.
+     * Returns the larger (higher magnitude) unit between two units of the same type.
+     * <p>
+     * The larger unit is the one with the higher conversion factor (e.g., kg is larger than g).
+     * </p>
      *
-     * @param unidadUno Primera unidad de medida a comparar.
-     * @param unidadDos Segunda unidad de medida a comparar.
-     *
-     * @return La unidad de mayor magnitud (es decir, la que tiene el mayor factor de conversión).
-     *
-     * @throws IllegalArgumentException si las unidades no pertenecen al mismo tipo (masa, volumen, etc.).
+     * @param unidadUno First unit to compare (must not be null)
+     * @param unidadDos Second unit to compare (must not be null)
+     * @return The unit with higher magnitude (higher conversion factor)
+     * @throws NullPointerException     if any parameter is null
+     * @throws IllegalArgumentException if the units are not of the same type (mass, volume, etc.)
      */
-    public static UnidadMedidaEnum obtenerMayorUnidadMedida(UnidadMedidaEnum unidadUno, UnidadMedidaEnum unidadDos) {
-        if (unidadUno==unidadDos) {
+    public static UnidadMedidaEnum obtenerMayorUnidadMedida(
+        final UnidadMedidaEnum unidadUno,
+        final UnidadMedidaEnum unidadDos) {
+        Objects.requireNonNull(unidadUno, "unidadUno cannot be null");
+        Objects.requireNonNull(unidadDos, "unidadDos cannot be null");
+
+        if (unidadUno == unidadDos) {
             return unidadUno;
         }
         if (!unidadUno.getTipo().equals(unidadDos.getTipo())) {
@@ -106,83 +158,103 @@ public class UnidadMedidaUtils {
     }
 
     /**
-     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
-     * cantidad del movimiento a la unidad del lote.
+     * Subtracts a movement quantity from a lot's current quantity, converting units as needed.
+     * <p>
+     * The movement's quantity is converted from its unit to the lot's unit before subtraction.
+     * </p>
      *
-     * @param dto  Movimiento a aplicar, expresado en su propia unidad.
-     * @param lote Lote afectado, con su cantidad y unidad actual.
-     *
-     * @return Nueva cantidad resultante del lote después del movimiento.
+     * @param dto  Movement to apply, expressed in its own unit (must not be null)
+     * @param lote Affected lot with its current quantity and unit (must not be null)
+     * @return New resulting quantity for the lot after the movement
+     * @throws NullPointerException if any parameter is null
      */
     public static BigDecimal restarMovimientoConvertido(final MovimientoDTO dto, final Lote lote) {
+        Objects.requireNonNull(dto, "dto cannot be null");
+        Objects.requireNonNull(lote, "lote cannot be null");
+
         final BigDecimal cantidadLote = lote.getCantidadActual();
         final double factorLote = lote.getUnidadMedida().getFactorConversion();
         final double factorDto = dto.getUnidadMedida().getFactorConversion();
 
-        // Convertimos la cantidad del DTO a la unidad del lote
+        // Convert the DTO quantity to the lot's unit
         BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
 
         return cantidadLote.subtract(cantidadDtoConvertida);
     }
 
     /**
-     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
-     * cantidad del movimiento a la unidad del lote.
+     * Adds a movement quantity to a lot's current quantity, converting units as needed.
+     * <p>
+     * The movement's quantity is converted from its unit to the lot's unit before addition.
+     * </p>
      *
-     * @param dto  Movimiento a aplicar, expresado en su propia unidad.
-     * @param lote Lote afectado, con su cantidad y unidad actual.
-     *
-     * @return Nueva cantidad resultante del lote después del movimiento.
+     * @param dto  Movement to apply, expressed in its own unit (must not be null)
+     * @param lote Affected lot with its current quantity and unit (must not be null)
+     * @return New resulting quantity for the lot after the movement
+     * @throws NullPointerException if any parameter is null
      */
     public static BigDecimal sumarMovimientoConvertido(final MovimientoDTO dto, final Lote lote) {
+        Objects.requireNonNull(dto, "dto cannot be null");
+        Objects.requireNonNull(lote, "lote cannot be null");
+
         final BigDecimal cantidadLote = lote.getCantidadActual();
         final double factorLote = lote.getUnidadMedida().getFactorConversion();
         final double factorDto = dto.getUnidadMedida().getFactorConversion();
 
-        // Convertimos la cantidad del DTO a la unidad del lote
+        // Convert the DTO quantity to the lot's unit
         BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
 
         return cantidadLote.add(cantidadDtoConvertida);
     }
 
     /**
-     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
-     * cantidad del movimiento a la unidad del lote.
+     * Subtracts a movement quantity from a bulto's current quantity, converting units as needed.
+     * <p>
+     * The movement's quantity is converted from its unit to the bulto's unit before subtraction.
+     * </p>
      *
-     * @param dto   Movimiento a aplicar, expresado en su propia unidad.
-     * @param bulto Bulto afectado, con su cantidad y unidad actual.
-     *
-     * @return Nueva cantidad resultante del lote después del movimiento.
+     * @param dto   Movement to apply, expressed in its own unit (must not be null)
+     * @param bulto Affected bulto with its current quantity and unit (must not be null)
+     * @return New resulting quantity for the bulto after the movement
+     * @throws NullPointerException if any parameter is null
      */
     public static BigDecimal restarMovimientoConvertido(final MovimientoDTO dto, final Bulto bulto) {
-        final BigDecimal cantidadLote = bulto.getCantidadActual();
-        final double factorLote = bulto.getUnidadMedida().getFactorConversion();
+        Objects.requireNonNull(dto, "dto cannot be null");
+        Objects.requireNonNull(bulto, "bulto cannot be null");
+
+        final BigDecimal cantidadBulto = bulto.getCantidadActual();
+        final double factorBulto = bulto.getUnidadMedida().getFactorConversion();
         final double factorDto = dto.getUnidadMedida().getFactorConversion();
 
-        // Convertimos la cantidad del DTO a la unidad del lote
-        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
+        // Convert the DTO quantity to the bulto's unit
+        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorBulto));
 
-        return cantidadLote.subtract(cantidadDtoConvertida);
+        return cantidadBulto.subtract(cantidadDtoConvertida);
     }
 
     /**
-     * Calcula la nueva cantidad actual del lote luego de aplicar el movimiento especificado. Internamente convierte la
-     * cantidad del movimiento a la unidad del lote.
+     * Adds a movement quantity to a bulto's current quantity, converting units as needed.
+     * <p>
+     * The movement's quantity is converted from its unit to the bulto's unit before addition.
+     * </p>
      *
-     * @param dto   Movimiento a aplicar, expresado en su propia unidad.
-     * @param bulto Bulto afectado, con su cantidad y unidad actual.
-     *
-     * @return Nueva cantidad resultante del lote después del movimiento.
+     * @param dto   Movement to apply, expressed in its own unit (must not be null)
+     * @param bulto Affected bulto with its current quantity and unit (must not be null)
+     * @return New resulting quantity for the bulto after the movement
+     * @throws NullPointerException if any parameter is null
      */
     public static BigDecimal sumarMovimientoConvertido(final MovimientoDTO dto, final Bulto bulto) {
-        final BigDecimal cantidadLote = bulto.getCantidadActual();
-        final double factorLote = bulto.getUnidadMedida().getFactorConversion();
+        Objects.requireNonNull(dto, "dto cannot be null");
+        Objects.requireNonNull(bulto, "bulto cannot be null");
+
+        final BigDecimal cantidadBulto = bulto.getCantidadActual();
+        final double factorBulto = bulto.getUnidadMedida().getFactorConversion();
         final double factorDto = dto.getUnidadMedida().getFactorConversion();
 
-        // Convertimos la cantidad del DTO a la unidad del lote
-        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorLote));
+        // Convert the DTO quantity to the bulto's unit
+        BigDecimal cantidadDtoConvertida = dto.getCantidad().multiply(BigDecimal.valueOf(factorDto / factorBulto));
 
-        return cantidadLote.add(cantidadDtoConvertida);
+        return cantidadBulto.add(cantidadDtoConvertida);
     }
 
     /**

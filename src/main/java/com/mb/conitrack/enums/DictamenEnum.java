@@ -1,11 +1,13 @@
 package com.mb.conitrack.enums;
 
+/** Estado de aprobación de lote según análisis de calidad. */
 public enum DictamenEnum {
     RECIBIDO("Recibido"),
     CUARENTENA("Cuarentena"),
     APROBADO("Aprobado"),
     RECHAZADO("Rechazado"),
     ANULADO("Anulado"),
+    CANCELADO("Cancelado"),
     ANALISIS_EXPIRADO("Analisis expirado"),
     VENCIDO("Vencido"),
     LIBERADO("Liberado"),

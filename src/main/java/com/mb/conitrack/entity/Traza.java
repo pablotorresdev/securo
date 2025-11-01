@@ -17,13 +17,14 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/** Entidad: Traza individual (unidad de venta trazable) dentro de un bulto. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "trazas")
 @SQLDelete(sql = "UPDATE trazas SET activo = false WHERE id = ?")
-@ToString(exclude = { "lote", "bulto", "detalles" }) // campos reales
+@ToString(exclude = { "lote", "bulto", "detalles" })
 public class Traza {
 
     @Id

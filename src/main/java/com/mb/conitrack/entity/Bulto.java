@@ -25,6 +25,7 @@ import lombok.ToString;
 import static jakarta.persistence.CascadeType.MERGE;
 import static jakarta.persistence.CascadeType.PERSIST;
 
+/** Entidad: Bulto (unidad física de almacenamiento) dentro de un lote. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

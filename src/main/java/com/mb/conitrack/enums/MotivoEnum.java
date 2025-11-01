@@ -1,5 +1,6 @@
 package com.mb.conitrack.enums;
 
+/** Motivo del movimiento (relacionado con casos de uso de negocio). */
 public enum MotivoEnum {
 
     COMPRA("Compra"),//ALTA

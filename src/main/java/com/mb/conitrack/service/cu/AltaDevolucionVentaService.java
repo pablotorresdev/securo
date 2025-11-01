@@ -28,10 +28,10 @@ import jakarta.validation.Valid;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaDevolucion;
+import static com.mb.conitrack.utils.MovimientoAltaUtils.createMovimientoAltaDevolucion;
 import static java.lang.Boolean.TRUE;
 
-//***********CU23 ALTA: DEVOLUCION VENTA***********
+/** CU23 - Alta Devolución Venta. Procesa devoluciones de clientes creando lotes derivados. */
 @Service
 public class AltaDevolucionVentaService extends AbstractCuService {
 
@@ -44,6 +44,7 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         return bulto;
     }
 
+    /** Persiste devolución de venta creando lote derivado con sufijo _D_N. Maneja trazas. */
     @Transactional
     public List<LoteDTO> persistirDevolucionVenta(final MovimientoDTO dto) {
 

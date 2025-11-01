@@ -27,18 +27,19 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
 import static com.mb.conitrack.utils.LoteEntityUtils.getAnalisisEnCurso;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoMuestreoConAnalisis;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoPorMuestreoMultiBulto;
+import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoMuestreoConAnalisis;
+import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoPorMuestreoMultiBulto;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMayorUnidadMedida;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.restarMovimientoConvertido;
 import static java.lang.Boolean.TRUE;
 import static java.lang.Integer.parseInt;
 
-//***********CU3 BAJA: MUESTREO***********
+/** CU3 - Baja Muestreo. Descuenta stock por muestreo para análisis de calidad. */
 @Service
 public class BajaMuestreoBultoService extends AbstractCuService {
 
+    /** Procesa muestreo de producto trazable asociándolo a análisis. Marca trazas como CONSUMIDO. */
     @Transactional
     public LoteDTO bajaMuestreoTrazable(final MovimientoDTO dto) {
 

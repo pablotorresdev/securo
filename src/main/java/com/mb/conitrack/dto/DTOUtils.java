@@ -17,6 +17,7 @@ import com.mb.conitrack.enums.TipoProductoEnum;
 
 import static java.lang.Boolean.TRUE;
 
+/** Utilidades para conversión entre entidades y DTOs. */
 public class DTOUtils {
 
     public static Analisis createAnalisis(final MovimientoDTO dto) {

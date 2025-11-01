@@ -24,6 +24,7 @@ class DictamenEnumTest {
         Map.entry(DictamenEnum.APROBADO, "Aprobado"),
         Map.entry(DictamenEnum.RECHAZADO, "Rechazado"),
         Map.entry(DictamenEnum.ANULADO, "Anulado"),
+        Map.entry(DictamenEnum.CANCELADO, "Cancelado"),
         Map.entry(DictamenEnum.ANALISIS_EXPIRADO, "Analisis expirado"),
         Map.entry(DictamenEnum.VENCIDO, "Vencido"),
         Map.entry(DictamenEnum.LIBERADO, "Liberado"),
@@ -68,18 +69,19 @@ class DictamenEnumTest {
     @DisplayName("values() contiene exactamente las 9 constantes en orden")
     void valuesContentAndOrder() {
         DictamenEnum[] v = DictamenEnum.values();
-        assertEquals(10, v.length, "Cantidad de constantes");
+        assertEquals(11, v.length, "Cantidad de constantes");
 
         assertEquals(DictamenEnum.RECIBIDO, v[0]);
         assertEquals(DictamenEnum.CUARENTENA, v[1]);
         assertEquals(DictamenEnum.APROBADO, v[2]);
         assertEquals(DictamenEnum.RECHAZADO, v[3]);
         assertEquals(DictamenEnum.ANULADO, v[4]);
-        assertEquals(DictamenEnum.ANALISIS_EXPIRADO, v[5]);
-        assertEquals(DictamenEnum.VENCIDO, v[6]);
-        assertEquals(DictamenEnum.LIBERADO, v[7]);
-        assertEquals(DictamenEnum.DEVOLUCION_CLIENTES, v[8]);
-        assertEquals(DictamenEnum.RETIRO_MERCADO, v[9]);
+        assertEquals(DictamenEnum.CANCELADO, v[5]);
+        assertEquals(DictamenEnum.ANALISIS_EXPIRADO, v[6]);
+        assertEquals(DictamenEnum.VENCIDO, v[7]);
+        assertEquals(DictamenEnum.LIBERADO, v[8]);
+        assertEquals(DictamenEnum.DEVOLUCION_CLIENTES, v[9]);
+        assertEquals(DictamenEnum.RETIRO_MERCADO, v[10]);
 
         Set<DictamenEnum> all = EnumSet.allOf(DictamenEnum.class);
         assertEquals(all.size(), v.length);

@@ -19,7 +19,7 @@ import com.mb.conitrack.repository.AnalisisRepository;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
 import com.mb.conitrack.service.cu.ModifDictamenCuarentenaService;
-import com.mb.conitrack.utils.MovimientoEntityUtils;
+import com.mb.conitrack.utils.MovimientoModificacionUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -60,8 +60,8 @@ class ModifDictamenCuarentenaServiceTest {
         base.setLote(lote);
         base.setObservaciones("será sobreescrito");
 
-        try (MockedStatic<MovimientoEntityUtils> ms = mockStatic(MovimientoEntityUtils.class)) {
-            ms.when(() -> MovimientoEntityUtils.createMovimientoModificacion(dto, lote)).thenReturn(base);
+        try (MockedStatic<MovimientoModificacionUtils> ms = mockStatic(MovimientoModificacionUtils.class)) {
+            ms.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote)).thenReturn(base);
             // el repo devuelve lo que le pasan (más simple para asserts)
             when(movimientoRepository.save(any(Movimiento.class)))
                 .thenAnswer(inv -> inv.getArgument(0, Movimiento.class));
@@ -87,7 +87,7 @@ class ModifDictamenCuarentenaServiceTest {
             assertEquals("_CU2_\nObs de prueba", saved.getObservaciones());
             assertSame(lote, saved.getLote());
 
-            ms.verify(() -> MovimientoEntityUtils.createMovimientoModificacion(dto, lote));
+            ms.verify(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote));
             verifyNoMoreInteractions(movimientoRepository);
         }
     }
@@ -108,8 +108,8 @@ class ModifDictamenCuarentenaServiceTest {
         Movimiento base = new Movimiento();
         base.setLote(lote);
 
-        try (MockedStatic<MovimientoEntityUtils> ms = mockStatic(MovimientoEntityUtils.class)) {
-            ms.when(() -> MovimientoEntityUtils.createMovimientoModificacion(dto, lote)).thenReturn(base);
+        try (MockedStatic<MovimientoModificacionUtils> ms = mockStatic(MovimientoModificacionUtils.class)) {
+            ms.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote)).thenReturn(base);
             when(movimientoRepository.save(any(Movimiento.class)))
                 .thenAnswer(inv -> inv.getArgument(0, Movimiento.class));
 
@@ -121,7 +121,7 @@ class ModifDictamenCuarentenaServiceTest {
 
             // then
             verify(movimientoRepository).save(out);
-            ms.verify(() -> MovimientoEntityUtils.createMovimientoModificacion(dto, lote));
+            ms.verify(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote));
 
             assertEquals(MotivoEnum.ANALISIS, out.getMotivo());
             assertEquals(DictamenEnum.RECIBIDO, out.getDictamenInicial());

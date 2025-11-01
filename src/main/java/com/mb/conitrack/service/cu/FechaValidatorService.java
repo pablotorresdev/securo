@@ -17,8 +17,9 @@ import static com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO;
 import static com.mb.conitrack.enums.DictamenEnum.VENCIDO;
 import static com.mb.conitrack.enums.MotivoEnum.EXPIRACION_ANALISIS;
 import static com.mb.conitrack.enums.MotivoEnum.VENCIMIENTO;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
+import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoModificacion;
 
+/** CU9/CU10 - Validador de Fechas. Procesa expiraciones de análisis y vencimientos automáticos. */
 @Service
 public class FechaValidatorService extends AbstractCuService {
 
@@ -29,26 +30,30 @@ public class FechaValidatorService extends AbstractCuService {
         procesarLotesVencidos(findAllLotesVencidos());
     }
 
-    //***********CU10 MODIFICACION: ANALSIS EXPIRADO***********
+    //***********CU9 MODIFICACION: ANALISIS EXPIRADO***********
     @Transactional(readOnly = true)
     List<Lote> findAllLotesAnalisisExpirado() {
         LocalDate hoy = LocalDate.now();
         return loteRepository.findLotesConStockOrder().stream()
             .filter(l -> {
                 LocalDate f = l.getFechaReanalisisVigente();
-                return f != null && !f.isBefore(hoy); // >= hoy
+                // Procesar si fecha <= hoy (hoy o pasada)
+                // NO procesar si fecha es futura
+                return f != null && !f.isAfter(hoy); // <= hoy
             })
             .toList();
     }
 
-    //***********CU9 MODIFICACION: VENCIDO***********
+    //***********CU10 MODIFICACION: VENCIDO***********
     @Transactional(readOnly = true)
-    List<Lote> findAllLotesVencidos() { // OJO: devuelve NO vencidos como tu versión previa
+    List<Lote> findAllLotesVencidos() {
         LocalDate hoy = LocalDate.now();
         return loteRepository.findLotesConStockOrder().stream()
             .filter(l -> {
                 LocalDate f = l.getFechaVencimientoVigente();
-                return f != null && !f.isBefore(hoy); // >= hoy
+                // Procesar si fecha <= hoy (hoy o pasada)
+                // NO procesar si fecha es futura
+                return f != null && !f.isAfter(hoy); // <= hoy
             })
             .toList(); // ya viene ordenado desde la DB
     }
@@ -100,6 +105,13 @@ public class FechaValidatorService extends AbstractCuService {
             final Movimiento movimiento = persistirMovimientoProductoVencido(dto, lote);
             lote.setDictamen(movimiento.getDictamenFinal());
             lote.getMovimientos().add(movimiento);
+
+            // CU10: Cancelar análisis en curso si existe (dictamen == null)
+            if (lote.getUltimoAnalisis() != null && lote.getUltimoAnalisis().getDictamen() == null) {
+                lote.getUltimoAnalisis().setDictamen(com.mb.conitrack.enums.DictamenEnum.CANCELADO);
+                analisisRepository.save(lote.getUltimoAnalisis());
+            }
+
             result.add(loteRepository.save(lote));
         }
         return result;

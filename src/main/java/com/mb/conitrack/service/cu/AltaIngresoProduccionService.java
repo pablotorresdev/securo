@@ -19,13 +19,14 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import static com.mb.conitrack.utils.LoteEntityUtils.createLoteIngreso;
 import static com.mb.conitrack.utils.LoteEntityUtils.populateLoteAltaProduccionPropia;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAltaIngresoProduccion;
+import static com.mb.conitrack.utils.MovimientoAltaUtils.createMovimientoAltaIngresoProduccion;
 import static java.lang.Boolean.TRUE;
 
-//***********CU20 ALTA: INGRESO PRODUCCION INTERNA***********
+/** CU20 - Alta Ingreso Producción. Crea lote desde producción interna propia. */
 @Service
 public class AltaIngresoProduccionService extends AbstractCuService {
 
+    /** Crea lote de producción interna. Inicializa bultos y movimiento ALTA/PRODUCCION. */
     @Transactional
     public LoteDTO altaStockPorProduccion(final LoteDTO loteDTO) {
         final Proveedor conifarma = proveedorRepository.findConifarma()
@@ -62,6 +63,7 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         return DTOUtils.fromLoteEntity(loteGuardado);
     }
 
+    /** Valida datos de entrada para alta producción (cantidad, bultos, trazas). */
     @Transactional
     public boolean validarIngresoProduccionInput(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {

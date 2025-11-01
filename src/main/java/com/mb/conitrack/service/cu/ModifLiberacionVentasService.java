@@ -17,7 +17,7 @@ import com.mb.conitrack.entity.Movimiento;
 
 import static com.mb.conitrack.enums.DictamenEnum.LIBERADO;
 import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
+import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoModificacion;
 
 //***********CU21 MODIFICACION: LIBERACION DE PRODUCTO***********
 @Service

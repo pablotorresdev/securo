@@ -1,24 +1,22 @@
 package com.mb.conitrack.service.cu;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
-
 import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.DictamenEnum;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
+
+import java.math.BigDecimal;
+import java.util.Optional;
 
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.crearMovimientoDevolucionCompra;
+import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoDevolucionCompra;
 import static java.lang.Boolean.TRUE;
 
 //***********CU4 BAJA: DEVOLUCION COMPRA***********
@@ -29,9 +27,9 @@ public class BajaDevolucionCompraService extends AbstractCuService {
     public LoteDTO bajaBultosDevolucionCompra(final MovimientoDTO dto) {
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
-            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+                .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        final Movimiento movimiento = crearMovimientoDevolucionCompra(dto);
+        final Movimiento movimiento = createMovimientoDevolucionCompra(dto);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setCantidad(lote.getCantidadActual());
         movimiento.setUnidadMedida(lote.getUnidadMedida());
@@ -39,12 +37,12 @@ public class BajaDevolucionCompraService extends AbstractCuService {
 
         for (Bulto bulto : lote.getBultos()) {
             final DetalleMovimiento det = DetalleMovimiento.builder()
-                .movimiento(movimiento)
-                .bulto(bulto)
-                .cantidad(bulto.getCantidadActual())
-                .unidadMedida(bulto.getUnidadMedida())
-                .activo(TRUE)
-                .build();
+                    .movimiento(movimiento)
+                    .bulto(bulto)
+                    .cantidad(bulto.getCantidadActual())
+                    .unidadMedida(bulto.getUnidadMedida())
+                    .activo(TRUE)
+                    .build();
 
             movimiento.getDetalles().add(det);
         }
@@ -61,11 +59,9 @@ public class BajaDevolucionCompraService extends AbstractCuService {
         lote.setCantidadActual(BigDecimal.ZERO);
         lote.getMovimientos().add(savedMovimiento);
 
-        for (Analisis analisis : lote.getAnalisisList()) {
-            if (analisis.getDictamen() == null) {
-                analisis.setDictamen(DictamenEnum.ANULADO);
-                analisisRepository.save(analisis);
-            }
+        if (lote.getUltimoAnalisis() != null && lote.getUltimoAnalisis().getDictamen() == null) {
+            lote.getUltimoAnalisis().setDictamen(DictamenEnum.CANCELADO);
+            analisisRepository.save(lote.getUltimoAnalisis());
         }
 
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));

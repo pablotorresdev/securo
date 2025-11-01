@@ -24,6 +24,7 @@ import lombok.ToString;
 import static jakarta.persistence.CascadeType.MERGE;
 import static jakarta.persistence.CascadeType.PERSIST;
 
+/** Entidad: Movimiento de stock (ALTA/BAJA/MODIFICACION) con detalles por bulto. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

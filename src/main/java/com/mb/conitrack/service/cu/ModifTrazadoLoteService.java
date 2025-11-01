@@ -20,12 +20,13 @@ import static com.mb.conitrack.enums.DictamenEnum.LIBERADO;
 import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
 import static com.mb.conitrack.enums.MotivoEnum.TRAZADO;
 import static com.mb.conitrack.utils.LoteEntityUtils.addTrazasToLote;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
+import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoModificacion;
 
-//***********CU21 MODIFICACION: LIBERACION DE PRODUCTO***********
+/** CU28 - Trazado de Lote. Asigna números de traza únicos a unidades de venta. */
 @Service
 public class ModifTrazadoLoteService extends AbstractCuService {
 
+    /** Agrega trazas al lote UNIDAD_VENTA distribuyéndolas entre bultos. */
     @Transactional
     public LoteDTO persistirTrazadoLote(final MovimientoDTO dto) {
 

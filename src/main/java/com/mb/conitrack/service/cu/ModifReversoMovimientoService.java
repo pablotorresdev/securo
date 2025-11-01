@@ -8,17 +8,15 @@ import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
 import static com.mb.conitrack.enums.EstadoEnum.*;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoReverso;
+import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoReverso;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.sumarMovimientoConvertido;
 import static java.lang.Boolean.TRUE;
 
@@ -67,7 +65,16 @@ public class ModifReversoMovimientoService extends AbstractCuService {
                     if (movOrigen.getMotivo() == MotivoEnum.ANULACION_ANALISIS) {//CU11
                         return reversarAnulacionAnalisis(dto, movOrigen);
                     }
-                    if (movOrigen.getMotivo() == MotivoEnum.RETIRO_MERCADO) {//CU11
+                    if (movOrigen.getMotivo() == MotivoEnum.VENCIMIENTO) {//CU10
+                        throw new IllegalStateException(
+                                "No se puede reversar un vencimiento de lote (CU10). El vencimiento es un proceso automático irreversible.");
+                    }
+                    if (movOrigen.getMotivo() == MotivoEnum.EXPIRACION_ANALISIS) {//CU9
+                        // TODO: Verificar si CU9 (Análisis Expirado) debe ser reversible
+                        throw new IllegalStateException(
+                                "No se puede reversar una expiración de análisis (CU9). La expiración es un proceso automático.");
+                    }
+                    if (movOrigen.getMotivo() == MotivoEnum.RETIRO_MERCADO) {//CU24
                         throw new IllegalStateException(
                                 "El lote origen tiene un recall asociado, no se puede reversar el movimiento.");
                     }
@@ -95,12 +102,6 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         }
 
         return new LoteDTO();
-    }
-
-    public boolean validarReversoMovmientoInput(
-            final @Valid MovimientoDTO movimientoDTO,
-            final BindingResult bindingResult) {
-        return !bindingResult.hasErrors();
     }
 
     @Transactional
@@ -211,6 +212,12 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             }
             bultoRepository.saveAll(loteOrigen.getBultos());
             movimientoRepository.save(movReversoModifRecall);
+
+            if (loteOrigen.getUltimoAnalisis() != null && loteOrigen.getUltimoAnalisis().getDictamen() == DictamenEnum.CANCELADO) {
+                loteOrigen.getUltimoAnalisis().setDictamen(null);
+                analisisRepository.save(loteOrigen.getUltimoAnalisis());
+            }
+
             return DTOUtils.fromLoteEntity(loteRepository.save(loteOrigen));
         } else {
             return DTOUtils.fromLoteEntity(movRecallOrigen.getLote());
@@ -250,7 +257,6 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         loteRepository.save(loteAltaRecall);
     }
 
-
     @Transactional
     LoteDTO reversarAltaIngresoCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
         Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
@@ -289,56 +295,6 @@ public class ModifReversoMovimientoService extends AbstractCuService {
         return DTOUtils.fromLoteEntity(movOrigen.getLote());
     }
 
-    @Transactional
-    LoteDTO reversarAltaRetiroMercado(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
-        final Lote loteOrigen = movOrigen.getLote();
-        final List<Lote> lotesByLoteOrigen = loteRepository.findLotesByLoteOrigen(loteOrigen.getCodigoLote());
-        if (!lotesByLoteOrigen.isEmpty()) {
-            throw new IllegalStateException(
-                    "El lote origen tiene una devolucion asociada, no se puede reversar el movimiento.");
-        }
-
-        movimiento.setCantidad(movOrigen.getCantidad());
-        movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
-
-        final Set<DetalleMovimiento> detalles = movOrigen.getDetalles();
-
-        for (DetalleMovimiento detalleMovimiento : detalles) {
-            final Bulto bulto = detalleMovimiento.getBulto();
-            dto.setCantidad(detalleMovimiento.getCantidad());
-            dto.setUnidadMedida(detalleMovimiento.getUnidadMedida());
-            bulto.setCantidadActual(sumarMovimientoConvertido(dto, bulto));
-            if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
-                bulto.setEstado(NUEVO);
-            } else {
-                bulto.setEstado(EN_USO);
-            }
-            if (TRUE.equals(loteOrigen.getTrazado())) {
-                detalleMovimiento.getTrazas().forEach(t -> t.setEstado(EstadoEnum.DISPONIBLE));
-                trazaRepository.saveAll(detalleMovimiento.getTrazas());
-            }
-            bultoRepository.save(bulto);
-        }
-
-        dto.setCantidad(movOrigen.getCantidad());
-        dto.setUnidadMedida(movOrigen.getUnidadMedida());
-        loteOrigen.setCantidadActual(sumarMovimientoConvertido(dto, loteOrigen));
-
-        if (loteOrigen.getCantidadInicial().compareTo(loteOrigen.getCantidadActual()) == 0) {
-            loteOrigen.setEstado(NUEVO);
-        } else {
-            loteOrigen.setEstado(EN_USO);
-        }
-
-        detalles.forEach(d -> d.setActivo(false));
-        movOrigen.setActivo(false);
-        movimiento.setActivo(false);
-
-        movimientoRepository.save(movimiento);
-        movimientoRepository.save(movOrigen);
-        return DTOUtils.fromLoteEntity(loteRepository.save(loteOrigen));
-    }
 
     @Transactional
     LoteDTO reversarAnulacionAnalisis(final MovimientoDTO dto, final Movimiento movOrigen) {
@@ -406,6 +362,12 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             loteOrigen.setEstado(EN_USO);
         }
 
+        // Reverso CU28: Restaurar análisis si fue CANCELADO por el ajuste
+        if (loteOrigen.getUltimoAnalisis() != null && loteOrigen.getUltimoAnalisis().getDictamen() == DictamenEnum.CANCELADO) {
+            loteOrigen.getUltimoAnalisis().setDictamen(null);
+            analisisRepository.save(loteOrigen.getUltimoAnalisis());
+        }
+
         movOrigen.setActivo(false);
         movimiento.setActivo(false);
 
@@ -455,6 +417,11 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             lote.setEstado(NUEVO);
         } else {
             lote.setEstado(EN_USO);
+        }
+
+        if (lote.getUltimoAnalisis() != null && lote.getUltimoAnalisis().getDictamen() == DictamenEnum.CANCELADO) {
+            lote.getUltimoAnalisis().setDictamen(null);
+            analisisRepository.save(lote.getUltimoAnalisis());
         }
 
         movOrigen.setActivo(false);
@@ -576,6 +543,12 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             loteOrigen.setEstado(NUEVO);
         } else {
             loteOrigen.setEstado(EN_USO);
+        }
+
+        // Reverso CU22: Restaurar análisis si fue CANCELADO por la venta
+        if (loteOrigen.getUltimoAnalisis() != null && loteOrigen.getUltimoAnalisis().getDictamen() == DictamenEnum.CANCELADO) {
+            loteOrigen.getUltimoAnalisis().setDictamen(null);
+            analisisRepository.save(loteOrigen.getUltimoAnalisis());
         }
 
         detalles.forEach(d -> d.setActivo(false));

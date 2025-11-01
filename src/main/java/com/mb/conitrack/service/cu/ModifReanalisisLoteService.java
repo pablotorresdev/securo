@@ -15,7 +15,7 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 
 import static com.mb.conitrack.enums.MotivoEnum.ANALISIS;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoModificacion;
+import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoModificacion;
 
 //***********CU8 MODIFICACION: CU8 Reanalisis de Producto Aprobado***********
 @Service

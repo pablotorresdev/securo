@@ -23,7 +23,7 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoAjusteStock;
+import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoAjusteStock;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.restarMovimientoConvertido;
 import static java.lang.Integer.parseInt;
 
@@ -93,6 +93,14 @@ public class BajaAjusteStockService extends AbstractCuService {
         boolean todosConsumidos = lote.getBultos().stream()
             .allMatch(b -> b.getEstado() == CONSUMIDO);
         lote.setEstado(todosConsumidos ? CONSUMIDO : EN_USO);
+
+        // CU28: Cancelar análisis en curso si el lote queda sin stock (dictamen == null)
+        if (lote.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+            if (lote.getUltimoAnalisis() != null && lote.getUltimoAnalisis().getDictamen() == null) {
+                lote.getUltimoAnalisis().setDictamen(com.mb.conitrack.enums.DictamenEnum.CANCELADO);
+                analisisRepository.save(lote.getUltimoAnalisis());
+            }
+        }
 
         lote.getMovimientos().add(movimiento);
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));

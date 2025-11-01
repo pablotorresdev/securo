@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import static jakarta.persistence.CascadeType.MERGE;
 import static jakarta.persistence.CascadeType.PERSIST;
 
+/** Entidad: Lote de producto con trazabilidad, stock y análisis de calidad. */
 @Slf4j
 @Data
 @NoArgsConstructor

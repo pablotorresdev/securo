@@ -58,7 +58,7 @@ class MovimientoEntityUtilsTest {
         lote.getBultos().add(b2);
 
         // when
-        Movimiento mov = MovimientoEntityUtils.createMovimientoAltaIngresoCompra(lote);
+        Movimiento mov = MovimientoAltaUtils.createMovimientoAltaIngresoCompra(lote);
 
         // then
         assertNotNull(mov);

@@ -19,13 +19,14 @@ import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
 import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaVenta;
+import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoBajaVenta;
 import static java.lang.Boolean.TRUE;
 
-//***********CU22 BAJA: VENTA***********
+/** CU22 - Baja Venta Producto. Descuenta stock por venta a clientes. */
 @Service
 public class BajaVentaProductoService extends AbstractCuService {
 
+    /** Procesa venta de producto descontando stock y marcando trazas como VENDIDO. */
     @Transactional
     public LoteDTO bajaVentaProducto(final LoteDTO loteDTO) {
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(
@@ -68,6 +69,14 @@ public class BajaVentaProductoService extends AbstractCuService {
         boolean todosConsumidos = lote.getBultos().stream()
             .allMatch(b -> b.getEstado() == EstadoEnum.CONSUMIDO);
         lote.setEstado(todosConsumidos ? EstadoEnum.CONSUMIDO : EstadoEnum.EN_USO);
+
+        // CU22: Cancelar análisis en curso si el lote queda sin stock (dictamen == null)
+        if (lote.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+            if (lote.getUltimoAnalisis() != null && lote.getUltimoAnalisis().getDictamen() == null) {
+                lote.getUltimoAnalisis().setDictamen(com.mb.conitrack.enums.DictamenEnum.CANCELADO);
+                analisisRepository.save(lote.getUltimoAnalisis());
+            }
+        }
 
         if (loteTrazado) {
             loteDTO.getTrazaDTOs().addAll(movimiento.getDetalles()

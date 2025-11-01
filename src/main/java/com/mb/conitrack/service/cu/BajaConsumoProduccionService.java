@@ -17,7 +17,7 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
-import static com.mb.conitrack.utils.MovimientoEntityUtils.createMovimientoBajaProduccion;
+import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoBajaProduccion;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMayorUnidadMedida;
 import static java.lang.Boolean.TRUE;
@@ -81,6 +81,12 @@ public class BajaConsumoProduccionService extends AbstractCuService {
         }
         if (lote.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
             lote.setEstado(EstadoEnum.CONSUMIDO);
+
+            // CU7: Cancelar análisis en curso si el lote queda sin stock (dictamen == null)
+            if (lote.getUltimoAnalisis() != null && lote.getUltimoAnalisis().getDictamen() == null) {
+                lote.getUltimoAnalisis().setDictamen(com.mb.conitrack.enums.DictamenEnum.CANCELADO);
+                analisisRepository.save(lote.getUltimoAnalisis());
+            }
         } else {
             lote.setEstado(EstadoEnum.EN_USO);
         }

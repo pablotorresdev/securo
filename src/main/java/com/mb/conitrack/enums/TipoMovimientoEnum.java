@@ -1,5 +1,6 @@
 package com.mb.conitrack.enums;
 
+/** Tipo de movimiento de stock (ingreso, egreso o cambio de estado). */
 public enum TipoMovimientoEnum {
     ALTA("Alta"),
     BAJA("Baja"),

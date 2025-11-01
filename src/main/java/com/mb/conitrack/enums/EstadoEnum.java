@@ -3,10 +3,7 @@ package com.mb.conitrack.enums;
 import java.util.Arrays;
 import java.util.Optional;
 
-/**
- * Enum que representa los estados de un lote/bulto/traza respecto de su cantidad y los movimientos de Alta/Baja
- * relacionados.
- */
+/** Estados de lote/bulto/traza según cantidad y movimientos. */
 public enum EstadoEnum {
     NUEVO("Nuevo", 0), //Alta -> Cant inicial = actual
     DISPONIBLE("Disponible", 0), //Alta -> Cant inicial = actual Traza
