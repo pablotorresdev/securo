@@ -11,8 +11,11 @@ import org.junit.jupiter.api.Test;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -26,6 +29,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 class MovimientoEntityUtilsTest {
+
+    private User testUser;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+    }
 
     @Test
     @DisplayName("createMovimientoAltaIngresoCompra copia y calcula todos los campos correctamente")
@@ -58,7 +71,7 @@ class MovimientoEntityUtilsTest {
         lote.getBultos().add(b2);
 
         // when
-        Movimiento mov = MovimientoAltaUtils.createMovimientoAltaIngresoCompra(lote);
+        Movimiento mov = MovimientoAltaUtils.createMovimientoAltaIngresoCompra(lote, testUser);
 
         // then
         assertNotNull(mov);

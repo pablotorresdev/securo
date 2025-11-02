@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -20,9 +21,11 @@ import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import jakarta.validation.Valid;
 
@@ -34,6 +37,9 @@ import static java.lang.Boolean.TRUE;
 /** CU23 - Alta Devolución Venta. Procesa devoluciones de clientes creando lotes derivados. */
 @Service
 public class AltaDevolucionVentaService extends AbstractCuService {
+
+    @Autowired
+    private SecurityContextService securityContextService;
 
     private static Bulto initBulto(final Lote clone) {
         Bulto bulto = new Bulto();
@@ -47,13 +53,14 @@ public class AltaDevolucionVentaService extends AbstractCuService {
     /** Persiste devolución de venta creando lote derivado con sufijo _D_N. Maneja trazas. */
     @Transactional
     public List<LoteDTO> persistirDevolucionVenta(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
 
         final Lote loteVentaOrigen = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
         Lote loteAltaDevolucion = crearLoteDevolucion(loteVentaOrigen, dto);
 
-        final Movimiento movDevolucionVenta = createMovimientoAltaDevolucion(dto, loteAltaDevolucion);
+        final Movimiento movDevolucionVenta = createMovimientoAltaDevolucion(dto, loteAltaDevolucion, currentUser);
 
         final Movimiento movimientoOrigen = movimientoRepository.findByCodigoMovimientoAndActivoTrue(
                 dto.getCodigoMovimientoOrigen())

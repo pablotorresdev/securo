@@ -13,53 +13,14 @@ import com.mb.conitrack.enums.UnidadMedidaEnum;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.UNIDAD;
 import static com.mb.conitrack.enums.UnidadMedidaEnum.getUnidadesPorTipo;
 
-/**
- * Utility class for handling and converting between different units of measure.
- * <p>
- * This class provides static methods for:
- * <ul>
- *   <li>Converting quantities between compatible units (kg ↔ g, L ↔ mL, etc.)</li>
- *   <li>Finding minimum/maximum units between two compatible measures</li>
- *   <li>Calculating order of magnitude for BigDecimal values</li>
- *   <li>Applying movement conversions to lots and bultos</li>
- *   <li>Suggesting optimal units for displaying quantities</li>
- * </ul>
- * </p>
- * <p>
- * All conversions use the {@link UnidadMedidaEnum#getFactorConversion()} for calculations.
- * Note that conversions may introduce small floating-point precision errors due to
- * internal use of double arithmetic.
- * </p>
- * <p>
- * This is a utility class and cannot be instantiated.
- * </p>
- *
- * @see UnidadMedidaEnum
- */
+/** Conversión entre unidades de medida (masa, volumen, longitud, superficie). */
 public class UnidadMedidaUtils {
 
-    /**
-     * Private constructor to prevent instantiation of utility class.
-     *
-     * @throws UnsupportedOperationException always thrown when called
-     */
     private UnidadMedidaUtils() {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
-    /**
-     * Converts a quantity from a source unit to a compatible target unit.
-     * <p>
-     * If the units are the same, returns the quantity unchanged. Otherwise, performs
-     * conversion using the conversion factors from both units.
-     * </p>
-     *
-     * @param unidadOrigen  Source unit in which the quantity is expressed (must not be null)
-     * @param cantidad      Quantity to convert (must not be null)
-     * @param unidadDestino Target unit to convert to (must not be null)
-     * @return Quantity converted to the target unit
-     * @throws NullPointerException if any parameter is null
-     */
+    /** Convierte cantidad entre unidades compatibles usando factores de conversión. */
     public static BigDecimal convertirCantidadEntreUnidades(
         final UnidadMedidaEnum unidadOrigen,
         final BigDecimal cantidad,
@@ -76,18 +37,7 @@ public class UnidadMedidaUtils {
         return cantidad.multiply(BigDecimal.valueOf(factorOrigen / factorDestino));
     }
 
-    /**
-     * Returns the smaller (lower magnitude) unit between two units of the same type.
-     * <p>
-     * The smaller unit is the one with the lower conversion factor (e.g., mg is smaller than g).
-     * </p>
-     *
-     * @param unidadUno First unit to compare (must not be null)
-     * @param unidadDos Second unit to compare (must not be null)
-     * @return The unit with lower magnitude (lower conversion factor)
-     * @throws NullPointerException     if any parameter is null
-     * @throws IllegalArgumentException if the units are not of the same type (mass, volume, etc.)
-     */
+    /** Obtiene la unidad menor (menor factor de conversión) entre dos unidades del mismo tipo. */
     public static UnidadMedidaEnum obtenerMenorUnidadMedida(
         final UnidadMedidaEnum unidadUno,
         final UnidadMedidaEnum unidadDos) {
@@ -107,18 +57,7 @@ public class UnidadMedidaUtils {
         }
     }
 
-    /**
-     * Returns the larger (higher magnitude) unit between two units of the same type.
-     * <p>
-     * The larger unit is the one with the higher conversion factor (e.g., kg is larger than g).
-     * </p>
-     *
-     * @param unidadUno First unit to compare (must not be null)
-     * @param unidadDos Second unit to compare (must not be null)
-     * @return The unit with higher magnitude (higher conversion factor)
-     * @throws NullPointerException     if any parameter is null
-     * @throws IllegalArgumentException if the units are not of the same type (mass, volume, etc.)
-     */
+    /** Obtiene la unidad mayor (mayor factor de conversión) entre dos unidades del mismo tipo. */
     public static UnidadMedidaEnum obtenerMayorUnidadMedida(
         final UnidadMedidaEnum unidadUno,
         final UnidadMedidaEnum unidadDos) {
@@ -138,16 +77,7 @@ public class UnidadMedidaUtils {
         }
     }
 
-    /**
-     * Calcula la "potencia" base 10 de una cantidad, útil para evaluar magnitudes en logaritmo base 10 sin usar
-     * funciones logarítmicas.
-     * <p>
-     * Por ejemplo, para 1234 -> devuelve 3 (es decir, 10^3).
-     *
-     * @param value Valor a evaluar.
-     *
-     * @return Potencia base 10 correspondiente al orden de magnitud de la cantidad.
-     */
+    /** Calcula orden de magnitud base 10 (ej: 1234 -> 3). */
     public static int ordenDeMagnitudBase10(BigDecimal value) {
         if (value == null || BigDecimal.ZERO.compareTo(value) == 0) {
             return 0;
@@ -157,17 +87,7 @@ public class UnidadMedidaUtils {
         return precision - scale - 1;
     }
 
-    /**
-     * Subtracts a movement quantity from a lot's current quantity, converting units as needed.
-     * <p>
-     * The movement's quantity is converted from its unit to the lot's unit before subtraction.
-     * </p>
-     *
-     * @param dto  Movement to apply, expressed in its own unit (must not be null)
-     * @param lote Affected lot with its current quantity and unit (must not be null)
-     * @return New resulting quantity for the lot after the movement
-     * @throws NullPointerException if any parameter is null
-     */
+    /** Resta cantidad de movimiento a lote (convirtiendo unidades automáticamente). */
     public static BigDecimal restarMovimientoConvertido(final MovimientoDTO dto, final Lote lote) {
         Objects.requireNonNull(dto, "dto cannot be null");
         Objects.requireNonNull(lote, "lote cannot be null");
@@ -182,17 +102,7 @@ public class UnidadMedidaUtils {
         return cantidadLote.subtract(cantidadDtoConvertida);
     }
 
-    /**
-     * Adds a movement quantity to a lot's current quantity, converting units as needed.
-     * <p>
-     * The movement's quantity is converted from its unit to the lot's unit before addition.
-     * </p>
-     *
-     * @param dto  Movement to apply, expressed in its own unit (must not be null)
-     * @param lote Affected lot with its current quantity and unit (must not be null)
-     * @return New resulting quantity for the lot after the movement
-     * @throws NullPointerException if any parameter is null
-     */
+    /** Suma cantidad de movimiento a lote (convirtiendo unidades automáticamente). */
     public static BigDecimal sumarMovimientoConvertido(final MovimientoDTO dto, final Lote lote) {
         Objects.requireNonNull(dto, "dto cannot be null");
         Objects.requireNonNull(lote, "lote cannot be null");

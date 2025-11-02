@@ -13,6 +13,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 
+/** Entidad: Detalle de movimiento que relaciona movimiento con bulto específico. */
 @Entity
 @Table(name = "detalle_movimientos")
 @lombok.Getter

@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entidad: Producto maestro (materia prima, insumo o unidad de venta). */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

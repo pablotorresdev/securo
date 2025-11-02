@@ -192,57 +192,123 @@ X \- PROCESO AUTOMÁTICO
 
 Este caso de uso ocurre cuando ingresan nuevos materiales al stock desde un proveedor externo.
 
-**Pre-condiciónes**
+**Referencia:** Ver documentación detallada en [CU1_ALTA_INGRESO_COMPRA.md](./docs/cu/CU1_ALTA_INGRESO_COMPRA.md)
 
-La información de los proveedores debe estar actualizada y registrada en el sistema.
+**Pre-condiciones**
 
-Los productos que se ingresarán deben estar configurados en el sistema con toda la información necesaria (códigos, descripciones, unidad de medida, etc.).
-
-Si no se cumplen, ejecutar el flujo alternativo correspondiente (ver más abajo).
+1. **Producto** debe existir en el sistema con tipo: API, EXCIPIENTE, ACOND_PRIMARIO, ACOND_SECUNDARIO (NO puede ser SEMIELABORADO ni UNIDAD_VENTA)
+2. **Proveedor** debe existir en el sistema y NO puede ser Conifarma (proveedor interno)
+3. **Fabricante** es opcional (si no se especifica, se usa el proveedor)
+4. Si no se cumplen estas condiciones, ejecutar el flujo alternativo correspondiente (ver más abajo)
 
 **Flujo del proceso**
 
-**Usuario:** B \- Analista de planta
+**Usuario:** B - Analista de planta
 
 **Carga de Datos**
 
 | CAMPO | OBLIGATORIO | VALOR | VALIDACIÓN e INFO | FORMATO |
 | ----- | ----- | ----- | ----- | ----- |
-| Tipo de movimiento |  | ALTA |  |  |
-| Motivo |  | COMPRA |  |  |
-| Dictamen |  | RECIBIDO |  |  |
-| Estado |  | NUEVO | **IMPLEMENTADO** |  |
-| Fecha de ingreso | SI | Fecha | *No superior a hoy*  | DD/MM/AAAA |
-| ID Producto (Código) | SI | Cuadro de búsqueda | *No SemiElab/U. D Vta* | Referencia a tabla Producto |
-| Proveedor | SI | Cuadro de búsqueda | No Conifarma | Ref \-\> Proveedores |
-| Cantidad  | SI |  | No negativo No cero No vacio | Numérico, flotante (según unidad de Medida) |
-| Unidad de medida | SI | Default el del producto | Convertible a U. de Medida default del producto | Ref tabla Unidad medida |
-| Lote proveedor | SI |  | Definido por proveedor | Texto |
-| Detalle de conservación |  |  |  | Texto |
-| Numero de bulto | SI |  | \[1..cant bultos totales\] | Entero positivo, (Ej. 1\) |
-| Cantidad de bultos totales | SI |  | \[1..n\] | Entero positivo (TOTAL Ej. 3\) |
-| Fabricante |  | Cuadro de búsqueda | No Conifarma | Ref \-\> Proveedores |
-| Pais de origen |  | Cuadro de búsqueda |  |  |
-| Fecha de reanalisis |  |     | No menor a X tiempo | DD/MM/AAAA |
-| Fecha de vencimiento |  |  | No menor a X tiempo | DD/MM/AAAA |
-| Observaciones |  | texto |  | Alfanumérico 300 caracteres |
-| Número de remito/factura |  | Texto | **IMPLEMENTADO**: nroRemito campo en Lote | Alfanumérico, 30 caracteres |
+| Tipo de movimiento |  | ALTA | Generado automáticamente |  |
+| Motivo |  | COMPRA | Generado automáticamente |  |
+| Dictamen |  | RECIBIDO | Generado automáticamente |  |
+| Estado |  | NUEVO | Generado automáticamente |  |
+| Fecha de ingreso | SI | Fecha | No superior a hoy | DD/MM/AAAA |
+| ID Producto (Código) | SI | Cuadro de búsqueda | No SemiElab/U. D Vta | Referencia a tabla Producto |
+| Proveedor | SI | Cuadro de búsqueda | No Conifarma | Ref -> Proveedores |
+| Cantidad  | SI | Numérico | > 0, Entero si UNIDAD, >= bultos totales | Numérico, flotante (según unidad de Medida) |
+| Unidad de medida | SI | Default del producto | Convertible a U. de Medida default del producto | Ref tabla Unidad medida |
+| Lote proveedor | SI | Texto | Definido por proveedor | Texto |
+| Detalle de conservación | NO | Texto |  | Texto |
+| Numero de bulto | SI |  | [1..cant bultos totales] | Entero positivo, (Ej. 1) |
+| Cantidad de bultos totales | SI |  | [1..n] | Entero positivo (TOTAL Ej. 3) |
+| Cantidades por bulto | CONDICIONAL | Arreglo | Si bultos > 1: suma debe coincidir con cantidad total (tolerancia 6 decimales) | Numérico |
+| Unidades por bulto | CONDICIONAL | Arreglo | Si bultos > 1: convertibles entre sí | Ref tabla Unidad medida |
+| Fabricante | NO | Cuadro de búsqueda | No Conifarma | Ref -> Proveedores |
+| País de origen | NO | Cuadro de búsqueda | Si vacío: DTO > Fabricante > Proveedor | Lista ISO países |
+| Fecha de reanálisis | NO | Fecha | Si existe vencimiento: debe ser anterior a vencimiento | DD/MM/AAAA |
+| Fecha de vencimiento | NO | Fecha | Si existe reanálisis: debe ser posterior a reanálisis | DD/MM/AAAA |
+| Observaciones | NO | texto |  | Alfanumérico 300 caracteres |
+| Número de remito/factura | NO | Texto | nroRemito campo en Lote | Alfanumérico, 30 caracteres |
+
+**Validaciones Detalladas**
+
+Ver tabla completa de 15 validaciones en [CU1_ALTA_INGRESO_COMPRA.md](./docs/cu/CU1_ALTA_INGRESO_COMPRA.md#validaciones)
+
+1. **JSR-303 (12 validaciones):** @NotNull, @Positive, @Size, etc.
+2. **Custom Business (3 validaciones):** cantidades, fechas, bultos
+3. **Total:** 15 verificaciones ejecutadas antes de persistencia
+
+**Generación Automática**
+
+- **Código de lote:** `L-{codigoProducto}-{timestamp}` (formato: `yy.MM.dd_HH.mm.ss`)
+- **Estado inicial:** NUEVO
+- **Dictamen inicial:** RECIBIDO
+- **Bultos:** Creados con numeración secuencial [1..n]
+- **Movimiento:** ALTA/COMPRA asociado al lote
+
+**Reglas de Negocio Implementadas**
+
+1. **País de origen:** Prioridad DTO > Fabricante > Proveedor
+2. **Bulto único:** Si bultosTotales = 1, cantidad se asigna al único bulto
+3. **Múltiples bultos:** Suma convertida debe coincidir (tolerancia: 6 decimales)
+4. **Unidad UNIDAD:** Debe ser entero y >= bultosTotales
+5. **Conversiones:** Automáticas entre unidades compatibles (factor conversión)
 
 **Flujos alternativos**
 
 **Pre-condición Proveedor NO existe**
 
-Escalar a **Supervisor/Analista** de planta para dar de alta el **Proveedor** (el aviso se dará fuera del sistema).  Se deberá ejecutar el **CU30** previamente y luego el usuario vuelve a iniciar el Caso de Uso.
+Escalar a **Supervisor/Analista** de planta para dar de alta el **Proveedor** (el aviso se dará fuera del sistema). Se deberá ejecutar el **CU30** previamente y luego el usuario vuelve a iniciar el Caso de Uso.
 
 **Pre-condición Producto NO existe**
 
 Escalar a **Gerencia Calidad** para dar de alta el **Producto** (el aviso se dará fuera del sistema). Se deberá ejecutar el **CU31** previamente y luego el usuario vuelve a iniciar el Caso de Uso.
 
-**Post-condiciónes**
+**Post-condiciones**
 
-El inventario debe reflejar el **alta** de stock y debe existir el movimiento de **Alta** asociado.
+1. **Lote creado:** Con código único, estado NUEVO, dictamen RECIBIDO
+2. **Bultos creados:** De 1 a n bultos con numeración secuencial
+3. **Movimiento creado:** Tipo ALTA, motivo COMPRA, activo=true
+4. **DetalleMovimiento:** Uno por cada bulto, relacionado bidireccionalmente
+5. **Inventario actualizado:** Cantidad inicial = cantidad actual
+6. **Persistencia transaccional:** Lote, Bultos, Movimiento guardados en orden
 
-**IMPLEMENTACIÓN REAL**: El sistema crea UN SOLO LOTE por operación con múltiples BULTOS (no múltiples lotes). Cada bulto del lote tiene su propio nroBulto. El código de lote generado tiene formato: `L-{productoCode}-{timestamp}`.
+**Ejemplo de Resultado**
+
+```json
+{
+  "codigoLote": "L-API-001-25.01.15_10.30.45",
+  "estado": "NUEVO",
+  "dictamen": "RECIBIDO",
+  "cantidadInicial": 100.0,
+  "cantidadActual": 100.0,
+  "unidadMedida": "KILOGRAMO",
+  "bultosTotales": 3,
+  "bultos": [
+    {"nroBulto": 1, "cantidad": 50.0, "unidad": "KILOGRAMO"},
+    {"nroBulto": 2, "cantidad": 30.0, "unidad": "KILOGRAMO"},
+    {"nroBulto": 3, "cantidad": 20.0, "unidad": "KILOGRAMO"}
+  ],
+  "producto": {"id": 1, "codigo": "API-001", "nombre": "Paracetamol"},
+  "proveedor": {"id": 5, "razonSocial": "Sigma-Aldrich", "pais": "Alemania"},
+  "paisOrigen": "Alemania"
+}
+```
+
+**Siguiente CU Permitido**
+
+- CU2 (Cuarentena) - Flujo normal
+- CU4 (Devolución Compra) - Si hay error
+- CU28 (Ajuste) - Corrección
+- CU29 (Reverso) - Anular ingreso
+
+**Componentes Técnicos**
+
+- **Service:** `AltaIngresoCompraService.java`
+- **Controller:** `LoteController.java`
+- **Utils:** `LoteEntityUtils.java`, `MovimientoAltaUtils.java`
+- **Tests:** `AltaIngresoCompraServiceTest.java` (17 tests de integración)
 
 **Deseable:** Se debe enviar mail con documentación escaneada para notificar a las partes interesadas, como el departamento de Calidad, ventas y el de producción, informándoles sobre la actualización del inventario. Estos avisos se manejan por fuera del sistema.
 

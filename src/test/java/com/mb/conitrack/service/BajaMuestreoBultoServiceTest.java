@@ -17,6 +17,9 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.repository.AnalisisRepository;
 import com.mb.conitrack.repository.LoteRepository;
@@ -31,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -55,8 +59,22 @@ class BajaMuestreoBultoServiceTest {
     @Mock
     TrazaRepository trazaRepository;
 
+    @Mock
+    SecurityContextService securityContextService;
+
     @InjectMocks
     BajaMuestreoBultoService muestreoBultoService;
+
+    private User testUser;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+        lenient().when(securityContextService.getCurrentUser()).thenReturn(testUser);
+    }
 
     @Test
     @DisplayName("crearMovmimientoConAnalisisDictaminado: nro distinto -> IllegalArgumentException")
@@ -75,7 +93,7 @@ class BajaMuestreoBultoServiceTest {
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> muestreoBultoService.crearMovmimientoMuestreoConAnalisisDictaminado(dto, b)
+            () -> muestreoBultoService.crearMovmimientoMuestreoConAnalisisDictaminado(dto, b, testUser)
         );
         assertEquals("El número de análisis no coincide con el análisis en curso", ex.getMessage());
 
@@ -104,7 +122,7 @@ class BajaMuestreoBultoServiceTest {
             .thenAnswer(inv -> inv.getArgument(0));
 
         // when
-        Movimiento out = muestreoBultoService.crearMovmimientoMuestreoConAnalisisDictaminado(dto, b);
+        Movimiento out = muestreoBultoService.crearMovmimientoMuestreoConAnalisisDictaminado(dto, b, testUser);
 
         // then
         assertNotNull(out);
@@ -129,7 +147,7 @@ class BajaMuestreoBultoServiceTest {
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> muestreoBultoService.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.of(enCurso))
+            () -> muestreoBultoService.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.of(enCurso), testUser)
         );
         assertEquals("El número de análisis no coincide con el análisis en curso", ex.getMessage());
 
@@ -151,7 +169,7 @@ class BajaMuestreoBultoServiceTest {
             .thenAnswer(inv -> inv.getArgument(0));
 
         // when
-        Movimiento out = muestreoBultoService.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.of(enCurso));
+        Movimiento out = muestreoBultoService.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.of(enCurso), testUser);
 
         // then
         assertNotNull(out);
@@ -173,7 +191,7 @@ class BajaMuestreoBultoServiceTest {
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
-            () -> muestreoBultoService.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.empty())
+            () -> muestreoBultoService.crearMovimientoMuestreoConAnalisisEnCurso(dto, b, Optional.empty(), testUser)
         );
         assertEquals("El número de análisis esta vacio", ex.getMessage());
 

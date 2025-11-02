@@ -1,5 +1,8 @@
 package com.mb.conitrack.entity.maestro;
 
+import java.time.LocalDate;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,10 +37,29 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @Column(name = "fecha_expiracion")
+    private LocalDate fechaExpiracion;
+
     public User(String username, String password, Role role) {
         this.username = username;
         this.password = password;
         this.role = role;
+    }
+
+    /**
+     * Verifica si el usuario ha expirado.
+     * @return true si tiene fecha de expiración y ya pasó
+     */
+    public boolean isExpired() {
+        return fechaExpiracion != null && LocalDate.now().isAfter(fechaExpiracion);
+    }
+
+    /**
+     * Verifica si el usuario es un AUDITOR.
+     * @return true si el rol es AUDITOR
+     */
+    public boolean isAuditor() {
+        return role != null && "AUDITOR".equals(role.getName());
     }
 
 }

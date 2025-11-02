@@ -13,8 +13,11 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -26,6 +29,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MovimientoAltaUtilsTest {
+
+    private User testUser;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+    }
 
     @Test
     @DisplayName("Constructor lanza UnsupportedOperationException")
@@ -52,7 +65,7 @@ class MovimientoAltaUtilsTest {
         lote.setObservaciones("Lote de prueba");
 
         // when
-        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaIngresoCompra(lote);
+        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaIngresoCompra(lote, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -74,7 +87,7 @@ class MovimientoAltaUtilsTest {
     void createMovimientoAltaIngresoCompra_loteNull_lanzaExcepcion() {
         // when & then
         assertThrows(NullPointerException.class, () ->
-            MovimientoAltaUtils.createMovimientoAltaIngresoCompra(null)
+            MovimientoAltaUtils.createMovimientoAltaIngresoCompra(null, testUser)
         );
     }
 
@@ -92,7 +105,7 @@ class MovimientoAltaUtilsTest {
         lote.setObservaciones("Producción interna");
 
         // when
-        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaIngresoProduccion(lote);
+        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaIngresoProduccion(lote, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -106,7 +119,7 @@ class MovimientoAltaUtilsTest {
     void createMovimientoAltaIngresoProduccion_loteNull_lanzaExcepcion() {
         // when & then
         assertThrows(NullPointerException.class, () ->
-            MovimientoAltaUtils.createMovimientoAltaIngresoProduccion(null)
+            MovimientoAltaUtils.createMovimientoAltaIngresoProduccion(null, testUser)
         );
     }
 
@@ -128,7 +141,7 @@ class MovimientoAltaUtilsTest {
         lote.setCodigoLote("LOT-DEV-01");
 
         // when
-        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaDevolucion(dto, lote);
+        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaDevolucion(dto, lote, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -149,7 +162,7 @@ class MovimientoAltaUtilsTest {
 
         // when & then
         assertThrows(NullPointerException.class, () ->
-            MovimientoAltaUtils.createMovimientoAltaDevolucion(null, lote)
+            MovimientoAltaUtils.createMovimientoAltaDevolucion(null, lote, testUser)
         );
     }
 
@@ -161,7 +174,7 @@ class MovimientoAltaUtilsTest {
 
         // when & then
         assertThrows(NullPointerException.class, () ->
-            MovimientoAltaUtils.createMovimientoAltaDevolucion(dto, null)
+            MovimientoAltaUtils.createMovimientoAltaDevolucion(dto, null, testUser)
         );
     }
 
@@ -181,7 +194,7 @@ class MovimientoAltaUtilsTest {
         lote.setCodigoLote("LOT-RECALL-01");
 
         // when
-        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaRecall(dto, lote);
+        Movimiento movimiento = MovimientoAltaUtils.createMovimientoAltaRecall(dto, lote, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -198,7 +211,7 @@ class MovimientoAltaUtilsTest {
 
         // when & then
         assertThrows(NullPointerException.class, () ->
-            MovimientoAltaUtils.createMovimientoAltaRecall(null, lote)
+            MovimientoAltaUtils.createMovimientoAltaRecall(null, lote, testUser)
         );
     }
 
@@ -210,7 +223,7 @@ class MovimientoAltaUtilsTest {
 
         // when & then
         assertThrows(NullPointerException.class, () ->
-            MovimientoAltaUtils.createMovimientoAltaRecall(dto, null)
+            MovimientoAltaUtils.createMovimientoAltaRecall(dto, null, testUser)
         );
     }
 

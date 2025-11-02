@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -18,8 +19,10 @@ import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
@@ -31,15 +34,19 @@ import static java.lang.Integer.parseInt;
 @Service
 public class BajaAjusteStockService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     @Transactional
     public LoteDTO bajaAjusteStock(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
         final Bulto bulto = lote.getBultoByNro(parseInt(dto.getNroBulto()));
 
-        final Movimiento movimiento = persistirMovimientoAjuste(dto, bulto);
+        final Movimiento movimiento = persistirMovimientoAjuste(dto, bulto, currentUser);
 
         bulto.setCantidadActual(restarMovimientoConvertido(dto, bulto));
         lote.setCantidadActual(restarMovimientoConvertido(dto, lote));
@@ -107,8 +114,8 @@ public class BajaAjusteStockService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoAjuste(final MovimientoDTO dto, Bulto bulto) {
-        return movimientoRepository.save(createMovimientoAjusteStock(dto, bulto));
+    public Movimiento persistirMovimientoAjuste(final MovimientoDTO dto, Bulto bulto, User currentUser) {
+        return movimientoRepository.save(createMovimientoAjusteStock(dto, bulto, currentUser));
     }
 
     @Transactional

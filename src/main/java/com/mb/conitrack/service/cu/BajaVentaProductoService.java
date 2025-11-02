@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -15,8 +16,10 @@ import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.enums.EstadoEnum.VENDIDO;
 import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoBajaVenta;
@@ -26,9 +29,14 @@ import static java.lang.Boolean.TRUE;
 @Service
 public class BajaVentaProductoService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     /** Procesa venta de producto descontando stock y marcando trazas como VENDIDO. */
     @Transactional
     public LoteDTO bajaVentaProducto(final LoteDTO loteDTO) {
+        User currentUser = securityContextService.getCurrentUser();
+
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(
                 loteDTO.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -37,7 +45,7 @@ public class BajaVentaProductoService extends AbstractCuService {
         final List<Integer> nroBultoList = loteDTO.getNroBultoList();
         final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
 
-        final Movimiento movimiento = persistirMovimientoBajaVenta(loteDTO, lote);
+        final Movimiento movimiento = persistirMovimientoBajaVenta(loteDTO, lote, currentUser);
 
         for (int i = 0; i < nroBultoList.size(); i++) {
 
@@ -90,9 +98,9 @@ public class BajaVentaProductoService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoBajaVenta(final LoteDTO loteDTO, final Lote loteEntity) {
+    public Movimiento persistirMovimientoBajaVenta(final LoteDTO loteDTO, final Lote loteEntity, User currentUser) {
         final boolean loteTrazado = TRUE.equals(loteEntity.getTrazado());
-        final Movimiento movimiento = createMovimientoBajaVenta(loteDTO, loteEntity);
+        final Movimiento movimiento = createMovimientoBajaVenta(loteDTO, loteEntity, currentUser);
 
         BigDecimal cantidad = BigDecimal.ZERO;
         for (int i = 0; i < loteDTO.getCantidadesBultos().size(); i++) {

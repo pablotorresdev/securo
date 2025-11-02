@@ -23,7 +23,7 @@
         <br>
         <h5 class="mb-3 text-primary">Compras</h5>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU1_INGRESO_COMPRA)} ? 'disabled' : ''"
                th:href="@{/compras/alta/ingreso-compra}">
                 CU1 - Ingreso de Lote por Compra [Analista de planta]
             </a>
@@ -31,7 +31,7 @@
 
         <!-- NUEVO: CU4 Devolución de Compra -->
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU4_DEVOLUCION_COMPRA)} ? 'disabled' : ''"
                th:href="@{/compras/baja/devolucion-compra}">
                 CU4 - Devolución de Compra [Analista de planta]
             </a>
@@ -40,7 +40,7 @@
         <br>
         <h5 class="mb-3 text-primary">Calidad</h5>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU2_DICTAMEN_CUARENTENA)} ? 'disabled' : ''"
                th:href="@{/calidad/dictamen/cuarentena}">
                 CU2 - Dictamen: Cuarentena [Analista control de calidad]
             </a>
@@ -48,37 +48,37 @@
 
         <!-- CU3 Retiro por Muestreo -->
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU3_MUESTREO_MULTI_BULTO)} ? 'disabled' : ''"
                th:href="@{/calidad/baja/muestreo-multi-bulto}">
                 CU3 - Retiro por Muestreo Multi Bulto [Analista control de calidad]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU5_CU6_RESULTADO_ANALISIS)} ? 'disabled' : ''"
                th:href="@{/calidad/analisis/resultado-analisis}">
                 CU5/CU6. Resultado QA: Aprobado/Rechazado [Gerente control de calidad]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU8_REANALISIS)} ? 'disabled' : ''"
                th:href="@{/calidad/reanalisis/inicio-reanalisis}">
                 CU8. Reanalisis de Producto Aprobado [Gerente control de calidad]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU3_MUESTREO_TRAZABLE)} ? 'disabled' : ''"
                th:href="@{/calidad/baja/muestreo-trazable}">
                 CU3 - Retiro por Muestreo Trazable [Analista control de calidad]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU9_CU10_FECHAS_AUTOMATICO)} ? 'disabled' : ''"
                th:href="@{/lotes/list-fechas-lotes}">
                 CU9/CU10 [AUTOMATICO] -> Consulta Fecha Reanalisis / Vencimiento [A DEFINIR]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU11_ANULACION_ANALISIS)} ? 'disabled' : ''"
                th:href="@{/calidad/anulacion/anulacion-analisis}">
                 CU11. Anulacion analisis [Gerente control de calidad]
             </a>
@@ -87,13 +87,13 @@
         <br>
         <h5 class="mb-3 text-primary">Produccion</h5>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU7_CONSUMO_PRODUCCION)} ? 'disabled' : ''"
                th:href="@{/produccion/baja/consumo-produccion}">
                 CU7. Consumo de Producción [Supervisor de planta]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU20_INGRESO_PRODUCCION)} ? 'disabled' : ''"
                th:href="@{/produccion/alta/ingreso-produccion}">
                 CU20. Ingreso de stock por Producción Interna [Supervisor de planta]
             </a>
@@ -101,31 +101,31 @@
         <br>
         <h5 class="mb-3 text-primary">Ventas</h5>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU27_TRAZADO)} ? 'disabled' : ''"
                th:href="@{/ventas/trazado/inicio-trazado}">
                 CU27. Trazado Unidad de venta [Gerente garantía de calidad/DT]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU21_LIBERACION_VENTA)} ? 'disabled' : ''"
                th:href="@{/ventas/liberacion/inicio-liberacion}">
                 CU21. Liberación Unidad de venta [Gerente garantía de calidad/DT]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU22_VENTA_PRODUCTO)} ? 'disabled' : ''"
                th:href="@{/ventas/baja/venta-producto}">
                 CU22. Venta de Producto Propio [Analista de planta]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU23_DEVOLUCION_VENTA)} ? 'disabled' : ''"
                th:href="@{/ventas/alta/devolucion-venta}">
                 CU23. Devolución de cliente [Gerente garantía de calidad]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU24_RETIRO_MERCADO)} ? 'disabled' : ''"
                th:href="@{/ventas/recall/retiro-mercado}">
                 CU24. Retiro de mercado [Gerente garantía de calidad]
             </a>
@@ -133,13 +133,13 @@
         <br>
         <h5 class="mb-3 text-primary">Contingencias</h5>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU25_AJUSTE_INVENTARIO)} ? 'disabled' : ''"
                th:href="@{/contingencias/ajuste-stock}">
                 CU25. Ajuste de Inventario [Supervisor de planta]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU26_REVERSO_MOVIMIENTO)} ? 'disabled' : ''"
                th:href="@{/contingencias/reverso-movimiento}">
                 CU26. Reverso de Ultimo Movimiento [ADMIN / ROLE ORIGINAL O SUPERIOR]
             </a>
@@ -147,32 +147,32 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Consultas</h4>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_LOTES)} ? 'disabled' : ''"
                th:href="@{/lotes/list-lotes}">
                 Lista de Lotes
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_BULTOS)} ? 'disabled' : ''"
                th:href="@{/bultos/list-bultos}">
                 Lista de Bultos
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_MOVIMIENTOS)} ? 'disabled' : ''"
                th:href="@{/movimientos/list-movimientos}">
                 Lista de Movimientos
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_ANALISIS)} ? 'disabled' : ''"
                th:href="@{/analisis/list-analisis}">
                 Lista de Analisis
             </a>
         </li>
 
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_TRAZAS)} ? 'disabled' : ''"
                th:href="@{/trazas/list-trazas}">
                 Lista de Trazas
             </a>
@@ -181,13 +181,13 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">ABM Maestro</h4>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU30_ABM_PROVEEDORES)} ? 'disabled' : ''"
                th:href="@{/proveedores/}">
                 CU30. ABM Proveedores [Analista de planta]
             </a>
         </li>
         <li>
-            <a th:classappend="${#authorization.expression('!hasRole(''ADMIN'')')} ? 'disabled' : ''"
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU31_ABM_PRODUCTOS)} ? 'disabled' : ''"
                th:href="@{/productos/}">
                 CU31. ABM Productos [Gerente control de calidad]
             </a>
@@ -196,11 +196,14 @@
         <hr class="my-4">
         <h4 class="mb-3 text-primary">Admin</h4>
         <li>
-            <a class="disabled" href="javascript:void(0);">
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU32_CONFIGURACION_SISTEMA)} ? 'disabled' : ''"
+               th:href="@{/admin/configuracion}">
                 CU32. Configuración del sistema [Admin]
             </a>
-        </li>        <li>
-            <a class="disabled" href="javascript:void(0);">
+        </li>
+        <li>
+            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU33_ABM_USUARIOS)} ? 'disabled' : ''"
+               th:href="@{/users/list-users}">
                 CU33. ABM Usuarios [Admin]
             </a>
         </li>

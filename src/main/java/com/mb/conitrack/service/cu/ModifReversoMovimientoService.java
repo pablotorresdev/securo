@@ -4,10 +4,14 @@ import com.mb.conitrack.dto.DTOUtils;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.*;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
+import com.mb.conitrack.service.ReversoAuthorizationService;
+import com.mb.conitrack.service.SecurityContextService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +28,16 @@ import static java.lang.Boolean.TRUE;
 @Service
 public class ModifReversoMovimientoService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
+    @Autowired
+    private ReversoAuthorizationService reversoAuthorizationService;
+
     @Transactional
     public LoteDTO persistirReversoMovmiento(final MovimientoDTO dto) {
+        // Obtener usuario actual del contexto de seguridad
+        User currentUser = securityContextService.getCurrentUser();
 
         final List<Movimiento> allByCodigoMovimiento = movimientoRepository
                 .findAllByCodigoMovimiento(dto.getCodigoMovimientoOrigen());
@@ -34,36 +46,39 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             throw new IllegalArgumentException("El Movimmiento no existe.");
         } else if (allByCodigoMovimiento.size() == 1) {
             final Movimiento movOrigen = allByCodigoMovimiento.get(0);
+
+            // VALIDACIÓN DE AUTORIZACIÓN: Verificar si el usuario puede reversar
+            reversoAuthorizationService.validarPermisoReverso(movOrigen, currentUser);
             switch (movOrigen.getTipoMovimiento()) {
                 case ALTA -> {
                     if (movOrigen.getMotivo() == MotivoEnum.COMPRA) { //CU1
-                        return reversarAltaIngresoCompra(dto, movOrigen);
+                        return reversarAltaIngresoCompra(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.PRODUCCION_PROPIA) { //CU20
-                        return reversarAltaIngresoProduccion(dto, movOrigen);
+                        return reversarAltaIngresoProduccion(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_VENTA) { //CU23
-                        return reversarAltaDevolucionVenta(dto, movOrigen);
+                        return reversarAltaDevolucionVenta(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.RETIRO_MERCADO) { //CU23
-                        return reversarRetiroMercado(dto, movOrigen);
+                        return reversarRetiroMercado(dto, movOrigen, currentUser);
                     }
                 }
                 case MODIFICACION -> {
                     if (movOrigen.getMotivo() == MotivoEnum.ANALISIS) { //CU2/CU8?
-                        return reversarModifDictamenCuarentena(dto, movOrigen);
+                        return reversarModifDictamenCuarentena(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.RESULTADO_ANALISIS) { //CU5/6
-                        return reversarModifResultadoAnalisis(dto, movOrigen);
+                        return reversarModifResultadoAnalisis(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.LIBERACION) { //CU21
-                        return reversarModifLiberacionProducto(dto, movOrigen);
+                        return reversarModifLiberacionProducto(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.TRAZADO) { //CU27
-                        return reversarModifTrazadoLote(dto, movOrigen);
+                        return reversarModifTrazadoLote(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.ANULACION_ANALISIS) {//CU11
-                        return reversarAnulacionAnalisis(dto, movOrigen);
+                        return reversarAnulacionAnalisis(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.VENCIMIENTO) {//CU10
                         throw new IllegalStateException(
@@ -81,19 +96,19 @@ public class ModifReversoMovimientoService extends AbstractCuService {
                 }
                 case BAJA -> {
                     if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_COMPRA) { //CU4
-                        return reversarBajaDevolucionCompra(dto, movOrigen);
+                        return reversarBajaDevolucionCompra(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.MUESTREO) { //CU3
-                        return reversarBajaMuestreoBulto(dto, movOrigen);
+                        return reversarBajaMuestreoBulto(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.CONSUMO_PRODUCCION) {//CU7
-                        return reversarBajaConsumoProduccion(dto, movOrigen);
+                        return reversarBajaConsumoProduccion(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.VENTA) { //CU22
-                        return reversarBajaVentaProducto(dto, movOrigen);
+                        return reversarBajaVentaProducto(dto, movOrigen, currentUser);
                     }
                     if (movOrigen.getMotivo() == MotivoEnum.AJUSTE) { //CU22
-                        return reversarBajaAjuste(dto, movOrigen);
+                        return reversarBajaAjuste(dto, movOrigen, currentUser);
                     }
                 }
             }
@@ -105,8 +120,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    public LoteDTO reversarModifLiberacionProducto(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    public LoteDTO reversarModifLiberacionProducto(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         final Lote lote = movOrigen.getLote();
 
         lote.setDictamen(movOrigen.getDictamenInicial());
@@ -124,8 +139,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarAltaDevolucionVenta(final MovimientoDTO dto, final Movimiento movDevolucionOrigen) {
-        Movimiento movReverso = createMovimientoReverso(dto, movDevolucionOrigen);
+    LoteDTO reversarAltaDevolucionVenta(final MovimientoDTO dto, final Movimiento movDevolucionOrigen, final User currentUser) {
+        Movimiento movReverso = createMovimientoReverso(dto, movDevolucionOrigen, currentUser);
 
         movDevolucionOrigen.setActivo(false);
         movReverso.setActivo(false);
@@ -159,8 +174,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
 
     @Transactional
-    LoteDTO reversarRetiroMercado(final MovimientoDTO dto, final Movimiento movRecallOrigen) {
-        reversarAltaRecall(dto, movRecallOrigen);
+    LoteDTO reversarRetiroMercado(final MovimientoDTO dto, final Movimiento movRecallOrigen, final User currentUser) {
+        reversarAltaRecall(dto, movRecallOrigen, currentUser);
 
         Movimiento movimientoVentaOrigen = movRecallOrigen.getMovimientoOrigen();
         final List<Movimiento> allByCodigoMovimiento = movimientoRepository
@@ -172,7 +187,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             if (movOrigen.getTipoMovimiento() != TipoMovimientoEnum.MODIFICACION) {
                 throw new IllegalStateException("El movimiento de venta asociado al recall no es de modificacion.");
             }
-            Movimiento movReversoModifRecall = createMovimientoReverso(dto, movOrigen);
+            Movimiento movReversoModifRecall = createMovimientoReverso(dto, movOrigen, currentUser);
             movOrigen.setActivo(false);
             movReversoModifRecall.setActivo(false);
 
@@ -225,8 +240,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
     }
 
-    private void reversarAltaRecall(MovimientoDTO dto, Movimiento movRecallOrigen) {
-        Movimiento movReversoAltaRecall = createMovimientoReverso(dto, movRecallOrigen);
+    private void reversarAltaRecall(MovimientoDTO dto, Movimiento movRecallOrigen, User currentUser) {
+        Movimiento movReversoAltaRecall = createMovimientoReverso(dto, movRecallOrigen, currentUser);
         movRecallOrigen.setActivo(false);
         movReversoAltaRecall.setActivo(false);
         final Lote loteAltaRecall = movRecallOrigen.getLote();
@@ -258,8 +273,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarAltaIngresoCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarAltaIngresoCompra(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
 
         movOrigen.setActivo(false);
         movimiento.setActivo(false);
@@ -277,8 +292,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarAltaIngresoProduccion(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarAltaIngresoProduccion(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
 
         movOrigen.setActivo(false);
         movimiento.setActivo(false);
@@ -297,8 +312,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
 
 
     @Transactional
-    LoteDTO reversarAnulacionAnalisis(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarAnulacionAnalisis(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         final Lote lote = movOrigen.getLote();
         final Analisis ultimoAnalisis = lote.getUltimoAnalisis();
 
@@ -319,8 +334,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarBajaAjuste(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarBajaAjuste(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         final Lote loteOrigen = movOrigen.getLote();
         final List<Lote> lotesByLoteOrigen = loteRepository.findLotesByLoteOrigen(loteOrigen.getCodigoLote());
         if (!lotesByLoteOrigen.isEmpty()) {
@@ -377,18 +392,18 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarBajaConsumoProduccion(final MovimientoDTO dto, final Movimiento movOrigen) {
-        return reversarBajaGranel(dto, movOrigen);
+    LoteDTO reversarBajaConsumoProduccion(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        return reversarBajaGranel(dto, movOrigen, currentUser);
     }
 
     @Transactional
-    LoteDTO reversarBajaDevolucionCompra(final MovimientoDTO dto, final Movimiento movOrigen) {
-        return reversarBajaGranel(dto, movOrigen);
+    LoteDTO reversarBajaDevolucionCompra(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        return reversarBajaGranel(dto, movOrigen, currentUser);
     }
 
     @Transactional
-    LoteDTO reversarBajaGranel(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarBajaGranel(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         movimiento.setCantidad(movOrigen.getCantidad());
         movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
 
@@ -433,8 +448,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarBajaMuestreoBulto(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarBajaMuestreoBulto(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         movimiento.setCantidad(movOrigen.getCantidad());
         movimiento.setUnidadMedida(movOrigen.getUnidadMedida());
 
@@ -504,8 +519,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarBajaVentaProducto(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarBajaVentaProducto(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         final Lote loteOrigen = movOrigen.getLote();
         final List<Lote> lotesByLoteOrigen = loteRepository.findLotesByLoteOrigen(loteOrigen.getCodigoLote());
         if (!lotesByLoteOrigen.isEmpty()) {
@@ -561,8 +576,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarModifDictamenCuarentena(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarModifDictamenCuarentena(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         final Lote lote = movOrigen.getLote();
         lote.setDictamen(movOrigen.getDictamenInicial());
 
@@ -585,8 +600,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
     @Transactional
-    LoteDTO reversarModifResultadoAnalisis(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    LoteDTO reversarModifResultadoAnalisis(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         final Lote lote = movOrigen.getLote();
         lote.setDictamen(movOrigen.getDictamenInicial());
 
@@ -615,8 +630,8 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     }
 
 
-    private LoteDTO reversarModifTrazadoLote(final MovimientoDTO dto, final Movimiento movOrigen) {
-        Movimiento movimiento = createMovimientoReverso(dto, movOrigen);
+    private LoteDTO reversarModifTrazadoLote(final MovimientoDTO dto, final Movimiento movOrigen, final User currentUser) {
+        Movimiento movimiento = createMovimientoReverso(dto, movOrigen, currentUser);
         final Lote lote = movOrigen.getLote();
 
         final List<Traza> trazasLote = lote.getActiveTrazas();

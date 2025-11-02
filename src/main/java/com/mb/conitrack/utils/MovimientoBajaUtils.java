@@ -9,6 +9,7 @@ import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
@@ -61,9 +62,11 @@ public class MovimientoBajaUtils {
      * </p>
      *
      * @param dto the movement data transfer object with return information
+     * @param creadoPor the user who creates this movement
      * @return configured BAJA movement with DEVOLUCION_COMPRA motivo and RECHAZADO dictamen
      */
-    public static Movimiento createMovimientoDevolucionCompra(final MovimientoDTO dto) {
+    public static Movimiento createMovimientoDevolucionCompra(final MovimientoDTO dto, final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         Movimiento movimiento = new Movimiento();
 
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
@@ -77,6 +80,7 @@ public class MovimientoBajaUtils {
 
         movimiento.setActivo(true);
         movimiento.setObservaciones(formatObservacionesWithCU(UseCaseTag.CU4, dto.getObservaciones()));
+        movimiento.setCreadoPor(creadoPor);
         return movimiento;
     }
 
@@ -92,9 +96,11 @@ public class MovimientoBajaUtils {
      *
      * @param dto the lot DTO containing consumption details
      * @param lote the lot being consumed
+     * @param creadoPor the user who creates this movement
      * @return configured BAJA movement with CONSUMO_PRODUCCION motivo
      */
-    public static Movimiento createMovimientoBajaProduccion(final LoteDTO dto, final Lote lote) {
+    public static Movimiento createMovimientoBajaProduccion(final LoteDTO dto, final Lote lote, final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(MotivoEnum.CONSUMO_PRODUCCION);
@@ -104,6 +110,7 @@ public class MovimientoBajaUtils {
         movimiento.setObservaciones(formatObservacionesWithCU(UseCaseTag.CU7, dto.getObservaciones()));
         movimiento.setLote(lote);
         movimiento.setActivo(true);
+        movimiento.setCreadoPor(creadoPor);
 
         return movimiento;
     }
@@ -119,9 +126,11 @@ public class MovimientoBajaUtils {
      *
      * @param dto the lot DTO containing sales details
      * @param lote the lot being sold
+     * @param creadoPor the user who creates this movement
      * @return configured BAJA movement with VENTA motivo
      */
-    public static Movimiento createMovimientoBajaVenta(final LoteDTO dto, final Lote lote) {
+    public static Movimiento createMovimientoBajaVenta(final LoteDTO dto, final Lote lote, final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
         movimiento.setMotivo(MotivoEnum.VENTA);
@@ -131,6 +140,7 @@ public class MovimientoBajaUtils {
         movimiento.setObservaciones(formatObservacionesWithCU(UseCaseTag.CU22, dto.getObservaciones()));
         movimiento.setLote(lote);
         movimiento.setActivo(true);
+        movimiento.setCreadoPor(creadoPor);
 
         return movimiento;
     }
@@ -151,12 +161,15 @@ public class MovimientoBajaUtils {
      *
      * @param dto the movement DTO with adjustment details
      * @param bulto the specific bulto being adjusted
+     * @param creadoPor the user who creates this movement
      * @return configured BAJA movement with AJUSTE motivo
      */
     public static Movimiento createMovimientoAjusteStock(
         final MovimientoDTO dto,
-        final Bulto bulto) {
+        final Bulto bulto,
+        final User creadoPor) {
 
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         Movimiento movimiento = new Movimiento();
 
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
@@ -178,6 +191,7 @@ public class MovimientoBajaUtils {
         movimiento.setObservaciones(formatObservacionesWithCU(UseCaseTag.CU25, dto.getObservaciones()));
 
         movimiento.setLote(bulto.getLote());
+        movimiento.setCreadoPor(creadoPor);
         return movimiento;
     }
 
@@ -194,12 +208,15 @@ public class MovimientoBajaUtils {
      * @param dto the movement DTO with sampling details
      * @param bulto the bulto being sampled
      * @param ultimoAnalisis the analysis record associated with this sample
+     * @param creadoPor the user who creates this movement
      * @return configured BAJA movement with MUESTREO motivo and linked analysis
      */
     public static Movimiento createMovimientoMuestreoConAnalisis(
         final MovimientoDTO dto,
         final Bulto bulto,
-        final Analisis ultimoAnalisis) {
+        final Analisis ultimoAnalisis,
+        final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         final Movimiento movimiento = createMovimientoPorMuestreo(dto);
         populateDetalleMovimiento(movimiento, bulto);
         movimiento.setCodigoMovimiento(generateMovimientoCodeForBulto(
@@ -208,6 +225,7 @@ public class MovimientoBajaUtils {
             dto.getFechaYHoraCreacion()));
         movimiento.setLote(bulto.getLote());
         movimiento.setNroAnalisis(ultimoAnalisis.getNroAnalisis());
+        movimiento.setCreadoPor(creadoPor);
         return movimiento;
     }
 
@@ -221,9 +239,11 @@ public class MovimientoBajaUtils {
      *
      * @param dto the lot DTO with sampling details
      * @param lote the lot being sampled
+     * @param creadoPor the user who creates this movement
      * @return configured BAJA movement with MUESTREO motivo
      */
-    public static Movimiento createMovimientoPorMuestreoMultiBulto(final LoteDTO dto, final Lote lote) {
+    public static Movimiento createMovimientoPorMuestreoMultiBulto(final LoteDTO dto, final Lote lote, final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         Movimiento movimiento = new Movimiento();
 
         movimiento.setTipoMovimiento(TipoMovimientoEnum.BAJA);
@@ -239,6 +259,7 @@ public class MovimientoBajaUtils {
 
         movimiento.setLote(lote);
         movimiento.setActivo(true);
+        movimiento.setCreadoPor(creadoPor);
 
         return movimiento;
     }

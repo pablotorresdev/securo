@@ -2,6 +2,7 @@ package com.mb.conitrack.service.cu;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -12,7 +13,9 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.enums.MotivoEnum.RESULTADO_ANALISIS;
 import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoModificacion;
@@ -21,19 +24,24 @@ import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimient
 @Service
 public class ModifResultadoAnalisisService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     @Transactional
     public LoteDTO persistirResultadoAnalisis(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
+
         final Analisis analisis = addResultadoAnalisis(dto);
         final Lote lote = analisis.getLote();
-        final Movimiento movimiento = persistirMovimientoResultadoAnalisis(dto, lote);
+        final Movimiento movimiento = persistirMovimientoResultadoAnalisis(dto, lote, currentUser);
         lote.setDictamen(movimiento.getDictamenFinal());
         lote.getMovimientos().add(movimiento);
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
     @Transactional
-    public Movimiento persistirMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+    public Movimiento persistirMovimientoResultadoAnalisis(final MovimientoDTO dto, final Lote lote, User currentUser) {
+        Movimiento movimiento = createMovimientoModificacion(dto, lote, currentUser);
         movimiento.setFecha(dto.getFechaRealizadoAnalisis());
 
         movimiento.setMotivo(RESULTADO_ANALISIS);

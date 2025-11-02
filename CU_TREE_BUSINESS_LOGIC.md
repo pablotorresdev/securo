@@ -178,12 +178,36 @@ graph TD
 
 **Descripción paso a paso:**
 
-1. **CU1 (Ingreso Compra)** `[dictamen: RECIBIDO]`
+1. **CU1 (Ingreso Compra)** `[dictamen: RECIBIDO, estado: NUEVO]`
+   - **Descripción:** Alta de lote de producto externo recibido desde proveedor (NO Conifarma)
+   - **Actor:** Analista de Planta
+   - **Entrada requerida:**
+     - Producto (API, EXCIPIENTE, ACOND_PRIMARIO, ACOND_SECUNDARIO)
+     - Proveedor (NO Conifarma)
+     - Cantidad inicial (> 0, entero si UNIDAD, >= bultos)
+     - Bultos totales [1..n]
+     - Lote proveedor
+     - Fecha ingreso (≤ hoy)
+   - **Genera automáticamente:**
+     - Código lote: `L-{codigoProducto}-{yy.MM.dd_HH.mm.ss}`
+     - Estado: NUEVO
+     - Dictamen: RECIBIDO
+     - Bultos con numeración [1..n]
+     - Movimiento ALTA/COMPRA
+   - **Validaciones aplicadas (15 total):**
+     - JSR-303: @NotNull, @Positive, @Size (12 validaciones)
+     - Custom: cantidad > 0, entero si UNIDAD, >= bultos
+     - Fechas: reanalisis < vencimiento
+     - Bultos: suma convertida = total (tolerancia 6 decimales)
+   - **Reglas de negocio:**
+     - País origen: DTO > Fabricante > Proveedor
+     - Conversiones automáticas entre unidades compatibles
+   - **Ver documentación completa:** [CU1_ALTA_INGRESO_COMPRA.md](./docs/cu/CU1_ALTA_INGRESO_COMPRA.md)
    - **Siguiente permitido:**
-     - ✅ CU2 (Cuarentena) - Flujo normal
+     - ✅ CU2 (Cuarentena) - **Flujo normal** para análisis
      - ✅ CU4 (Devolución) - Si se detecta error antes de análisis
      - ✅ CU28 (Ajuste) - Corrección de cantidades
-     - ✅ CU29 (Reverso) - Anular ingreso
+     - ✅ CU29 (Reverso) - Anular ingreso (si no hay movimientos posteriores)
 
 2. **CU2 (Cuarentena)** `[dictamen: CUARENTENA]`
    - **Siguiente permitido:**

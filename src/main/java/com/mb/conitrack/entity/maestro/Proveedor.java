@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entidad: Proveedor/Fabricante de productos (externos o CONIFARMA). */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

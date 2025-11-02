@@ -12,8 +12,11 @@ import org.junit.jupiter.api.Test;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -25,6 +28,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MovimientoModificacionUtilsTest {
+
+    private User testUser;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+    }
 
     @Test
     @DisplayName("Constructor lanza UnsupportedOperationException")
@@ -49,7 +62,7 @@ class MovimientoModificacionUtilsTest {
         dto.setObservaciones("Recall por defecto de calidad");
 
         // when
-        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModifRecall(dto);
+        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModifRecall(dto, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -77,7 +90,7 @@ class MovimientoModificacionUtilsTest {
         lote.setCodigoLote("LOT-MODIF-01");
 
         // when
-        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModificacion(dto, lote);
+        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModificacion(dto, lote, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -116,7 +129,7 @@ class MovimientoModificacionUtilsTest {
         dto.setObservaciones("Reverso por error en venta");
 
         // when
-        Movimiento movimientoReverso = MovimientoModificacionUtils.createMovimientoReverso(dto, movimientoOrigen);
+        Movimiento movimientoReverso = MovimientoModificacionUtils.createMovimientoReverso(dto, movimientoOrigen, testUser);
 
         // then
         assertNotNull(movimientoReverso);
@@ -146,7 +159,7 @@ class MovimientoModificacionUtilsTest {
         lote.setDictamen(DictamenEnum.CUARENTENA);
 
         // when
-        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModificacion(dto, lote);
+        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModificacion(dto, lote, testUser);
         // Configuración posterior (como lo haría el servicio)
         movimiento.setMotivo(MotivoEnum.ANALISIS);
         movimiento.setDictamenInicial(DictamenEnum.CUARENTENA);
@@ -171,7 +184,7 @@ class MovimientoModificacionUtilsTest {
         dto.setObservaciones(null);
 
         // when
-        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModifRecall(dto);
+        Movimiento movimiento = MovimientoModificacionUtils.createMovimientoModifRecall(dto, testUser);
 
         // then
         assertNotNull(movimiento);

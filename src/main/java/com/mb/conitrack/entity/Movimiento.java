@@ -9,6 +9,7 @@ import java.util.Set;
 import org.hibernate.annotations.SQLDelete;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
@@ -97,6 +98,10 @@ public class Movimiento {
     @EqualsAndHashCode.Exclude
     @JsonBackReference
     private Movimiento movimientoOrigen;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creado_por_user_id")
+    private User creadoPor;
 
     @Column(nullable = false)
     private Boolean activo;

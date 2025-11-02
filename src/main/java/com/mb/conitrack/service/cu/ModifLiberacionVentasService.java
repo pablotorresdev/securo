@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -14,6 +15,8 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.User;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.enums.DictamenEnum.LIBERADO;
 import static com.mb.conitrack.enums.MotivoEnum.LIBERACION;
@@ -23,13 +26,17 @@ import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimient
 @Service
 public class ModifLiberacionVentasService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     @Transactional
     public LoteDTO persistirLiberacionProducto(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        final Movimiento movimiento = persistirMovimientoLiberacionProducto(dto, lote);
+        final Movimiento movimiento = persistirMovimientoLiberacionProducto(dto, lote, currentUser);
         final List<Analisis> list = lote.getAnalisisConFechaVenciminentoList();
 
         if (list.isEmpty()) {
@@ -46,8 +53,8 @@ public class ModifLiberacionVentasService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoLiberacionProducto(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+    public Movimiento persistirMovimientoLiberacionProducto(final MovimientoDTO dto, final Lote lote, User currentUser) {
+        Movimiento movimiento = createMovimientoModificacion(dto, lote, currentUser);
 
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setMotivo(LIBERACION);

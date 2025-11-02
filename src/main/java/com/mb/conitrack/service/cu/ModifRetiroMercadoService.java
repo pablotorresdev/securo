@@ -5,9 +5,12 @@ import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.*;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.SecurityContextService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -27,6 +30,9 @@ import static java.lang.Boolean.TRUE;
 @Service
 public class ModifRetiroMercadoService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     private static Bulto initBulto(final Lote clone) {
         Bulto bulto = new Bulto();
         bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
@@ -40,6 +46,7 @@ public class ModifRetiroMercadoService extends AbstractCuService {
 
     @Transactional
     public List<LoteDTO> persistirRetiroMercado(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
         List<Lote> result = new ArrayList<>();
 
         final Lote loteVentaOrigen = loteRepository.findFirstByCodigoLoteAndActivoTrue(dto.getCodigoLote())
@@ -50,10 +57,10 @@ public class ModifRetiroMercadoService extends AbstractCuService {
                 .orElseThrow(() -> new IllegalArgumentException("El movmiento de origen no existe."));
 
         //************ALTA RECALL************
-        procesarAltaRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result);
+        procesarAltaRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result, currentUser);
 
         //************MODIFICACION RECALL************
-        procesarModificacionRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result);
+        procesarModificacionRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result, currentUser);
         return fromLoteEntities(result);
     }
 
@@ -61,14 +68,15 @@ public class ModifRetiroMercadoService extends AbstractCuService {
             final MovimientoDTO dto,
             final Lote loteOrigenRecall,
             final Movimiento movimientoVentaOrigen,
-            final List<Lote> result) {
+            final List<Lote> result,
+            User currentUser) {
 
         if (loteOrigenRecall.getEstado() == RECALL) {
             loteRepository.findById(loteOrigenRecall.getId()).ifPresent(result::add);
             return;
         }
 
-        final Movimiento movimientoModifRecall = createMovimientoModifRecall(dto);
+        final Movimiento movimientoModifRecall = createMovimientoModifRecall(dto, currentUser);
         movimientoModifRecall.setDictamenInicial(loteOrigenRecall.getDictamen());
         movimientoModifRecall.setMovimientoOrigen(movimientoVentaOrigen);
         movimientoModifRecall.setLote(loteOrigenRecall);
@@ -118,11 +126,12 @@ public class ModifRetiroMercadoService extends AbstractCuService {
             final MovimientoDTO dto,
             final Lote loteOrigenRecall,
             final Movimiento movimientoVentaOrigen,
-            final List<Lote> result) {
+            final List<Lote> result,
+            User currentUser) {
 
         Lote loteAltaRecall = crearLoteRecall(loteOrigenRecall, dto);
 
-        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, loteAltaRecall);
+        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, loteAltaRecall, currentUser);
         movimientoAltaRecall.setMovimientoOrigen(movimientoVentaOrigen);
 
         final Lote loteRecallGuardado = loteRepository.save(loteAltaRecall);

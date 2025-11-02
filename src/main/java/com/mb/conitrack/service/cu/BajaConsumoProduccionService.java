@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -14,8 +15,10 @@ import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoBajaProduccion;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
@@ -26,8 +29,13 @@ import static java.lang.Boolean.TRUE;
 @Service
 public class BajaConsumoProduccionService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     @Transactional
     public LoteDTO bajaConsumoProduccion(final LoteDTO loteDTO) {
+        User currentUser = securityContextService.getCurrentUser();
+
         final Lote lote = loteRepository.findFirstByCodigoLoteAndActivoTrue(
                 loteDTO.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -90,14 +98,14 @@ public class BajaConsumoProduccionService extends AbstractCuService {
         } else {
             lote.setEstado(EstadoEnum.EN_USO);
         }
-        final Movimiento movimiento = persistirMovimientoBajaConsumoProduccion(loteDTO, lote);
+        final Movimiento movimiento = persistirMovimientoBajaConsumoProduccion(loteDTO, lote, currentUser);
         lote.getMovimientos().add(movimiento);
         return DTOUtils.fromLoteEntity(loteRepository.save(lote));
     }
 
     @Transactional
-    public Movimiento persistirMovimientoBajaConsumoProduccion(final LoteDTO loteDTO, final Lote loteEntity) {
-        final Movimiento movimiento = createMovimientoBajaProduccion(loteDTO, loteEntity);
+    public Movimiento persistirMovimientoBajaConsumoProduccion(final LoteDTO loteDTO, final Lote loteEntity, User currentUser) {
+        final Movimiento movimiento = createMovimientoBajaProduccion(loteDTO, loteEntity, currentUser);
 
         UnidadMedidaEnum uniMedidaMovimiento = loteDTO.getUnidadMedidaBultos().get(0);
 

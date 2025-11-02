@@ -26,13 +26,15 @@ import com.mb.conitrack.repository.MovimientoRepository;
 import com.mb.conitrack.repository.TrazaRepository;
 import com.mb.conitrack.repository.maestro.ProductoRepository;
 import com.mb.conitrack.repository.maestro.ProveedorRepository;
+import com.mb.conitrack.repository.maestro.RoleRepository;
+import com.mb.conitrack.repository.maestro.UserRepository;
 
 import jakarta.validation.Valid;
 
 import static com.mb.conitrack.utils.UnidadMedidaUtils.convertirCantidadEntreUnidades;
 import static com.mb.conitrack.utils.UnidadMedidaUtils.obtenerMenorUnidadMedida;
 
-/** Servicio base con validaciones comunes para todos los casos de uso. */
+/** Servicio base con validaciones comunes para CU de stock y movimientos. */
 public abstract class AbstractCuService {
 
     @Autowired
@@ -56,6 +58,13 @@ public abstract class AbstractCuService {
     @Autowired
     TrazaRepository trazaRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
+
+    /** Obtiene lista de países para selección en formularios. */
     public List<String> getCountryList() {
         String[] countryCodes = Locale.getISOCountries();
         List<String> countries = new ArrayList<>();
@@ -67,7 +76,8 @@ public abstract class AbstractCuService {
         return countries;
     }
 
-    boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    /** Valida cantidad y distribución de bultos (suma debe coincidir con total). */
+    protected boolean validarBultos(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -75,7 +85,8 @@ public abstract class AbstractCuService {
             (validarTipoDeDato(loteDTO, bindingResult) && validarSumaBultosConvertida(loteDTO, bindingResult));
     }
 
-    boolean validarCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    /** Valida cantidad inicial (positiva, entera si UNIDAD, >= bultos). */
+    protected boolean validarCantidadIngreso(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -107,6 +118,7 @@ public abstract class AbstractCuService {
         return true;
     }
 
+    /** Valida cantidad de movimiento (positiva, compatible con unidad, no excede stock de bulto). */
     boolean validarCantidadesMovimiento(final MovimientoDTO dto, final Bulto bulto, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
@@ -134,6 +146,7 @@ public abstract class AbstractCuService {
         return true;
     }
 
+    /** Valida cantidades por bulto (convertidas, positivas, no exceden stock disponible). */
     boolean validarCantidadesPorMedidas(final LoteDTO loteDTO, final Lote lote, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
@@ -384,7 +397,8 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validarFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    /** Valida fechas de proveedor (reanálisis no puede ser posterior a vencimiento). */
+    protected boolean validarFechasProveedor(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -477,7 +491,8 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
+    /** Valida suma de cantidades de bultos convertidas a unidad base (debe coincidir con total). */
+    protected boolean validarSumaBultosConvertida(LoteDTO loteDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }
@@ -534,7 +549,8 @@ public abstract class AbstractCuService {
         return true;
     }
 
-    boolean validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
+    /** Valida tipo de dato por bulto (enteros para UNIDAD, cantidades no nulas). */
+    protected boolean validarTipoDeDato(final LoteDTO loteDTO, final BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return false;
         }

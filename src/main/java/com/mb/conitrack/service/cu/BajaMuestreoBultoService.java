@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -20,9 +21,11 @@ import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
 import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
@@ -39,9 +42,13 @@ import static java.lang.Integer.parseInt;
 @Service
 public class BajaMuestreoBultoService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     /** Procesa muestreo de producto trazable asociándolo a análisis. Marca trazas como CONSUMIDO. */
     @Transactional
     public LoteDTO bajaMuestreoTrazable(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -52,7 +59,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
         }
 
-        final Movimiento movimiento = persistirMovimientoMuestreo(dto, bulto);
+        final Movimiento movimiento = persistirMovimientoMuestreo(dto, bulto, currentUser);
 
         bulto.setCantidadActual(restarMovimientoConvertido(dto, bulto));
         lote.setCantidadActual(restarMovimientoConvertido(dto, lote));
@@ -112,7 +119,7 @@ public class BajaMuestreoBultoService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Bulto bulto) {
+    public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Bulto bulto, User currentUser) {
         final List<Analisis> analisisList = bulto.getLote().getAnalisisList();
         if (analisisList.isEmpty()) {
             throw new IllegalStateException("No hay Analisis con al que asociar el muestreo");
@@ -120,10 +127,10 @@ public class BajaMuestreoBultoService extends AbstractCuService {
             final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
             if (analisisEnCurso.isPresent()) {
                 // Muestreo de un producto con Analisis en Curso
-                return crearMovimientoMuestreoConAnalisisEnCurso(dto, bulto, analisisEnCurso);
+                return crearMovimientoMuestreoConAnalisisEnCurso(dto, bulto, analisisEnCurso, currentUser);
             } else {
                 // Muestreo un producto con Analisis Dictaminado
-                return crearMovmimientoMuestreoConAnalisisDictaminado(dto, bulto);
+                return crearMovmimientoMuestreoConAnalisisDictaminado(dto, bulto, currentUser);
             }
         }
     }
@@ -132,24 +139,25 @@ public class BajaMuestreoBultoService extends AbstractCuService {
     public Movimiento crearMovimientoMuestreoConAnalisisEnCurso(
         final MovimientoDTO dto,
         final Bulto bulto,
-        final Optional<Analisis> analisisEnCurso) {
+        final Optional<Analisis> analisisEnCurso,
+        User currentUser) {
         //Si el lote tiene un analisis en curso, se guarda el movimiento y se asocia al analisis en curso
         //El lote puede tiene n analisis realizados siempre se asocia al analisis en curso
         if (dto.getNroAnalisis()
             .equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio"))
                 .getNroAnalisis())) {
-            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, analisisEnCurso.get()));
+            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, analisisEnCurso.get(), currentUser));
         } else {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
         }
     }
 
     @Transactional
-    public Movimiento crearMovmimientoMuestreoConAnalisisDictaminado(final MovimientoDTO dto, final Bulto bulto) {
+    public Movimiento crearMovmimientoMuestreoConAnalisisDictaminado(final MovimientoDTO dto, final Bulto bulto, User currentUser) {
         //Si el lote tiene n analisis realizados, se guarda el movimiento y se asocia al ultimo analisis realizado
         Analisis ultimoAnalisis = bulto.getLote().getUltimoAnalisis();
         if (dto.getNroAnalisis().equals(ultimoAnalisis.getNroAnalisis())) {
-            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, ultimoAnalisis));
+            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, ultimoAnalisis, currentUser));
         } else {
             throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
         }
@@ -230,11 +238,12 @@ public class BajaMuestreoBultoService extends AbstractCuService {
 
     @Transactional
     public LoteDTO bajamuestreoMultiBulto(final LoteDTO loteDTO) {
+        User currentUser = securityContextService.getCurrentUser();
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(loteDTO.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        final Movimiento movimientoMultiBulto = persistirMovimientoBajaMuestreoMultiBulto(loteDTO, lote);
+        final Movimiento movimientoMultiBulto = persistirMovimientoBajaMuestreoMultiBulto(loteDTO, lote, currentUser);
 
         final List<Integer> nroBultoList = loteDTO.getNroBultoList();
         final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
@@ -294,8 +303,8 @@ public class BajaMuestreoBultoService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoBajaMuestreoMultiBulto(final LoteDTO loteDTO, final Lote loteEntity) {
-        final Movimiento movimiento = createMovimientoPorMuestreoMultiBulto(loteDTO, loteEntity);
+    public Movimiento persistirMovimientoBajaMuestreoMultiBulto(final LoteDTO loteDTO, final Lote loteEntity, User currentUser) {
+        final Movimiento movimiento = createMovimientoPorMuestreoMultiBulto(loteDTO, loteEntity, currentUser);
 
         Analisis ultimoAnalisis = loteEntity.getUltimoAnalisis();
         if (ultimoAnalisis == null) {

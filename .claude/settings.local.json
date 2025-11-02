@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(./gradlew compileTestJava:*)",
-      "Bash(./gradlew clean test jacocoTestReport:*)"
+      "Bash(./gradlew clean test jacocoTestReport:*)",
+      "Bash(dir \"C:\\opt\\securo\\docs\\cu\")",
+      "Bash(./mvnw test-compile:*)",
+      "Bash(mvn test-compile:*)",
+      "Bash(./gradlew testClasses:*)",
+      "Bash(./gradlew clean:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker restart:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

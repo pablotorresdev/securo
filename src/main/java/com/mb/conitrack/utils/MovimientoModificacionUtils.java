@@ -5,6 +5,7 @@ import java.util.Objects;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
@@ -60,9 +61,11 @@ public class MovimientoModificacionUtils {
      * </p>
      *
      * @param dto the movement DTO with recall information
+     * @param creadoPor the user who creates this movement
      * @return configured MODIFICACION movement with RETIRO_MERCADO motivo and dictamen
      */
-    public static Movimiento createMovimientoModifRecall(final MovimientoDTO dto) {
+    public static Movimiento createMovimientoModifRecall(final MovimientoDTO dto, final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         Movimiento movimiento = new Movimiento();
 
         movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
@@ -76,6 +79,7 @@ public class MovimientoModificacionUtils {
 
         movimiento.setActivo(true);
         movimiento.setObservaciones(formatObservacionesWithCU(UseCaseTag.CU24, dto.getObservaciones()));
+        movimiento.setCreadoPor(creadoPor);
         return movimiento;
     }
 
@@ -95,9 +99,11 @@ public class MovimientoModificacionUtils {
      *
      * @param dto the movement DTO with modification details
      * @param lote the lot being modified
+     * @param creadoPor the user who creates this movement
      * @return partially configured MODIFICACION movement (motivo must be set by caller)
      */
-    public static Movimiento createMovimientoModificacion(final MovimientoDTO dto, final Lote lote) {
+    public static Movimiento createMovimientoModificacion(final MovimientoDTO dto, final Lote lote, final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
         movimiento.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
@@ -107,6 +113,7 @@ public class MovimientoModificacionUtils {
         movimiento.setObservaciones(dto.getObservaciones());
         movimiento.setLote(lote);
         movimiento.setActivo(true);
+        movimiento.setCreadoPor(creadoPor);
 
         return movimiento;
     }
@@ -129,10 +136,12 @@ public class MovimientoModificacionUtils {
      *
      * @param dto the movement DTO with reversal details
      * @param movimientoOrigen the original movement being reversed
+     * @param creadoPor the user who creates this reversal movement
      * @return configured MODIFICACION movement with REVERSO motivo, linked to original
      */
-    public static Movimiento createMovimientoReverso(final MovimientoDTO dto, final Movimiento movimientoOrigen) {
-        Movimiento movimiento = createMovimientoModificacion(dto, movimientoOrigen.getLote());
+    public static Movimiento createMovimientoReverso(final MovimientoDTO dto, final Movimiento movimientoOrigen, final User creadoPor) {
+        Objects.requireNonNull(creadoPor, "creadoPor cannot be null");
+        Movimiento movimiento = createMovimientoModificacion(dto, movimientoOrigen.getLote(), creadoPor);
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setMovimientoOrigen(movimientoOrigen);
         movimiento.setMotivo(MotivoEnum.REVERSO);

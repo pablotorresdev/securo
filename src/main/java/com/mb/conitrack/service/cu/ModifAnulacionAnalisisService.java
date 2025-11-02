@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -14,7 +15,9 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.enums.MotivoEnum.ANULACION_ANALISIS;
 import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoModificacion;
@@ -23,11 +26,16 @@ import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimient
 @Service
 public class ModifAnulacionAnalisisService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     @Transactional
     public LoteDTO persistirAnulacionAnalisis(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
+
         final Analisis analisis = addAnulacionAnalisis(dto);
         final Lote lote = analisis.getLote();
-        final Movimiento movimiento = persistirMovimientoAnulacionAnalisis(dto, lote);
+        final Movimiento movimiento = persistirMovimientoAnulacionAnalisis(dto, lote, currentUser);
         lote.getMovimientos().add(movimiento);
         final List<Movimiento> movModifAnalisisByNro = movimientoRepository.findMovModifAnalisisByNro(dto.getNroAnalisis());
         if (movModifAnalisisByNro.size() != 1) {
@@ -38,8 +46,8 @@ public class ModifAnulacionAnalisisService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoAnulacionAnalisis(final MovimientoDTO dto, final Lote lote) {
-        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+    public Movimiento persistirMovimientoAnulacionAnalisis(final MovimientoDTO dto, final Lote lote, User currentUser) {
+        Movimiento movimiento = createMovimientoModificacion(dto, lote, currentUser);
         movimiento.setFecha(dto.getFechaMovimiento());
 
         movimiento.setMotivo(ANULACION_ANALISIS);

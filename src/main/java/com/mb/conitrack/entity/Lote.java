@@ -113,7 +113,7 @@ public class Lote {
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
-    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "lote", fetch = FetchType.LAZY, cascade = {PERSIST, MERGE})
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @OrderBy("nroBulto ASC")

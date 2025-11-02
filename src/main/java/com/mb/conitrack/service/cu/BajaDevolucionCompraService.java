@@ -7,7 +7,10 @@ import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.service.SecurityContextService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -23,13 +26,17 @@ import static java.lang.Boolean.TRUE;
 @Service
 public class BajaDevolucionCompraService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     @Transactional
     public LoteDTO bajaBultosDevolucionCompra(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
                 .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
 
-        final Movimiento movimiento = createMovimientoDevolucionCompra(dto);
+        final Movimiento movimiento = createMovimientoDevolucionCompra(dto, currentUser);
         movimiento.setDictamenInicial(lote.getDictamen());
         movimiento.setCantidad(lote.getCantidadActual());
         movimiento.setUnidadMedida(lote.getUnidadMedida());

@@ -2,6 +2,7 @@ package com.mb.conitrack.service.cu;
 
 import java.util.Comparator;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -15,7 +16,9 @@ import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import static com.mb.conitrack.utils.LoteEntityUtils.createLoteIngreso;
 import static com.mb.conitrack.utils.LoteEntityUtils.populateLoteAltaProduccionPropia;
@@ -26,9 +29,13 @@ import static java.lang.Boolean.TRUE;
 @Service
 public class AltaIngresoProduccionService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     /** Crea lote de producción interna. Inicializa bultos y movimiento ALTA/PRODUCCION. */
     @Transactional
     public LoteDTO altaStockPorProduccion(final LoteDTO loteDTO) {
+        User currentUser = securityContextService.getCurrentUser();
         final Proveedor conifarma = proveedorRepository.findConifarma()
             .orElseThrow(() -> new IllegalArgumentException("El proveedor Conifarma no existe."));
 
@@ -41,7 +48,7 @@ public class AltaIngresoProduccionService extends AbstractCuService {
         final Lote loteGuardado = loteRepository.save(lote);
         bultoRepository.saveAll(loteGuardado.getBultos());
 
-        final Movimiento movimiento = createMovimientoAltaIngresoProduccion(loteGuardado);
+        final Movimiento movimiento = createMovimientoAltaIngresoProduccion(loteGuardado, currentUser);
         movimientoRepository.save(movimiento);
 
         loteGuardado.getBultos().stream()

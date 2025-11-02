@@ -13,8 +13,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.repository.AnalisisRepository;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
@@ -24,6 +27,7 @@ import com.mb.conitrack.utils.MovimientoModificacionUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -41,8 +45,22 @@ class ModifDictamenCuarentenaServiceTest {
     @Mock
     AnalisisRepository analisisRepository;
 
+    @Mock
+    SecurityContextService securityContextService;
+
     @InjectMocks
     ModifDictamenCuarentenaService dictamenCuarentenaService;
+
+    private User testUser;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+        lenient().when(securityContextService.getCurrentUser()).thenReturn(testUser);
+    }
 
     @Test
     @DisplayName("OK -> setea motivo/DICTAMEN/nroAnalisis/observaciones y guarda")
@@ -61,7 +79,7 @@ class ModifDictamenCuarentenaServiceTest {
         base.setObservaciones("será sobreescrito");
 
         try (MockedStatic<MovimientoModificacionUtils> ms = mockStatic(MovimientoModificacionUtils.class)) {
-            ms.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote)).thenReturn(base);
+            ms.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote, testUser)).thenReturn(base);
             // el repo devuelve lo que le pasan (más simple para asserts)
             when(movimientoRepository.save(any(Movimiento.class)))
                 .thenAnswer(inv -> inv.getArgument(0, Movimiento.class));
@@ -70,7 +88,8 @@ class ModifDictamenCuarentenaServiceTest {
             Movimiento out = dictamenCuarentenaService.persistirMovimientoCuarentenaPorAnalisis(
                 dto,
                 lote,
-                nroAnalisisParam);
+                nroAnalisisParam,
+                testUser);
 
             // then: se guardó el MISMO objeto creado por LoteEntityUtils
             ArgumentCaptor<Movimiento> cap = ArgumentCaptor.forClass(Movimiento.class);
@@ -87,7 +106,7 @@ class ModifDictamenCuarentenaServiceTest {
             assertEquals("_CU2_\nObs de prueba", saved.getObservaciones());
             assertSame(lote, saved.getLote());
 
-            ms.verify(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote));
+            ms.verify(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote, testUser));
             verifyNoMoreInteractions(movimientoRepository);
         }
     }
@@ -109,7 +128,7 @@ class ModifDictamenCuarentenaServiceTest {
         base.setLote(lote);
 
         try (MockedStatic<MovimientoModificacionUtils> ms = mockStatic(MovimientoModificacionUtils.class)) {
-            ms.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote)).thenReturn(base);
+            ms.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote, testUser)).thenReturn(base);
             when(movimientoRepository.save(any(Movimiento.class)))
                 .thenAnswer(inv -> inv.getArgument(0, Movimiento.class));
 
@@ -117,11 +136,12 @@ class ModifDictamenCuarentenaServiceTest {
             Movimiento out = dictamenCuarentenaService.persistirMovimientoCuarentenaPorAnalisis(
                 dto,
                 lote,
-                nroAnalisisParam);
+                nroAnalisisParam,
+                testUser);
 
             // then
             verify(movimientoRepository).save(out);
-            ms.verify(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote));
+            ms.verify(() -> MovimientoModificacionUtils.createMovimientoModificacion(dto, lote, testUser));
 
             assertEquals(MotivoEnum.ANALISIS, out.getMotivo());
             assertEquals(DictamenEnum.RECIBIDO, out.getDictamenInicial());

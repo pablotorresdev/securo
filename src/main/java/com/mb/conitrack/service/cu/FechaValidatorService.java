@@ -12,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
+import com.mb.conitrack.enums.RoleEnum;
 
 import static com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO;
 import static com.mb.conitrack.enums.DictamenEnum.VENCIDO;
@@ -22,6 +25,18 @@ import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimient
 /** CU9/CU10 - Validador de Fechas. Procesa expiraciones de análisis y vencimientos automáticos. */
 @Service
 public class FechaValidatorService extends AbstractCuService {
+
+    // Usuario del sistema para procesos automáticos
+    private User getSystemUser() {
+        // Buscar o crear un usuario del sistema (ADMIN) para procesos automáticos
+        return userRepository.findByUsername("system_auto")
+            .orElseGet(() -> {
+                Role adminRole = roleRepository.findByName(RoleEnum.ADMIN.name())
+                    .orElseGet(() -> roleRepository.save(Role.fromEnum(RoleEnum.ADMIN)));
+                User systemUser = new User("system_auto", "N/A", adminRole);
+                return userRepository.save(systemUser);
+            });
+    }
 
     @Scheduled(cron = "0 0 5 * * *") // Todos los días a las 5 AM
     @Transactional
@@ -74,7 +89,8 @@ public class FechaValidatorService extends AbstractCuService {
     //***********CU10 MODIFICACION: VENCIDO***********
     @Transactional
     Movimiento persistirMovimientoExpiracionAnalisis(final MovimientoDTO dto, Lote lote) {
-        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+        User systemUser = getSystemUser();
+        Movimiento movimiento = createMovimientoModificacion(dto, lote, systemUser);
         movimiento.setFecha(dto.getFechaYHoraCreacion().toLocalDate());
         movimiento.setMotivo(EXPIRACION_ANALISIS);
         movimiento.setDictamenInicial(lote.getDictamen());
@@ -87,7 +103,8 @@ public class FechaValidatorService extends AbstractCuService {
     //***********CU10 MODIFICACION: VENCIDO***********
     @Transactional
     Movimiento persistirMovimientoProductoVencido(final MovimientoDTO dto, Lote lote) {
-        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+        User systemUser = getSystemUser();
+        Movimiento movimiento = createMovimientoModificacion(dto, lote, systemUser);
         movimiento.setFecha(dto.getFechaYHoraCreacion().toLocalDate());
         movimiento.setMotivo(VENCIMIENTO);
         movimiento.setDictamenInicial(lote.getDictamen());

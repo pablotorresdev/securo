@@ -13,6 +13,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.entity.maestro.Proveedor;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.repository.maestro.ProductoRepository;
@@ -43,6 +46,9 @@ class AltaIngresoCompraServiceTest {
     @Mock
     MovimientoService movimientoService;
 
+    @Mock
+    SecurityContextService securityContextService;
+
     @InjectMocks
     AltaIngresoCompraService ingresoCompraService;
 
@@ -51,6 +57,13 @@ class AltaIngresoCompraServiceTest {
     void altaStockPorCompra_sinProducto() {
         // given
         LoteDTO dto = dtoBase();
+
+        // Mock user
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        User testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+        when(securityContextService.getCurrentUser()).thenReturn(testUser);
 
         Proveedor prov = new Proveedor();
         when(proveedorRepository.findById(1L)).thenReturn(Optional.of(prov));
@@ -73,6 +86,14 @@ class AltaIngresoCompraServiceTest {
     void altaStockPorCompra_sinProveedor() {
         // given
         LoteDTO dto = dtoBase();
+
+        // Mock user
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        User testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+        when(securityContextService.getCurrentUser()).thenReturn(testUser);
+
         when(proveedorRepository.findById(1L)).thenReturn(Optional.empty());
 
         // when / then

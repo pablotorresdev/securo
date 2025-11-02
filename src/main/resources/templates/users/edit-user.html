@@ -1,44 +1,97 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Editar usuario</title>
+    <meta charset="UTF-8">
+    <title>CU33 - Editar Usuario</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Editar usuario</h1>
-<div th:if="${error}">
-    <p style="color:red;" th:text="${error}"></p>
+<div class="container mt-4">
+    <h2 class="mb-4">Editar Usuario</h2>
+
+    <!-- Mensajes de error -->
+    <div class="alert alert-danger" role="alert" th:if="${error}">
+        <span th:text="${error}"></span>
+    </div>
+
+    <form method="post" th:action="@{/users/edit-user/{id}(id=${user.id})}" class="needs-validation">
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
+        <input name="id" th:value="${user.id}" type="hidden">
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Nombre de usuario</label>
+            <input type="text"
+                   class="form-control"
+                   id="username"
+                   name="username"
+                   th:value="${user.username}"
+                   readonly
+                   disabled>
+            <div class="form-text">El nombre de usuario no se puede modificar</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Nueva Contraseña</label>
+            <input type="password"
+                   class="form-control"
+                   id="password"
+                   name="password"
+                   minlength="3"
+                   placeholder="Dejar vacío para no cambiar la contraseña">
+            <div class="form-text">Solo ingresar si desea cambiar la contraseña actual</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="role" class="form-label">Rol</label>
+            <select class="form-select" id="role" name="roleName" required>
+                <option value="" disabled>Seleccione un rol</option>
+                <option th:each="role : ${roles}"
+                        th:value="${role.name}"
+                        th:text="${role.name + ' (Nivel ' + role.nivel + ')'}"
+                        th:selected="${user.role.name == role.name}">
+                </option>
+            </select>
+            <div class="form-text">Rol actual: <strong th:text="${user.role.name}"></strong></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="fechaExpiracion" class="form-label">Fecha de Expiración</label>
+            <input type="date"
+                   class="form-control"
+                   id="fechaExpiracion"
+                   name="fechaExpiracion"
+                   th:value="${user.fechaExpiracion}">
+            <div class="form-text">Dejar vacío para usuarios permanentes. Útil para usuarios temporales como AUDITOR</div>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a th:href="@{/users/list-users}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+
+    <!-- Información adicional del usuario -->
+    <div class="card mt-4">
+        <div class="card-header">
+            Información del Usuario
+        </div>
+        <div class="card-body">
+            <p><strong>ID:</strong> <span th:text="${user.id}"></span></p>
+            <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
+            <p><strong>Rol Actual:</strong> <span th:text="${user.role.name}"></span> (Nivel <span th:text="${user.role.nivel}"></span>)</p>
+            <p><strong>Estado:</strong>
+                <span class="badge bg-success" th:if="${user.fechaExpiracion == null}">Activo (Sin expiración)</span>
+                <span class="badge bg-success" th:if="${user.fechaExpiracion != null && user.fechaExpiracion >= #temporals.createToday()}">
+                    Activo (Expira: <span th:text="${#temporals.format(user.fechaExpiracion, 'dd/MM/yyyy')}"></span>)
+                </span>
+                <span class="badge bg-danger" th:if="${user.fechaExpiracion != null && user.fechaExpiracion < #temporals.createToday()}">
+                    EXPIRADO (<span th:text="${#temporals.format(user.fechaExpiracion, 'dd/MM/yyyy')}"></span>)
+                </span>
+            </p>
+        </div>
+    </div>
 </div>
 
-<form method="post" th:action="@{/users/edit-user/{id}(id=${user.id})}">
-    <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
-    <input name="id" th:value="${user.id}" type="hidden">
-
-    <!-- Username -->
-    <label for="username">Nombre de usuario:</label>
-    <input id="username" name="username" readonly th:value="${user.username}" type="text">
-    <br>
-
-    <!-- Password -->
-    <label for="password">Contraseña:</label>
-    <input id="password" name="password" type="password" value="">
-    <br>
-
-    <!-- Role -->
-    <label for="role">Rol:</label>
-    <select id="role" name="roleName" required>
-        <option disabled value="">Seleccione un rol</option>
-        <option th:each="role : ${roles}" th:selected="${user.role.name == role.name}"
-                th:text="${role.name}"
-                th:value="${role.name}">
-        </option>
-    </select>
-    <br>
-    <br>
-
-    <button type="submit">Guardar cambios</button>
-</form>
-
-<a th:href="@{/users/list-users}">Volver a la lista de Usuarios</a>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

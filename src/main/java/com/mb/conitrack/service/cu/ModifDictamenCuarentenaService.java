@@ -3,6 +3,7 @@ package com.mb.conitrack.service.cu;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -15,7 +16,9 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
+import com.mb.conitrack.service.SecurityContextService;
 
 import jakarta.validation.Valid;
 
@@ -28,8 +31,12 @@ import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimient
 @Service
 public class ModifDictamenCuarentenaService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     @Transactional
     public LoteDTO persistirDictamenCuarentena(final MovimientoDTO dto) {
+        User currentUser = securityContextService.getCurrentUser();
 
         Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
             .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
@@ -51,7 +58,7 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
         }
 
         final String nroAnalisisMovimiento = newAnalisis != null ? newAnalisis.getNroAnalisis() : nroAnalisis;
-        Movimiento mov = persistirMovimientoCuarentenaPorAnalisis(dto, lote, nroAnalisisMovimiento);
+        Movimiento mov = persistirMovimientoCuarentenaPorAnalisis(dto, lote, nroAnalisisMovimiento, currentUser);
 
         final List<Traza> trazasLote = lote.getActiveTrazas();
         if (!trazasLote.isEmpty()) {
@@ -68,8 +75,8 @@ public class ModifDictamenCuarentenaService extends AbstractCuService {
     }
 
     @Transactional
-    public Movimiento persistirMovimientoCuarentenaPorAnalisis(final MovimientoDTO dto, Lote lote, String nroAnalisis) {
-        Movimiento movimiento = createMovimientoModificacion(dto, lote);
+    public Movimiento persistirMovimientoCuarentenaPorAnalisis(final MovimientoDTO dto, Lote lote, String nroAnalisis, User currentUser) {
+        Movimiento movimiento = createMovimientoModificacion(dto, lote, currentUser);
         movimiento.setFecha(dto.getFechaMovimiento());
         movimiento.setMotivo(ANALISIS);
         movimiento.setDictamenInicial(lote.getDictamen());

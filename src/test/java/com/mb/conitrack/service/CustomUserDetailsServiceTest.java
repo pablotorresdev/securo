@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.mb.conitrack.entity.maestro.Role;
 import com.mb.conitrack.entity.maestro.User;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.repository.maestro.RoleRepository;
 import com.mb.conitrack.repository.maestro.UserRepository;
 import com.mb.conitrack.service.maestro.CustomUserDetailsService;
@@ -62,15 +63,53 @@ class CustomUserDetailsServiceTest {
 
     @Test
     void testSaveDefaultUsers_DefaultUsersAdded() {
-        when(userRepository.findByUsername("admin")).thenReturn(Optional.empty());
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.empty());
-        when(userRepository.findByUsername("user2")).thenReturn(Optional.empty());
+        // Mock roleRepository to return roles when findByName is called
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        Role dtRole = Role.fromEnum(RoleEnum.DT);
+        dtRole.setId(2L);
+        Role gerenteGarantiaRole = Role.fromEnum(RoleEnum.GERENTE_GARANTIA_CALIDAD);
+        gerenteGarantiaRole.setId(3L);
+        Role gerenteControlRole = Role.fromEnum(RoleEnum.GERENTE_CONTROL_CALIDAD);
+        gerenteControlRole.setId(4L);
+        Role supervisorRole = Role.fromEnum(RoleEnum.SUPERVISOR_PLANTA);
+        supervisorRole.setId(5L);
+        Role analistaControlRole = Role.fromEnum(RoleEnum.ANALISTA_CONTROL_CALIDAD);
+        analistaControlRole.setId(6L);
+        Role analistaPlantaRole = Role.fromEnum(RoleEnum.ANALISTA_PLANTA);
+        analistaPlantaRole.setId(7L);
+        Role auditorRole = Role.fromEnum(RoleEnum.AUDITOR);
+        auditorRole.setId(8L);
+
+        // Mock roleRepository.findByName to return empty (so save will be called)
+        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("DT")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("GERENTE_GARANTIA_CALIDAD")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("GERENTE_CONTROL_CALIDAD")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("SUPERVISOR_PLANTA")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("ANALISTA_CONTROL_CALIDAD")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("ANALISTA_PLANTA")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("AUDITOR")).thenReturn(Optional.empty());
+
+        // Mock roleRepository.save to return the roles with IDs
+        when(roleRepository.save(Mockito.any(Role.class))).thenAnswer(invocation -> {
+            Role role = invocation.getArgument(0);
+            if (role.getId() == null) {
+                role.setId(1L); // Assign a dummy ID
+            }
+            return role;
+        });
+
+        // Mock userRepository.findByUsername to return empty for all users
+        when(userRepository.findByUsername(Mockito.anyString())).thenReturn(Optional.empty());
 
         customUserDetailsService.saveDefaultUsers();
 
+        // Verify that admin user was created
         verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("admin")));
-        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user1")));
-        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user2")));
+        // Verify that test users were created
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user_dt")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user_auditor")));
     }
 
 }

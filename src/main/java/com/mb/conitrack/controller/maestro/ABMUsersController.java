@@ -129,8 +129,9 @@ public class ABMUsersController {
     @PostMapping("/edit-user/{id}")
     public String editUser(
         @PathVariable Long id,
-        @RequestParam String password,
+        @RequestParam(required = false) String password,
         @RequestParam String roleName,
+        @RequestParam(required = false) String fechaExpiracion,
         RedirectAttributes redirectAttributes) {
         // Check if the user exists
         Optional<User> userOptional = userRepository.findById(id);
@@ -147,11 +148,25 @@ public class ABMUsersController {
             return "redirect:/users/list-users";
         }
 
+        // Update password only if provided
         if (password != null && !password.isEmpty()) {
             user.setPassword(passwordEncoder.encode(password));
         }
 
+        // Update role
         user.setRole(roleByName.get());
+
+        // Update fecha de expiración
+        if (fechaExpiracion != null && !fechaExpiracion.isEmpty()) {
+            try {
+                user.setFechaExpiracion(java.time.LocalDate.parse(fechaExpiracion));
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", "Invalid expiration date format!");
+                return "redirect:/users/edit-user/" + id;
+            }
+        } else {
+            user.setFechaExpiracion(null);
+        }
 
         userRepository.save(user);
 

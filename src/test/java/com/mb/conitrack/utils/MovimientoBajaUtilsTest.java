@@ -16,8 +16,11 @@ import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.maestro.Role;
+import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.RoleEnum;
 import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 
@@ -29,6 +32,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MovimientoBajaUtilsTest {
+
+    private User testUser;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        Role adminRole = Role.fromEnum(RoleEnum.ADMIN);
+        adminRole.setId(1L);
+        testUser = new User("testuser", "password", adminRole);
+        testUser.setId(1L);
+    }
 
     @Test
     @DisplayName("Constructor lanza UnsupportedOperationException")
@@ -53,7 +66,7 @@ class MovimientoBajaUtilsTest {
         dto.setObservaciones("Devolución a proveedor");
 
         // when
-        Movimiento movimiento = MovimientoBajaUtils.createMovimientoDevolucionCompra(dto);
+        Movimiento movimiento = MovimientoBajaUtils.createMovimientoDevolucionCompra(dto, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -82,7 +95,7 @@ class MovimientoBajaUtilsTest {
         lote.setCodigoLote("LOT-PROD-01");
 
         // when
-        Movimiento movimiento = MovimientoBajaUtils.createMovimientoBajaProduccion(dto, lote);
+        Movimiento movimiento = MovimientoBajaUtils.createMovimientoBajaProduccion(dto, lote, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -110,7 +123,7 @@ class MovimientoBajaUtilsTest {
         lote.setCodigoLote("LOT-VENTA-01");
 
         // when
-        Movimiento movimiento = MovimientoBajaUtils.createMovimientoBajaVenta(dto, lote);
+        Movimiento movimiento = MovimientoBajaUtils.createMovimientoBajaVenta(dto, lote, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -142,7 +155,7 @@ class MovimientoBajaUtilsTest {
         bulto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
 
         // when
-        Movimiento movimiento = MovimientoBajaUtils.createMovimientoAjusteStock(dto, bulto);
+        Movimiento movimiento = MovimientoBajaUtils.createMovimientoAjusteStock(dto, bulto, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -182,7 +195,7 @@ class MovimientoBajaUtilsTest {
         analisis.setNroAnalisis("AN-2025-001");
 
         // when
-        Movimiento movimiento = MovimientoBajaUtils.createMovimientoMuestreoConAnalisis(dto, bulto, analisis);
+        Movimiento movimiento = MovimientoBajaUtils.createMovimientoMuestreoConAnalisis(dto, bulto, analisis, testUser);
 
         // then
         assertNotNull(movimiento);
@@ -211,7 +224,7 @@ class MovimientoBajaUtilsTest {
         lote.setCodigoLote("LOT-MULTI-01");
 
         // when
-        Movimiento movimiento = MovimientoBajaUtils.createMovimientoPorMuestreoMultiBulto(dto, lote);
+        Movimiento movimiento = MovimientoBajaUtils.createMovimientoPorMuestreoMultiBulto(dto, lote, testUser);
 
         // then
         assertNotNull(movimiento);

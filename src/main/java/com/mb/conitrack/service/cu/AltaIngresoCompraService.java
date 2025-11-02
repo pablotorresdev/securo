@@ -12,6 +12,10 @@ import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
+import com.mb.conitrack.entity.maestro.User;
+import com.mb.conitrack.service.SecurityContextService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.mb.conitrack.utils.LoteEntityUtils.createLoteIngreso;
 import static com.mb.conitrack.utils.LoteEntityUtils.populateLoteAltaStockCompra;
@@ -23,9 +27,15 @@ import static com.mb.conitrack.utils.MovimientoAltaUtils.createMovimientoAltaIng
 @Service
 public class AltaIngresoCompraService extends AbstractCuService {
 
+    @Autowired
+    private SecurityContextService securityContextService;
+
     /** Crea lote nuevo desde compra. Inicializa bultos y movimiento ALTA/COMPRA. */
     @Transactional
     public LoteDTO altaStockPorCompra(LoteDTO loteDTO) {
+        // Obtener usuario actual del contexto de seguridad
+        User currentUser = securityContextService.getCurrentUser();
+
         Proveedor proveedor = proveedorRepository.findById(loteDTO.getProveedorId())
             .orElseThrow(() -> new IllegalArgumentException("El proveedor no existe."));
 
@@ -39,10 +49,9 @@ public class AltaIngresoCompraService extends AbstractCuService {
         Lote lote = createLoteIngreso(loteDTO);
         populateLoteAltaStockCompra(lote, loteDTO, producto, proveedor, fabricante.orElse(null));
 
-        Lote loteGuardado = loteRepository.save(lote);
-        bultoRepository.saveAll(loteGuardado.getBultos());
+        Lote loteGuardado = loteRepository.save(lote);  // Cascade persists bultos
 
-        final Movimiento movimientoAltaIngresoCompra = createMovimientoAltaIngresoCompra(loteGuardado);
+        final Movimiento movimientoAltaIngresoCompra = createMovimientoAltaIngresoCompra(loteGuardado, currentUser);
         addLoteInfoToMovimientoAlta(loteGuardado, movimientoAltaIngresoCompra);
 
         final Movimiento movimientoGuardado = movimientoRepository.save(movimientoAltaIngresoCompra);
