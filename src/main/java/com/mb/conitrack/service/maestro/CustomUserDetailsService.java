@@ -75,7 +75,7 @@ public class CustomUserDetailsService implements UserDetailsService {
      * Crea o actualiza un rol desde el enum RoleEnum.
      * Si el rol existe pero tiene nivel diferente, lo actualiza.
      */
-    private Role createOrUpdateRole(RoleEnum roleEnum) {
+    Role createOrUpdateRole(RoleEnum roleEnum) {
         return roleRepository.findByName(roleEnum.name())
             .map(existingRole -> {
                 // Actualizar nivel si cambió
@@ -98,15 +98,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     /**
      * Crea un usuario si no existe.
      */
-    private void createUserIfNotExists(String username, String password, Role role) {
+    void createUserIfNotExists(String username, String password, Role role) {
         if (userRepository.findByUsername(username).isEmpty()) {
             userRepository.save(new User(username, passwordEncoder().encode(password), role));
             log.info("Usuario {} creado con rol {}", username, role.getName());
         }
     }
 
-    private PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Use a private static encoder here
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(); // Use a package-protected encoder here for testability
     }
 
 }

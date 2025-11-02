@@ -222,7 +222,7 @@ class ABMUsersControllerTest {
         when(passwordEncoder.encode("newPassword")).thenReturn("encodedPassword");
 
         // Act
-        String viewName = controller.editUser(1L, "newPassword", "ROLE_ADMIN", redirectAttributes);
+        String viewName = controller.editUser(1L, "newPassword", "ROLE_ADMIN", null, redirectAttributes);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/users/list-users");
@@ -238,7 +238,7 @@ class ABMUsersControllerTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         // Act
-        String viewName = controller.editUser(1L, "password", "ROLE_ADMIN", redirectAttributes);
+        String viewName = controller.editUser(1L, "password", "ROLE_ADMIN", null, redirectAttributes);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/users/list-users");
@@ -302,6 +302,116 @@ class ABMUsersControllerTest {
         // Assert
         assertThat(viewName).isEqualTo("redirect:/users/list-users");
         assertThat(model.getAttribute("error")).isEqualTo("User not found!");
+    }
+
+    @Test
+    void usersPage() {
+        // Act
+        String viewName = controller.usersPage();
+
+        // Assert
+        assertThat(viewName).isEqualTo("users/index-users");
+    }
+
+    @Test
+    void editUser_RoleNotFound() {
+        // Arrange
+        User user = new User("user1", "oldPassword", new Role("ROLE_USER"));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(eq("ROLE_INVALID"))).thenReturn(Optional.empty());
+
+        // Act
+        String viewName = controller.editUser(1L, "newPassword", "ROLE_INVALID", null, redirectAttributes);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
+        assertThat(redirectAttributes.getFlashAttributes().get("error")).isEqualTo("Role not found!");
+        verify(userRepository, times(0)).save(any(User.class));
+    }
+
+    @Test
+    void editUser_NoPasswordProvided() {
+        // Arrange
+        User user = new User("user1", "oldPassword", new Role("ROLE_USER"));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(eq("ROLE_ADMIN"))).thenReturn(Optional.of(new Role("ROLE_ADMIN")));
+
+        // Act - password is null
+        String viewName = controller.editUser(1L, null, "ROLE_ADMIN", null, redirectAttributes);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
+        assertThat(redirectAttributes.getFlashAttributes().get("success")).isEqualTo("User updated successfully!");
+        assertThat(user.getPassword()).isEqualTo("oldPassword"); // Password should remain unchanged
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void editUser_EmptyPasswordProvided() {
+        // Arrange
+        User user = new User("user1", "oldPassword", new Role("ROLE_USER"));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(eq("ROLE_ADMIN"))).thenReturn(Optional.of(new Role("ROLE_ADMIN")));
+
+        // Act - password is empty string
+        String viewName = controller.editUser(1L, "", "ROLE_ADMIN", null, redirectAttributes);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
+        assertThat(redirectAttributes.getFlashAttributes().get("success")).isEqualTo("User updated successfully!");
+        assertThat(user.getPassword()).isEqualTo("oldPassword"); // Password should remain unchanged
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void editUser_WithValidFechaExpiracion() {
+        // Arrange
+        User user = new User("user1", "oldPassword", new Role("ROLE_USER"));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(eq("ROLE_ADMIN"))).thenReturn(Optional.of(new Role("ROLE_ADMIN")));
+
+        // Act - with valid fecha expiracion
+        String viewName = controller.editUser(1L, null, "ROLE_ADMIN", "2025-12-31", redirectAttributes);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
+        assertThat(redirectAttributes.getFlashAttributes().get("success")).isEqualTo("User updated successfully!");
+        assertThat(user.getFechaExpiracion()).isNotNull();
+        assertThat(user.getFechaExpiracion().toString()).isEqualTo("2025-12-31");
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void editUser_WithInvalidFechaExpiracion() {
+        // Arrange
+        User user = new User("user1", "oldPassword", new Role("ROLE_USER"));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(eq("ROLE_ADMIN"))).thenReturn(Optional.of(new Role("ROLE_ADMIN")));
+
+        // Act - with invalid fecha expiracion format
+        String viewName = controller.editUser(1L, null, "ROLE_ADMIN", "invalid-date", redirectAttributes);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/users/edit-user/1");
+        assertThat(redirectAttributes.getFlashAttributes().get("error")).isEqualTo("Invalid expiration date format!");
+        verify(userRepository, times(0)).save(any(User.class));
+    }
+
+    @Test
+    void editUser_WithEmptyFechaExpiracion() {
+        // Arrange
+        User user = new User("user1", "oldPassword", new Role("ROLE_USER"));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByName(eq("ROLE_ADMIN"))).thenReturn(Optional.of(new Role("ROLE_ADMIN")));
+
+        // Act - with empty string fecha expiracion
+        String viewName = controller.editUser(1L, null, "ROLE_ADMIN", "", redirectAttributes);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/users/list-users");
+        assertThat(redirectAttributes.getFlashAttributes().get("success")).isEqualTo("User updated successfully!");
+        assertThat(user.getFechaExpiracion()).isNull();
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
 }

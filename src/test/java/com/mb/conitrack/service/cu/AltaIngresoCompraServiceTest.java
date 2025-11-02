@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
@@ -63,7 +62,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - Casos edge
  */
 @SpringBootTest
-@ActiveProfiles("test")
+@org.springframework.test.context.TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.sql.init.mode=never",
+    "spring.jpa.defer-datasource-initialization=false"
+})
 @Transactional
 @DisplayName("Tests de Integraci�n - AltaIngresoCompraService (CU1)")
 class AltaIngresoCompraServiceTest {

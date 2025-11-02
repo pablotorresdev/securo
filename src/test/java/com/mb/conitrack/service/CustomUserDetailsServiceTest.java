@@ -105,11 +105,17 @@ class CustomUserDetailsServiceTest {
 
         customUserDetailsService.saveDefaultUsers();
 
-        // Verify that admin user was created
+        // Verify that admin users were created
         verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("admin")));
-        // Verify that test users were created
-        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user_dt")));
-        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("user_auditor")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("ptorres")));
+        // Verify that other role users were created
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("jtorres")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("cponce")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("jmartinez")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("rgonzalez")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("msilva")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("eraciti")));
+        verify(userRepository, times(1)).save(argThat(user -> user.getUsername().equals("auditor")));
     }
 
 }

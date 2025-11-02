@@ -81,7 +81,7 @@ public class AuditorAccessInterceptor implements HandlerInterceptor {
     /**
      * Verifica si el método HTTP es de modificación.
      */
-    private boolean isModificationRequest(String method) {
+    boolean isModificationRequest(String method) {
         return "POST".equalsIgnoreCase(method) ||
                "PUT".equalsIgnoreCase(method) ||
                "DELETE".equalsIgnoreCase(method) ||
