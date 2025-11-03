@@ -21,7 +21,13 @@
       "Bash(docker-compose stop:*)",
       "Bash(docker-compose rm:*)",
       "Bash(docker-compose build:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(dir:*)",
+      "Bash(rm:*)",
+      "Bash(./gradlew jacocoTestReport:*)",
+      "Bash(cat build/reports/jacoco/test/html/com.mb.conitrack.controller.maestro/PasswordChangeController.html 2)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []
