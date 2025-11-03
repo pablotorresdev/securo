@@ -41,6 +41,27 @@ public class AltaDevolucionVentaController extends AbstractCuController {
         return "ventas/alta/devolucion-venta";
     }
 
+    /** Muestra pantalla de confirmación con preview de datos antes de guardar. */
+    // @PreAuthorize("hasAuthority('ROLE_GERENTE_GARANTIA')")
+    @PostMapping("/devolucion-venta/confirm")
+    public String confirmarDevolucionVenta(
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model) {
+
+        if (!devolucionVentaService.validarDevolucionVentaInput(movimientoDTO, bindingResult)) {
+            initModelDevolucionVenta(movimientoDTO, model);
+            model.addAttribute("movimientoDTO", movimientoDTO);
+            return "ventas/alta/devolucion-venta";
+        }
+
+        // Resolver nombres desde IDs para mostrar en la confirmación
+        resolverNombresParaConfirmacion(movimientoDTO);
+
+        model.addAttribute("movimientoDTO", movimientoDTO);
+        return "ventas/alta/devolucion-venta-confirm";
+    }
+
     @PostMapping("/devolucion-venta")
     public String devolucionVenta(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
@@ -55,6 +76,17 @@ public class AltaDevolucionVentaController extends AbstractCuController {
         }
         procesarDevolucionVenta(movimientoDTO, redirectAttributes);
         return "redirect:/ventas/alta/devolucion-venta-ok";
+    }
+
+    /** Resuelve nombres de lote desde código para mostrar en confirmación. */
+    private void resolverNombresParaConfirmacion(MovimientoDTO movimientoDTO) {
+        // Resolver información del lote
+        if (movimientoDTO.getCodigoLote() != null) {
+            loteService.findByCodigoLote(movimientoDTO.getCodigoLote()).ifPresent(lote -> {
+                movimientoDTO.setNombreProducto(lote.getProducto().getNombreGenerico());
+                movimientoDTO.setCodigoProducto(lote.getProducto().getCodigoProducto());
+            });
+        }
     }
 
     @GetMapping("/devolucion-venta-ok")

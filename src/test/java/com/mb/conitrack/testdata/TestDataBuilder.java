@@ -137,6 +137,11 @@ public class TestDataBuilder {
             return this;
         }
 
+        public LoteDTOBuilder withTrazaInicial(Long trazaInicial) {
+            dto.setTrazaInicial(trazaInicial);
+            return this;
+        }
+
         public LoteDTO build() {
             return dto;
         }

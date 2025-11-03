@@ -132,5 +132,10 @@ public class LoteService {
         return fromLoteEntities(loteRepository.findAllForReversoMovimiento());
     }
 
+    @Transactional(readOnly = true)
+    public java.util.Optional<com.mb.conitrack.entity.Lote> findByCodigoLote(final String codigoLote) {
+        return loteRepository.findByCodigoLoteAndActivoTrue(codigoLote);
+    }
+
 }
 

@@ -77,6 +77,10 @@ public class MovimientoDTO {
     @Size(max = 20, message = "El número de re analisis no debe superar 30 caracteres")
     private String nroReanalisis;
 
+    // Campos para visualización en confirmación (no se persisten)
+    private String nombreProducto;
+    private String codigoProducto;
+
     private String codigoMovimiento;
 
     // Campos no usados aun

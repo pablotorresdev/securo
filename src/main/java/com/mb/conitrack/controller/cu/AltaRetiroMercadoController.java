@@ -39,6 +39,22 @@ public class AltaRetiroMercadoController extends AbstractCuController {
         return "ventas/recall/retiro-mercado";
     }
 
+    @PostMapping("/retiro-mercado/confirm")
+    public String confirmRetiroMercado(
+        @Valid @ModelAttribute MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model) {
+
+        if (!retiroMercadoService.validarRetiroMercadoInput(movimientoDTO, bindingResult)) {
+            initModelRetiroMercado(movimientoDTO, model);
+            model.addAttribute("movimientoDTO", movimientoDTO);
+            return "ventas/recall/retiro-mercado";
+        }
+
+        model.addAttribute("movimientoDTO", movimientoDTO);
+        return "ventas/recall/retiro-mercado-confirm";
+    }
+
     @PostMapping("/retiro-mercado")
     public String retiroMercado(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,
@@ -49,7 +65,7 @@ public class AltaRetiroMercadoController extends AbstractCuController {
         if (!retiroMercadoService.validarRetiroMercadoInput(movimientoDTO, bindingResult)) {
             initModelRetiroMercado(movimientoDTO, model);
             model.addAttribute("movimientoDTO", movimientoDTO);
-            return "ventas/devolucion/retiro-mercado";
+            return "ventas/recall/retiro-mercado";
         }
         prcesarRetiroMercado(movimientoDTO, redirectAttributes);
         return "redirect:/ventas/recall/retiro-mercado-ok";

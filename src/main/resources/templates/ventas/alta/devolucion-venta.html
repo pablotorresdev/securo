@@ -2,188 +2,334 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Devolución de cliente</title>
-    <!-- Bootstrap para estilos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devolución de Cliente - CU23</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Metadatos CSRF provistos por Spring Security (token y header a enviar en fetch o formularios) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #059669;
+        }
+
+        .form-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 30px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .form-label .required {
+            color: #dc3545;
+            margin-left: 3px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #059669;
+            box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.25);
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-custom-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.4);
+            color: white;
+        }
+
+        .btn-custom-secondary {
+            background: white;
+            border: 2px solid #059669;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: #059669;
+            transition: all 0.3s;
+        }
+
+        .btn-custom-secondary:hover {
+            background: #059669;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .info-box {
+            background: #d1fae5;
+            border-left: 4px solid #059669;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 2px solid #e0e0e0;
+            margin-top: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .traza-group {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+        }
+
+        .traza-group:hover {
+            border-color: #059669;
+        }
+
+        .traza-group .bulto-title {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .form-check-input:checked {
+            background-color: #059669;
+            border-color: #059669;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Devolución de cliente</h2>
-
-    <!--
-      Formulario principal:
-      - POST a /ventas/alta/devolucion-venta
-      - th:object vincula los campos con movimientoDTO (binding servidor <-> vista)
-    -->
-    <form method="post" th:action="@{/ventas/alta/devolucion-venta}" th:object="${movimientoDTO}">
-        <!-- Campo oculto con el token CSRF que exige el backend -->
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-
-        <!--
-          Contenedor donde se crearán inputs ocultos para movimientoDTO.trazaDTOs[i]
-          durante el submit (desde JS), a partir de los checkboxes tildados.
-        -->
-        <div id="trazasHidden"></div>
-
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
-
-        <!--
-          Selector de lote:
-          - Bindeado a movimientoDTO.codigoLote
-          - Las opciones muestran info útil: producto, código interno, fecha ingreso y rango de trazas
-          - El listado ${lotesDevolucion} llega ya filtrado por el backend
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="codigoLote">Lote:</label>
-            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
-                <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${lotesDevolucion}"
-                        th:value="${loteDTO.codigoLote}"
-                        th:data-trazado="${loteDTO.trazado}"
-                        th:text="'Producto: ' + ${loteDTO.nombreProducto}
-                     + ' | Codigo interno: ' + ${loteDTO.codigoLote}
-                     + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
-                     + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
-                     + '/' + ${loteDTO.trazaFinal}">
-                </option>
-            </select>
+<div class="container">
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <span class="badge bg-success">CU23</span>
+            <h2>
+                <i class="bi bi-arrow-return-left"></i>
+                Devolución de Cliente
+            </h2>
+            <p class="text-muted mb-0">Registre la devolución de productos vendidos</p>
         </div>
 
-        <!--
-          Select de Movimientos de venta asociados al lote:
-          - Se carga dinámicamente via fetch cuando cambia el lote
-          - Se bindea a *{codigoMovimientoOrigen}
-          - Se muestra/oculta según disponibilidad y errores del servidor
-        -->
-        <div class="mb-3" id="wrapperMovVentas"
-             th:style="${#fields.hasErrors('codigoMovimientoOrigen')}? '' : 'display:none;'">
-            <label class="form-label" for="movVentaId">Movimiento de Venta:</label>
-            <select class="form-select" id="movVentaId"
-                    th:field="*{codigoMovimientoOrigen}" required>
-                <option value="">-- Seleccione un movimiento --</option>
-            </select>
-            <!-- Mensaje de error server-side para el movimiento origen -->
-            <div class="text-danger fw-bold mt-2"
-                 th:errors="*{codigoMovimientoOrigen}"
-                 th:if="${#fields.hasErrors('codigoMovimientoOrigen')}">
+        <!-- Alerts -->
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error}">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Error:</strong> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Form -->
+        <form method="post" th:action="@{/ventas/alta/devolucion-venta/confirm}" th:object="${movimientoDTO}">
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <div id="trazasHidden"></div>
+
+            <!-- Datos Principales -->
+            <div class="section-title">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>Datos Principales</span>
             </div>
-        </div>
 
-        <!--
-          Bloque de Trazas:
-          - Se llena via fetch al seleccionar un movimiento
-          - Permite seleccionar (checkbox) qué unidades/trazas serán devueltas
-          - Incluye “seleccionar todas” global y por bulto
-          - Errores client-side (sin submit) y server-side (BindingResult)
-        -->
-        <div class="mb-3" id="wrapperTrazas"
-             th:style="${#fields.hasErrors('trazaDTOs')}? '' : 'display:none;'">
-            <label class="form-label">Trazas vendidas del movimiento (seleccione las unidades devueltas):</label>
-            <div id="trazasContainer" class="border rounded p-3"></div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="codigoLote">
+                        <i class="bi bi-box-seam"></i> Lote
+                        <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
+                        <option value="">-- Seleccione un Lote --</option>
+                        <option th:each="loteDTO : ${lotesDevolucion}"
+                                th:value="${loteDTO.codigoLote}"
+                                th:data-trazado="${loteDTO.trazado}"
+                                th:text="'Producto: ' + ${loteDTO.nombreProducto}
+                             + ' | Codigo interno: ' + ${loteDTO.codigoLote}
+                             + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
+                             + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
+                             + '/' + ${loteDTO.trazaFinal}">
+                        </option>
+                    </select>
+                    <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
+                </div>
 
-            <!-- Error client-side si no se selecciona al menos una traza -->
-            <div id="trazasError" class="text-danger fw-bold mt-2" style="display:none;">
-                Seleccioná al menos una traza.
+                <div class="col-12" id="wrapperMovVentas"
+                     th:style="${#fields.hasErrors('codigoMovimientoOrigen')}? '' : 'display:none;'">
+                    <label class="form-label" for="movVentaId">
+                        <i class="bi bi-arrow-right-circle"></i> Movimiento de Venta
+                        <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="movVentaId" th:field="*{codigoMovimientoOrigen}" required>
+                        <option value="">-- Seleccione un movimiento --</option>
+                    </select>
+                    <div class="text-danger" th:errors="*{codigoMovimientoOrigen}" th:if="${#fields.hasErrors('codigoMovimientoOrigen')}"></div>
+                </div>
             </div>
-            <!-- Error server-side de binding -->
-            <div class="text-danger fw-bold mt-2"
-                 th:errors="*{trazaDTOs}"
-                 th:if="${#fields.hasErrors('trazaDTOs')}">
+
+            <!-- Trazas -->
+            <div class="mb-3" id="wrapperTrazas" th:style="${#fields.hasErrors('trazaDTOs')}? '' : 'display:none;'">
+                <div class="section-title">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Trazas Vendidas</span>
+                </div>
+
+                <div class="info-box">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Instrucción:</strong> Seleccione las unidades/trazas que están siendo devueltas
+                </div>
+
+                <div id="trazasContainer" class="border rounded p-3"></div>
+                <div id="trazasError" class="text-danger fw-bold mt-2" style="display:none;">
+                    Seleccione al menos una traza.
+                </div>
+                <div class="text-danger fw-bold mt-2" th:errors="*{trazaDTOs}" th:if="${#fields.hasErrors('trazaDTOs')}"></div>
             </div>
-        </div>
 
-        <!-- Devolución NO trazada (ingreso por cantidad por bulto) -->
-        <div class="mb-3" id="wrapperCantidades" style="display:none;">
-            <label class="form-label">Cantidades a devolver por bulto:</label>
-            <div id="cantidadesContainer" class="border rounded p-3"></div>
+            <!-- Cantidades por bulto (no trazado) -->
+            <div class="mb-3" id="wrapperCantidades" style="display:none;">
+                <div class="section-title">
+                    <i class="bi bi-calculator"></i>
+                    <span>Cantidades por Bulto</span>
+                </div>
 
-            <div id="cantidadesError" class="text-danger fw-bold mt-2" style="display:none;">
-                Ingresá al menos una cantidad válida (&gt; 0) y no superior al máximo permitido.
+                <div class="info-box">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Instrucción:</strong> Ingrese las cantidades a devolver por cada bulto
+                </div>
+
+                <div id="cantidadesContainer"></div>
+                <div id="cantidadesError" class="text-danger fw-bold mt-2" style="display:none;">
+                    Ingrese al menos una cantidad válida (&gt; 0) y no superior al máximo permitido.
+                </div>
             </div>
-        </div>
 
-        <!--
-          Fecha de la devolución (obligatoria):
-          - type="date" bindeado a *{fechaMovimiento}
-          - JS inicializa a “hoy” (TZ Buenos Aires) si no viene desde el DTO
-        -->
-        <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha Devolucion:</label>
-            <input class="form-control" id="fechaMovimiento" name="fechaMovimiento"
-                   required
-                   th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
-                   th:field="*{fechaMovimiento}"
-                   type="date">
-            <!-- Mensaje de error server-side para fecha -->
-            <div style="color: red; font-weight: bold;"
-                 th:errors="*{fechaMovimiento}"
-                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
-        </div>
+            <!-- Datos Adicionales -->
+            <div class="section-title">
+                <i class="bi bi-folder-plus"></i>
+                <span>Información Adicional</span>
+            </div>
 
-        <!-- Observaciones libres (opcional) -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones (opcional):</label>
-            <textarea class="form-control"
-                      id="observaciones"
-                      rows="2"
-                      th:field="*{observaciones}"></textarea>
-        </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="fechaMovimiento">
+                        <i class="bi bi-calendar-event"></i> Fecha Devolución
+                        <span class="required">*</span>
+                    </label>
+                    <input class="form-control" id="fechaMovimiento" required th:field="*{fechaMovimiento}" type="date">
+                    <div class="text-danger" th:errors="*{fechaMovimiento}" th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
+                </div>
 
-        <!-- Acciones del formulario -->
-        <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/ventas/alta/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Realizar devolución</button>
-        </div>
-    </form>
+                <div class="col-12">
+                    <label class="form-label" for="observaciones">
+                        <i class="bi bi-chat-left-text"></i> Observaciones
+                    </label>
+                    <textarea class="form-control" id="observaciones" rows="3" th:field="*{observaciones}" placeholder="Opcional"></textarea>
+                </div>
+            </div>
+
+            <!-- Footer Sticky -->
+            <div class="sticky-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a class="btn btn-custom-secondary" th:href="@{/}">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button class="btn btn-custom-primary" type="submit">
+                        <i class="bi bi-eye"></i> Vista Previa y Confirmar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Pie de página simple -->
-<footer class="text-center mt-4 text-muted">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
-</footer>
-
-<!-- =========================================================
-     JS de la vista:
-     - Carga movimientos del lote seleccionado
-     - Carga trazas vendidas por movimiento (con select all global y por bulto)
-     - Restaura selecciones si se vuelve con errores
-     - En submit, construye movimientoDTO.trazaDTOs[*] en inputs ocultos
-========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', async function () {
-        // Base de URLs resueltas por Thymeleaf (p. ej. "/" o con contexto)
-        /* ---------- Base y CSRF ---------- */
         const base = /*[[@{/}]]*/ '';
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-        const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
         const authHeaders = csrfHeader && csrfToken ? { [csrfHeader]: csrfToken } : {};
 
-        /* ---------- DOM ---------- */
         const form = document.querySelector('form');
-
         const loteSelect = document.getElementById('codigoLote');
-
         const movWrapper = document.getElementById('wrapperMovVentas');
-        const movSelect  = document.getElementById('movVentaId');
-
-        const trazasWrapper   = document.getElementById('wrapperTrazas');
+        const movSelect = document.getElementById('movVentaId');
+        const trazasWrapper = document.getElementById('wrapperTrazas');
         const trazasContainer = document.getElementById('trazasContainer');
-        const trazasHidden    = document.getElementById('trazasHidden');
-        const trazasError     = document.getElementById('trazasError');
-
-        const cantWrapper   = document.getElementById('wrapperCantidades');
+        const trazasHidden = document.getElementById('trazasHidden');
+        const trazasError = document.getElementById('trazasError');
+        const cantWrapper = document.getElementById('wrapperCantidades');
         const cantContainer = document.getElementById('cantidadesContainer');
-        const cantError     = document.getElementById('cantidadesError');
+        const cantError = document.getElementById('cantidadesError');
 
+        let MODO_TRAZAS = false;
 
-        /* ---------- Estado ---------- */
-        let MODO_TRAZAS = false; // true: flujo trazado; false: cantidades por bulto (no trazado)
-
-        /* ---------- Helpers UI ---------- */
         function esLoteTrazado() {
             const opt = loteSelect.options[loteSelect.selectedIndex];
             return !!opt && opt.getAttribute('data-trazado') === 'true';
@@ -193,18 +339,15 @@
             MODO_TRAZAS = !!flag;
             if (MODO_TRAZAS) {
                 trazasWrapper.style.display = 'block';
-                cantWrapper.style.display   = 'none';
+                cantWrapper.style.display = 'none';
                 clearCantidadesUI();
             } else {
                 trazasWrapper.style.display = 'none';
-                cantWrapper.style.display   = 'block';
+                cantWrapper.style.display = 'block';
                 clearTrazasUI();
             }
         }
 
-        /* -------------------- Helpers de UI -------------------- */
-
-        // Limpia toda la sección de trazas y esconde contenedores
         function clearTrazasUI() {
             trazasContainer.innerHTML = '';
             trazasHidden.innerHTML = '';
@@ -218,7 +361,6 @@
             cantError.style.display = 'none';
         }
 
-        /* ---------- Movimientos por Lote ---------- */
         async function loadMovimientos(codLote) {
             movSelect.innerHTML = '<option value="">-- Seleccione un movimiento --</option>';
             movWrapper.style.display = 'none';
@@ -233,8 +375,8 @@
                     const opt = document.createElement('option');
                     opt.value = mov.codigoMovimiento;
                     const fecha = mov.fechaMovimiento ?? '';
-                    const cant  = mov.cantidad ?? '';
-                    const um    = mov.unidadMedida ?? '';
+                    const cant = mov.cantidad ?? '';
+                    const um = mov.unidadMedida ?? '';
                     opt.text = `Fecha: ${fecha} | Cant: ${cant} ${um}`;
                     movSelect.appendChild(opt);
                 });
@@ -246,11 +388,6 @@
             }
         }
 
-        /* ---------- NO TRAZADO: pedir máximos al back (unidad = UNIDAD) ----------
-           Endpoint esperado:
-             GET /movimientos/devolucion/maximos/{codigoLote}/{codigoMovimiento}
-             → Array<Integer> donde índice i => nroBulto = i+1; 0 = sin saldo/ausente
-        -------------------------------------------------------------------------- */
         async function loadMaximosNoTrazado(codigoMov) {
             clearCantidadesUI();
             if (!codigoMov) return;
@@ -259,7 +396,7 @@
                 const url = base + 'movimientos/devolucion/maximos/' + encodeURIComponent(codigoMov);
                 const resp = await fetch(url, { headers: authHeaders });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                const arr = await resp.json(); // Array<Integer>
+                const arr = await resp.json();
 
                 renderCantidadesDesdeMaximosArray(arr);
                 setModoTrazas(false);
@@ -282,7 +419,7 @@
 
             arr.forEach((maxDev, idx) => {
                 const nroBulto = idx + 1;
-                const maxVal   = Number(maxDev ?? 0);
+                const maxVal = Number(maxDev ?? 0);
 
                 const col = document.createElement('div');
                 col.className = 'col-md-6';
@@ -293,11 +430,8 @@
               <h6 class="card-title mb-2">Bulto #${nroBulto}</h6>
               <small class="text-muted">Máximo: ${maxVal} UNIDAD</small>
             </div>
-
-            <!-- Binding para back -->
             <input type="hidden" name="detalleMovimientoDTOs[${iForm}].nroBulto" value="${nroBulto}">
             <input type="hidden" name="detalleMovimientoDTOs[${iForm}].unidadMedida" value="UNIDAD">
-
             <div class="mb-2">
               <label class="form-label">Cantidad a devolver</label>
               <input class="form-control"
@@ -317,7 +451,6 @@
             cantWrapper.style.display = 'block';
         }
 
-        /* ---------- TRAZADO: (idéntico al flujo que ya tenías) ---------- */
         async function loadTrazas(codigoMov) {
             clearTrazasUI();
             try {
@@ -332,7 +465,6 @@
 
                 setModoTrazas(true);
 
-                // Agrupar por bulto
                 const porBulto = new Map();
                 data.forEach(t => {
                     const key = t.nroBulto;
@@ -340,12 +472,13 @@
                     porBulto.get(key).push(t);
                 });
 
-                // Select-all global
                 const masterBar = document.createElement('div');
                 masterBar.className = 'form-check mb-3';
                 masterBar.innerHTML = `
         <input class="form-check-input" type="checkbox" id="checkAllTrazas">
-        <label class="form-check-label fw-bold" for="checkAllTrazas">Seleccionar todas</label>`;
+        <label class="form-check-label fw-bold" for="checkAllTrazas">
+          <i class="bi bi-check-all"></i> Seleccionar todas
+        </label>`;
                 trazasContainer.appendChild(masterBar);
 
                 masterBar.querySelector('#checkAllTrazas').addEventListener('change', e => {
@@ -355,13 +488,12 @@
                         .forEach(cb => cb.checked = checked);
                 });
 
-                // Render por bulto
                 porBulto.forEach((lista, nroBulto) => {
                     const g = document.createElement('div');
-                    g.className = 'border rounded p-2 mb-2';
+                    g.className = 'traza-group';
                     const h = document.createElement('div');
-                    h.className = 'fw-bold mb-1';
-                    h.textContent = `Bulto ${nroBulto}`;
+                    h.className = 'bulto-title';
+                    h.innerHTML = `<i class="bi bi-box"></i> Bulto ${nroBulto}`;
                     g.appendChild(h);
 
                     const list = document.createElement('div');
@@ -388,8 +520,6 @@
             }
         }
 
-        /* ---------- Eventos ---------- */
-        // Cambio de Lote -> cargar movimientos
         loteSelect.addEventListener('change', async () => {
             clearTrazasUI();
             clearCantidadesUI();
@@ -398,24 +528,21 @@
             await loadMovimientos(codigo);
         });
 
-        // Cambio de Movimiento -> decidir flujo y cargar datos
         movSelect.addEventListener('change', async () => {
             const codigoMov = movSelect.value;
             if (!codigoMov) return;
 
             if (esLoteTrazado()) {
-                await loadTrazas(codigoMov);                 // trazado (sin cambios)
+                await loadTrazas(codigoMov);
             } else {
-                await loadMaximosNoTrazado(codigoMov); // no trazado (array de máximos)
+                await loadMaximosNoTrazado(codigoMov);
             }
         });
 
-        /* ---------- Submit + Validaciones de front ---------- */
         form.addEventListener('submit', ev => {
             trazasHidden.innerHTML = '';
 
             if (MODO_TRAZAS) {
-                // Requiere al menos una traza
                 const checks = trazasContainer.querySelectorAll('input[type="checkbox"][name="nrosTrazasDevolver"]:checked');
                 if (checks.length === 0) {
                     ev.preventDefault();
@@ -425,7 +552,6 @@
                 }
                 trazasError.style.display = 'none';
 
-                // Construir movimientoDTO.trazaDTOs[*]
                 const codigoLoteSel = loteSelect.value || '';
                 let i = 0;
                 checks.forEach(cb => {
@@ -453,7 +579,6 @@
                     i++;
                 });
             } else {
-                // Validación NO trazado: cada cantidad ∈ [0, max] y al menos una > 0
                 const inputs = cantContainer.querySelectorAll('input[name$=".cantidad"]:not(:disabled)');
                 let algunoValido = false;
                 let todoOk = true;
@@ -488,13 +613,30 @@
             }
         });
 
-        /* ---------- Inicialización de fecha ---------- */
         const fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
         const fechaInput = document.getElementById('fechaMovimiento');
         if (fechaInput) {
             fechaInput.value = fechaMovimientoDTO || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
         }
+
+        $('#codigoLote').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un Lote --',
+            allowClear: true,
+            width: '100%'
+        });
+
+        $('#movVentaId').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un movimiento --',
+            allowClear: true,
+            width: '100%'
+        });
     });
 </script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </body>
 </html>

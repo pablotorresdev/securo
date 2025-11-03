@@ -1,138 +1,511 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Detalle del Lote - Todos los Campos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lote Creado Exitosamente - CU20</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .success-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .success-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #10b981;
+        }
+
+        .success-header i {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 15px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .success-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .success-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .alert-custom-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #10b981;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-custom-success i {
+            font-size: 2rem;
+            color: #059669;
+        }
+
+        .alert-custom-success .alert-text {
+            flex: 1;
+        }
+
+        .alert-custom-success .alert-text h5 {
+            color: #065f46;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .alert-custom-success .alert-text p {
+            color: #047857;
+            margin: 0;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .data-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .data-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.1);
+        }
+
+        .data-card .label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .data-card .value {
+            font-size: 1.1rem;
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .data-card .value.highlight {
+            color: #059669;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .codigo-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 20px 0;
+        }
+
+        .table-custom {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .table-custom thead {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+        }
+
+        .table-custom thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        .table-custom tbody tr {
+            transition: background 0.2s;
+        }
+
+        .table-custom tbody tr:hover {
+            background: #d1fae5;
+        }
+
+        .table-custom tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .bulto-badge {
+            background: #059669;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .estado-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .estado-badge.disponible {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 3px solid #10b981;
+            margin-top: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-custom-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+            color: white;
+        }
+
+        .btn-custom-secondary {
+            background: white;
+            border: 2px solid #059669;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-weight: 600;
+            color: #059669;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-custom-secondary:hover {
+            background: #059669;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 20px;
+            }
+
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .codigo-badge {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Detalles del Lote</h2>
+<div class="success-container">
+    <!-- Header con ícono de éxito -->
+    <div class="success-header">
+        <i class="bi bi-check-circle-fill"></i>
+        <h2>Lote Ingresado Exitosamente</h2>
+        <span class="badge bg-success">CU20 - Ingreso de Producción</span>
+    </div>
 
-    <!-- Se muestra el mensaje de éxito si existe -->
-    <div class="alert alert-success fw-bold mb-4" th:if="${success}" th:text="${success}"></div>
+    <!-- Mensaje de éxito personalizado -->
+    <div class="alert-custom-success" th:if="${success}">
+        <i class="bi bi-patch-check-fill"></i>
+        <div class="alert-text">
+            <h5>Operación Completada</h5>
+            <p th:text="${success}">Ingreso de stock por producción exitoso.</p>
+        </div>
+    </div>
 
-    <!-- Si existe un objeto loteDTO, se despliegan todos sus campos -->
+    <!-- Código del Lote (destacado) -->
+    <div th:if="${loteDTO != null}" class="text-center">
+        <div class="label">
+            <i class="bi bi-tag-fill"></i> Código Interno del Lote
+        </div>
+        <div class="codigo-badge" th:text="${loteDTO.codigoLote}">LOTE-2025-001</div>
+    </div>
+
+    <!-- Contenido principal -->
     <div th:if="${loteDTO != null}">
-        <table class="table table-bordered table-sm">
-            <tbody>
-            <!-- Datos generales -->
-            <tr>
-                <th>Código Interno:</th>
-                <td th:text="${loteDTO.codigoLote}"></td>
-            </tr>
 
-            <!-- Datos de Producto -->
-            <tr>
-                <th>Nombre Producto:</th>
-                <td th:text="${loteDTO.nombreProducto}"></td>
-            </tr>
-            <tr>
-                <th>Código Producto:</th>
-                <td th:text="${loteDTO.codigoProducto}"></td>
-            </tr>
-            <tr>
-                <th>Tipo Producto:</th>
-                <td th:text="${loteDTO.tipoProducto}"></td>
-            </tr>
-            <tr>
-                <th>Producto Destino:</th>
-                <td th:text="${loteDTO.productoDestino != null ? loteDTO.productoDestino : 'N/A'}"></td>
-            </tr>
-            <!-- Datos de Proveedor y Fabricante -->
-            <tr>
-                <th>Nombre Proveedor:</th>
-                <td th:text="${loteDTO.nombreProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Nombre Fabricante:</th>
-                <td th:text="${loteDTO.nombreFabricante}"></td>
-            </tr>
-            <tr>
-                <th>País de Origen:</th>
-                <td th:text="${loteDTO.paisOrigen}"></td>
-            </tr>
+        <!-- Información del Producto -->
+        <div class="section-title">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Información del Producto</span>
+        </div>
 
-            <!-- Datos del Lote -->
-            <tr>
-                <th>Fecha Ingreso:</th>
-                <td th:text="${loteDTO.fechaIngreso}"></td>
-            </tr>
-            <tr>
-                <th>Bultos Totales:</th>
-                <td th:text="${loteDTO.bultosTotales}"></td>
-            </tr>
-            <tr>
-                <th>Cantidad Inicial:</th>
-                <td th:text="${loteDTO.cantidadInicial}"></td>
-            </tr>
-            <tr>
-                <th>Unidad de Medida:</th>
-                <td th:text="${loteDTO.unidadMedida}"></td>
-            </tr>
-            <tr>
-                <th>Lote Proveedor:</th>
-                <td th:text="${loteDTO.loteProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Orden produccion:</th>
-                <td th:text="${loteDTO.ordenProduccion}"></td>
-            </tr>
-            <tr>
-                <th>Detalle Conservación:</th>
-                <td th:text="${loteDTO.detalleConservacion}"></td>
-            </tr>
-            <tr>
-                <th>Observaciones:</th>
-                <td th:text="${loteDTO.observaciones}"></td>
-            </tr>
+        <div class="data-grid">
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-box"></i> Nombre del Producto
+                </div>
+                <div class="value highlight" th:text="${loteDTO.nombreProducto != null ? loteDTO.nombreProducto : 'No especificado'}">Producto Interno</div>
+            </div>
 
-            <!-- Listas de Cantidades y Unidades por Bulto -->
-            <tr>
-                <th>Cantidades por Bulto:</th>
-                <td>
-                        <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                              th:text="|Bulto ${iterStat.index + 1}: [${cant} ${loteDTO.unidadMedidaBultos[iterStat.index]}] |">
-                        </span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-upc-scan"></i> Código del Producto
+                </div>
+                <div class="value" th:text="${loteDTO.codigoProducto != null ? loteDTO.codigoProducto : 'No especificado'}">PROD-001</div>
+            </div>
 
-        <!-- Movimientos Asociados -->
-        <div th:if="${loteDTO.movimientoDTOs != null and #lists.size(loteDTO.movimientoDTOs) > 0}">
-            <h4>Movimientos Asociados</h4>
-            <table class="table table-striped table-sm">
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-tags"></i> Tipo de Producto
+                </div>
+                <div class="value" th:text="${loteDTO.tipoProducto != null ? loteDTO.tipoProducto : 'No especificado'}">SEMIELABORADO</div>
+            </div>
+
+            <div class="data-card" th:if="${loteDTO.productoDestino != null and !#strings.isEmpty(loteDTO.productoDestino)}">
+                <div class="label">
+                    <i class="bi bi-arrow-right-circle"></i> Producto Destino
+                </div>
+                <div class="value" th:text="${loteDTO.productoDestino}">Producto Final</div>
+            </div>
+        </div>
+
+        <!-- Información de Producción -->
+        <div class="section-title">
+            <i class="bi bi-gear-fill"></i>
+            <span>Información de Producción</span>
+        </div>
+
+        <div class="data-grid">
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-receipt-cutoff"></i> Orden de Producción
+                </div>
+                <div class="value" th:text="${loteDTO.ordenProduccion != null ? loteDTO.ordenProduccion : 'No especificado'}">OP-2025-001</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-tag"></i> Lote Proveedor
+                </div>
+                <div class="value" th:text="${loteDTO.loteProveedor != null ? loteDTO.loteProveedor : 'No especificado'}">LOTE-PROV-001</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-calendar-check"></i> Fecha de Ingreso
+                </div>
+                <div class="value" th:text="${#temporals.format(loteDTO.fechaIngreso, 'dd/MM/yyyy')}">01/01/2025</div>
+            </div>
+        </div>
+
+        <!-- Información de Cantidades -->
+        <div class="section-title">
+            <i class="bi bi-calculator-fill"></i>
+            <span>Cantidades y Unidades</span>
+        </div>
+
+        <div class="data-grid">
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-boxes"></i> Cantidad Inicial
+                </div>
+                <div class="value highlight" th:text="${loteDTO.cantidadInicial + ' ' + loteDTO.unidadMedida}">100 KG</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-stack"></i> Bultos Totales
+                </div>
+                <div class="value" th:text="${loteDTO.bultosTotales}">5</div>
+            </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="section-title" th:if="${(loteDTO.detalleConservacion != null and !#strings.isEmpty(loteDTO.detalleConservacion)) or (loteDTO.observaciones != null and !#strings.isEmpty(loteDTO.observaciones))}">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Información Adicional</span>
+        </div>
+
+        <div class="data-grid" th:if="${(loteDTO.detalleConservacion != null and !#strings.isEmpty(loteDTO.detalleConservacion)) or (loteDTO.observaciones != null and !#strings.isEmpty(loteDTO.observaciones))}">
+            <div class="data-card" th:if="${loteDTO.detalleConservacion != null and !#strings.isEmpty(loteDTO.detalleConservacion)}">
+                <div class="label">
+                    <i class="bi bi-thermometer-half"></i> Conservación
+                </div>
+                <div class="value" th:text="${loteDTO.detalleConservacion}">Conservar en lugar fresco</div>
+            </div>
+
+            <div class="data-card" th:if="${loteDTO.observaciones != null and !#strings.isEmpty(loteDTO.observaciones)}">
+                <div class="label">
+                    <i class="bi bi-chat-left-text"></i> Observaciones
+                </div>
+                <div class="value" th:text="${loteDTO.observaciones}">Sin observaciones</div>
+            </div>
+        </div>
+
+        <!-- Tabla de Bultos -->
+        <div th:if="${loteDTO.bultosDTOs != null and #lists.size(loteDTO.bultosDTOs) > 0}">
+            <div class="section-title">
+                <i class="bi bi-box2-fill"></i>
+                <span>Detalle de Bultos</span>
+            </div>
+
+            <table class="table table-custom">
                 <thead>
                 <tr>
-                    <th>Fecha Movimiento</th>
-                    <th>Cantidad</th>
+                    <th>Nro Bulto</th>
+                    <th>Cantidad Inicial</th>
+                    <th>Cantidad Actual</th>
                     <th>Unidad</th>
-                    <th>Observaciones</th>
-                    <th>Tipo Mov.</th>
-                    <th>Motivo</th>
-                    <th>Dictamen</th>
+                    <th>Estado</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="mov : ${loteDTO.movimientoDTOs}">
-                    <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.cantidad}"></td>
-                    <td th:text="${mov.unidadMedida}"></td>
-                    <td th:text="${mov.observaciones}"></td>
-                    <td th:text="${mov.tipoMovimiento}"></td>
-                    <td th:text="${mov.motivo}"></td>
-                    <td th:text="${mov.dictamenFinal}"></td>
+                <tr th:each="bul : ${loteDTO.bultosDTOs}">
+                    <td>
+                        <span class="bulto-badge" th:text="'#' + ${bul.nroBulto}">#1</span>
+                    </td>
+                    <td th:text="${bul.getCantidadInicial()}">20</td>
+                    <td th:text="${bul.getCantidadActual()}">20</td>
+                    <td th:text="${bul.getUnidadMedida()}">KG</td>
+                    <td>
+                        <span class="estado-badge disponible" th:text="${bul.getEstado()}">DISPONIBLE</span>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- Tabla de Movimientos -->
+        <div th:if="${loteDTO.movimientoDTOs != null and #lists.size(loteDTO.movimientoDTOs) > 0}">
+            <div class="section-title">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Movimientos Asociados</span>
+            </div>
+
+            <table class="table table-custom">
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Motivo</th>
+                    <th>Observaciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="mov : ${loteDTO.movimientoDTOs}">
+                    <td th:text="${#temporals.format(mov.fechaMovimiento, 'dd/MM/yyyy')}">01/01/2025</td>
+                    <td th:text="${mov.tipoMovimiento}">ALTA</td>
+                    <td th:text="${mov.cantidad}">100</td>
+                    <td th:text="${mov.unidadMedida}">KG</td>
+                    <td th:text="${mov.motivo != null ? mov.motivo : '-'}">PRODUCCION</td>
+                    <td th:text="${mov.observaciones != null ? mov.observaciones : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
-    <!-- Botón para volver al menú principal o cerrar la sesión -->
-    <div class="mt-4">
-        <a class="btn btn-primary" th:href="@{/produccion/alta/cancelar}">Continuar</a>
+    <!-- Mensaje si no hay datos -->
+    <div th:if="${loteDTO == null}" class="empty-state">
+        <i class="bi bi-exclamation-triangle"></i>
+        <h4>No se encontró información del lote</h4>
+        <p>No hay datos disponibles para mostrar.</p>
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="sticky-footer">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <a class="btn-custom-secondary" th:href="@{/produccion/alta/ingreso-produccion}">
+                <i class="bi bi-plus-circle"></i> Ingresar Otro Lote
+            </a>
+            <a class="btn-custom-primary" th:href="@{/}">
+                <i class="bi bi-house-door"></i> Volver al Inicio
+            </a>
+        </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

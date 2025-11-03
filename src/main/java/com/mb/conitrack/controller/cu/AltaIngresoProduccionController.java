@@ -42,6 +42,26 @@ public class AltaIngresoProduccionController extends AbstractCuController {
         return "produccion/alta/ingreso-produccion";
     }
 
+    /** Muestra pantalla de confirmación con preview de datos antes de guardar. */
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
+    @PostMapping("/ingreso-produccion/confirm")
+    public String confirmarIngresoProduccion(
+        @Validated(AltaProduccion.class) @ModelAttribute("loteDTO") LoteDTO loteDTO,
+        BindingResult bindingResult,
+        Model model) {
+
+        if (!ingresoProduccionService.validarIngresoProduccionInput(loteDTO, bindingResult)) {
+            initModelIngresoProduccion(loteDTO, model);
+            return "produccion/alta/ingreso-produccion";
+        }
+
+        // Resolver nombres desde IDs para mostrar en la confirmación
+        resolverNombresParaConfirmacion(loteDTO);
+
+        model.addAttribute("loteDTO", loteDTO);
+        return "produccion/alta/ingreso-produccion-confirm";
+    }
+
     // @PreAuthorize("hasAuthority('ROLE_ANALISTA_PLANTA')")
     @PostMapping("/ingreso-produccion")
     public String ingresoProduccion(
@@ -57,6 +77,17 @@ public class AltaIngresoProduccionController extends AbstractCuController {
 
         procesarIngresoProduccion(loteDTO, redirectAttributes);
         return "redirect:/produccion/alta/ingreso-produccion-ok";
+    }
+
+    /** Resuelve nombres de producto desde IDs para mostrar en confirmación. */
+    private void resolverNombresParaConfirmacion(LoteDTO loteDTO) {
+        // Resolver nombre del producto
+        if (loteDTO.getProductoId() != null) {
+            productoService.findById(loteDTO.getProductoId()).ifPresent(producto -> {
+                loteDTO.setNombreProducto(producto.getNombreGenerico());
+                loteDTO.setCodigoProducto(producto.getCodigoProducto());
+            });
+        }
     }
 
     @GetMapping("/ingreso-produccion-ok")

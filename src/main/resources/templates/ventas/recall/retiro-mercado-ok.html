@@ -1,160 +1,323 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Retiro mercado - Confirmación</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retiro Exitoso - CU Recall</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .result-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .success-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 15px;
+            border: 3px solid #059669;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #059669;
+            margin-bottom: 15px;
+        }
+
+        .success-header h2 {
+            color: #059669;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 30px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-left: 4px solid #059669;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+        }
+
+        .info-card .label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .info-card .value {
+            color: #212529;
+            font-size: 1.1rem;
+        }
+
+        .table-custom {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .table-custom thead {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+        }
+
+        .table-custom thead th {
+            border: none;
+            padding: 12px 15px;
+            font-weight: 600;
+        }
+
+        .table-custom tbody tr {
+            transition: background 0.2s;
+        }
+
+        .table-custom tbody tr:hover {
+            background: #d1fae5;
+        }
+
+        .table-custom tbody td {
+            padding: 10px 15px;
+            vertical-align: middle;
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-custom-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+            color: white;
+        }
+
+        .traza-badge {
+            background: #059669;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .result-container {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Retiro mercado - Confirmación</h2>
+<div class="container">
+    <div class="result-container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <h2>Retiro de Mercado Exitoso</h2>
+            <p class="text-muted mb-0">La operación se ha completado correctamente</p>
+        </div>
 
-    <!-- Mensaje de éxito -->
-    <div class="alert alert-success fw-bold mb-4"
-         th:if="${success}"
-         th:text="${success}">
-    </div>
+        <!-- Mensaje de Éxito -->
+        <div class="alert alert-success" role="alert" th:if="${success}">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong th:text="${success}"></strong>
+        </div>
 
-    <!-- Datos del Lote -->
-    <div th:if="${loteRecallDTO != null}">
-        <h4>Detalles del Lote</h4>
-        <table class="table table-bordered table-sm">
-            <tbody>
-            <tr>
-                <th>Nombre Producto:</th>
-                <td th:text="${loteRecallDTO.nombreProducto}"></td>
-            </tr>
-            <tr>
-                <th>Proveedor:</th>
-                <td th:text="${loteRecallDTO.nombreProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Código interno Lote:</th>
-                <td th:text="${loteRecallDTO.codigoLote}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Ingreso:</th>
-                <td th:text="${loteRecallDTO.fechaIngreso}"></td>
-            </tr>
-            <tr>
-                <th>Bultos Totales:</th>
-                <td th:text="${loteRecallDTO.bultosTotales}"></td>
-            </tr>
-            <tr>
-                <th>Lote Proveedor:</th>
-                <td th:text="${loteRecallDTO.loteProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Nro Remito:</th>
-                <td th:text="${loteRecallDTO.nroRemito}"></td>
-            </tr>
-            <tr>
-                <th>Detalle Conservación:</th>
-                <td th:text="${loteRecallDTO.detalleConservacion}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Reanálisis Proveedor:</th>
-                <td th:text="${loteRecallDTO.fechaReanalisisProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Vencimiento Proveedor:</th>
-                <td th:text="${loteRecallDTO.fechaVencimientoProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Dictamen:</th>
-                <td th:text="${loteRecallDTO.dictamen}"></td>
-            </tr>
-            <tr>
-                <th>Traza inicial:</th>
-                <td th:text="${loteRecallDTO.trazaInicial}"></td>
-            </tr>
-            <tr>
-                <th>Traza final:</th>
-                <td th:text="${loteRecallDTO.trazaFinal}"></td>
-            </tr>
-            <tr>
-                <th>Observaciones:</th>
-                <td th:text="${loteRecallDTO.observaciones}"></td>
-            </tr>
-            <tr>
-                <th>Cantidades por Bulto:</th>
-                <td>
-          <span th:each="cant, iterStat : ${loteRecallDTO.cantidadesBultos}"
-                th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteRecallDTO.unidadMedidaBultos[iterStat.index]}] - |">
-          </span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <!-- Lote Recall -->
+        <div th:if="${loteRecallDTO != null}">
+            <div class="section-title">
+                <i class="bi bi-box-seam"></i>
+                <span>Detalles del Lote Recall</span>
+            </div>
 
-        <!-- Movimientos del Lote -->
-        <div th:if="${loteRecallDTO.movimientoDTOs != null and #lists.size(loteRecallDTO.movimientoDTOs) > 0}">
-            <h4>Movimientos del Lote</h4>
-            <table class="table table-striped table-sm">
-                <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Cantidad</th>
-                    <th>Unidad</th>
-                    <th>Tipo Movimiento</th>
-                    <th>Motivo</th>
-                    <th>Dictamen Inicial</th>
-                    <th>Dictamen Final</th>
-                    <th>Observaciones</th>
-                    <th>Nro Análisis</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="mov : ${loteRecallDTO.movimientoDTOs}">
-                    <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.cantidad}"></td>
-                    <td th:text="${mov.unidadMedida}"></td>
-                    <td th:text="${mov.tipoMovimiento}"></td>
-                    <td th:text="${mov.motivo}"></td>
-                    <td th:text="${mov.dictamenInicial}"></td>
-                    <td th:text="${mov.dictamenFinal}"></td>
-                    <td th:text="${mov.observaciones}"></td>
-                    <td th:text="${mov.nroAnalisis}"></td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-box"></i> Producto
+                        </div>
+                        <div class="value" th:text="${loteRecallDTO.nombreProducto}">Producto</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-upc"></i> Código Lote
+                        </div>
+                        <div class="value" th:text="${loteRecallDTO.codigoLote}">LOTE-001</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-building"></i> Proveedor
+                        </div>
+                        <div class="value" th:text="${loteRecallDTO.nombreProveedor}">Proveedor</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-calendar"></i> Fecha Ingreso
+                        </div>
+                        <div class="value" th:text="${loteRecallDTO.fechaIngreso}">01/01/2025</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-boxes"></i> Bultos Totales
+                        </div>
+                        <div class="value" th:text="${loteRecallDTO.bultosTotales}">0</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-file-text"></i> Dictamen
+                        </div>
+                        <div class="value" th:text="${loteRecallDTO.dictamen}">Dictamen</div>
+                    </div>
+                </div>
+
+                <div class="col-12" th:if="${loteRecallDTO.observaciones != null and !#strings.isEmpty(loteRecallDTO.observaciones)}">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-chat-left-text"></i> Observaciones
+                        </div>
+                        <div class="value" th:text="${loteRecallDTO.observaciones}">Observaciones</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cantidades por Bulto -->
+            <div class="mt-4" th:if="${loteRecallDTO.cantidadesBultos != null and !#lists.isEmpty(loteRecallDTO.cantidadesBultos)}">
+                <div class="section-title">
+                    <i class="bi bi-calculator"></i>
+                    <span>Cantidades por Bulto</span>
+                </div>
+
+                <div class="info-card">
+                    <span th:each="cant, iterStat : ${loteRecallDTO.cantidadesBultos}">
+                        <span class="traza-badge">
+                            Bulto <span th:text="${iterStat.index + 1}">1</span>:
+                            <span th:text="${cant}">0</span>
+                            <span th:text="${loteRecallDTO.unidadMedidaBultos[iterStat.index]}">UNIDAD</span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Trazas Retiradas -->
+            <div class="mt-4" th:if="${loteRecallDTO.trazaDTOs != null and !#lists.isEmpty(loteRecallDTO.trazaDTOs)}">
+                <div class="section-title">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Trazas Retiradas del Mercado</span>
+                </div>
+
+                <table class="table table-custom">
+                    <thead>
+                    <tr>
+                        <th>Código Lote</th>
+                        <th>Bulto Nro</th>
+                        <th>Código Producto</th>
+                        <th>Nro Traza</th>
+                        <th>Estado</th>
+                        <th>Observaciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${loteRecallDTO.trazaDTOs}">
+                        <td th:text="${t.codigoLote}">LOTE-001</td>
+                        <td><span class="traza-badge" th:text="'#' + ${t.nroBulto}">#1</span></td>
+                        <td th:text="${t.codigoProducto}">PROD-001</td>
+                        <td th:text="${t.nroTraza}">12345</td>
+                        <td th:text="${t.estado}">RECALL</td>
+                        <td th:text="${t.observaciones ?: '-'}">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Lote Venta -->
+        <div class="mt-4" th:if="${loteVentaDTO != null}">
+            <div class="section-title">
+                <i class="bi bi-arrow-left-circle"></i>
+                <span>Lote de Venta Afectado</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-box"></i> Producto
+                        </div>
+                        <div class="value" th:text="${loteVentaDTO.nombreProducto}">Producto</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="label">
+                            <i class="bi bi-upc"></i> Código Lote
+                        </div>
+                        <div class="value" th:text="${loteVentaDTO.codigoLote}">LOTE-VENTA-001</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón para continuar -->
+        <div class="text-center mt-5">
+            <a class="btn btn-custom-primary" th:href="@{/}">
+                <i class="bi bi-house-fill"></i> Volver al Inicio
+            </a>
         </div>
     </div>
-
-    <!-- Qué trazas fueron devueltas -->
-    <div class="mt-4" th:if="${loteRecallDTO != null and loteRecallDTO.trazaDTOs != null and !#lists.isEmpty(loteRecallDTO.trazaDTOs)}">
-        <h4>Estado Trazas Recall</h4>
-
-        <!-- Tabla simple ordenada por Bulto y NroTraza (presentación clara) -->
-        <table class="table table-bordered table-sm">
-            <thead class="table-light">
-            <tr>
-                <th>Código Lote</th>
-                <th>Bulto Nro</th>
-                <th>Codigo Producto</th>
-                <th>Nro Traza</th>
-                <th>Estado</th>
-                <th>Observaciones</th>
-            </tr>
-            </thead>
-            <tbody>
-
-            <tr th:each="t : ${loteRecallDTO.trazaDTOs}">
-                <td th:text="${t.codigoLote}"></td>
-                <td th:text="${t.nroBulto}"></td>
-                <td th:text="${t.codigoProducto}"></td>
-                <td th:text="${t.nroTraza}"></td>
-                <td th:text="${t.estado}"></td>
-                <td th:text="${t.observaciones}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Botón -->
-    <div class="mt-4">
-        <a class="btn btn-primary" th:href="@{/ventas/recall/cancelar}">Continuar</a>
-    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,155 +1,503 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Devolución de Venta - Confirmación</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devolución Registrada - CU23</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .success-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .success-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #10b981;
+        }
+
+        .success-header i {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 15px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .success-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .success-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .alert-custom-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #10b981;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-custom-success i {
+            font-size: 2rem;
+            color: #059669;
+        }
+
+        .alert-custom-success .alert-text {
+            flex: 1;
+        }
+
+        .alert-custom-success .alert-text h5 {
+            color: #065f46;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .alert-custom-success .alert-text p {
+            color: #047857;
+            margin: 0;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .data-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .data-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.1);
+        }
+
+        .data-card .label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .data-card .value {
+            font-size: 1.1rem;
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .data-card .value.highlight {
+            color: #059669;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .codigo-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 20px 0;
+        }
+
+        .lote-section {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .lote-section.devuelto {
+            border-color: #059669;
+            background: #d1fae5;
+        }
+
+        .lote-section.venta {
+            border-color: #dc3545;
+            background: #ffe6e9;
+        }
+
+        .table-custom {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .table-custom thead {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            color: white;
+        }
+
+        .table-custom thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        .table-custom tbody tr {
+            transition: background 0.2s;
+        }
+
+        .table-custom tbody tr:hover {
+            background: #d1fae5;
+        }
+
+        .table-custom tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .traza-badge {
+            background: #059669;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 3px solid #10b981;
+            margin-top: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-custom-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+            color: white;
+        }
+
+        .btn-custom-secondary {
+            background: white;
+            border: 2px solid #059669;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-weight: 600;
+            color: #059669;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-custom-secondary:hover {
+            background: #059669;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 20px;
+            }
+
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .codigo-badge {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Devolución de Venta - Confirmación</h2>
-
-    <!-- Mensaje de éxito -->
-    <div class="alert alert-success fw-bold mb-4"
-         th:if="${success}"
-         th:text="${success}">
+<div class="success-container">
+    <!-- Header con ícono de éxito -->
+    <div class="success-header">
+        <i class="bi bi-check-circle-fill"></i>
+        <h2>Devolución Registrada Exitosamente</h2>
+        <span class="badge bg-success">CU23 - Devolución de Cliente</span>
     </div>
 
-    <!-- Datos del Lote -->
-    <div th:if="${loteVentaDTO != null}">
-        <h4>Detalles del Lote</h4>
-        <table class="table table-bordered table-sm">
-            <tbody>
-            <tr>
-                <th>Nombre Producto:</th>
-                <td th:text="${loteVentaDTO.nombreProducto}"></td>
-            </tr>
-            <tr>
-                <th>Proveedor:</th>
-                <td th:text="${loteVentaDTO.nombreProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Código interno Lote:</th>
-                <td th:text="${loteVentaDTO.codigoLote}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Ingreso:</th>
-                <td th:text="${loteVentaDTO.fechaIngreso}"></td>
-            </tr>
-            <tr>
-                <th>Bultos Totales:</th>
-                <td th:text="${loteVentaDTO.bultosTotales}"></td>
-            </tr>
-            <tr>
-                <th>Lote Proveedor:</th>
-                <td th:text="${loteVentaDTO.loteProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Nro Remito:</th>
-                <td th:text="${loteVentaDTO.nroRemito}"></td>
-            </tr>
-            <tr>
-                <th>Detalle Conservación:</th>
-                <td th:text="${loteVentaDTO.detalleConservacion}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Reanálisis Proveedor:</th>
-                <td th:text="${loteVentaDTO.fechaReanalisisProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Vencimiento Proveedor:</th>
-                <td th:text="${loteVentaDTO.fechaVencimientoProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Dictamen:</th>
-                <td th:text="${loteVentaDTO.dictamen}"></td>
-            </tr>
-            <tr>
-                <th>Traza inicial:</th>
-                <td th:text="${loteVentaDTO.trazaInicial}"></td>
-            </tr>
-            <tr>
-                <th>Traza final:</th>
-                <td th:text="${loteVentaDTO.trazaFinal}"></td>
-            </tr>
-            <tr>
-                <th>Observaciones:</th>
-                <td th:text="${loteVentaDTO.observaciones}"></td>
-            </tr>
-            <tr>
-                <th>Cantidades por Bulto:</th>
-                <td>
-          <span th:each="cant, iterStat : ${loteVentaDTO.cantidadesBultos}"
-                th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteVentaDTO.unidadMedidaBultos[iterStat.index]}] - |">
-          </span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <!-- Movimientos del Lote -->
-        <div th:if="${loteVentaDTO.movimientoDTOs != null and #lists.size(loteVentaDTO.movimientoDTOs) > 0}">
-            <h4>Movimientos del Lote</h4>
-            <table class="table table-striped table-sm">
-                <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Cantidad</th>
-                    <th>Unidad</th>
-                    <th>Tipo Movimiento</th>
-                    <th>Motivo</th>
-                    <th>Dictamen Inicial</th>
-                    <th>Dictamen Final</th>
-                    <th>Observaciones</th>
-                    <th>Nro Análisis</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="mov : ${loteVentaDTO.movimientoDTOs}">
-                    <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.cantidad}"></td>
-                    <td th:text="${mov.unidadMedida}"></td>
-                    <td th:text="${mov.tipoMovimiento}"></td>
-                    <td th:text="${mov.motivo}"></td>
-                    <td th:text="${mov.dictamenInicial}"></td>
-                    <td th:text="${mov.dictamenFinal}"></td>
-                    <td th:text="${mov.observaciones}"></td>
-                    <td th:text="${mov.nroAnalisis}"></td>
-                </tr>
-                </tbody>
-            </table>
+    <!-- Mensaje de éxito personalizado -->
+    <div class="alert-custom-success" th:if="${success}">
+        <i class="bi bi-patch-check-fill"></i>
+        <div class="alert-text">
+            <h5>Operación Completada</h5>
+            <p th:text="${success}">Ingreso de stock por devolución exitoso.</p>
         </div>
     </div>
 
-    <!-- Qué trazas fueron devueltas -->
-    <div class="mt-4" th:if="${movimientoDTO != null and movimientoDTO.trazaDTOs != null and !#lists.isEmpty(movimientoDTO.trazaDTOs)}">
-        <h4>Trazas devueltas</h4>
+    <!-- Lote Devuelto (NUEVO) -->
+    <div th:if="${loteDevueltoDTO != null}" class="lote-section devuelto">
+        <h4 class="mb-3">
+            <i class="bi bi-box-arrow-in-down-left"></i>
+            Lote Devuelto (NUEVO)
+        </h4>
 
-        <!-- Tabla simple ordenada por Bulto y NroTraza (presentación clara) -->
-        <table class="table table-bordered table-sm">
-            <thead class="table-light">
+        <div class="text-center mb-3">
+            <div class="label">
+                <i class="bi bi-tag-fill"></i> Código Interno del Lote
+            </div>
+            <div class="codigo-badge" th:text="${loteDevueltoDTO.codigoLote}">LOTE-DEV-2025-001</div>
+        </div>
+
+        <div class="data-grid">
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-box"></i> Nombre del Producto
+                </div>
+                <div class="value highlight" th:text="${loteDevueltoDTO.nombreProducto != null ? loteDevueltoDTO.nombreProducto : 'No especificado'}">Producto ABC</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-upc-scan"></i> Código del Producto
+                </div>
+                <div class="value" th:text="${loteDevueltoDTO.codigoProducto != null ? loteDevueltoDTO.codigoProducto : 'No especificado'}">PROD-001</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-calendar-check"></i> Fecha de Ingreso
+                </div>
+                <div class="value" th:text="${#temporals.format(loteDevueltoDTO.fechaIngreso, 'dd/MM/yyyy')}">01/01/2025</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-boxes"></i> Bultos Totales
+                </div>
+                <div class="value" th:text="${loteDevueltoDTO.bultosTotales}">5</div>
+            </div>
+
+            <div class="data-card" th:if="${loteDevueltoDTO.loteProveedor != null}">
+                <div class="label">
+                    <i class="bi bi-tag"></i> Lote Proveedor
+                </div>
+                <div class="value" th:text="${loteDevueltoDTO.loteProveedor}">LOTE-PROV-001</div>
+            </div>
+
+            <div class="data-card" th:if="${loteDevueltoDTO.trazaInicial != null}">
+                <div class="label">
+                    <i class="bi bi-arrow-bar-right"></i> Rango de Trazas
+                </div>
+                <div class="value" th:text="${loteDevueltoDTO.trazaInicial} + ' / ' + ${loteDevueltoDTO.trazaFinal}">1000 / 1100</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lote Original (Venta) -->
+    <div th:if="${loteVentaDTO != null}" class="lote-section venta">
+        <h4 class="mb-3">
+            <i class="bi bi-box-arrow-right"></i>
+            Lote de Venta Original (ACTUALIZADO)
+        </h4>
+
+        <div class="text-center mb-3">
+            <div class="label">
+                <i class="bi bi-tag-fill"></i> Código Interno del Lote
+            </div>
+            <div class="codigo-badge" style="background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);" th:text="${loteVentaDTO.codigoLote}">LOTE-2025-001</div>
+        </div>
+
+        <div class="data-grid">
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-box"></i> Nombre del Producto
+                </div>
+                <div class="value" th:text="${loteVentaDTO.nombreProducto != null ? loteVentaDTO.nombreProducto : 'No especificado'}">Producto ABC</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-calendar-check"></i> Fecha de Ingreso Original
+                </div>
+                <div class="value" th:text="${#temporals.format(loteVentaDTO.fechaIngreso, 'dd/MM/yyyy')}">01/01/2025</div>
+            </div>
+
+            <div class="data-card">
+                <div class="label">
+                    <i class="bi bi-boxes"></i> Bultos Totales
+                </div>
+                <div class="value" th:text="${loteVentaDTO.bultosTotales}">5</div>
+            </div>
+
+            <div class="data-card" th:if="${loteVentaDTO.nombreProveedor != null}">
+                <div class="label">
+                    <i class="bi bi-building"></i> Proveedor
+                </div>
+                <div class="value" th:text="${loteVentaDTO.nombreProveedor}">Proveedor SA</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trazas devueltas (si aplica) -->
+    <div th:if="${movimientoDTO != null and movimientoDTO.trazaDTOs != null and !#lists.isEmpty(movimientoDTO.trazaDTOs)}">
+        <div class="section-title">
+            <i class="bi bi-upc-scan"></i>
+            <span>Trazas Devueltas</span>
+        </div>
+
+        <table class="table table-custom">
+            <thead>
             <tr>
-                <th style="width: 140px;">Bulto Nro</th>
+                <th>Bulto Nro</th>
                 <th>Nro Traza</th>
-                <th style="width: 220px;">Código Lote</th>
+                <th>Código Lote</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="t : ${movimientoDTO.trazaDTOs}">
-                <td th:text="${t.nroBulto}"></td>
-                <td th:text="${t.nroTraza}"></td>
-                <td th:text="${t.codigoLote}"></td>
+                <td><span class="traza-badge" th:text="'#' + ${t.nroBulto}">#1</span></td>
+                <td th:text="${t.nroTraza}">12345</td>
+                <td th:text="${t.codigoLote}">LOTE-001</td>
             </tr>
             </tbody>
         </table>
-
-        <!-- Si preferís una vista tipo “lista por bulto”, puedo devolverte una variante que agrupe visualmente -->
     </div>
 
-    <!-- Botón -->
-    <div class="mt-4">
-        <a class="btn btn-primary" th:href="@{/ventas/alta/cancelar}">Continuar</a>
+    <!-- Movimientos del Lote Devuelto -->
+    <div th:if="${loteDevueltoDTO != null and loteDevueltoDTO.movimientoDTOs != null and !#lists.isEmpty(loteDevueltoDTO.movimientoDTOs)}">
+        <div class="section-title">
+            <i class="bi bi-arrow-left-right"></i>
+            <span>Movimientos del Lote Devuelto</span>
+        </div>
+
+        <table class="table table-custom">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+                <th>Motivo</th>
+                <th>Observaciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="mov : ${loteDevueltoDTO.movimientoDTOs}">
+                <td th:text="${#temporals.format(mov.fechaMovimiento, 'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${mov.tipoMovimiento}">ALTA</td>
+                <td th:text="${mov.cantidad}">100</td>
+                <td th:text="${mov.unidadMedida}">KG</td>
+                <td th:text="${mov.motivo != null ? mov.motivo : '-'}">DEVOLUCION</td>
+                <td th:text="${mov.observaciones != null ? mov.observaciones : '-'}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Movimientos del Lote Original -->
+    <div th:if="${loteVentaDTO != null and loteVentaDTO.movimientoDTOs != null and !#lists.isEmpty(loteVentaDTO.movimientoDTOs)}">
+        <div class="section-title">
+            <i class="bi bi-arrow-left-right"></i>
+            <span>Movimientos del Lote Original</span>
+        </div>
+
+        <table class="table table-custom">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+                <th>Motivo</th>
+                <th>Observaciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="mov : ${loteVentaDTO.movimientoDTOs}">
+                <td th:text="${#temporals.format(mov.fechaMovimiento, 'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${mov.tipoMovimiento}">BAJA</td>
+                <td th:text="${mov.cantidad}">100</td>
+                <td th:text="${mov.unidadMedida}">KG</td>
+                <td th:text="${mov.motivo != null ? mov.motivo : '-'}">VENTA</td>
+                <td th:text="${mov.observaciones != null ? mov.observaciones : '-'}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="sticky-footer">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <a class="btn-custom-secondary" th:href="@{/ventas/alta/devolucion-venta}">
+                <i class="bi bi-arrow-return-left"></i> Registrar Otra Devolución
+            </a>
+            <a class="btn-custom-primary" th:href="@{/}">
+                <i class="bi bi-house-door"></i> Volver al Inicio
+            </a>
+        </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
