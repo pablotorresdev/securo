@@ -485,11 +485,11 @@
                     <td>
                         <span class="bulto-badge" th:text="'#' + ${bul.nroBulto}">#1</span>
                     </td>
-                    <td th:text="${bul.getCantidadInicial()}">20</td>
-                    <td th:text="${bul.getCantidadActual()}">20</td>
-                    <td th:text="${bul.getUnidadMedida()}">KG</td>
+                    <td th:text="${bul.cantidadInicial}">20</td>
+                    <td th:text="${bul.cantidadActual}">20</td>
+                    <td th:text="${bul.unidadMedida}">KG</td>
                     <td>
-                        <span class="estado-badge disponible" th:text="${bul.getEstado()}">DISPONIBLE</span>
+                        <span class="estado-badge disponible" th:text="${bul.estado}">DISPONIBLE</span>
                     </td>
                 </tr>
                 </tbody>
@@ -516,7 +516,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="mov : ${loteDTO.movimientoDTOs}">
-                    <td th:text="${#temporals.format(mov.fecha, 'dd/MM/yyyy')}">01/01/2025</td>
+                    <td th:text="${#temporals.format(mov.fechaMovimiento, 'dd/MM/yyyy')}">01/01/2025</td>
                     <td th:text="${mov.tipoMovimiento}">ALTA</td>
                     <td th:text="${mov.cantidad}">100</td>
                     <td th:text="${mov.unidadMedida}">KG</td>

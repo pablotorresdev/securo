@@ -476,6 +476,11 @@
             width: '100%'
         });
 
+        // Asegurar que fabricante inicie sin selección
+        if (!$('#fabricanteId').val() || $('#fabricanteId').val() === '') {
+            $('#fabricanteId').val(null).trigger('change');
+        }
+
         // Filtro de productos por tipo
         const tipoProductoFilter = document.getElementById('tipoProductoFilter');
         const productoSelect = document.getElementById('productoId');
@@ -553,8 +558,10 @@
                 .catch(error => console.error("Error al cargar unidades:", error));
         }
 
-        const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ 'UNIDAD';
-        cargarUnidadesCompatibles(unidadActual);
+        const unidadActual = /*[[${loteDTO.unidadMedida}]]*/ null;
+        if (unidadActual) {
+            cargarUnidadesCompatibles(unidadActual);
+        }
 
         // Bultos
         const bultosContainer = document.getElementById('bultosContainer');

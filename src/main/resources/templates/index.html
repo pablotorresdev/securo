@@ -320,27 +320,27 @@
         <!-- Consultas -->
         <div class="menu-section">
             <div class="menu-section-title">Consultas</div>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_LOTES)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_LOTES)} ? 'disabled' : ''"
                th:href="@{/lotes/list-lotes}" class="menu-item">
                 <i class="bi bi-box-seam"></i>
                 <span>Lotes</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_MOVIMIENTOS)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_MOVIMIENTOS)} ? 'disabled' : ''"
                th:href="@{/movimientos/list-movimientos}" class="menu-item">
                 <i class="bi bi-arrow-left-right"></i>
                 <span>Movimientos</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_ANALISIS)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_ANALISIS)} ? 'disabled' : ''"
                th:href="@{/analisis/list-analisis}" class="menu-item">
                 <i class="bi bi-clipboard-data"></i>
                 <span>Análisis</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_BULTOS)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_BULTOS)} ? 'disabled' : ''"
                th:href="@{/bultos/list-bultos}" class="menu-item">
                 <i class="bi bi-boxes"></i>
                 <span>Bultos</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_TRAZAS)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_TRAZAS)} ? 'disabled' : ''"
                th:href="@{/trazas/list-trazas}" class="menu-item">
                 <i class="bi bi-diagram-3"></i>
                 <span>Trazas</span>
@@ -350,17 +350,17 @@
         <!-- Operaciones -->
         <div class="menu-section">
             <div class="menu-section-title">Operaciones</div>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU1_INGRESO_COMPRA)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU1_INGRESO_COMPRA)} ? 'disabled' : ''"
                th:href="@{/compras/alta/ingreso-compra}" class="menu-item">
                 <i class="bi bi-cart-plus"></i>
                 <span>Ingreso Compra</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU22_VENTA_PRODUCTO)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU22_VENTA_PRODUCTO)} ? 'disabled' : ''"
                th:href="@{/ventas/baja/venta-producto}" class="menu-item">
                 <i class="bi bi-cart-check"></i>
                 <span>Venta Producto</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU7_CONSUMO_PRODUCCION)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU7_CONSUMO_PRODUCCION)} ? 'disabled' : ''"
                th:href="@{/produccion/baja/consumo-produccion}" class="menu-item">
                 <i class="bi bi-gear"></i>
                 <span>Consumo Producción</span>
@@ -370,12 +370,12 @@
         <!-- Calidad -->
         <div class="menu-section">
             <div class="menu-section-title">Calidad</div>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU2_DICTAMEN_CUARENTENA)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU2_DICTAMEN_CUARENTENA)} ? 'disabled' : ''"
                th:href="@{/calidad/dictamen/cuarentena}" class="menu-item">
                 <i class="bi bi-shield-check"></i>
                 <span>Dictamen Cuarentena</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU5_CU6_RESULTADO_ANALISIS)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU5_CU6_RESULTADO_ANALISIS)} ? 'disabled' : ''"
                th:href="@{/calidad/analisis/resultado-analisis}" class="menu-item">
                 <i class="bi bi-check2-circle"></i>
                 <span>Resultado Análisis</span>
@@ -385,17 +385,17 @@
         <!-- Administración -->
         <div class="menu-section">
             <div class="menu-section-title">Administración</div>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU30_ABM_PROVEEDORES)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU30_ABM_PROVEEDORES)} ? 'disabled' : ''"
                th:href="@{/proveedores/}" class="menu-item">
                 <i class="bi bi-building"></i>
                 <span>Proveedores</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU31_ABM_PRODUCTOS)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU31_ABM_PRODUCTOS)} ? 'disabled' : ''"
                th:href="@{/productos/}" class="menu-item">
                 <i class="bi bi-tags"></i>
                 <span>Productos</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU33_ABM_USUARIOS)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU33_ABM_USUARIOS)} ? 'disabled' : ''"
                th:href="@{/users/list-users}" class="menu-item">
                 <i class="bi bi-people"></i>
                 <span>Usuarios</span>
@@ -405,12 +405,12 @@
         <!-- Contingencias -->
         <div class="menu-section">
             <div class="menu-section-title">Contingencias</div>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU25_AJUSTE_INVENTARIO)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU25_AJUSTE_INVENTARIO)} ? 'disabled' : ''"
                th:href="@{/contingencias/ajuste-stock}" class="menu-item">
                 <i class="bi bi-exclamation-triangle"></i>
                 <span>Ajuste Stock</span>
             </a>
-            <a th:classappend="${!@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU26_REVERSO_MOVIMIENTO)} ? 'disabled' : ''"
+            <a th:classappend="${!permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU26_REVERSO_MOVIMIENTO)} ? 'disabled' : ''"
                th:href="@{/contingencias/reverso-movimiento}" class="menu-item">
                 <i class="bi bi-arrow-counterclockwise"></i>
                 <span>Reverso Movimiento</span>
@@ -482,42 +482,42 @@
     <!-- Quick Actions -->
     <h4 class="mb-3">Accesos Rápidos</h4>
     <div class="row g-4 mb-4">
-        <div class="col-md-4 col-lg-2" th:if="${@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU1_INGRESO_COMPRA)}">
+        <div class="col-md-4 col-lg-2" th:if="${permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU1_INGRESO_COMPRA)}">
             <a href="/compras/alta/ingreso-compra" class="quick-action-btn">
                 <i class="bi bi-cart-plus text-primary"></i>
                 <div>Ingreso Compra</div>
             </a>
         </div>
 
-        <div class="col-md-4 col-lg-2" th:if="${@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU22_VENTA_PRODUCTO)}">
+        <div class="col-md-4 col-lg-2" th:if="${permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU22_VENTA_PRODUCTO)}">
             <a href="/ventas/baja/venta-producto" class="quick-action-btn">
                 <i class="bi bi-cart-check text-success"></i>
                 <div>Venta Producto</div>
             </a>
         </div>
 
-        <div class="col-md-4 col-lg-2" th:if="${@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_LOTES)}">
+        <div class="col-md-4 col-lg-2" th:if="${permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_LOTES)}">
             <a href="/lotes/list-lotes" class="quick-action-btn">
                 <i class="bi bi-search text-info"></i>
                 <div>Ver Lotes</div>
             </a>
         </div>
 
-        <div class="col-md-4 col-lg-2" th:if="${@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU2_DICTAMEN_CUARENTENA)}">
+        <div class="col-md-4 col-lg-2" th:if="${permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CU2_DICTAMEN_CUARENTENA)}">
             <a href="/calidad/dictamen/cuarentena" class="quick-action-btn">
                 <i class="bi bi-shield-check text-warning"></i>
                 <div>Dictamen QC</div>
             </a>
         </div>
 
-        <div class="col-md-4 col-lg-2" th:if="${@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_MOVIMIENTOS)}">
+        <div class="col-md-4 col-lg-2" th:if="${permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_MOVIMIENTOS)}">
             <a href="/movimientos/list-movimientos" class="quick-action-btn">
                 <i class="bi bi-list-ul text-secondary"></i>
                 <div>Movimientos</div>
             </a>
         </div>
 
-        <div class="col-md-4 col-lg-2" th:if="${@permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_ANALISIS)}">
+        <div class="col-md-4 col-lg-2" th:if="${permisosCasoUsoService.tienePermiso(T(com.mb.conitrack.enums.PermisosCasoUsoEnum).CONSULTA_ANALISIS)}">
             <a href="/analisis/list-analisis" class="quick-action-btn">
                 <i class="bi bi-clipboard-data text-primary"></i>
                 <div>Análisis</div>

@@ -19,25 +19,25 @@ VALUES ('Conifarma S.A.', '34-11111111-9', 'Pringles 10', 'CABA', 'Argentina', '
 
 -- Productos
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida,  observaciones, activo)
-VALUES ('Paracetamol', 'P-001', 'API', 'GRAMO', 'Analgesico y antipiretico de uso farmaceutico', true);
+VALUES ('Paracetamol', '1-05701', 'API', 'GRAMO', 'Analgesico y antipiretico de uso farmaceutico', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida, observaciones, activo)
-VALUES ('Ibuprofeno', 'P-002', 'API', 'GRAMO', 'Antiinflamatorio no esteroideo para aliviar el dolor', true);
+VALUES ('Ibuprofeno', '1-05702', 'API', 'GRAMO', 'Antiinflamatorio no esteroideo para aliviar el dolor', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida, observaciones, activo)
-VALUES ('H2O', 'P-022', 'EXCIPIENTE', 'LITRO', 'Esteril y purificada para uso farmaceutico', true);
+VALUES ('H2O', '1-05703', 'EXCIPIENTE', 'LITRO', 'Esteril y purificada para uso farmaceutico', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida, observaciones, activo)
-VALUES ('Lactosa Monohidrato', 'P-003', 'EXCIPIENTE', 'KILOGRAMO', 'Excipiente para formulaciones farmaceuticas de alta pureza', true);
+VALUES ('Lactosa Monohidrato', '1-05704', 'EXCIPIENTE', 'KILOGRAMO', 'Excipiente para formulaciones farmaceuticas de alta pureza', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, unidad_medida, observaciones, activo)
-VALUES ('Capsula Vacio', 'P-004', 'UNIDAD_VENTA', 'UNIDAD', 'Capsula de gelatina vacia para encapsulamiento de medicamentos', true);
+VALUES ('Capsula Vacio', '9-05703', 'UNIDAD_VENTA', 'UNIDAD', 'Capsula de gelatina vacia para encapsulamiento de medicamentos', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto,  producto_destino, unidad_medida, observaciones, activo)
-VALUES ('Semielaborado X', 'P-005', 'SEMIELABORADO', 'GLUMIC 200 MG X 60 COMPRIMIDOS DISPERSABLES', 'MILIGRAMO', 'Producto semielaborado destinado a procesos de produccion', true);
+VALUES ('Semielaborado X', '6-05703', 'SEMIELABORADO', 'GLUMIC 200 MG X 60 COMPRIMIDOS DISPERSABLES', 'MILIGRAMO', 'Producto semielaborado destinado a procesos de produccion', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto,  unidad_medida, observaciones, activo)
-VALUES ('Acond. primario Y', 'P-006', 'ACOND_PRIMARIO', 'UNIDAD', 'Material para empaque primario en la industria farmaceutica', true);
+VALUES ('Acond. primario Y', '2-05723', 'ACOND_PRIMARIO', 'UNIDAD', 'Material para empaque primario en la industria farmaceutica', true);
 
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('ACIDO CARGLUMICO', '1-05700', 'API', 'Glumic 200 mg', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('ACIDO TARTARICO', '1-05400', 'API', 'Cystam 50 y 150 mg', 'KILOGRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;
@@ -63,14 +63,14 @@ INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CISTEAMINA BITARTRATO V3', '1-02702', 'API', 'Cystam 50 y 150 mg', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CITRATO DE TRIETILO', '1-08000', 'API', 'Cystam GR', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CROSCARMELOSA SODICA V2', '1-01103', 'API', 'Cystam/Nitine', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG (GRANEL CAPSULA)', '9-04200', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG (GRANEL FRASCO)', '9-04800', 'GRANEL_FRASCOS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG (GRANEL MEZCLA)', '9-04100', 'GRANEL_MEZCLA_POLVO', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG CAPSULAS', '9-02300', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG (GRANEL CAPSULA)', '9-04600', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG (GRANEL FRASCO)', '9-04700', 'GRANEL_FRASCOS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG (GRANEL MEZCLA)', '9-04500', 'GRANEL_MEZCLA_POLVO', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
-INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG CAPSULAS', '9-03500', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG (GRANEL CAPSULA)', '6-04200', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG (GRANEL FRASCO)', '6-04800', 'GRANEL_FRASCOS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG (GRANEL MEZCLA)', '6-04100', 'GRANEL_MEZCLA_POLVO', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 150 MG CAPSULAS', '6-02300', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG (GRANEL CAPSULA)', '6-04600', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG (GRANEL FRASCO)', '6-04700', 'GRANEL_FRASCOS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG (GRANEL MEZCLA)', '6-04500', 'GRANEL_MEZCLA_POLVO', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
+INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('CYSTAM 50 MG CAPSULAS', '6-03500', 'GRANEL_CAPSULAS', null, 'UNIDAD', true) ON CONFLICT (codigo_producto) DO NOTHING;
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('DIOXIDO DE SILICIO COLOIDAL V1', '1-05001', 'API', 'Cystam 50 y 150 mg', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('ESTEARATO DE MAGNESIO V1', '1-01602', 'API', 'Cystam 50 y 150 mg', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;
 INSERT INTO productos (nombre_generico, codigo_producto, tipo_producto, producto_destino, unidad_medida, activo) VALUES ('ESTEARIL FUMARATO DE SODIO V2', '1-03102', 'API', 'Glumic 200 mg', 'GRAMO', true) ON CONFLICT (codigo_producto) DO NOTHING;

@@ -124,4 +124,162 @@ class AltaIngresoCompraControllerTest {
         assertEquals(altaIngresoCompraService.getCountryList(), model.getAttribute("paises"));
     }
 
+    // -------------------- confirmarIngresoCompra --------------------
+
+    @Test
+    void testConfirmarIngresoCompra_ConValidacionExitosa() {
+        // given
+        dto.setProductoId(1L);
+        dto.setProveedorId(2L);
+        dto.setFabricanteId(3L);
+
+        Producto producto = new Producto();
+        producto.setNombreGenerico("Paracetamol");
+        producto.setCodigoProducto("API-001");
+
+        Proveedor proveedor = new Proveedor();
+        proveedor.setRazonSocial("Proveedor Test");
+
+        Proveedor fabricante = new Proveedor();
+        fabricante.setRazonSocial("Fabricante Test");
+
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(true);
+        when(productoService.findById(1L)).thenReturn(java.util.Optional.of(producto));
+        when(proveedorService.findById(2L)).thenReturn(java.util.Optional.of(proveedor));
+        when(proveedorService.findById(3L)).thenReturn(java.util.Optional.of(fabricante));
+
+        // when
+        String view = controller.confirmarIngresoCompra(dto, binding, model);
+
+        // then
+        assertEquals("compras/alta/ingreso-compra-confirm", view);
+        assertEquals("Paracetamol", dto.getNombreProducto());
+        assertEquals("API-001", dto.getCodigoProducto());
+        assertEquals("Proveedor Test", dto.getNombreProveedor());
+        assertEquals("Fabricante Test", dto.getNombreFabricante());
+    }
+
+    @Test
+    void testConfirmarIngresoCompra_ConValidacionFallida() {
+        // given
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(false);
+        when(proveedorService.getProveedoresExternos()).thenReturn(proveedoresMock);
+        when(productoService.getProductosExternos()).thenReturn(productosMock);
+
+        // when
+        String view = controller.confirmarIngresoCompra(dto, binding, model);
+
+        // then
+        assertEquals("compras/alta/ingreso-compra", view);
+    }
+
+    @Test
+    void testConfirmarIngresoCompra_ConProductoNoEncontrado() {
+        // given
+        dto.setProductoId(999L);
+
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(true);
+        when(productoService.findById(999L)).thenReturn(java.util.Optional.empty());
+
+        // when
+        String view = controller.confirmarIngresoCompra(dto, binding, model);
+
+        // then
+        assertEquals("compras/alta/ingreso-compra-confirm", view);
+        assertEquals(null, dto.getNombreProducto());
+    }
+
+    @Test
+    void testConfirmarIngresoCompra_SinProveedorNiFabricante() {
+        // given - Solo producto, sin proveedor ni fabricante
+        dto.setProductoId(1L);
+        dto.setProveedorId(null);
+        dto.setFabricanteId(null);
+
+        Producto producto = new Producto();
+        producto.setNombreGenerico("Producto Test");
+        producto.setCodigoProducto("PROD-001");
+
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(true);
+        when(productoService.findById(1L)).thenReturn(java.util.Optional.of(producto));
+
+        // when
+        String view = controller.confirmarIngresoCompra(dto, binding, model);
+
+        // then
+        assertEquals("compras/alta/ingreso-compra-confirm", view);
+        assertEquals("Producto Test", dto.getNombreProducto());
+        assertEquals("PROD-001", dto.getCodigoProducto());
+        assertEquals(null, dto.getNombreProveedor());
+        assertEquals(null, dto.getNombreFabricante());
+    }
+
+    @Test
+    void testConfirmarIngresoCompra_TodosLosIdsNulos() {
+        // given - Sin producto, proveedor ni fabricante (todos los IDs null)
+        dto.setProductoId(null);
+        dto.setProveedorId(null);
+        dto.setFabricanteId(null);
+
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(true);
+
+        // when
+        String view = controller.confirmarIngresoCompra(dto, binding, model);
+
+        // then
+        assertEquals("compras/alta/ingreso-compra-confirm", view);
+        assertEquals(null, dto.getNombreProducto());
+        assertEquals(null, dto.getCodigoProducto());
+        assertEquals(null, dto.getNombreProveedor());
+        assertEquals(null, dto.getNombreFabricante());
+    }
+
+    // -------------------- ingresoCompra --------------------
+
+    @Test
+    void testIngresoCompra_ConValidacionExitosa() {
+        // given
+        LoteDTO resultDTO = new LoteDTO();
+        resultDTO.setCodigoLote("LOTE-TEST-001");
+
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(true);
+        when(altaIngresoCompraService.altaStockPorCompra(dto)).thenReturn(resultDTO);
+
+        // when
+        String view = controller.ingresoCompra(dto, binding, model, redirect);
+
+        // then
+        assertEquals("redirect:/compras/alta/ingreso-compra-ok", view);
+        assertEquals(resultDTO, redirect.getFlashAttributes().get("loteDTO"));
+        assertEquals("Ingreso de stock por compra exitoso.", redirect.getFlashAttributes().get("success"));
+    }
+
+    @Test
+    void testIngresoCompra_ConValidacionFallida() {
+        // given
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(false);
+        when(proveedorService.getProveedoresExternos()).thenReturn(proveedoresMock);
+        when(productoService.getProductosExternos()).thenReturn(productosMock);
+
+        // when
+        String view = controller.ingresoCompra(dto, binding, model, redirect);
+
+        // then
+        assertEquals("compras/alta/ingreso-compra", view);
+    }
+
+    @Test
+    void testIngresoCompra_ConErrorEnPersistencia() {
+        // given
+        when(altaIngresoCompraService.validarIngresoCompraInput(dto, binding)).thenReturn(true);
+        when(altaIngresoCompraService.altaStockPorCompra(dto)).thenReturn(null);
+
+        // when
+        String view = controller.ingresoCompra(dto, binding, model, redirect);
+
+        // then
+        assertEquals("redirect:/compras/alta/ingreso-compra-ok", view);
+        assertEquals("Hubo un error en el ingreso de stock por compra.", redirect.getFlashAttributes().get("error"));
+    }
+
 }

@@ -27,7 +27,8 @@
       "Bash(rm:*)",
       "Bash(./gradlew jacocoTestReport:*)",
       "Bash(cat build/reports/jacoco/test/html/com.mb.conitrack.controller.maestro/PasswordChangeController.html 2)",
-      "Bash(nul)"
+      "Bash(nul)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

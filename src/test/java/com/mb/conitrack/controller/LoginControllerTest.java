@@ -14,6 +14,7 @@ import com.mb.conitrack.dto.DashboardMetricsDTO;
 import com.mb.conitrack.dto.UserInfoDTO;
 import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.service.DashboardService;
+import com.mb.conitrack.service.PermisosCasoUsoService;
 import com.mb.conitrack.service.SecurityContextService;
 
 import jakarta.servlet.ServletException;
@@ -33,6 +34,9 @@ class LoginControllerTest {
 
     @Mock
     private SecurityContextService securityContextService;
+
+    @Mock
+    private PermisosCasoUsoService permisosCasoUsoService;
 
     @InjectMocks
     private LoginController loginController;

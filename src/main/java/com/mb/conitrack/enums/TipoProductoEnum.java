@@ -11,11 +11,11 @@ public enum TipoProductoEnum {
     ACOND_PRIMARIO("Acond. primario", "MatAcond", 2, false),
     ACOND_SECUNDARIO("Acond. secundario", "MatAcond", 2, true),
 
-    SEMIELABORADO("Semielaborado", "SemiElab", 9, true),
-    GRANEL_MEZCLA_POLVO("Granel mezcla de polvo", "SemiElab", 9, true),
-    GRANEL_CAPSULAS("Granel de cápsulas", "SemiElab", 9, true),
-    GRANEL_COMPRIMIDOS("Granel de comprimidos", "SemiElab", 9, true),
-    GRANEL_FRASCOS("Granel frascos", "SemiElab", 9, true),
+    SEMIELABORADO("Semielaborado", "SemiElab", 6, true),
+    GRANEL_MEZCLA_POLVO("Granel mezcla de polvo", "SemiElab", 6, true),
+    GRANEL_CAPSULAS("Granel de cápsulas", "SemiElab", 6, true),
+    GRANEL_COMPRIMIDOS("Granel de comprimidos", "SemiElab", 6, true),
+    GRANEL_FRASCOS("Granel frascos", "SemiElab", 6, true),
 
     UNIDAD_VENTA("Unidad venta", "UniVenta", 9, false);
 
