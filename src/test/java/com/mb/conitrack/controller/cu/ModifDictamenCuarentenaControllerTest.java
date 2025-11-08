@@ -136,4 +136,138 @@ class ModifDictamenCuarentenaControllerTest {
         assertNotNull(model.getAttribute("loteCuarentenaDTOs"));
     }
 
+    @Test
+    @DisplayName("POST OK: validación exitosa → redirect a cuarentena-ok")
+    void testDictamenCuarentena_ValidacionExitosa() {
+        MovimientoDTO mov = new MovimientoDTO();
+        mov.setCodigoLote("LOTE-001");
+        BindingResult br = new BeanPropertyBindingResult(mov, "movimientoDTO");
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        LoteDTO loteDTOResult = new LoteDTO();
+        loteDTOResult.setCodigoLote("LOTE-001");
+
+        when(dictamenCuarentenaService.validarDictamenCuarentenaInput(mov, br)).thenReturn(true);
+        when(dictamenCuarentenaService.persistirDictamenCuarentena(any(MovimientoDTO.class))).thenReturn(loteDTOResult);
+
+        String view = controller.dictamenCuarentena(mov, br, model, redirect);
+
+        assertEquals("redirect:/calidad/dictamen/cuarentena-ok", view);
+        verify(dictamenCuarentenaService).validarDictamenCuarentenaInput(mov, br);
+        verify(dictamenCuarentenaService).persistirDictamenCuarentena(any(MovimientoDTO.class));
+        assertEquals(loteDTOResult, redirect.getFlashAttributes().get("loteDTO"));
+        assertEquals("Cambio de calidad a Cuarentena exitoso", redirect.getFlashAttributes().get("success"));
+    }
+
+    // -------------------- POST /cuarentena/confirm --------------------
+    @Test
+    @DisplayName("POST /cuarentena/confirm: validación falla → vuelve al form")
+    void testConfirmarDictamenCuarentena_ValidacionFalla() {
+        MovimientoDTO mov = new MovimientoDTO();
+        BindingResult br = new BeanPropertyBindingResult(mov, "movimientoDTO");
+
+        when(dictamenCuarentenaService.validarDictamenCuarentenaInput(mov, br)).thenReturn(false);
+        when(loteService.findAllForCuarentenaDTOs()).thenReturn(Collections.emptyList());
+
+        String view = controller.confirmarDictamenCuarentena(mov, br, model);
+
+        assertEquals("calidad/dictamen/cuarentena", view);
+        verify(dictamenCuarentenaService).validarDictamenCuarentenaInput(mov, br);
+        verify(loteService).findAllForCuarentenaDTOs();
+        assertSame(mov, model.getAttribute("movimientoDTO"));
+    }
+
+    @Test
+    @DisplayName("POST /cuarentena/confirm: validación OK → muestra confirmación con lote")
+    void testConfirmarDictamenCuarentena_ValidacionExitosa_ConLote() {
+        MovimientoDTO mov = new MovimientoDTO();
+        mov.setCodigoLote("LOTE-001");
+        BindingResult br = new BeanPropertyBindingResult(mov, "movimientoDTO");
+
+        com.mb.conitrack.entity.Lote lote = new com.mb.conitrack.entity.Lote();
+        lote.setCodigoLote("LOTE-001");
+
+        com.mb.conitrack.entity.maestro.Producto producto = new com.mb.conitrack.entity.maestro.Producto();
+        producto.setNombreGenerico("Producto Test");
+        producto.setCodigoProducto("PROD-001");
+        lote.setProducto(producto);
+
+        com.mb.conitrack.entity.maestro.Proveedor proveedor = new com.mb.conitrack.entity.maestro.Proveedor();
+        proveedor.setRazonSocial("Proveedor Test");
+        lote.setProveedor(proveedor);
+
+        when(dictamenCuarentenaService.validarDictamenCuarentenaInput(mov, br)).thenReturn(true);
+        when(loteService.findByCodigoLote("LOTE-001")).thenReturn(java.util.Optional.of(lote));
+
+        String view = controller.confirmarDictamenCuarentena(mov, br, model);
+
+        assertEquals("calidad/dictamen/cuarentena-confirm", view);
+        verify(dictamenCuarentenaService).validarDictamenCuarentenaInput(mov, br);
+        verify(loteService).findByCodigoLote("LOTE-001");
+
+        assertEquals("Producto Test", mov.getNombreProducto());
+        assertEquals("PROD-001", mov.getCodigoProducto());
+        assertEquals("Proveedor Test", mov.getNombreProveedor());
+
+        assertNotNull(model.getAttribute("loteDTO"));
+        assertSame(mov, model.getAttribute("movimientoDTO"));
+    }
+
+    @Test
+    @DisplayName("POST /cuarentena/confirm: validación OK pero lote no encontrado → solo muestra mov")
+    void testConfirmarDictamenCuarentena_ValidacionExitosa_SinLote() {
+        MovimientoDTO mov = new MovimientoDTO();
+        mov.setCodigoLote("LOTE-999");
+        BindingResult br = new BeanPropertyBindingResult(mov, "movimientoDTO");
+
+        when(dictamenCuarentenaService.validarDictamenCuarentenaInput(mov, br)).thenReturn(true);
+        when(loteService.findByCodigoLote("LOTE-999")).thenReturn(java.util.Optional.empty());
+
+        String view = controller.confirmarDictamenCuarentena(mov, br, model);
+
+        assertEquals("calidad/dictamen/cuarentena-confirm", view);
+        verify(dictamenCuarentenaService).validarDictamenCuarentenaInput(mov, br);
+        verify(loteService).findByCodigoLote("LOTE-999");
+        assertSame(mov, model.getAttribute("movimientoDTO"));
+    }
+
+    // -------------------- procesarDictamenCuarentena helper --------------------
+    @Test
+    @DisplayName("procesarDictamenCuarentena: éxito → flash success")
+    void testProcesarDictamenCuarentena_Exito() {
+        MovimientoDTO mov = new MovimientoDTO();
+        mov.setCodigoLote("LOTE-001");
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        LoteDTO resultado = new LoteDTO();
+        resultado.setCodigoLote("LOTE-001");
+
+        when(dictamenCuarentenaService.persistirDictamenCuarentena(any(MovimientoDTO.class))).thenReturn(resultado);
+
+        controller.procesarDictamenCuarentena(mov, redirect);
+
+        verify(dictamenCuarentenaService).persistirDictamenCuarentena(any(MovimientoDTO.class));
+        assertEquals(resultado, redirect.getFlashAttributes().get("loteDTO"));
+        assertEquals("Cambio de calidad a Cuarentena exitoso", redirect.getFlashAttributes().get("success"));
+        assertNull(redirect.getFlashAttributes().get("error"));
+        assertNotNull(mov.getFechaYHoraCreacion());
+    }
+
+    @Test
+    @DisplayName("procesarDictamenCuarentena: error (null) → flash error")
+    void testProcesarDictamenCuarentena_Error() {
+        MovimientoDTO mov = new MovimientoDTO();
+        mov.setCodigoLote("LOTE-001");
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        when(dictamenCuarentenaService.persistirDictamenCuarentena(any(MovimientoDTO.class))).thenReturn(null);
+
+        controller.procesarDictamenCuarentena(mov, redirect);
+
+        verify(dictamenCuarentenaService).persistirDictamenCuarentena(any(MovimientoDTO.class));
+        assertNull(redirect.getFlashAttributes().get("loteDTO"));
+        assertEquals("Hubo un error al realizar el cambio de calidad a Cuarentena.", redirect.getFlashAttributes().get("error"));
+        assertNull(redirect.getFlashAttributes().get("success"));
+    }
+
 }

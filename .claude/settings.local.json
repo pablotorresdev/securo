@@ -30,7 +30,8 @@
       "Bash(nul)",
       "Bash(cat:*)",
       "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/BajaDevolucionCompraService.html)",
-      "Bash(./gradlew compileJava:*)"
+      "Bash(./gradlew compileJava:*)",
+      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/ModifDictamenCuarentenaService.java.html)"
     ],
     "deny": [],
     "ask": []
