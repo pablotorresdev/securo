@@ -29,7 +29,8 @@
       "Bash(cat build/reports/jacoco/test/html/com.mb.conitrack.controller.maestro/PasswordChangeController.html 2)",
       "Bash(nul)",
       "Bash(cat:*)",
-      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/BajaDevolucionCompraService.html)"
+      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/BajaDevolucionCompraService.html)",
+      "Bash(./gradlew compileJava:*)"
     ],
     "deny": [],
     "ask": []

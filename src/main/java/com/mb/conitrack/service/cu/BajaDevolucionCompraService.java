@@ -18,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import static com.mb.conitrack.enums.DictamenEnum.RECHAZADO;
 import static com.mb.conitrack.enums.EstadoEnum.DEVUELTO;
 import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoDevolucionCompra;
 import static java.lang.Boolean.TRUE;
@@ -63,6 +64,7 @@ public class BajaDevolucionCompraService extends AbstractCuService {
         bultoRepository.saveAll(lote.getBultos());
 
         lote.setEstado(DEVUELTO);
+        lote.setDictamen(RECHAZADO);
         lote.setCantidadActual(BigDecimal.ZERO);
         lote.getMovimientos().add(savedMovimiento);
 

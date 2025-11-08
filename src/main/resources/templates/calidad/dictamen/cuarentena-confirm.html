@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación Cuarentena - CU2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .confirm-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .confirm-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #f59e0b;
+        }
+
+        .confirm-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .confirm-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 20px 5px rgba(245, 158, 11, 0.2);
+            }
+        }
+
+        .warning-box h5 {
+            color: #92400e;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .warning-box ul {
+            margin-bottom: 0;
+            color: #92400e;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-row {
+            background: #f8f9fa;
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .data-row .label {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-row .value {
+            color: #212529;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .data-row .value.highlight {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .empty-value {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+            color: white;
+        }
+
+        .btn-edit {
+            background: white;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-weight: 600;
+            color: #f59e0b;
+            transition: all 0.3s;
+        }
+
+        .btn-edit:hover {
+            background: #f59e0b;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 3px solid #f59e0b;
+            margin-top: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .info-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-box strong {
+            color: #92400e;
+        }
+
+        @media (max-width: 768px) {
+            .confirm-container {
+                padding: 20px;
+            }
+
+            .data-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .data-row .value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="confirm-container">
+        <!-- Header -->
+        <div class="confirm-header">
+            <span class="badge bg-warning text-dark">
+                <i class="bi bi-exclamation-triangle"></i> CONFIRMACIÓN
+            </span>
+            <h2>
+                <i class="bi bi-eye-fill"></i>
+                Vista Previa - Dictamen a Cuarentena
+            </h2>
+            <p class="text-muted mb-0">Revise toda la información del lote antes de confirmar el cambio de dictamen</p>
+        </div>
+
+        <!-- Warning -->
+        <div class="warning-box">
+            <h5>
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                ¡Atención! Está por cambiar el dictamen a CUARENTENA
+            </h5>
+            <ul>
+                <li>El lote quedará en estado de evaluación</li>
+                <li>No podrá ser utilizado hasta que se apruebe o rechace</li>
+                <li>Se generará un registro de movimiento de modificación</li>
+                <li>Esta acción quedará registrada en el sistema de trazabilidad</li>
+            </ul>
+        </div>
+
+        <!-- Datos del Dictamen -->
+        <div class="section-title">
+            <i class="bi bi-clipboard-data"></i>
+            <span>Datos del Dictamen</span>
+        </div>
+
+        <div class="data-row">
+            <div class="label">
+                <i class="bi bi-box-seam"></i> Código de Lote
+            </div>
+            <div class="value highlight" th:text="${movimientoDTO.codigoLote}">LOTE-001</div>
+        </div>
+
+        <div class="data-row">
+            <div class="label">
+                <i class="bi bi-calendar-event"></i> Fecha del Cambio
+            </div>
+            <div class="value" th:text="${#temporals.format(movimientoDTO.fechaMovimiento, 'dd/MM/yyyy')}">01/01/2025</div>
+        </div>
+
+        <div class="data-row" th:if="${movimientoDTO.nroAnalisis != null and !#strings.isEmpty(movimientoDTO.nroAnalisis)}">
+            <div class="label">
+                <i class="bi bi-hash"></i> Número de Análisis
+            </div>
+            <div class="value" th:text="${movimientoDTO.nroAnalisis}">AN-2025-001</div>
+        </div>
+
+        <div class="data-row" th:if="${movimientoDTO.nroReanalisis != null and !#strings.isEmpty(movimientoDTO.nroReanalisis)}">
+            <div class="label">
+                <i class="bi bi-arrow-repeat"></i> Número de ReAnálisis
+            </div>
+            <div class="value" th:text="${movimientoDTO.nroReanalisis}">RAN-2025-001</div>
+        </div>
+
+        <div class="data-row" th:if="${movimientoDTO.observaciones != null and !#strings.isEmpty(movimientoDTO.observaciones)}">
+            <div class="label">
+                <i class="bi bi-chat-left-text"></i> Observaciones
+            </div>
+            <div class="value" th:text="${movimientoDTO.observaciones}">Sin observaciones</div>
+        </div>
+
+        <!-- Información Completa del Lote -->
+        <div th:if="${loteDTO != null}">
+            <!-- Identificación del Lote -->
+            <div class="section-title">
+                <i class="bi bi-upc-scan"></i>
+                <span>Identificación del Lote</span>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-box-seam"></i> Código Interno
+                </div>
+                <div class="value highlight" th:text="${loteDTO.codigoLote}">LOTE-001</div>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-tag"></i> Lote Proveedor
+                </div>
+                <div class="value" th:text="${loteDTO.loteProveedor ?: '-'}">PROV-123</div>
+            </div>
+
+            <div class="data-row" th:if="${loteDTO.nroRemito != null and !#strings.isEmpty(loteDTO.nroRemito)}">
+                <div class="label">
+                    <i class="bi bi-receipt"></i> Número de Remito
+                </div>
+                <div class="value" th:text="${loteDTO.nroRemito}">REM-456</div>
+            </div>
+
+            <!-- Producto -->
+            <div class="section-title">
+                <i class="bi bi-box"></i>
+                <span>Información del Producto</span>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-box-seam"></i> Producto
+                </div>
+                <div class="value">
+                    <strong th:text="${loteDTO.nombreProducto}">Producto XYZ</strong>
+                    <span th:if="${loteDTO.codigoProducto != null}" class="text-muted">
+                        (<span th:text="${loteDTO.codigoProducto}"></span>)
+                    </span>
+                </div>
+            </div>
+
+            <div class="data-row" th:if="${loteDTO.tipoProducto != null}">
+                <div class="label">
+                    <i class="bi bi-tags"></i> Tipo de Producto
+                </div>
+                <div class="value" th:text="${loteDTO.tipoProducto}">MATERIA_PRIMA</div>
+            </div>
+
+            <div class="data-row" th:if="${loteDTO.productoDestino != null and !#strings.isEmpty(loteDTO.productoDestino)}">
+                <div class="label">
+                    <i class="bi bi-arrow-right-circle"></i> Producto Destino
+                </div>
+                <div class="value" th:text="${loteDTO.productoDestino}">Producto Final</div>
+            </div>
+
+            <!-- Proveedor y Origen -->
+            <div class="section-title">
+                <i class="bi bi-building"></i>
+                <span>Proveedor y Origen</span>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-building"></i> Proveedor
+                </div>
+                <div class="value" th:text="${loteDTO.nombreProveedor}">Proveedor ABC</div>
+            </div>
+
+            <div class="data-row" th:if="${loteDTO.nombreFabricante != null and !#strings.isEmpty(loteDTO.nombreFabricante)}">
+                <div class="label">
+                    <i class="bi bi-gear"></i> Fabricante
+                </div>
+                <div class="value" th:text="${loteDTO.nombreFabricante}">Fabricante XYZ</div>
+            </div>
+
+            <div class="data-row" th:if="${loteDTO.paisOrigen != null and !#strings.isEmpty(loteDTO.paisOrigen)}">
+                <div class="label">
+                    <i class="bi bi-globe"></i> País de Origen
+                </div>
+                <div class="value" th:text="${loteDTO.paisOrigen}">Argentina</div>
+            </div>
+
+            <!-- Cantidades y Stock -->
+            <div class="section-title">
+                <i class="bi bi-calculator"></i>
+                <span>Cantidades y Stock</span>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-hash"></i> Cantidad Inicial
+                </div>
+                <div class="value">
+                    <span th:text="${loteDTO.cantidadInicial}">100.00</span>
+                    <span th:text="${loteDTO.unidadMedida}">KG</span>
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-calculator"></i> Cantidad Actual
+                </div>
+                <div class="value highlight">
+                    <span th:text="${loteDTO.cantidadActual}">100.00</span>
+                    <span th:text="${loteDTO.unidadMedida}">KG</span>
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-boxes"></i> Bultos Totales
+                </div>
+                <div class="value" th:text="${loteDTO.bultosTotales}">10</div>
+            </div>
+
+            <!-- Fechas -->
+            <div class="section-title">
+                <i class="bi bi-calendar-range"></i>
+                <span>Fechas Importantes</span>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-calendar-event"></i> Fecha de Ingreso
+                </div>
+                <div class="value" th:text="${#temporals.format(loteDTO.fechaIngreso, 'dd/MM/yyyy')}">01/01/2025</div>
+            </div>
+
+            <div class="data-row" th:if="${loteDTO.fechaReanalisisProveedor != null}">
+                <div class="label">
+                    <i class="bi bi-arrow-repeat"></i> Fecha Reanálisis Proveedor
+                </div>
+                <div class="value" th:text="${#temporals.format(loteDTO.fechaReanalisisProveedor, 'dd/MM/yyyy')}">01/06/2025</div>
+            </div>
+
+            <div class="data-row" th:if="${loteDTO.fechaVencimientoProveedor != null}">
+                <div class="label">
+                    <i class="bi bi-calendar-x"></i> Fecha Vencimiento Proveedor
+                </div>
+                <div class="value" th:text="${#temporals.format(loteDTO.fechaVencimientoProveedor, 'dd/MM/yyyy')}">01/01/2026</div>
+            </div>
+
+            <!-- Estado y Dictamen -->
+            <div class="section-title">
+                <i class="bi bi-shield-check"></i>
+                <span>Estado y Calidad</span>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-activity"></i> Estado
+                </div>
+                <div class="value">
+                    <span class="badge bg-primary" th:text="${loteDTO.estado}">VIGENTE</span>
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="label">
+                    <i class="bi bi-shield-check"></i> Dictamen Actual → Nuevo
+                </div>
+                <div class="value">
+                    <span class="badge"
+                          th:classappend="${loteDTO.dictamen == 'APROBADO'} ? 'bg-success' : (${loteDTO.dictamen == 'RECHAZADO'} ? 'bg-danger' : 'bg-warning')"
+                          th:text="${loteDTO.dictamen}">APROBADO</span>
+                    <i class="bi bi-arrow-right mx-2"></i>
+                    <span class="badge bg-warning text-dark">CUARENTENA</span>
+                </div>
+            </div>
+
+            <!-- Conservación -->
+            <div th:if="${loteDTO.detalleConservacion != null and !#strings.isEmpty(loteDTO.detalleConservacion)}">
+                <div class="section-title">
+                    <i class="bi bi-thermometer-half"></i>
+                    <span>Conservación</span>
+                </div>
+
+                <div class="data-row">
+                    <div class="label">
+                        <i class="bi bi-thermometer-half"></i> Detalle de Conservación
+                    </div>
+                    <div class="value" th:text="${loteDTO.detalleConservacion}">Mantener refrigerado</div>
+                </div>
+            </div>
+
+            <!-- Observaciones del Lote -->
+            <div th:if="${loteDTO.observaciones != null and !#strings.isEmpty(loteDTO.observaciones)}">
+                <div class="section-title">
+                    <i class="bi bi-chat-left-text"></i>
+                    <span>Observaciones del Lote</span>
+                </div>
+
+                <div class="data-row">
+                    <div class="label">
+                        <i class="bi bi-chat-left-text"></i> Observaciones
+                    </div>
+                    <div class="value" th:text="${loteDTO.observaciones}">Sin observaciones</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer con acciones -->
+        <div class="sticky-footer">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <!-- Formulario para volver atrás (mantiene los datos) -->
+                <form method="get" th:action="@{/calidad/dictamen/cuarentena}" style="display: inline;">
+                    <input type="hidden" name="codigoLote" th:value="${movimientoDTO.codigoLote}"/>
+                    <input type="hidden" name="fechaMovimiento" th:value="${movimientoDTO.fechaMovimiento}"/>
+                    <input type="hidden" name="nroAnalisis" th:value="${movimientoDTO.nroAnalisis}"/>
+                    <input type="hidden" name="nroReanalisis" th:value="${movimientoDTO.nroReanalisis}"/>
+                    <input type="hidden" name="observaciones" th:value="${movimientoDTO.observaciones}"/>
+
+                    <button type="submit" class="btn btn-edit">
+                        <i class="bi bi-pencil-square"></i> Volver a Editar
+                    </button>
+                </form>
+
+                <!-- Formulario para confirmar (guarda en BD) -->
+                <form method="post" th:action="@{/calidad/dictamen/cuarentena}" th:object="${movimientoDTO}" style="display: inline;">
+                    <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+
+                    <!-- Pasar todos los datos -->
+                    <input type="hidden" th:field="*{codigoLote}"/>
+                    <input type="hidden" th:field="*{fechaMovimiento}"/>
+                    <input type="hidden" th:field="*{nroAnalisis}"/>
+                    <input type="hidden" th:field="*{nroReanalisis}"/>
+                    <input type="hidden" th:field="*{observaciones}"/>
+
+                    <button type="submit" class="btn btn-confirm">
+                        <i class="bi bi-check-circle-fill"></i> Confirmar Cambio a Cuarentena
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

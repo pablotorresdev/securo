@@ -30,14 +30,18 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
                    com.mb.conitrack.enums.DictamenEnum.APROBADO,
                    com.mb.conitrack.enums.DictamenEnum.ANALISIS_EXPIRADO,
                    com.mb.conitrack.enums.DictamenEnum.LIBERADO,
-                   com.mb.conitrack.enums.DictamenEnum.DEVOLUCION_CLIENTES,
-                   com.mb.conitrack.enums.DictamenEnum.RETIRO_MERCADO
+                   com.mb.conitrack.enums.DictamenEnum.DEVOLUCION_CLIENTES
               )
               and l.estado in (
                    com.mb.conitrack.enums.EstadoEnum.NUEVO,
                    com.mb.conitrack.enums.EstadoEnum.DISPONIBLE,
                    com.mb.conitrack.enums.EstadoEnum.DEVUELTO,
                    com.mb.conitrack.enums.EstadoEnum.EN_USO
+              )
+              and exists (
+                  select 1 from Bulto b
+                  where b.lote = l
+                    and b.cantidadActual > 0
               )
             order by case when l.fechaIngreso is null then 1 else 0 end,
                      l.fechaIngreso asc, l.codigoLote asc

@@ -2,162 +2,305 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Dictamen: Cuarentena</title>
-    <!-- Bootstrap para estilos rápidos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dictamen Cuarentena - CU2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet"/>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #f59e0b;
+        }
+
+        .form-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 25px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 0.2rem rgba(245, 158, 11, 0.25);
+        }
+
+        .info-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h5 {
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .warning-box strong {
+            color: #92400e;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+        }
+
+        .text-danger {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .error-field {
+            border-color: #dc3545 !important;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Cambiar Dictamen a Cuarentena</h2>
+<div class="container">
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <span class="badge bg-warning text-dark">
+                <i class="bi bi-exclamation-triangle"></i> CU2
+            </span>
+            <h2>
+                <i class="bi bi-shield-exclamation"></i>
+                Dictamen a Cuarentena
+            </h2>
+            <p class="text-muted mb-0">Cambiar el dictamen de un lote a Cuarentena</p>
+        </div>
 
-    <!--
-      Formulario principal:
-      - POST a /calidad/dictamen/cuarentena
-      - th:object enlaza inputs con movimientoDTO (binding servidor <-> vista)
-    -->
-    <form method="post" th:action="@{/calidad/dictamen/cuarentena}" th:object="${movimientoDTO}">
-        <!-- Token CSRF en el body para validar la solicitud -->
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+        <!-- Info -->
+        <div class="info-box">
+            <h5>
+                <i class="bi bi-info-circle-fill"></i>
+                Información
+            </h5>
+            <p class="mb-0">
+                Este formulario permite cambiar el dictamen de un lote a <strong>CUARENTENA</strong>.
+                Seleccione el lote y proporcione los datos del análisis que motiva este cambio.
+            </p>
+        </div>
 
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
+        <!-- Formulario -->
+        <form method="post" th:action="@{/calidad/dictamen/cuarentena/confirm}" th:object="${movimientoDTO}">
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
-        <!--
-          Selector de Lotes elegibles para Cuarentena:
-          - th:field="*{codigoLote}" bindea la selección al DTO
-          - Cada option expone:
-            * data-dictamen: dictamen actual del lote (Recibido/Aprobado/Rechazado/…)
-            * data-nroanalisis: último nro de análisis definido
-            * data-analisisencurso: nro de análisis en curso (si lo hay)
-          - Esos data-* gobiernan qué campos se muestran/ocultan más abajo
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="codigoLote">Lote:</label>
-            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
-                <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${loteCuarentenaDTOs}"
-                        th:text="'Producto: ' + ${loteDTO.nombreProducto}
-                         + ' | Dictamen: ' + ${loteDTO.dictamen.valor}
-                         + ' | Codigo Interno: ' + ${loteDTO.codigoLote}
-                         + ' | Proveedor: ' + ${loteDTO.nombreProveedor}"
-                        th:value="${loteDTO.codigoLote}"
-                        th:data-dictamen="${loteDTO.dictamen.valor}"
-                        th:data-nroanalisis="${loteDTO.getNroUltimoAnalisisDto()}"
-                        th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}">
-                </option>
-            </select>
-            <!-- Errores de validación si el lote no se seleccionó -->
-            <div class="text-danger fw-bold"
-                 th:errors="*{codigoLote}"
-                 th:if="${#fields.hasErrors('codigoLote')}">
+            <!-- Datos del Dictamen -->
+            <div class="section-title">
+                <i class="bi bi-clipboard-data"></i>
+                <span>Datos del Dictamen</span>
             </div>
-        </div>
 
-        <!--
-          Sección informativa dinámica:
-          - Si quisieras, podés inyectar datos aquí al cambiar el lote
-          - Actualmente se deja vacía; la lógica de visibilidad usa solo data-* del <option>
-        -->
-        <div class="mb-4" id="infoSection">
-        </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label" for="codigoLote">
+                        <i class="bi bi-box-seam"></i> Lote
+                        <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="codigoLote" required
+                            th:field="*{codigoLote}"
+                            th:classappend="${#fields.hasErrors('codigoLote')} ? 'error-field' : ''">
+                        <option value="">-- Seleccione un lote --</option>
+                        <option th:each="loteDTO : ${loteCuarentenaDTOs}"
+                                th:value="${loteDTO.codigoLote}"
+                                th:text="'Código: ' + ${loteDTO.codigoLote}
+                                    + ' | Producto: ' + ${loteDTO.nombreProducto}
+                                    + ' | Proveedor: ' + ${loteDTO.nombreProveedor}
+                                    + ' | Dictamen: ' + ${loteDTO.dictamen.valor}"
+                                th:data-dictamen="${loteDTO.dictamen.valor}"
+                                th:data-nroanalisis="${loteDTO.getNroUltimoAnalisisDto()}"
+                                th:data-analisisencurso="${loteDTO.getNroAnalisisDtoEnCurso()}">
+                        </option>
+                    </select>
+                    <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
+                </div>
 
-        <!--
-          Fecha del cambio de dictamen:
-          - type="date" bindeado a *{fechaMovimiento}
-          - JS setea "hoy" si no viene en el DTO
-        -->
-        <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha de Cambio de Dictamen:</label>
-            <input class="form-control" id="fechaMovimiento"
-                   required
-                   th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
-                   th:field="*{fechaMovimiento}"
-                   type="date">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="fechaMovimiento">
+                        <i class="bi bi-calendar-event"></i> Fecha del Cambio
+                        <span class="required">*</span>
+                    </label>
+                    <input class="form-control" id="fechaMovimiento"
+                           required
+                           th:classappend="${#fields.hasErrors('fechaMovimiento')} ? 'error-field' : ''"
+                           th:field="*{fechaMovimiento}"
+                           type="date">
+                    <div class="text-danger" th:errors="*{fechaMovimiento}" th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
+                </div>
 
-            <div style="color: red; font-weight: bold;"
-                 th:errors="*{fechaMovimiento}"
-                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
-        </div>
+                <!-- Número de Análisis EDITABLE (cuando dictamen es Recibido) -->
+                <div class="col-md-6 mb-3" id="grupoNroAnalisisEditable">
+                    <label class="form-label" for="nroAnalisis">
+                        <i class="bi bi-hash"></i> Número de Análisis
+                        <span class="required">*</span>
+                    </label>
+                    <input class="form-control" id="nroAnalisis"
+                           placeholder="Ej: AN-2025-001"
+                           th:field="*{nroAnalisis}"
+                           type="text"
+                           maxlength="30">
+                    <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+                </div>
 
-        <!--
-          Grupo "Número de Análisis" EDITABLE:
-          - Visible cuando dictamen actual del lote es 'Recibido' y NO hay análisis en curso
-          - En ese caso se exige ingresar un número de análisis (required)
-        -->
-        <div class="mb-3" id="grupoNroAnalisisEditable">
-            <label class="form-label" for="nroAnalisis">Número de Análisis:</label>
-            <input class="form-control" id="nroAnalisis"
-                   placeholder="Ej: 123456789"
-                   th:field="*{nroAnalisis}"
-                   type="text"
-                   maxlength="30">
-            <div style="color: red; font-weight: bold;"
-                 th:errors="*{nroAnalisis}"
-                 th:if="${#fields.hasErrors('nroAnalisis')}"></div>
-        </div>
+                <!-- Número de Análisis READONLY (cuando ya existe análisis) -->
+                <div class="col-md-6 mb-3" id="grupoNroAnalisisSoloLectura" style="display: none;">
+                    <label class="form-label">
+                        <i class="bi bi-hash"></i> Número de Análisis Actual
+                    </label>
+                    <input class="form-control" id="nroAnalisisReadonly" readonly type="text" maxlength="30">
+                </div>
 
-        <!--
-          Grupo "Número de Análisis" SOLO LECTURA:
-          - Visible cuando existe un análisis (en curso o ya definido)
-          - Muestra el número actual; si hay análisis en curso, se usa ese número
-        -->
-        <div class="mb-3" id="grupoNroAnalisisSoloLectura" style="display: none;">
-            <label class="form-label">Número de Análisis Actual:</label>
-            <input class="form-control" id="nroAnalisisReadonly" readonly type="text" maxlength="30">
-        </div>
+                <!-- Número de ReAnálisis (cuando dictamen NO es Recibido) -->
+                <div class="col-md-6 mb-3" id="grupoNroReanalisis" style="display: none;">
+                    <label class="form-label" for="nroReanalisis">
+                        <i class="bi bi-arrow-repeat"></i> Número de ReAnálisis
+                        <span class="required">*</span>
+                    </label>
+                    <input class="form-control" id="nroReanalisis"
+                           placeholder="Ej: RAN-2025-001"
+                           th:field="*{nroReanalisis}"
+                           type="text"
+                           maxlength="30">
+                    <div class="text-danger" th:errors="*{nroReanalisis}" th:if="${#fields.hasErrors('nroReanalisis')}"></div>
+                </div>
 
-        <!--
-          Grupo "Número de ReAnálisis":
-          - Visible cuando NO hay análisis en curso y el dictamen del lote NO es 'Recibido'
-          - En ese caso se requiere informar el número de reanálisis
-        -->
-        <div class="mb-3" id="grupoNroReanalisis" style="display: none;">
-            <label class="form-label" for="nroReanalisis">Número de ReAnálisis:</label>
-            <input class="form-control" id="nroReanalisis"
-                   placeholder="Si aplica"
-                   th:field="*{nroReanalisis}"
-                   type="text"
-                   maxlength="30">
-            <div style="color: red; font-weight: bold;"
-                 th:errors="*{nroReanalisis}"
-                 th:if="${#fields.hasErrors('nroReanalisis')}"></div>
-        </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label" for="observaciones">
+                        <i class="bi bi-chat-left-text"></i> Observaciones
+                    </label>
+                    <textarea class="form-control"
+                              id="observaciones"
+                              rows="3"
+                              placeholder="Ingrese observaciones adicionales sobre el cambio de dictamen..."
+                              th:field="*{observaciones}"></textarea>
+                    <small class="text-muted">Opcional - Puede incluir motivos o detalles adicionales</small>
+                </div>
+            </div>
 
-        <!-- Observaciones opcionales -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones (opcional):</label>
-            <textarea class="form-control" id="observaciones" rows="2" th:field="*{observaciones}"></textarea>
-        </div>
+            <div class="warning-box">
+                <strong><i class="bi bi-exclamation-triangle-fill"></i> Importante:</strong>
+                Al cambiar el dictamen a CUARENTENA, el lote quedará en estado de evaluación y no podrá ser utilizado hasta que se apruebe o rechace.
+            </div>
 
-        <!-- Acciones -->
-        <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/calidad/dictamen/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Enviar a Cuarentena</button>
-        </div>
-    </form>
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                <a class="btn btn-secondary" th:href="@{/calidad/dictamen/cancelar}">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-eye"></i> Vista Previa
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Pie de página simple -->
-<footer class="text-center mt-4 text-muted">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
-</footer>
-
-<!--
-  Lógica de UI (JS):
-  - Setea fecha por defecto (hoy, tz Buenos Aires) si no viene del DTO
-  - Cambia la visibilidad/requerimientos de:
-      * Número de Análisis (editable vs readonly)
-      * Número de ReAnálisis
-    en base a:
-      * data-dictamen (valor actual del dictamen del lote)
-      * data-analisisencurso (si existe un análisis en curso)
-      * data-nroanalisis (último análisis ya definido)
--->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        // CSRF token para peticiones AJAX
+        const csrfToken = /*[[${_csrf.token}]]*/ '';
+        const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+        // Inicializar Select2 para el selector de lotes
+        $('#codigoLote').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un lote --',
+            allowClear: true,
+            width: '100%'
+        });
+
         // Referencias a elementos del DOM
         const loteSelect = document.getElementById('codigoLote');
         const grupoEditable = document.getElementById('grupoNroAnalisisEditable');
@@ -168,11 +311,11 @@
         const nroReanalisisInput = document.getElementById('nroReanalisis');
 
         // Valores que podrían volver del servidor si hubo errores de validación
-        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
         var nroAnalisisDTO = /*[[${movimientoDTO.nroAnalisis}]]*/ null;
         var nroReanalisisDTO = /*[[${movimientoDTO.nroReanalisis}]]*/ null;
 
-        // Inicializa fecha por defecto (yyyy-MM-dd en tz Buenos Aires) si no viene en el DTO
+        // Inicializar fecha con el valor actual o fecha de hoy
         if (fechaMovimientoDTO) {
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
@@ -184,7 +327,7 @@
         // Controla qué campos se muestran y cuáles son required
         function actualizarVisibilidadCampos() {
             const selectedOption = loteSelect.options[loteSelect.selectedIndex];
-            if (!selectedOption) {
+            if (!selectedOption || selectedOption.value === '') {
                 // Sin selección: ocultar todo y limpiar requerimientos
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'none';
@@ -194,11 +337,10 @@
                 return;
             }
 
-            const dictamen = selectedOption.getAttribute('data-dictamen');          // p.ej. 'Recibido'
-            const nroAnalisis = selectedOption.getAttribute('data-nroanalisis');    // último análisis definido
-            const analisisencurso = selectedOption.getAttribute('data-analisisencurso'); // si hay análisis en curso
+            const dictamen = selectedOption.getAttribute('data-dictamen');
+            const nroAnalisis = selectedOption.getAttribute('data-nroanalisis');
+            const analisisencurso = selectedOption.getAttribute('data-analisisencurso');
 
-            // Si no hay dictamen en el option, no forzar nada
             if (!dictamen) {
                 grupoEditable.style.display = 'none';
                 grupoReadonly.style.display = 'none';
@@ -214,10 +356,7 @@
                 grupoReadonly.style.display = 'block';
                 grupoReanalisis.style.display = 'none';
 
-                // Mostrar el análisis en curso en readonly
                 nroAnalisisReadonlyInput.value = analisisencurso;
-
-                // También reflejarlo en el campo que viaja al backend
                 nroAnalisisInput.value = analisisencurso;
                 nroAnalisisInput.required = true;
                 nroReanalisisInput.required = false;
@@ -231,47 +370,40 @@
                     nroAnalisisInput.required = true;
                     nroReanalisisInput.required = false;
 
-                    // Restaurar si venía cargado por error previo
                     if (nroAnalisisDTO) {
                         nroAnalisisInput.value = nroAnalisisDTO;
                     } else {
-                        nroAnalisisInput.value = ''; // limpiar si no hay info
+                        nroAnalisisInput.value = '';
                     }
-
                 } else {
-                    // Caso 3: Otros dictámenes (Aprobado/Rechazado/etc.) -> readonly + pedir ReAnálisis
+                    // Caso 3: Otros dictámenes -> readonly + pedir ReAnálisis
                     grupoEditable.style.display = 'none';
                     grupoReadonly.style.display = 'block';
                     grupoReanalisis.style.display = 'block';
                     nroAnalisisInput.required = false;
                     nroReanalisisInput.required = true;
 
-                    // Mostrar último análisis en readonly si existe
                     nroAnalisisReadonlyInput.value = nroAnalisis || '';
 
-                    // Restaurar valor de reanálisis si venía del DTO por error previo
                     if (nroReanalisisDTO) {
                         nroReanalisisInput.value = nroReanalisisDTO;
                     } else {
-                        nroReanalisisInput.value = ''; // limpiar si no hay info
+                        nroReanalisisInput.value = '';
                     }
 
-                    // Asegurar que el editable quede limpio
                     nroAnalisisInput.value = '';
                 }
             }
         }
 
-        // Reaccionar al cambio de lote y aplicar reglas de visibilidad
+        // Reaccionar al cambio de lote
         loteSelect.addEventListener('change', actualizarVisibilidadCampos);
-        // Aplicar reglas al cargar la pantalla (si ya hay un lote seleccionado o valores en DTO)
-        actualizarVisibilidadCampos(); // Ejecutar al cargar
+        $('#codigoLote').on('select2:select', actualizarVisibilidadCampos);
+        $('#codigoLote').on('select2:clear', actualizarVisibilidadCampos);
 
-        // Enfocar el primer campo con error (si lo hubiera)
-        const errorField = document.querySelector('.error-field');
-        if (errorField) errorField.focus();
+        // Aplicar reglas al cargar la pantalla
+        actualizarVisibilidadCampos();
     });
 </script>
-
 </body>
 </html>

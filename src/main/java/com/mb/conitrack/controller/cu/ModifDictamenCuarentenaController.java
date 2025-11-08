@@ -41,6 +41,37 @@ public class ModifDictamenCuarentenaController extends AbstractCuController {
         return "calidad/dictamen/cuarentena";
     }
 
+    /** Muestra pantalla de confirmación con preview de datos antes de guardar. */
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @PostMapping("/cuarentena/confirm")
+    public String confirmarDictamenCuarentena(
+        @Valid @ModelAttribute("movimientoDTO") MovimientoDTO movimientoDTO,
+        BindingResult bindingResult,
+        Model model) {
+
+        if (!dictamenCuarentenaService.validarDictamenCuarentenaInput(movimientoDTO, bindingResult)) {
+            initModelDictamencuarentena(movimientoDTO, model);
+            return "calidad/dictamen/cuarentena";
+        }
+
+        // Cargar toda la información del lote para mostrar en confirmación
+        loteService.findByCodigoLote(movimientoDTO.getCodigoLote()).ifPresent(lote -> {
+            // Información básica del lote
+            movimientoDTO.setNombreProducto(lote.getProducto().getNombreGenerico());
+            movimientoDTO.setCodigoProducto(lote.getProducto().getCodigoProducto());
+            movimientoDTO.setNombreProveedor(lote.getProveedor().getRazonSocial());
+
+            // Convertir el lote completo a DTO para mostrar toda la información
+            com.mb.conitrack.dto.LoteDTO loteDTO = com.mb.conitrack.dto.DTOUtils.fromLoteEntity(lote);
+            model.addAttribute("loteDTO", loteDTO);
+        });
+
+        model.addAttribute("movimientoDTO", movimientoDTO);
+        return "calidad/dictamen/cuarentena-confirm";
+    }
+
+    // @PreAuthorize("hasAuthority('ROLE_ANALISTA_CONTROL_CALIDAD')")
     @PostMapping("/cuarentena")
     public String dictamenCuarentena(
         @Valid @ModelAttribute MovimientoDTO movimientoDTO,

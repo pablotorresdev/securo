@@ -1,119 +1,520 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Dictamen: Cuarentena - Confirmación</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuarentena Exitosa - CU2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .success-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .success-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #10b981;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            color: #10b981;
+            margin-bottom: 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .success-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #10b981;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 2px solid #dc3545;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #7f1d1d;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 25px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-row {
+            display: flex;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-row:hover {
+            background-color: #f0fdf4;
+        }
+
+        .data-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-value {
+            color: #212529;
+            flex: 1;
+        }
+
+        .badge-estado {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .table thead th {
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f0fdf4;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 20px;
+            }
+
+            .data-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .data-label {
+                min-width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .table {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Cambio de Dictamen a Cuarentena - Confirmación</h2>
+<div class="container">
+    <div class="success-container">
+        <!-- Header -->
+        <div class="success-header">
+            <div class="success-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <span class="badge bg-success">
+                <i class="bi bi-shield-exclamation"></i> CU2 - Dictamen Cuarentena
+            </span>
+            <h2>¡Cambio a Cuarentena Exitoso!</h2>
+            <p class="text-muted mb-0">El dictamen del lote ha sido cambiado a CUARENTENA correctamente</p>
+        </div>
 
-    <!-- Mensaje de éxito (si se pasó como Flash Attribute 'success') -->
-    <div class="alert alert-success fw-bold mb-4"
-         th:if="${success}"
-         th:text="${success}">
-    </div>
+        <!-- Mensajes de éxito/error -->
+        <div class="alert alert-success" role="alert" th:if="${success}">
+            <i class="bi bi-check-circle-fill"></i>
+            <span th:text="${success}">Cambio de calidad a Cuarentena exitoso</span>
+        </div>
 
-    <!-- Bloque que muestra el LoteDTO si existe en el modelo -->
-    <div th:if="${loteDTO != null}">
-        <h4>Detalles del Lote en Cuarentena</h4>
-        <table class="table table-bordered table-sm">
-            <tbody>
-            <tr>
-                <th>Nombre Producto:</th>
-                <td th:text="${loteDTO.nombreProducto}"></td>
-            </tr>
-            <tr>
-                <th>Nombre Proveedor:</th>
-                <td th:text="${loteDTO.nombreProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Ingreso:</th>
-                <td th:text="${loteDTO.fechaIngreso}"></td>
-            </tr>
-            <tr>
-                <th>Bultos Totales:</th>
-                <td th:text="${loteDTO.bultosTotales}"></td>
-            </tr>
-            <tr>
-                <th>Lote Proveedor:</th>
-                <td th:text="${loteDTO.loteProveedor}"></td>
-            </tr>
-            <tr>
-                <th>Nro Remito:</th>
-                <td th:text="${loteDTO.nroRemito != null ? loteDTO.nroRemito : 'N/A'}"></td>
-            </tr>
-            <tr>
-                <th>Detalle Conservación:</th>
-                <td th:text="${loteDTO.detalleConservacion != null ? loteDTO.detalleConservacion : '-'}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Reanálisis Proveedor:</th>
-                <td th:text="${loteDTO.fechaReanalisisProveedor != null ? loteDTO.fechaReanalisisProveedor : '-'}"></td>
-            </tr>
-            <tr>
-                <th>Fecha Vencimiento Proveedor:</th>
-                <td th:text="${loteDTO.fechaVencimientoProveedor != null ? loteDTO.fechaVencimientoProveedor : '-'}"></td>
-            </tr>
-            <tr>
-                <th>Dictamen:</th>
-                <td th:text="${loteDTO.dictamen}"></td>
-            </tr>
-            <tr>
-                <th>Observaciones:</th>
-                <td th:text="${loteDTO.observaciones != null ? loteDTO.observaciones : '-'}"></td>
-            </tr>
-            <tr>
-                <th>Cantidades por Bulto:</th>
-                <td>
-                    <span th:each="cant, iterStat : ${loteDTO.cantidadesBultos}"
-                          th:text="|Bulto ${iterStat.index + 1}: [${cant}:${loteDTO.unidadMedidaBultos[iterStat.index]}] - |">
+        <div class="alert alert-error" role="alert" th:if="${error}">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${error}">Hubo un error al realizar el cambio de calidad a Cuarentena.</span>
+        </div>
+
+        <!-- Detalles del Lote -->
+        <div th:if="${loteDTO != null}">
+            <!-- Identificación del Lote -->
+            <div class="section-title">
+                <i class="bi bi-box-seam"></i>
+                <span>Identificación del Lote</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-upc-scan"></i> Código del Lote:
+                </span>
+                <span class="data-value" th:text="${loteDTO.codigoLote}">-</span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.loteProveedor != null}">
+                <span class="data-label">
+                    <i class="bi bi-tag"></i> Lote Proveedor:
+                </span>
+                <span class="data-value" th:text="${loteDTO.loteProveedor}">-</span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.nroRemito != null}">
+                <span class="data-label">
+                    <i class="bi bi-file-earmark-text"></i> Número de Remito:
+                </span>
+                <span class="data-value" th:text="${loteDTO.nroRemito}">-</span>
+            </div>
+
+            <!-- Información del Producto -->
+            <div class="section-title">
+                <i class="bi bi-capsule"></i>
+                <span>Información del Producto</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-box"></i> Producto:
+                </span>
+                <span class="data-value" th:text="${loteDTO.nombreProducto}">-</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-upc"></i> Código:
+                </span>
+                <span class="data-value" th:text="${loteDTO.codigoProducto}">-</span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.tipoProducto != null}">
+                <span class="data-label">
+                    <i class="bi bi-tag"></i> Tipo:
+                </span>
+                <span class="data-value" th:text="${loteDTO.tipoProducto.valor}">-</span>
+            </div>
+
+            <!-- Proveedor -->
+            <div class="section-title">
+                <i class="bi bi-building"></i>
+                <span>Proveedor</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-shop"></i> Razón Social:
+                </span>
+                <span class="data-value" th:text="${loteDTO.nombreProveedor}">-</span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.nombreFabricante != null and !#strings.isEmpty(loteDTO.nombreFabricante)}">
+                <span class="data-label">
+                    <i class="bi bi-gear"></i> Fabricante:
+                </span>
+                <span class="data-value" th:text="${loteDTO.nombreFabricante}">-</span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.paisOrigen != null and !#strings.isEmpty(loteDTO.paisOrigen)}">
+                <span class="data-label">
+                    <i class="bi bi-geo-alt"></i> País de Origen:
+                </span>
+                <span class="data-value" th:text="${loteDTO.paisOrigen}">-</span>
+            </div>
+
+            <!-- Cantidades y Stock -->
+            <div class="section-title">
+                <i class="bi bi-boxes"></i>
+                <span>Cantidades y Stock</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-box"></i> Cantidad Inicial:
+                </span>
+                <span class="data-value">
+                    <span th:text="${#numbers.formatDecimal(loteDTO.cantidadInicial, 1, 2)}">0.00</span>
+                    <span th:text="${loteDTO.unidadMedida != null ? loteDTO.unidadMedida.simbolo : ''}">kg</span>
+                </span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-box-seam"></i> Cantidad Actual:
+                </span>
+                <span class="data-value">
+                    <span th:text="${#numbers.formatDecimal(loteDTO.cantidadActual, 1, 2)}">0.00</span>
+                    <span th:text="${loteDTO.unidadMedida != null ? loteDTO.unidadMedida.simbolo : ''}">kg</span>
+                </span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.bultosTotales != null}">
+                <span class="data-label">
+                    <i class="bi bi-archive"></i> Bultos Totales:
+                </span>
+                <span class="data-value" th:text="${loteDTO.bultosTotales}">0</span>
+            </div>
+
+            <!-- Fechas Importantes -->
+            <div class="section-title">
+                <i class="bi bi-calendar-range"></i>
+                <span>Fechas Importantes</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-calendar-check"></i> Fecha de Ingreso:
+                </span>
+                <span class="data-value" th:text="${loteDTO.fechaIngreso != null ? #temporals.format(loteDTO.fechaIngreso, 'dd/MM/yyyy') : '-'}">-</span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.fechaReanalisisProveedor != null}">
+                <span class="data-label">
+                    <i class="bi bi-arrow-repeat"></i> Fecha Reanálisis Proveedor:
+                </span>
+                <span class="data-value" th:text="${#temporals.format(loteDTO.fechaReanalisisProveedor, 'dd/MM/yyyy')}">-</span>
+            </div>
+            <div class="data-row" th:if="${loteDTO.fechaVencimientoProveedor != null}">
+                <span class="data-label">
+                    <i class="bi bi-calendar-x"></i> Fecha Vencimiento Proveedor:
+                </span>
+                <span class="data-value" th:text="${#temporals.format(loteDTO.fechaVencimientoProveedor, 'dd/MM/yyyy')}">-</span>
+            </div>
+
+            <!-- Estado y Calidad -->
+            <div class="section-title">
+                <i class="bi bi-shield-check"></i>
+                <span>Estado y Calidad Actual</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-activity"></i> Estado:
+                </span>
+                <span class="data-value">
+                    <span class="badge badge-estado"
+                          th:classappend="${loteDTO.estado.valor == 'Vigente' ? 'bg-success' :
+                                         loteDTO.estado.valor == 'Suspendido' ? 'bg-danger' :
+                                         loteDTO.estado.valor == 'Cuarentena' ? 'bg-warning text-dark' : 'bg-secondary'}"
+                          th:text="${loteDTO.estado != null ? loteDTO.estado.valor : '-'}">-</span>
+                </span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">
+                    <i class="bi bi-clipboard-check"></i> Dictamen:
+                </span>
+                <span class="data-value">
+                    <span class="badge badge-estado bg-warning text-dark"
+                          th:text="${loteDTO.dictamen != null ? loteDTO.dictamen.valor : 'Cuarentena'}">Cuarentena</span>
+                </span>
+            </div>
+
+            <!-- Condiciones de Conservación -->
+            <!-- Conservación -->
+            <div th:if="${loteDTO.detalleConservacion != null and !#strings.isEmpty(loteDTO.detalleConservacion)}">
+                <div class="section-title">
+                    <i class="bi bi-thermometer-half"></i>
+                    <span>Conservación</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">
+                        <i class="bi bi-journal-text"></i> Detalle:
                     </span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                    <span class="data-value" th:text="${loteDTO.detalleConservacion}">-</span>
+                </div>
+            </div>
 
-        <!-- Movimientos del LoteDTO tras la cuarentena -->
-        <div th:if="${loteDTO.movimientoDTOs != null and #lists.size(loteDTO.movimientoDTOs) > 0}">
-            <h4>Movimientos Registrados</h4>
-            <table class="table table-striped table-sm">
-                <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Cantidad</th>
-                    <th>Unidad de Medida</th>
-                    <th>Tipo Movimiento</th>
-                    <th>Dictamen Inicial</th>
-                    <th>Dictamen Final</th>
-                    <th>Motivo</th>
-                    <th>Observaciones</th>
-                    <th>Nro Análisis</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="mov : ${loteDTO.movimientoDTOs}">
-                    <td th:text="${mov.fechaMovimiento}"></td>
-                    <td th:text="${mov.cantidad != null ? mov.cantidad : '-'}"></td>
-                    <td th:text="${mov.unidadMedida != null ? mov.unidadMedida : '-'}"></td>
-                    <td th:text="${mov.tipoMovimiento}"></td>
-                    <td th:text="${mov.dictamenInicial != null ? mov.dictamenInicial : '-'}"></td>
-                    <td th:text="${mov.dictamenFinal}"></td>
-                    <td th:text="${mov.motivo}"></td>
-                    <td th:text="${mov.observaciones}"></td>
-                    <td th:text="${mov.nroAnalisis != null ? mov.nroAnalisis : '-'}"></td>
-                </tr>
-                </tbody>
-            </table>
+            <!-- Observaciones -->
+            <div th:if="${loteDTO.observaciones != null and !#strings.isEmpty(loteDTO.observaciones)}">
+                <div class="section-title">
+                    <i class="bi bi-chat-square-text"></i>
+                    <span>Observaciones</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">
+                        <i class="bi bi-journal-text"></i> Detalles:
+                    </span>
+                    <span class="data-value" th:text="${loteDTO.observaciones}">-</span>
+                </div>
+            </div>
+
+            <!-- Movimientos Registrados -->
+            <div class="section-title" th:if="${loteDTO.movimientoDTOs != null and !loteDTO.movimientoDTOs.isEmpty()}">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Movimientos Registrados</span>
+            </div>
+            <div th:if="${loteDTO.movimientoDTOs != null and !loteDTO.movimientoDTOs.isEmpty()}">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th><i class="bi bi-calendar-event"></i> Fecha</th>
+                            <th><i class="bi bi-list-ul"></i> Tipo</th>
+                            <th><i class="bi bi-tags"></i> Motivo</th>
+                            <th><i class="bi bi-clipboard-pulse"></i> Dictamen Inicial</th>
+                            <th><i class="bi bi-clipboard-check"></i> Dictamen Final</th>
+                            <th><i class="bi bi-boxes"></i> Cantidad</th>
+                            <th><i class="bi bi-hash"></i> Nro Análisis</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="mov : ${loteDTO.movimientoDTOs}">
+                            <td th:text="${mov.fechaMovimiento != null ? #temporals.format(mov.fechaMovimiento, 'dd/MM/yyyy') : '-'}">-</td>
+                            <td th:text="${mov.tipoMovimiento != null ? mov.tipoMovimiento.valor : '-'}">-</td>
+                            <td th:text="${mov.motivo != null ? mov.motivo.valor : '-'}">-</td>
+                            <td>
+                                <span class="badge"
+                                      th:if="${mov.dictamenInicial != null}"
+                                      th:classappend="${mov.dictamenInicial.valor == 'Aprobado' ? 'bg-success' :
+                                                     mov.dictamenInicial.valor == 'Rechazado' ? 'bg-danger' :
+                                                     mov.dictamenInicial.valor == 'Cuarentena' ? 'bg-warning text-dark' : 'bg-secondary'}"
+                                      th:text="${mov.dictamenInicial.valor}">-</span>
+                                <span th:if="${mov.dictamenInicial == null}">-</span>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:if="${mov.dictamenFinal != null}"
+                                      th:classappend="${mov.dictamenFinal.valor == 'Aprobado' ? 'bg-success' :
+                                                     mov.dictamenFinal.valor == 'Rechazado' ? 'bg-danger' :
+                                                     mov.dictamenFinal.valor == 'Cuarentena' ? 'bg-warning text-dark' : 'bg-secondary'}"
+                                      th:text="${mov.dictamenFinal.valor}">-</span>
+                                <span th:if="${mov.dictamenFinal == null}">-</span>
+                            </td>
+                            <td>
+                                <span th:if="${mov.cantidad != null}">
+                                    <span th:text="${#numbers.formatDecimal(mov.cantidad, 1, 2)}">0.00</span>
+                                    <span th:text="${mov.unidadMedida != null ? mov.unidadMedida.simbolo : ''}"></span>
+                                </span>
+                                <span th:if="${mov.cantidad == null}">-</span>
+                            </td>
+                            <td th:text="${mov.nroAnalisis != null ? mov.nroAnalisis : (mov.nroReanalisis != null ? mov.nroReanalisis : '-')}">-</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bultos (si existen) -->
+            <div class="section-title" th:if="${loteDTO.cantidadesBultos != null and !loteDTO.cantidadesBultos.isEmpty()}">
+                <i class="bi bi-archive"></i>
+                <span>Detalle de Bultos</span>
+            </div>
+            <div th:if="${loteDTO.cantidadesBultos != null and !loteDTO.cantidadesBultos.isEmpty()}">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th><i class="bi bi-hash"></i> Bulto #</th>
+                            <th><i class="bi bi-boxes"></i> Cantidad</th>
+                            <th><i class="bi bi-rulers"></i> Unidad</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="cant, iterStat : ${loteDTO.cantidadesBultos}">
+                            <td th:text="${iterStat.index + 1}">1</td>
+                            <td th:text="${#numbers.formatDecimal(cant, 1, 2)}">0.00</td>
+                            <td th:text="${loteDTO.unidadMedidaBultos[iterStat.index]}">kg</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state si no hay lote -->
+        <div class="empty-state" th:if="${loteDTO == null}">
+            <i class="bi bi-inbox"></i>
+            <p>No se encontró información del lote</p>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+            <a class="btn btn-secondary" th:href="@{/calidad/dictamen/cuarentena}">
+                <i class="bi bi-plus-circle"></i> Nueva Cuarentena
+            </a>
+            <a class="btn btn-primary" th:href="@{/}">
+                <i class="bi bi-house"></i> Volver al Inicio
+            </a>
         </div>
     </div>
-
-    <!-- Botón para volver al menú principal -->
-    <div class="mt-4">
-        <a class="btn btn-primary" th:href="@{/calidad/dictamen/cancelar}">Continuar</a>
-    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
