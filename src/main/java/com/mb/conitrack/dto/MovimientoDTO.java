@@ -80,6 +80,7 @@ public class MovimientoDTO {
     // Campos para visualización en confirmación (no se persisten)
     private String nombreProducto;
     private String codigoProducto;
+    private String nombreProveedor;
 
     private String codigoMovimiento;
 
