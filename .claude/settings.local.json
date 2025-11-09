@@ -32,7 +32,18 @@
       "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/BajaDevolucionCompraService.html)",
       "Bash(./gradlew compileJava:*)",
       "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/ModifDictamenCuarentenaService.java.html)",
-      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.controller.cu/BajaMuestreoBultoController.html)"
+      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.controller.cu/BajaMuestreoBultoController.html)",
+      "Bash(C:optsecurosrctestjavacommbconitrackcontrollercuBajaConsumoProduccionControllerTest.java)",
+      "Bash(./gradlew cleanTest test:*)",
+      "Bash(./gradlew.bat test:*)",
+      "Bash(./gradlew.bat compileTestJava:*)",
+      "Bash(start build/reports/tests/test/index.html)",
+      "Bash(del \"C:\\opt\\securo\\src\\test\\java\\com\\mb\\conitrack\\service\\cu\\BajaMuestreoBultoServiceTest.java\")",
+      "Bash(.gradlew.bat test --tests ModifResultadoAnalisisServiceTest --tests BajaConsumoProduccionServiceTest --tests BajaMuestreoBultoServiceTest)",
+      "Bash(.\\gradlew.bat test:*)",
+      "Bash(./gradlew.bat jacocoTestReport)",
+      "Bash(./gradlew.bat:*)",
+      "Bash(type \"C:\\opt\\securo\\build\\reports\\tests\\test\\classes\\com.mb.conitrack.service.cu.ModifResultadoAnalisisServiceTest$ValidarResultadoAnalisisInput.html\")"
     ],
     "deny": [],
     "ask": []
