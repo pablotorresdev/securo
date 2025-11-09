@@ -137,5 +137,11 @@ public class LoteService {
         return loteRepository.findByCodigoLoteAndActivoTrue(codigoLote);
     }
 
+    @Transactional(readOnly = true)
+    public java.util.Optional<LoteDTO> findDTOByCodigoLote(final String codigoLote) {
+        return loteRepository.findByCodigoLoteAndActivoTrue(codigoLote)
+                .map(DTOUtils::fromLoteEntity);
+    }
+
 }
 

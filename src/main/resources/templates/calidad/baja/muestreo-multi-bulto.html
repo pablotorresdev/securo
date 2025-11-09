@@ -2,113 +2,432 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Muestreo Multi Bulto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muestreo Multi Bulto - CU3</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- CSRF -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet"/>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #3b82f6;
+        }
+
+        .form-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 25px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h5 {
+            color: #1e40af;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #1e3a8a;
+            margin-bottom: 0;
+        }
+
+        .details-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .details-box h5 {
+            color: #1e40af;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item strong {
+            color: #475569;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .detail-value {
+            color: #1e293b;
+        }
+
+        .bultos-section {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .bultos-section h5 {
+            color: #1e40af;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bulto-card {
+            background: white;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .bulto-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .bulto-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-info {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-info .row > div {
+            padding: 10px;
+        }
+
+        .analysis-label {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-value {
+            background: white;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+        }
+
+        .text-danger {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .error-field {
+            border-color: #dc3545 !important;
+        }
+
+        .warning-note {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .warning-note strong {
+            color: #92400e;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+
+            .detail-item strong {
+                min-width: 150px;
+            }
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <span class="badge bg-primary">
+                <i class="bi bi-box-seam"></i> CU3
+            </span>
+            <h2>
+                <i class="bi bi-boxes"></i>
+                Muestreo Multi Bulto
+            </h2>
+            <p class="text-muted mb-0">Registre el consumo de muestras desde múltiples bultos</p>
+        </div>
 
-<div class="container mt-5">
-    <h2 class="mb-4">Muestreo Multi Bulto</h2>
+        <!-- Info -->
+        <div class="info-box">
+            <h5>
+                <i class="bi bi-info-circle-fill"></i>
+                Información
+            </h5>
+            <p>
+                Este formulario permite registrar el consumo de muestras de múltiples bultos de un mismo lote.
+                Seleccione el lote a muestrear e indique las cantidades a consumir de cada bulto.
+            </p>
+        </div>
 
-    <!--
-        Formulario principal.
-        - method POST
-        - th:action: endpoint que persiste el movimiento de baja por muestreo
-        - th:object: DTO de respaldo para binding bidireccional de campos
-    -->
-    <form method="post" th:action="@{/calidad/baja/muestreo-multi-bulto}" th:object="${loteDTO}">
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-        <!-- Hidden requeridos para back -->
-        <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
-        <!-- N° de análisis del lote, se setea por JS cuando se elige el lote -->
-        <input id="nroAnalisis" name="nroAnalisis" type="hidden"/>
+        <!-- Formulario -->
+        <form method="post" th:action="@{/calidad/baja/muestreo-multi-bulto/confirm}" th:object="${loteDTO}">
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <!-- Hidden fields -->
+            <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
+            <input id="nroAnalisis" name="nroAnalisis" type="hidden"/>
 
-        <!-- Selección del lote -->
-        <div class="mb-3">
-            <label class="form-label" for="loteMuestreo">Seleccione el Lote a Muestrear:</label>
-            <select class="form-select" id="loteMuestreo">
-                <option value="">-- Seleccione un Lote --</option>
-                <!--
-                    Cada option expone:
-                    - value: código de lote (viaja al DTO)
-                    - data-nroanalisis: último análisis del lote
-                    - data-dictamen: dictamen del análisis (APROBADO/RECHAZADO/EN_CURSO)
-                    - data-es-unidad-venta: si el producto se maneja por trazas (true/false)
-                    - th:text: texto informativo visible al usuario
-                -->
-                <option th:each="loteDTO : ${loteMuestreoMultiBultoDTOs}"
-                        th:value="${loteDTO.codigoLote}"
-                        th:data-nroanalisis="${loteDTO.nroUltimoAnalisisDto}"
-                        th:data-dictamen="${loteDTO.dictamen}"
-                        th:text="'Nombre: ' + ${loteDTO.nombreProducto}
-                        + ' | ID Lote: ' + ${loteDTO.loteProveedor}
-                        + ' | Nro Análisis: ' + ${loteDTO.nroUltimoAnalisisDto}
-                        + ' | Dictamen: ' + ${loteDTO.dictamen}">
-                </option>
-            </select>
-            <div class="text-danger fw-bold"
-                 th:errors="*{codigoLote}"
-                 th:if="${#fields.hasErrors('codigoLote')}">
+            <!-- Selección del Lote -->
+            <div class="section-title">
+                <i class="bi bi-search"></i>
+                <span>Selección del Lote</span>
             </div>
-        </div>
 
-        <!-- Panel informativo (se mantiene) -->
-        <div class="border p-3 bg-light mb-4" id="infoLote" style="display:none;">
-            <h5>Detalles del Lote</h5>
-            <div id="infoContent"></div>
-        </div>
-
-        <!-- Sección dinámica por bulto -->
-        <div class="border p-3 bg-light mb-4" id="MuestreoBultos" style="display:none;">
-            <h5>Cantidades por Bulto a consumir</h5>
-            <small class="text-muted">La suma de todas las cantidades no debe superar el stock disponible del lote.</small>
-            <div class="text-danger fw-bold"
-                 th:errors="*{cantidadesBultos}"
-                 th:if="${#fields.hasErrors('cantidadesBultos')}">
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label" for="loteMuestreo">
+                        <i class="bi bi-box-seam"></i> Lote a Muestrear
+                        <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="loteMuestreo"
+                            th:classappend="${#fields.hasErrors('codigoLote')} ? 'error-field' : ''">
+                        <option value="">-- Seleccione un lote --</option>
+                        <option th:each="loteDTO : ${loteMuestreoMultiBultoDTOs}"
+                                th:value="${loteDTO.codigoLote}"
+                                th:data-nroanalisis="${loteDTO.nroUltimoAnalisisDto}"
+                                th:data-dictamen="${loteDTO.dictamen}"
+                                th:text="'Código: ' + ${loteDTO.codigoLote}
+                                    + ' | Producto: ' + ${loteDTO.nombreProducto}
+                                    + ' | ID Lote Proveedor: ' + ${loteDTO.loteProveedor}
+                                    + ' | Nº Análisis: ' + ${loteDTO.nroUltimoAnalisisDto}
+                                    + ' | Dictamen: ' + ${loteDTO.dictamen}">
+                        </option>
+                    </select>
+                    <div class="text-danger"
+                         th:errors="*{codigoLote}"
+                         th:if="${#fields.hasErrors('codigoLote')}">
+                    </div>
+                </div>
             </div>
-            <div id="bultosContainer"></div>
-        </div>
 
-        <!-- Fecha -->
-        <div class="mb-3">
-            <label class="form-label" for="fechaEgreso">Fecha de Muestreo Multi Bulto:</label>
-            <input class="form-control" id="fechaEgreso" required th:field="*{fechaEgreso}" type="date">
-            <div class="text-danger fw-bold" th:errors="*{fechaEgreso}" th:if="${#fields.hasErrors('fechaEgreso')}"></div>
-        </div>
+            <!-- Detalles del Lote -->
+            <div class="details-box" id="infoLote" style="display:none;">
+                <h5>
+                    <i class="bi bi-card-list"></i>
+                    Detalles del Lote Seleccionado
+                </h5>
+                <div id="infoContent"></div>
+            </div>
 
-        <!-- NUEVO: Info de Análisis (igual que simple) -->
-        <div class="mb-2">
-            <label class="form-label">N° de Análisis (último):</label>
-            <p class="form-control-plaintext bg-light ps-2 rounded border" id="nroAnalisisInfo"></p>
-        </div>
+            <!-- Información de Análisis -->
+            <div class="analysis-info" id="analysisInfo" style="display:none;">
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <div class="analysis-label">
+                            <i class="bi bi-hash"></i>
+                            Número de Análisis (último)
+                        </div>
+                        <div class="analysis-value" id="nroAnalisisInfo">—</div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="analysis-label">
+                            <i class="bi bi-clipboard-check"></i>
+                            Dictamen del Análisis
+                        </div>
+                        <div class="analysis-value" id="dictamenAnalisisInfo">—</div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="mb-2">
-            <label class="form-label">Dictamen del Análisis:</label>
-            <p class="form-control-plaintext bg-light ps-2 rounded border fw-bold" id="dictamenAnalisisInfo"></p>
-        </div>
+            <!-- Cantidades por Bulto -->
+            <div class="bultos-section" id="MuestreoBultos" style="display:none;">
+                <h5>
+                    <i class="bi bi-collection"></i>
+                    Cantidades a Muestrear por Bulto
+                </h5>
+                <small class="text-muted d-block mb-3">
+                    <i class="bi bi-info-circle"></i>
+                    La suma de todas las cantidades no debe superar el stock disponible del lote.
+                </small>
+                <div class="text-danger fw-bold mb-3"
+                     th:errors="*{cantidadesBultos}"
+                     th:if="${#fields.hasErrors('cantidadesBultos')}">
+                </div>
+                <div id="bultosContainer"></div>
+            </div>
 
-        <!-- Observaciones -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones:</label>
-            <textarea class="form-control" id="observaciones" rows="3" th:field="*{observaciones}"></textarea>
-        </div>
+            <!-- Fecha y Observaciones -->
+            <div class="section-title">
+                <i class="bi bi-calendar-event"></i>
+                <span>Fecha y Observaciones</span>
+            </div>
 
-        <!-- Acciones -->
-        <div class="d-flex justify-content-between mt-3">
-            <a class="btn btn-secondary" th:href="@{/calidad/baja/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Guardar</button>
-        </div>
-    </form>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="fechaEgreso">
+                        <i class="bi bi-calendar-event"></i> Fecha de Muestreo
+                        <span class="required">*</span>
+                    </label>
+                    <input class="form-control" id="fechaEgreso"
+                           required
+                           th:classappend="${#fields.hasErrors('fechaEgreso')} ? 'error-field' : ''"
+                           th:field="*{fechaEgreso}"
+                           type="date">
+                    <div class="text-danger" th:errors="*{fechaEgreso}" th:if="${#fields.hasErrors('fechaEgreso')}"></div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label" for="observaciones">
+                        <i class="bi bi-chat-left-text"></i> Observaciones
+                    </label>
+                    <textarea class="form-control"
+                              id="observaciones"
+                              rows="3"
+                              placeholder="Ingrese observaciones adicionales sobre el muestreo..."
+                              th:field="*{observaciones}"></textarea>
+                    <small class="text-muted">Opcional - Puede incluir detalles adicionales sobre el muestreo</small>
+                </div>
+            </div>
+
+            <div class="warning-note">
+                <strong><i class="bi bi-exclamation-triangle-fill"></i> Importante:</strong>
+                Al confirmar este muestreo, se reducirá el stock disponible de cada bulto según las cantidades indicadas.
+                Los bultos que queden sin stock serán marcados como CONSUMIDOS.
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                <a class="btn btn-secondary" th:href="@{/calidad/baja/cancelar}">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-eye"></i> Vista Previa
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<footer class="text-center p-3 mt-4" style="color: #aaa;">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
-</footer>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', () => {
         /* ---------- CSRF ---------- */
@@ -117,16 +436,23 @@
 
         /* ---------- referencias DOM ---------- */
         const loteMuestreo       = document.getElementById('loteMuestreo');
-        const infoLoteDiv      = document.getElementById('infoLote');
-        const infoContent      = document.getElementById('infoContent');
-        const MuestreoBultosDiv= document.getElementById('MuestreoBultos');
-        const bultosContainer  = document.getElementById('bultosContainer');
-        const codigoLoteHidden = document.getElementById('codigoLote');
+        const infoLoteDiv        = document.getElementById('infoLote');
+        const infoContent        = document.getElementById('infoContent');
+        const analysisInfo       = document.getElementById('analysisInfo');
+        const MuestreoBultosDiv  = document.getElementById('MuestreoBultos');
+        const bultosContainer    = document.getElementById('bultosContainer');
+        const codigoLoteHidden   = document.getElementById('codigoLote');
+        const analInfo           = document.getElementById('nroAnalisisInfo');
+        const dictInfo           = document.getElementById('dictamenAnalisisInfo');
+        const nroAnalisisHidden  = document.getElementById('nroAnalisis');
 
-        // NUEVO: referencias para análisis/dictamen (igual que simple)
-        const analInfo = document.getElementById('nroAnalisisInfo');
-        const dictInfo = document.getElementById('dictamenAnalisisInfo');
-        const nroAnalisisHidden = document.getElementById('nroAnalisis');
+        /* ---------- Inicializar Select2 ---------- */
+        $('#loteMuestreo').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un lote --',
+            allowClear: true,
+            width: '100%'
+        });
 
         /* ---------- fecha por defecto ---------- */
         var fechaEgresoDTO = /*[[${loteDTO.fechaEgreso}]]*/ [];
@@ -163,9 +489,16 @@
 
         /* ---------- eventos ---------- */
         loteMuestreo.addEventListener('change', e => prepararPantalla(e.target.value));
+        $('#loteMuestreo').on('select2:select', function(e) {
+            prepararPantalla(e.params.data.id);
+        });
+        $('#loteMuestreo').on('select2:clear', function() {
+            resetearPantalla();
+        });
 
         if (codigoSeleccionado) {
             loteMuestreo.value = codigoSeleccionado;
+            $('#loteMuestreo').trigger('change');
             prepararPantalla(codigoSeleccionado);
         }
 
@@ -177,7 +510,7 @@
             const lote = lotes.find(l => l.codigoLote === codigo);
             if (!lote) return;
 
-            // === NUEVO: leer data-* desde el option como en "simple" ===
+            // Leer data-* desde el option
             const opt = loteMuestreo.options[loteMuestreo.selectedIndex];
             const nroAnalisis = opt?.dataset?.nroanalisis || '';
             const dictamen    = opt?.dataset?.dictamen    || 'EN_CURSO';
@@ -186,13 +519,16 @@
             if (nroAnalisisHidden) nroAnalisisHidden.value = nroAnalisis || '';
 
             dictInfo.textContent = dictamen || '—';
-            dictInfo.className = 'form-control-plaintext bg-light ps-2 rounded border fw-bold ' +
+            dictInfo.className = 'analysis-value ' +
                 (dictamen === 'APROBADO'  ? 'text-success'
                     : dictamen === 'RECHAZADO' ? 'text-danger'
                         : 'text-warning');
 
             // Hidden para el back
             codigoLoteHidden.value = codigo;
+
+            // Mostrar secciones
+            analysisInfo.style.display = 'block';
 
             // Info y filas por bulto
             pintarInfo(lote);
@@ -203,39 +539,71 @@
             infoContent.innerHTML     = '';
             bultosContainer.innerHTML = '';
             infoLoteDiv.style.display = 'none';
+            analysisInfo.style.display = 'none';
             MuestreoBultosDiv.style.display = 'none';
             codigoLoteHidden.value    = '';
-            analInfo.textContent      = '';
-            dictInfo.textContent      = '';
+            analInfo.textContent      = '—';
+            dictInfo.textContent      = '—';
             if (nroAnalisisHidden) nroAnalisisHidden.value = '';
-            dictInfo.className = 'form-control-plaintext bg-light ps-2 rounded border fw-bold';
+            dictInfo.className = 'analysis-value';
         }
 
         function pintarInfo(loteDTO) {
             const a = loteDTO.ultimoAnalisisDtoDictaminado || {};
             infoContent.innerHTML = `
-                <hr>
-                <p><strong>Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
-                <p><strong>Código interno:</strong> ${loteDTO.codigoLote}</p>
-                <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
-                <hr>
-                <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</p>
-                <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual} ${loteDTO.unidadMedida}</p>
-                <p><strong>Bultos totales:</strong> ${loteDTO.bultosTotales}</p>
-                <hr>
-                <p><strong>Nº análisis actual (dictaminado):</strong> ${a.nroAnalisis || '—'}</p>
-                <p><strong>Fecha realizado análisis:</strong> ${a.fechaRealizado || '—'}</p>
-                <p><strong>Fecha re-análisis:</strong> ${a.fechaReanalisis || '—'}</p>
-                <p><strong>Fecha vencimiento análisis:</strong> ${a.fechaVencimiento || '—'}</p>
-                <hr>
-                <p><strong>Re-análisis proveedor:</strong> ${loteDTO.fechaReanalisisProveedor || 'N/D'}</p>
-                <p><strong>Vto. proveedor:</strong> ${loteDTO.fechaVencimientoProveedor || 'N/D'}</p>
+                <div class="detail-item">
+                    <strong><i class="bi bi-box"></i> Producto:</strong>
+                    <span class="detail-value">${loteDTO.nombreProducto || 'N/D'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-upc"></i> Código interno:</strong>
+                    <span class="detail-value">${loteDTO.codigoLote}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-arrow-right"></i> Producto destino:</strong>
+                    <span class="detail-value">${loteDTO.productoDestino || 'N/D'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-stack"></i> Cantidad inicial:</strong>
+                    <span class="detail-value">${loteDTO.cantidadInicial} ${loteDTO.unidadMedida}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-bag-check"></i> Stock actual:</strong>
+                    <span class="detail-value text-primary fw-bold">${loteDTO.cantidadActual} ${loteDTO.unidadMedida}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-boxes"></i> Bultos totales:</strong>
+                    <span class="detail-value text-primary fw-bold">${loteDTO.bultosTotales}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-clipboard-data"></i> Nº análisis dictaminado:</strong>
+                    <span class="detail-value">${a.nroAnalisis || '—'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-calendar-check"></i> Fecha realizado análisis:</strong>
+                    <span class="detail-value">${a.fechaRealizado || '—'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-arrow-repeat"></i> Fecha re-análisis:</strong>
+                    <span class="detail-value">${a.fechaReanalisis || '—'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-calendar-x"></i> Fecha vencimiento análisis:</strong>
+                    <span class="detail-value">${a.fechaVencimiento || '—'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-calendar-range"></i> Re-análisis proveedor:</strong>
+                    <span class="detail-value">${loteDTO.fechaReanalisisProveedor || 'N/D'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-calendar-event"></i> Vto. proveedor:</strong>
+                    <span class="detail-value">${loteDTO.fechaVencimientoProveedor || 'N/D'}</span>
+                </div>
             `;
             infoLoteDiv.style.display = 'block';
         }
 
         function generarInputsBultos(lote) {
-
             const totalBultos = lote.bultosTotales != null ? lote.bultosTotales : 0;
 
             const idBultos  = (lote.nroBultoList ?? []).slice(0, totalBultos);
@@ -249,36 +617,48 @@
                 const valorPrevio = (cantidadesPrev[i] != null) ? cantidadesPrev[i] : 0;
                 const unidadPrev  = unidadesPrev[i] ?? baseUnits[i];
 
-                const row = document.createElement('div');
-                row.className = 'row g-2 align-items-end mb-2';
+                const card = document.createElement('div');
+                card.className = 'bulto-card';
 
-                row.innerHTML += `
-                  <div class="col-md-6">
-                     <label class="form-label">
-                       Cant. Bulto ${i + 1} (máx ${stocks[i]} ${baseUnits[i]}):
-                     </label>
-                     <input  type="number"
-                             name="cantidadesBultos[${i}]"
-                             class="form-control"
-                             value="${valorPrevio}"
-                             min="0" step="0.01" required>
-                  </div>`;
+                card.innerHTML = `
+                    <div class="bulto-header">
+                        <i class="bi bi-box"></i>
+                        Bulto ${i + 1} (Stock disponible: ${stocks[i]} ${baseUnits[i]})
+                    </div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-calculator"></i> Cantidad a Muestrear
+                                <span class="required">*</span>
+                            </label>
+                            <input type="number"
+                                   name="cantidadesBultos[${i}]"
+                                   class="form-control"
+                                   value="${valorPrevio}"
+                                   min="0"
+                                   step="0.01"
+                                   placeholder="0.00"
+                                   required>
+                            <small class="text-muted">Máximo: ${stocks[i]} ${baseUnits[i]}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="bi bi-rulers"></i> Unidad de Medida
+                                <span class="required">*</span>
+                            </label>
+                            <select name="unidadMedidaBultos[${i}]"
+                                    class="form-select select-unidad-${i}"
+                                    required>
+                            </select>
+                        </div>
+                        <input type="hidden" name="nroBultoList[${i}]" value="${idBultos[i]}">
+                    </div>
+                `;
 
-                const colUni = document.createElement('div');
-                colUni.className = 'col-md-4';
-                colUni.innerHTML = '<label class="form-label">Unidad:</label>';
-                const sel = document.createElement('select');
-                sel.name = `unidadMedidaBultos[${i}]`;
-                sel.className = 'form-select';
-                sel.required = true;
-                colUni.appendChild(sel);
-                row.appendChild(colUni);
+                bultosContainer.appendChild(card);
 
-                row.insertAdjacentHTML('beforeend',
-                    `<input type="hidden" name="nroBultoList[${i}]" value="${idBultos[i]}">`);
-
-                bultosContainer.appendChild(row);
-
+                // Cargar subunidades
+                const sel = card.querySelector(`.select-unidad-${i}`);
                 loadSubunits(baseUnits[i], arr => {
                     sel.innerHTML = arr.map(u =>
                         `<option value="${u}" ${u === unidadPrev ? 'selected' : ''}>${u}</option>`
