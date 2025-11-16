@@ -2,362 +2,541 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Resultado de Análisis en Curso - Dictamen</title>
-    <!-- Bootstrap para estilos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado de Análisis - CU5/6</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf para proteger requests -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet"/>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #8b5cf6;
+        }
+
+        .form-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 30px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .form-label .required {
+            color: #8b5cf6;
+            margin-left: 3px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border: 2px solid #8b5cf6;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h5 {
+            color: #6b21a8;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #581c87;
+            margin-bottom: 0;
+        }
+
+        .details-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .details-box h5 {
+            color: #6b21a8;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item strong {
+            color: #475569;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .detail-value {
+            color: #1e293b;
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-custom-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+            color: white;
+        }
+
+        .btn-custom-secondary {
+            background: white;
+            border: 2px solid #8b5cf6;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: #8b5cf6;
+            transition: all 0.3s;
+        }
+
+        .btn-custom-secondary:hover {
+            background: #8b5cf6;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 2px solid #e0e0e0;
+            margin-top: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .text-danger {
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .error-field {
+            border-color: #dc3545 !important;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 0.95rem;
+                padding: 12px 15px;
+            }
+
+            .detail-item strong {
+                min-width: 150px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Cargar Resultado de Análisis en Curso</h2>
 
-    <!--
-      Form principal:
-      - POST a /calidad/analisis/resultado-analisis
-      - th:object enlaza los campos del formulario con movimientoDTO
-    -->
-    <form method="post" th:action="@{/calidad/analisis/resultado-analisis}" th:object="${movimientoDTO}">
-        <!-- Campo oculto CSRF que el servidor espera en el body -->
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-
-        <!-- Fecha del movimiento: por defecto "hoy" (formato yyyy-MM-dd) -->
-        <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"
-               type="hidden"/>
-
-        <!-- Campos ocultos que se setean al elegir lote/análisis -->
-        <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
-        <input id="nroAnalisis" th:field="*{nroAnalisis}" type="hidden"/>
-
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Selección del Lote/Análisis a Dictaminar</h5>
-
-        <!--
-          Selector de Lote (solo UI, sin th:field):
-          - value del option: nroUltimoAnalisisDto (para buscar detalles)
-          - attr-codigoLote: código del lote que viaja a *{codigoLote} (vía JS)
-          - data-es-unidad-venta: flag para lógica de reanálisis
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="loteSelector">Seleccione el Lote:</label>
-            <select class="form-select" id="loteSelector">
-                <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${loteResultadoAnalisisDTOs}"
-                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoLote} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
-                        th:value="${loteDTO.getNroUltimoAnalisisDto()}"
-                        th:attr="attr-codigoLote=${loteDTO.codigoLote},data-es-unidad-venta=${loteDTO.esUnidadVenta}">
-                </option>
-            </select>
-            <!-- Errores de validación relacionados con *{codigoLote} -->
-            <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
+<div class="container">
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <span class="badge bg-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;">CU5/6</span>
+            <h2>
+                <i class="bi bi-clipboard-check"></i>
+                Resultado de Análisis
+            </h2>
+            <p class="text-muted mb-0">Registre el resultado del análisis en curso y establezca el dictamen</p>
         </div>
 
-        <!--
-          Selector de Análisis en curso:
-          - Alternativa al selector de Lote (elige directamente un nroAnalisis)
-          - Lleva data/attrs similares para la misma lógica
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
-            <select class="form-select" id="analisisSelector">
-                <option value="">-- Seleccione un Análisis --</option>
-                <option th:each="analisisDTO : ${analisisDTOs}"
-                        th:selected="${analisisDTO.nroAnalisis} == *{nroAnalisis}"
-                        th:text="'Nro Análisis: ' + ${analisisDTO.nroAnalisis} + ' | Código Lote: ' + ${analisisDTO.codigoLote}"
-                        th:value="${analisisDTO.nroAnalisis}"
-                        th:attr="attr-codigoLote=${analisisDTO.codigoLote},data-es-unidad-venta=${analisisDTO.esUnidadVenta}">
-                </option>
-            </select>
-            <!-- Errores de validación para *{nroAnalisis} -->
-            <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+        <!-- Info -->
+        <div class="info-box">
+            <h5>
+                <i class="bi bi-info-circle-fill"></i>
+                Información
+            </h5>
+            <p>
+                Complete los datos del análisis realizado. Seleccione el lote o análisis en curso, ingrese el dictamen y las fechas correspondientes.
+            </p>
         </div>
 
-        <!--
-          Sección informativa dinámica:
-          - Se completa por JS con detalles del lote/análisis (fechas, dictamen, título, etc.)
-        -->
-        <div class="mb-4" id="infoSection">
-        </div>
+        <!-- Form -->
+        <form method="post" th:action="@{/calidad/analisis/resultado-analisis}" th:object="${movimientoDTO}">
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}" type="hidden"/>
+            <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
+            <input id="nroAnalisis" th:field="*{nroAnalisis}" type="hidden"/>
 
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Ingrese los Datos del Resultado</h5>
+            <!-- Selección del Lote/Análisis -->
+            <div class="section-title">
+                <i class="bi bi-search"></i>
+                <span>Selección del Lote/Análisis</span>
+            </div>
 
-        <!-- Dictamen final del análisis -->
-        <div class="mb-3">
-            <label class="form-label" for="dictamenFinal">Resultado Análisis (Dictamen):</label>
-            <select class="form-select" id="dictamenFinal" required th:field="*{dictamenFinal}">
-                <option value="">-- Seleccione un resultado --</option>
-                <option th:each="res : ${resultados}" th:text="${res}" th:value="${res}"></option>
-            </select>
-            <div class="text-danger" th:errors="*{dictamenFinal}" th:if="${#fields.hasErrors('dictamenFinal')}"></div>
-        </div>
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label" for="loteSelector">
+                        <i class="bi bi-box-seam"></i> Seleccione el Lote
+                    </label>
+                    <select class="form-select" id="loteSelector">
+                        <option value="">-- Seleccione un Lote --</option>
+                        <option th:each="loteDTO : ${loteResultadoAnalisisDTOs}"
+                                th:text="'Nombre: ' + ${loteDTO.nombreProducto} + ' | Código: ' + ${loteDTO.codigoLote} + ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
+                                th:value="${loteDTO.getNroUltimoAnalisisDto()}"
+                                th:attr="attr-codigoLote=${loteDTO.codigoLote},data-es-unidad-venta=${loteDTO.esUnidadVenta}">
+                        </option>
+                    </select>
+                    <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
+                </div>
 
-        <!-- Fecha en la que se realizó el análisis -->
-        <div class="mb-3">
-            <label class="form-label" for="fechaRealizadoAnalisis">Fecha Realizado el Análisis:</label>
-            <input class="form-control" id="fechaRealizadoAnalisis" required th:field="*{fechaRealizadoAnalisis}"
-                   type="date">
-            <div class="text-danger" th:errors="*{fechaRealizadoAnalisis}"
-                 th:if="${#fields.hasErrors('fechaRealizadoAnalisis')}"></div>
-        </div>
+                <div class="col-md-12">
+                    <label class="form-label" for="analisisSelector">
+                        <i class="bi bi-clipboard-data"></i> O seleccione el Análisis en Curso
+                    </label>
+                    <select class="form-select" id="analisisSelector">
+                        <option value="">-- Seleccione un Análisis --</option>
+                        <option th:each="analisisDTO : ${analisisDTOs}"
+                                th:selected="${analisisDTO.nroAnalisis} == *{nroAnalisis}"
+                                th:text="'Nro Análisis: ' + ${analisisDTO.nroAnalisis} + ' | Código Lote: ' + ${analisisDTO.codigoLote}"
+                                th:value="${analisisDTO.nroAnalisis}"
+                                th:attr="attr-codigoLote=${analisisDTO.codigoLote},data-es-unidad-venta=${analisisDTO.esUnidadVenta}">
+                        </option>
+                    </select>
+                    <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+                </div>
+            </div>
 
-        <!-- Fecha de reanálisis:
-             - Se oculta si el producto es UNIDAD_DE_VENTA (regla de negocio) -->
-        <div class="mb-3" id="groupFechaReanalisis">
-            <label class="form-label" for="fechaReanalisis">Fecha de Reanálisis:</label>
-            <input class="form-control" id="fechaReanalisis" th:field="*{fechaReanalisis}" type="date">
-            <div class="text-danger" th:errors="*{fechaReanalisis}"
-                 th:if="${#fields.hasErrors('fechaReanalisis')}"></div>
-        </div>
+            <!-- Información del Lote/Análisis -->
+            <div class="details-box" id="infoSection" style="display:none;">
+                <h5>
+                    <i class="bi bi-card-list"></i>
+                    Detalles del Lote Seleccionado
+                </h5>
+                <div id="infoContent"></div>
+            </div>
 
-        <!-- Fecha de vencimiento del dictamen -->
-        <div class="mb-3">
-            <label class="form-label" for="fechaVencimiento">Fecha de Vencimiento:</label>
-            <input class="form-control" id="fechaVencimiento" th:field="*{fechaVencimiento}" type="date">
-            <div class="text-danger" th:errors="*{fechaVencimiento}"
-                 th:if="${#fields.hasErrors('fechaVencimiento')}"></div>
-        </div>
+            <!-- Datos del Resultado -->
+            <div class="section-title">
+                <i class="bi bi-clipboard-check"></i>
+                <span>Datos del Resultado</span>
+            </div>
 
-        <!-- Título (porcentaje). Default 100 si viene null en el DTO -->
-        <div class="mb-3" id="groupTitulo">
-            <label class="form-label" for="titulo">Título (%):</label>
-            <input class="form-control"
-                   id="titulo"
-                   name="titulo"
-                   placeholder="Ingrese el título (%)"
-                   step="0.01"
-                   th:value="${movimientoDTO.titulo != null ? movimientoDTO.titulo : 100}"
-                   type="number"/>
-            <div class="text-danger" th:errors="*{titulo}" th:if="${#fields.hasErrors('titulo')}"></div>
-        </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="dictamenFinal">
+                        <i class="bi bi-check-circle"></i> Resultado Análisis (Dictamen)
+                        <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="dictamenFinal" required th:field="*{dictamenFinal}"
+                            th:classappend="${#fields.hasErrors('dictamenFinal')} ? 'error-field' : ''">
+                        <option value="">-- Seleccione un resultado --</option>
+                        <option th:each="res : ${resultados}" th:text="${res}" th:value="${res}"></option>
+                    </select>
+                    <div class="text-danger" th:errors="*{dictamenFinal}" th:if="${#fields.hasErrors('dictamenFinal')}"></div>
+                </div>
 
-        <!-- Observaciones libres -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones / Detalles:</label>
-            <textarea class="form-control" id="observaciones" rows="3" th:field="*{observaciones}"></textarea>
-        </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="fechaRealizadoAnalisis">
+                        <i class="bi bi-calendar-event"></i> Fecha Realizado el Análisis
+                        <span class="required">*</span>
+                    </label>
+                    <input class="form-control" id="fechaRealizadoAnalisis" required th:field="*{fechaRealizadoAnalisis}"
+                           th:classappend="${#fields.hasErrors('fechaRealizadoAnalisis')} ? 'error-field' : ''"
+                           type="date">
+                    <div class="text-danger" th:errors="*{fechaRealizadoAnalisis}"
+                         th:if="${#fields.hasErrors('fechaRealizadoAnalisis')}"></div>
+                </div>
 
-        <!-- Acciones del formulario -->
-        <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/calidad/analisis/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Enviar Resultado</button>
-        </div>
-    </form>
+                <div class="col-md-6" id="groupFechaReanalisis">
+                    <label class="form-label" for="fechaReanalisis">
+                        <i class="bi bi-arrow-repeat"></i> Fecha de Reanálisis
+                    </label>
+                    <input class="form-control" id="fechaReanalisis" th:field="*{fechaReanalisis}"
+                           th:classappend="${#fields.hasErrors('fechaReanalisis')} ? 'error-field' : ''"
+                           type="date">
+                    <small class="text-muted">Opcional - No aplica para unidades de venta</small>
+                    <div class="text-danger" th:errors="*{fechaReanalisis}"
+                         th:if="${#fields.hasErrors('fechaReanalisis')}"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="fechaVencimiento">
+                        <i class="bi bi-calendar-x"></i> Fecha de Vencimiento
+                    </label>
+                    <input class="form-control" id="fechaVencimiento" th:field="*{fechaVencimiento}"
+                           th:classappend="${#fields.hasErrors('fechaVencimiento')} ? 'error-field' : ''"
+                           type="date">
+                    <div class="text-danger" th:errors="*{fechaVencimiento}"
+                         th:if="${#fields.hasErrors('fechaVencimiento')}"></div>
+                </div>
+
+                <div class="col-md-6" id="groupTitulo">
+                    <label class="form-label" for="titulo">
+                        <i class="bi bi-percent"></i> Título (%)
+                    </label>
+                    <input class="form-control"
+                           id="titulo"
+                           name="titulo"
+                           placeholder="Ingrese el título (%)"
+                           step="0.01"
+                           th:value="${movimientoDTO.titulo != null ? movimientoDTO.titulo : 100}"
+                           th:classappend="${#fields.hasErrors('titulo')} ? 'error-field' : ''"
+                           type="number"/>
+                    <small class="text-muted">Valor por defecto: 100</small>
+                    <div class="text-danger" th:errors="*{titulo}" th:if="${#fields.hasErrors('titulo')}"></div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label" for="observaciones">
+                        <i class="bi bi-chat-left-text"></i> Observaciones / Detalles
+                    </label>
+                    <textarea class="form-control" id="observaciones" rows="3"
+                              placeholder="Ingrese observaciones adicionales sobre el análisis..."
+                              th:field="*{observaciones}"></textarea>
+                    <small class="text-muted">Opcional - Incluya detalles relevantes del análisis</small>
+                </div>
+            </div>
+
+            <!-- Footer Sticky -->
+            <div class="sticky-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a class="btn btn-custom-secondary" th:href="@{/calidad/analisis/cancelar}">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button class="btn btn-custom-primary" type="submit">
+                        <i class="bi bi-check-circle"></i> Enviar Resultado
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Footer simple -->
-<footer class="text-center mt-4 text-muted">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
-</footer>
-
-<!--
-  Script con lógica de UI:
-  - Inicializa fechas por defecto (si no vienen del DTO)
-  - Sincroniza selectores (lote <-> análisis)
-  - Carga detalles del análisis vía fetch
-  - Muestra/oculta "Fecha de Reanálisis" según esUnidadVenta
--->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
 
-        // Lee encabezado y token CSRF para incluir en fetch()
-        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute("content");
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
-
-        // Referencias a elementos
         const loteSelector = document.getElementById('loteSelector');
         const analisisSelector = document.getElementById('analisisSelector');
         const infoSection = document.getElementById('infoSection');
-        const nroAnalisisField = document.getElementById('nroAnalisis');   // bindea *{nroAnalisis}
-        const codIntLoteField = document.getElementById('codigoLote');     // bindea *{codigoLote}
+        const infoContent = document.getElementById('infoContent');
+        const codigoLoteInput = document.getElementById('codigoLote');
+        const nroAnalisisInput = document.getElementById('nroAnalisis');
+        const groupFechaReanalisis = document.getElementById('groupFechaReanalisis');
+        const groupTitulo = document.getElementById('groupTitulo');
+        const fechaRealizadoAnalisis = document.getElementById('fechaRealizadoAnalisis');
 
-        // Inicialización de fechas desde el DTO (si vuelven por error de validación),
-        // caso contrario setea "hoy" con tz de Buenos Aires.
-        var fechaRealizadoAnalisisDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ null;
-        if (fechaRealizadoAnalisisDTO) {
-            document.getElementById("fechaRealizadoAnalisis").value = fechaRealizadoAnalisisDTO;
+        // Inicializar Select2
+        $('#loteSelector').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un Lote --',
+            allowClear: true,
+            width: '100%'
+        });
+
+        $('#analisisSelector').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un Análisis --',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Fecha por defecto
+        var fechaRealizadoDTO = /*[[${movimientoDTO.fechaRealizadoAnalisis}]]*/ null;
+        if (fechaRealizadoDTO) {
+            fechaRealizadoAnalisis.value = fechaRealizadoDTO;
         } else {
             const hoy = new Date();
             const hoyFormateado = hoy.toLocaleDateString("en-CA", {timeZone: "America/Argentina/Buenos_Aires"});
-            document.getElementById("fechaRealizadoAnalisis").value = hoyFormateado;
-        }
-        var fechaReanalisisDTO = /*[[${movimientoDTO.fechaReanalisis}]]*/ null;
-        if (fechaReanalisisDTO) {
-            document.getElementById("fechaReanalisis").value = fechaReanalisisDTO;
-        }
-        var fechaVencimientoDTO = /*[[${movimientoDTO.fechaVencimiento}]]*/ null;
-        if (fechaVencimientoDTO) {
-            document.getElementById("fechaVencimiento").value = fechaVencimientoDTO;
+            fechaRealizadoAnalisis.value = hoyFormateado;
         }
 
-        function toggleTitulo(esUnidadVenta) {
-            const group = document.getElementById('groupTitulo');
-            const input = document.getElementById('titulo');
-            if (!group || !input) return;
-
-            if (esUnidadVenta === true) {
-                // Ocultar y asegurar que NO se envíe ni se asigne
-                group.style.display = 'none';
-                input.disabled = true;
-                // quitar name para que, incluso si se re-habilitara por error, no se bindee
-                input.setAttribute('data-prev-name', input.getAttribute('name') || 'titulo');
-                input.removeAttribute('name');
-                input.value = ''; // no asignar nada
-            } else {
-                // Mostrar y permitir envío
-                group.style.display = '';
-                input.disabled = false;
-                // restaurar name si fuera necesario
-                if (!input.getAttribute('name')) {
-                    input.setAttribute('name', input.getAttribute('data-prev-name') || 'titulo');
-                }
-                // si quedó vacío, aplicar default 100 (coherente con tu th:value)
-                if (!input.value) input.value = 100;
+        function cargarDetalleAnalisis(nroAnalisis, esUnidadVenta) {
+            if (!nroAnalisis) {
+                infoSection.style.display = 'none';
+                return;
             }
-        }
 
-        // Muestra/oculta el campo "Fecha de Reanálisis" según flag de unidad de venta
-        function toggleFechaReanalisis(esUnidadVenta) {
-            const group = document.getElementById('groupFechaReanalisis');
-            const input = document.getElementById('fechaReanalisis');
-            if (!group || !input) return;
+            fetch(`/analisis/${nroAnalisis}`, {
+                method: 'GET',
+                headers: {[csrfHeader]: csrfToken}
+            })
+                .then(response => response.json())
+                .then(data => {
+                    infoContent.innerHTML = `
+                        <div class="detail-item">
+                            <strong><i class="bi bi-hash"></i> Nro Análisis:</strong>
+                            <span class="detail-value">${data.nroAnalisis || 'N/D'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="bi bi-box"></i> Código Lote:</strong>
+                            <span class="detail-value">${data.codigoLote || 'N/D'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="bi bi-calendar-check"></i> Fecha Muestreo:</strong>
+                            <span class="detail-value">${data.fechaMuestreo || 'N/D'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="bi bi-clipboard-check"></i> Dictamen:</strong>
+                            <span class="detail-value fw-bold ${data.dictamen === 'APROBADO' ? 'text-success' : data.dictamen === 'RECHAZADO' ? 'text-danger' : 'text-warning'}">${data.dictamen || 'EN_CURSO'}</span>
+                        </div>
+                    `;
+                    infoSection.style.display = 'block';
 
-            if (esUnidadVenta === true) {
-                group.style.display = 'none';
-                input.value = '';
-                input.disabled = true;   // evita que el input viaje en el submit
-            } else {
-                group.style.display = '';
-                input.disabled = false;
-            }
-            toggleTitulo(esUnidadVenta);
-        }
-
-        // Extrae el flag data-es-unidad-venta del option seleccionado en un <select>
-        function getEsUnidadVentaFromSelect(selectEl) {
-            const opt = selectEl.options[selectEl.selectedIndex];
-            if (!opt) return null;
-            const attr = opt.getAttribute('data-es-unidad-venta');
-            if (attr == null) return null;
-            return attr === 'true';
-        }
-
-        // Rellena infoSection con datos del lote/análisis devueltos por el backend
-        function actualizarInfo(loteDTO) {
-            let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
-            html += '<p><strong>Código Interno:</strong> ' + (loteDTO.codigoLote || 'N/D') + '</p>';
-            html += '<p><strong>Producto:</strong> ' + (loteDTO.nombreProducto || 'N/D') + '</p>';
-            html += '<p><strong>Fecha ingreso:</strong> ' + (loteDTO.fechaIngreso || 'N/D') + '</p>';
-            html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (loteDTO.fechaReanalisisProveedor || 'N/D') + '</p>';
-            html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (loteDTO.fechaVencimientoProveedor || 'N/D') + '</p>';
-            if (loteDTO.analisisDTOs && loteDTO.analisisDTOs.length > 0) {
-                html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
-                loteDTO.analisisDTOs.forEach(function (analisisDTO) {
-                    html += '<li>';
-                    html += '<strong>Nro Análisis:</strong> ' + analisisDTO.nroAnalisis + ' ';
-                    html += '<strong>Fecha Realizado:</strong> ' + (analisisDTO.fechaRealizado || 'En curso') + ' | ';
-                    html += '<strong>Fecha Reanálisis:</strong> ' + (analisisDTO.fechaReanalisis || 'N/A') + ' | ';
-                    html += '<strong>Fecha Vencimiento:</strong> ' + (analisisDTO.fechaVencimiento || 'N/A') + ' | ';
-                    html += '<strong>Dictamen:</strong> ' + (analisisDTO.dictamen || 'En curso') + ' | ';
-                    html += '<strong>Título:</strong> ' + (analisisDTO.titulo || 'N/A');
-                    html += '</li>';
+                    // Mostrar/ocultar campo reanálisis según tipo de producto
+                    if (esUnidadVenta === 'true') {
+                        groupFechaReanalisis.style.display = 'none';
+                    } else {
+                        groupFechaReanalisis.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar detalle:', error);
+                    infoSection.style.display = 'none';
                 });
-                html += '</ul>';
-            }
-            infoSection.innerHTML = html;
         }
 
-        // Cambio en selector de Lote:
-        // - Limpia el otro selector
-        // - Setea campos ocultos *{nroAnalisis} y *{codigoLote}
-        // - Aplica regla de reanálisis por esUnidadVenta
-        // - Pide detalles al backend y pinta infoSection
         loteSelector.addEventListener('change', function () {
-            analisisSelector.value = "";
-            nroAnalisisField.value = this.value;
-            codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoLote') || '';
-
-            // 1) Usa el flag del option para decidir UI de reanálisis
-            const esUnidadVentaSel = getEsUnidadVentaFromSelect(this);
-            if (esUnidadVentaSel != null) {
-                toggleFechaReanalisis(esUnidadVentaSel);
-                toggleTitulo(esUnidadVentaSel);   // <-- agregar
-            }
-
-            // 2) Trae detalles completos por nroAnalisis (y corrige flag si backend lo envía)
+            const selectedOption = this.options[this.selectedIndex];
             if (this.value) {
-                fetch('/analisis/nroAnalisis/' + this.value, {method: 'GET', headers: {[csrfHeader]: csrfToken}})
-                    .then(r => r.json())
-                    .then(data => {
-                        actualizarInfo(data);
-                        // 2) Fallback si el endpoint devuelve esUnidadVenta
-                        if (typeof data.esUnidadVenta === 'boolean') {
-                            toggleFechaReanalisis(data.esUnidadVenta);
-                            toggleTitulo(data.esUnidadVenta);
-                        }
-                    })
-                    .catch(() => {
-                        infoSection.innerHTML = '<p>Error al cargar detalles.</p>';
-                    });
+                const codigoLote = selectedOption.getAttribute('attr-codigoLote');
+                const esUnidadVenta = selectedOption.getAttribute('data-es-unidad-venta');
+                codigoLoteInput.value = codigoLote;
+                nroAnalisisInput.value = this.value;
+                analisisSelector.value = '';
+                $('#analisisSelector').val(null).trigger('change');
+                cargarDetalleAnalisis(this.value, esUnidadVenta);
             } else {
-                infoSection.innerHTML = '';
+                codigoLoteInput.value = '';
+                nroAnalisisInput.value = '';
+                infoSection.style.display = 'none';
             }
         });
 
-        // Cambio en selector de Análisis (mismo flujo pero a la inversa):
-        // - Limpia selector de Lote
-        // - Setea campos ocultos
-        // - Aplica regla de reanálisis
-        // - Pide detalles y actualiza la UI
+        $('#loteSelector').on('select2:select', function (e) {
+            loteSelector.dispatchEvent(new Event('change'));
+        });
+
+        $('#loteSelector').on('select2:clear', function () {
+            codigoLoteInput.value = '';
+            nroAnalisisInput.value = '';
+            infoSection.style.display = 'none';
+        });
+
         analisisSelector.addEventListener('change', function () {
-            loteSelector.value = "";
-            nroAnalisisField.value = this.value;
-            codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoLote') || '';
-
-            const esUnidadVentaSel = getEsUnidadVentaFromSelect(this);
-            if (esUnidadVentaSel != null) {
-                toggleFechaReanalisis(esUnidadVentaSel);
-                toggleTitulo(esUnidadVentaSel);   // <-- agregar
-            }
-
+            const selectedOption = this.options[this.selectedIndex];
             if (this.value) {
-                fetch('/analisis/nroAnalisis/' + this.value, {method: 'GET', headers: {[csrfHeader]: csrfToken}})
-                    .then(r => r.json())
-                    .then(data => {
-                        actualizarInfo(data);
-                        if (typeof data.esUnidadVenta === 'boolean') {
-                            toggleFechaReanalisis(data.esUnidadVenta);
-                            toggleTitulo(data.esUnidadVenta);
-                        }
-                    })
-                    .catch(() => {
-                        infoSection.innerHTML = '<p>Error al cargar detalles.</p>';
-                    });
+                const codigoLote = selectedOption.getAttribute('attr-codigoLote');
+                const esUnidadVenta = selectedOption.getAttribute('data-es-unidad-venta');
+                codigoLoteInput.value = codigoLote;
+                nroAnalisisInput.value = this.value;
+                loteSelector.value = '';
+                $('#loteSelector').val(null).trigger('change');
+                cargarDetalleAnalisis(this.value, esUnidadVenta);
             } else {
-                infoSection.innerHTML = '';
+                codigoLoteInput.value = '';
+                nroAnalisisInput.value = '';
+                infoSection.style.display = 'none';
             }
         });
 
-        // Estado inicial:
-        // - Intenta deducir esUnidadVenta desde alguno de los selectores
-        // - Si no hay data, deja visible fecha de reanálisis por defecto
-        (function initToggle() {
-            let flag = getEsUnidadVentaFromSelect(analisisSelector);
-            if (flag == null) flag = getEsUnidadVentaFromSelect(loteSelector);
-            if (flag != null) {
-                toggleFechaReanalisis(flag);
-            } else {
-                // por defecto visible
-                toggleFechaReanalisis(false);
-            }
-            if (flag != null) {
-                toggleTitulo(flag);
-            } else {
-                toggleTitulo(false);
-            }
-        })();
+        $('#analisisSelector').on('select2:select', function (e) {
+            analisisSelector.dispatchEvent(new Event('change'));
+        });
+
+        $('#analisisSelector').on('select2:clear', function () {
+            codigoLoteInput.value = '';
+            nroAnalisisInput.value = '';
+            infoSection.style.display = 'none';
+        });
+
+        // Si hay errores de validación, rehidratar
+        var nroAnalisisDTO = /*[[${movimientoDTO.nroAnalisis}]]*/ null;
+        if (nroAnalisisDTO) {
+            analisisSelector.value = nroAnalisisDTO;
+            $('#analisisSelector').trigger('change');
+            analisisSelector.dispatchEvent(new Event('change'));
+        }
+
+        // Enfocar primer error
+        document.querySelector('.error-field')?.focus();
     });
 </script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </body>
 </html>

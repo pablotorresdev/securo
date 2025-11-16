@@ -43,7 +43,12 @@
       "Bash(.\\gradlew.bat test:*)",
       "Bash(./gradlew.bat jacocoTestReport)",
       "Bash(./gradlew.bat:*)",
-      "Bash(type \"C:\\opt\\securo\\build\\reports\\tests\\test\\classes\\com.mb.conitrack.service.cu.ModifResultadoAnalisisServiceTest$ValidarResultadoAnalisisInput.html\")"
+      "Bash(type \"C:\\opt\\securo\\build\\reports\\tests\\test\\classes\\com.mb.conitrack.service.cu.ModifResultadoAnalisisServiceTest$ValidarResultadoAnalisisInput.html\")",
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "Bash(./gradlew dependencies:*)",
+      "Bash(.gradlew.bat clean test jacocoTestReport)",
+      "Bash(del \"C:\\opt\\securo\\src\\test\\java\\com\\mb\\conitrack\\service\\cu\\ModifTrazadoLoteServiceTest.java\")"
     ],
     "deny": [],
     "ask": []

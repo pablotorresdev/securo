@@ -2,127 +2,382 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Anulacion Análisis en Curso</title>
-    <!-- Bootstrap para estilos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anulación de Análisis - CU8</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Metadatos CSRF provistos por Spring Security/Thymeleaf para proteger requests -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet"/>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #8b5cf6;
+        }
+
+        .form-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 30px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .form-label .required {
+            color: #8b5cf6;
+            margin-left: 3px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border: 2px solid #8b5cf6;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h5 {
+            color: #6b21a8;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #581c87;
+            margin-bottom: 0;
+        }
+
+        .details-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .details-box h5 {
+            color: #6b21a8;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item strong {
+            color: #475569;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .detail-value {
+            color: #1e293b;
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-custom-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+            color: white;
+        }
+
+        .btn-custom-secondary {
+            background: white;
+            border: 2px solid #8b5cf6;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: #8b5cf6;
+            transition: all 0.3s;
+        }
+
+        .btn-custom-secondary:hover {
+            background: #8b5cf6;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 2px solid #e0e0e0;
+            margin-top: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .text-danger {
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .error-field {
+            border-color: #dc3545 !important;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 0.95rem;
+                padding: 12px 15px;
+            }
+
+            .detail-item strong {
+                min-width: 150px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Cargar Anulacion Análisis en Curso</h2>
 
-    <!--
-      Form principal:
-      - POST a /calidad/anulacion/anulacion-analisis
-      - th:object enlaza los campos del formulario con movimientoDTO
-    -->
-    <form method="post" th:action="@{/calidad/anulacion/anulacion-analisis}" th:object="${movimientoDTO}">
-        <!-- Campo oculto CSRF que el servidor espera en el body -->
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-
-        <!-- Fecha del movimiento: por defecto "hoy" (formato yyyy-MM-dd) -->
-        <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}"
-               type="hidden"/>
-
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Selección del Análisis a Anular</h5>
-
-        <!--
-          Selector de Análisis en curso:
-          - Alternativa al selector de Lote (elige directamente un nroAnalisis)
-          - Lleva data/attrs similares para la misma lógica
-        -->
-
-        <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
-
-        <div class="mb-3">
-            <label class="form-label" for="analisisSelector">Seleccione el Análisis en Curso a Dictaminar:</label>
-            <select class="form-select" id="analisisSelector" th:field="*{nroAnalisis}">
-                <option value="">-- Seleccione un Análisis --</option>
-                <option th:each="analisisDTO : ${analisisDTOs}"
-                        th:value="${analisisDTO.nroAnalisis}"
-                        th:text="'Nro Análisis: ' + ${analisisDTO.nroAnalisis} + ' | Código Lote: ' + ${analisisDTO.codigoLote}"
-                        th:attr="attr-codigoLote=${analisisDTO.codigoLote}">
-                </option>
-            </select>
-            <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+<div class="container">
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <span class="badge bg-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;">CU8</span>
+            <h2>
+                <i class="bi bi-x-circle"></i>
+                Anulación de Análisis
+            </h2>
+            <p class="text-muted mb-0">Anule un análisis en curso y registre el motivo</p>
         </div>
 
-        <!--
-          Sección informativa dinámica:
-          - Se completa por JS con detalles del lote/análisis (fechas, dictamen, título, etc.)
-        -->
-        <div class="mb-4" id="infoSection">
+        <!-- Info -->
+        <div class="info-box">
+            <h5>
+                <i class="bi bi-info-circle-fill"></i>
+                Información
+            </h5>
+            <p>
+                Seleccione el análisis que desea anular. Esta acción marcará el análisis como inactivo y permitirá realizar un nuevo análisis si es necesario.
+            </p>
         </div>
 
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Ingrese los Datos del anulacion</h5>
+        <!-- Form -->
+        <form method="post" th:action="@{/calidad/anulacion/anulacion-analisis}" th:object="${movimientoDTO}">
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <input th:field="*{fechaMovimiento}" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}" type="hidden"/>
+            <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
 
-        <!-- Observaciones libres -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones / Detalles:</label>
-            <textarea class="form-control" id="observaciones" rows="3" th:field="*{observaciones}"></textarea>
-        </div>
+            <!-- Selección del Análisis -->
+            <div class="section-title">
+                <i class="bi bi-search"></i>
+                <span>Selección del Análisis</span>
+            </div>
 
-        <!-- Acciones del formulario -->
-        <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/calidad/anulacion/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Enviar anulacion</button>
-        </div>
-    </form>
+            <div class="mb-3">
+                <label class="form-label" for="analisisSelector">
+                    <i class="bi bi-clipboard-data"></i> Análisis en Curso a Anular
+                    <span class="required">*</span>
+                </label>
+                <select class="form-select" id="analisisSelector" th:field="*{nroAnalisis}"
+                        th:classappend="${#fields.hasErrors('nroAnalisis')} ? 'error-field' : ''">
+                    <option value="">-- Seleccione un Análisis --</option>
+                    <option th:each="analisisDTO : ${analisisDTOs}"
+                            th:value="${analisisDTO.nroAnalisis}"
+                            th:text="'Nro Análisis: ' + ${analisisDTO.nroAnalisis} + ' | Código Lote: ' + ${analisisDTO.codigoLote}"
+                            th:attr="attr-codigoLote=${analisisDTO.codigoLote}">
+                    </option>
+                </select>
+                <div class="text-danger" th:errors="*{nroAnalisis}" th:if="${#fields.hasErrors('nroAnalisis')}"></div>
+            </div>
+
+            <!-- Información del Análisis -->
+            <div class="details-box" id="infoSection" style="display:none;">
+                <h5>
+                    <i class="bi bi-card-list"></i>
+                    Detalles del Análisis Seleccionado
+                </h5>
+                <div id="infoContent"></div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="section-title">
+                <i class="bi bi-chat-left-text"></i>
+                <span>Motivo de la Anulación</span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="observaciones">
+                    <i class="bi bi-chat-left-text"></i> Observaciones / Motivo
+                    <span class="required">*</span>
+                </label>
+                <textarea class="form-control" id="observaciones" rows="4" required
+                          placeholder="Ingrese el motivo de la anulación del análisis..."
+                          th:field="*{observaciones}"
+                          th:classappend="${#fields.hasErrors('observaciones')} ? 'error-field' : ''"></textarea>
+                <small class="text-muted">Requerido - Especifique por qué se anula este análisis</small>
+                <div class="text-danger" th:errors="*{observaciones}" th:if="${#fields.hasErrors('observaciones')}"></div>
+            </div>
+
+            <!-- Footer Sticky -->
+            <div class="sticky-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a class="btn btn-custom-secondary" th:href="@{/calidad/anulacion/cancelar}">
+                        <i class="bi bi-arrow-left-circle"></i> Cancelar
+                    </a>
+                    <button class="btn btn-custom-primary" type="submit">
+                        <i class="bi bi-x-circle"></i> Anular Análisis
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Footer simple -->
-<footer class="text-center mt-4 text-muted">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
-</footer>
-
-<!--
-  Script con lógica de UI:
-  - Inicializa fechas por defecto (si no vienen del DTO)
-  - Carga detalles del análisis vía fetch
--->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute("content");
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+        const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
         const analisisSelector = document.getElementById('analisisSelector');
-        const infoSection      = document.getElementById('infoSection');
-        const codIntLoteField = document.getElementById('codigoLote');     // bindea *{codigoLote}
+        const infoSection = document.getElementById('infoSection');
+        const infoContent = document.getElementById('infoContent');
+        const codIntLoteField = document.getElementById('codigoLote');
+
+        // Inicializar Select2
+        $('#analisisSelector').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un Análisis --',
+            allowClear: true,
+            width: '100%'
+        });
 
         function actualizarInfo(loteDTO) {
-            let html = '<hr class="my-4"><h5 class="text-info">Detalles del Lote</h5>';
-            html += '<p><strong>Código Interno:</strong> ' + (loteDTO.codigoLote || 'N/D') + '</p>';
-            html += '<p><strong>Producto:</strong> ' + (loteDTO.nombreProducto || 'N/D') + '</p>';
-            html += '<p><strong>Fecha ingreso:</strong> ' + (loteDTO.fechaIngreso || 'N/D') + '</p>';
-            html += '<p><strong>Fecha Reanálisis Proveedor:</strong> ' + (loteDTO.fechaReanalisisProveedor || 'N/D') + '</p>';
-            html += '<p><strong>Fecha Vencimiento Proveedor:</strong> ' + (loteDTO.fechaVencimientoProveedor || 'N/D') + '</p>';
+            let html = '';
+            html += `
+                <div class="detail-item">
+                    <strong><i class="bi bi-box"></i> Código Interno:</strong>
+                    <span class="detail-value">${loteDTO.codigoLote || 'N/D'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-box-seam"></i> Producto:</strong>
+                    <span class="detail-value">${loteDTO.nombreProducto || 'N/D'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-calendar-event"></i> Fecha ingreso:</strong>
+                    <span class="detail-value">${loteDTO.fechaIngreso || 'N/D'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-arrow-repeat"></i> Fecha Reanálisis Proveedor:</strong>
+                    <span class="detail-value">${loteDTO.fechaReanalisisProveedor || 'N/D'}</span>
+                </div>
+                <div class="detail-item">
+                    <strong><i class="bi bi-calendar-x"></i> Fecha Vencimiento Proveedor:</strong>
+                    <span class="detail-value">${loteDTO.fechaVencimientoProveedor || 'N/D'}</span>
+                </div>
+            `;
+
             if (loteDTO.analisisDTOs && loteDTO.analisisDTOs.length > 0) {
-                html += '<h6 class="text-info">Detalles de Análisis:</h6><ul>';
+                html += '<div class="mt-3"><h6 class="text-secondary"><i class="bi bi-clipboard-pulse"></i> Análisis del Lote:</h6><ul class="list-unstyled">';
                 loteDTO.analisisDTOs.forEach(function (analisisDTO) {
-                    html += '<li>';
-                    html += '<strong>Nro Análisis:</strong> ' + analisisDTO.nroAnalisis + ' ';
-                    html += '<strong>Fecha Realizado:</strong> ' + (analisisDTO.fechaRealizado || 'En curso') + ' | ';
-                    html += '<strong>Fecha Reanálisis:</strong> ' + (analisisDTO.fechaReanalisis || 'N/A') + ' | ';
-                    html += '<strong>Fecha Vencimiento:</strong> ' + (analisisDTO.fechaVencimiento || 'N/A') + ' | ';
-                    html += '<strong>Dictamen:</strong> ' + (analisisDTO.dictamen || 'En curso') + ' | ';
-                    html += '<strong>Título:</strong> ' + (analisisDTO.titulo || 'N/A');
+                    html += '<li class="mb-2 p-2 bg-light rounded">';
+                    html += '<strong><i class="bi bi-hash"></i> Nro Análisis:</strong> ' + analisisDTO.nroAnalisis + '<br>';
+                    html += '<strong><i class="bi bi-calendar-check"></i> Fecha Realizado:</strong> ' + (analisisDTO.fechaRealizado || 'En curso') + ' | ';
+                    html += '<strong><i class="bi bi-arrow-repeat"></i> Fecha Reanálisis:</strong> ' + (analisisDTO.fechaReanalisis || 'N/A') + '<br>';
+                    html += '<strong><i class="bi bi-calendar-range"></i> Fecha Vencimiento:</strong> ' + (analisisDTO.fechaVencimiento || 'N/A') + ' | ';
+                    html += '<strong><i class="bi bi-clipboard-check"></i> Dictamen:</strong> ';
+                    const dictamen = analisisDTO.dictamen || 'En curso';
+                    const colorClass = dictamen === 'APROBADO' ? 'text-success' : dictamen === 'RECHAZADO' ? 'text-danger' : 'text-warning';
+                    html += '<span class="fw-bold ' + colorClass + '">' + dictamen + '</span> | ';
+                    html += '<strong><i class="bi bi-percent"></i> Título:</strong> ' + (analisisDTO.titulo || 'N/A');
                     html += '</li>';
                 });
-                html += '</ul>';
+                html += '</ul></div>';
             }
-            infoSection.innerHTML = html;
+
+            infoContent.innerHTML = html;
+            infoSection.style.display = 'block';
         }
 
         analisisSelector.addEventListener('change', function () {
-            const nro = this.value;           // <-- ya bindeado al DTO por th:field, viaja en el submit
-            infoSection.innerHTML = '';
-            codIntLoteField.value = this.options[this.selectedIndex].getAttribute('attr-codigoLote') || '';
+            const nro = this.value;
+            infoContent.innerHTML = '';
+            infoSection.style.display = 'none';
+
+            const selectedOption = this.options[this.selectedIndex];
+            codIntLoteField.value = selectedOption.getAttribute('attr-codigoLote') || '';
 
             if (!nro) return;
+
             fetch('/analisis/nroAnalisis/' + encodeURIComponent(nro), {
                 method: 'GET',
                 headers: { [csrfHeader]: csrfToken }
@@ -131,14 +386,34 @@
                 .then(data => {
                     actualizarInfo(data);
                 })
-                .catch(() => { infoSection.innerHTML = '<p class="text-danger">Error al cargar detalles.</p>'; });
+                .catch(() => {
+                    infoContent.innerHTML = '<p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Error al cargar detalles.</p>';
+                    infoSection.style.display = 'block';
+                });
+        });
+
+        $('#analisisSelector').on('select2:select', function (e) {
+            analisisSelector.dispatchEvent(new Event('change'));
+        });
+
+        $('#analisisSelector').on('select2:clear', function () {
+            infoContent.innerHTML = '';
+            infoSection.style.display = 'none';
+            codIntLoteField.value = '';
         });
 
         // Si el DTO ya trae un nroAnalisis (post con error/edición), dispará la carga de info:
         if (analisisSelector.value) {
             analisisSelector.dispatchEvent(new Event('change'));
         }
+
+        // Enfocar primer error
+        document.querySelector('.error-field')?.focus();
     });
 </script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </body>
 </html>

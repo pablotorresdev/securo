@@ -325,6 +325,52 @@ class ReversoAuthorizationServiceTest {
             () -> service.puedeReversar(mov, null));
     }
 
+    // ==================== TESTS DE OBTENER RESUMEN PERMISOS ====================
+
+    @Test
+    @DisplayName("obtenerResumenPermisos retorna mensaje para usuario null")
+    void testObtenerResumenPermisosUsuarioNull() {
+        String resumen = service.obtenerResumenPermisos(null);
+
+        assertNotNull(resumen);
+        assertTrue(resumen.contains("null"));
+        assertTrue(resumen.contains("sin permisos"));
+    }
+
+    @Test
+    @DisplayName("obtenerResumenPermisos retorna mensaje para AUDITOR")
+    void testObtenerResumenPermisosAuditor() {
+        String resumen = service.obtenerResumenPermisos(auditorUser);
+
+        assertNotNull(resumen);
+        assertTrue(resumen.contains("AUDITOR"));
+        assertTrue(resumen.contains("Solo lectura"));
+        assertTrue(resumen.contains("sin permisos de reverso"));
+    }
+
+    @Test
+    @DisplayName("obtenerResumenPermisos retorna mensaje para usuario normal")
+    void testObtenerResumenPermisosUsuarioNormal() {
+        String resumen = service.obtenerResumenPermisos(analistaControlUser);
+
+        assertNotNull(resumen);
+        assertTrue(resumen.contains("analista_control"));
+        assertTrue(resumen.contains("ANALISTA_CONTROL_CALIDAD"));
+        assertTrue(resumen.contains("nivel 2"));
+        assertTrue(resumen.contains("Puede reversar"));
+    }
+
+    @Test
+    @DisplayName("obtenerResumenPermisos retorna mensaje para ADMIN")
+    void testObtenerResumenPermisosAdmin() {
+        String resumen = service.obtenerResumenPermisos(adminUser);
+
+        assertNotNull(resumen);
+        assertTrue(resumen.contains("admin"));
+        assertTrue(resumen.contains("ADMIN"));
+        assertTrue(resumen.contains("nivel 6"));
+    }
+
     // ==================== HELPERS ====================
 
     private Movimiento crearMovimiento(User creador) {

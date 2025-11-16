@@ -2,126 +2,574 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Trazado Unidad de Venta</title>
-    <!-- Bootstrap para estilos básicos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trazado Unidad de Venta - Conitrack</title>
+
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Metadatos CSRF inyectados por Spring Security para proteger POST/PUT/DELETE -->
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- CSRF Token para Spring Security -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <!-- Estilos personalizados - Tema BLUE (Traceability) -->
+    <style>
+        :root {
+            --bs-primary: #3b82f6;
+            --bs-primary-dark: #1d4ed8;
+            --bs-secondary: #0ea5e9;
+            --bs-light-blue: #dbeafe;
+            --bs-blue-50: #eff6ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card-wrapper {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            padding: 40px 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cu-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title i {
+            font-size: 32px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            opacity: 0.95;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        .card-body {
+            padding: 40px 30px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left: 4px solid #3b82f6;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            color: #1e40af;
+        }
+
+        .info-box i {
+            margin-right: 10px;
+            color: #3b82f6;
+            font-size: 18px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-label i {
+            color: #3b82f6;
+            font-size: 16px;
+        }
+
+        .required::after {
+            content: '*';
+            color: #ef4444;
+            margin-left: 4px;
+        }
+
+        .form-control,
+        .form-select {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+
+        .form-control:hover,
+        .form-select:hover {
+            border-color: #93c5fd;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #3b82f6;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-control.error-field,
+        .form-select.error-field {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .form-control.error-field:focus,
+        .form-select.error-field:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .text-danger {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .text-danger::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            background-color: #dc2626;
+            border-radius: 50%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .traceability-card {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+
+        .traceability-card strong {
+            color: #1d4ed8;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            border-color: #d1d5db;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sticky-footer {
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 20px 30px;
+            display: none;
+            position: sticky;
+            bottom: 0;
+            gap: 12px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .sticky-footer.show {
+            display: flex;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            margin-top: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .card-wrapper {
+                border-radius: 12px;
+            }
+
+            .card-header {
+                padding: 30px 20px;
+            }
+
+            .card-body {
+                padding: 25px 20px;
+            }
+
+            .card-title {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                min-width: unset;
+            }
+
+            body {
+                padding: 15px 0;
+            }
+
+            .main-container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-height: 800px) {
+            .card-header {
+                padding: 30px 20px;
+            }
+
+            .card-body {
+                padding: 25px 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Trazado Unidad de Venta</h2>
-
-    <!--
-      Form principal:
-      - Método POST contra /ventas/trazado/inicio-trazado
-      - th:object vincula los campos al movimientoDTO del backend
-    -->
-    <form method="post" th:action="@{/ventas/trazado/inicio-trazado}" th:object="${movimientoDTO}">
-        <!-- Token CSRF requerido por el backend -->
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
-
-        <!--
-          Selector de Lote a Trazar:
-          - Bindeado a movimientoDTO.codigoLote
-          - Las options muestran información útil (producto, código interno, fechas, rango de trazas)
-          - La lógica de negocio (qué lotes aparecen) viene prefiltrada desde el controlador
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="codigoLote">Lote:</label>
-            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
-                <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${loteTrazadoDtos}"
-                        th:text="'Producto: ' + ${loteDTO.nombreProducto}
-                         + ' | Codigo interno: ' + ${loteDTO.codigoLote}
-                         + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}"
-                        th:value="${loteDTO.codigoLote}">
-                </option>
-            </select>
+<div class="main-container">
+    <div class="card-wrapper">
+        <!-- Encabezado con gradiente y badge CU -->
+        <div class="card-header">
+            <div class="header-content">
+                <div class="cu-badge">
+                    <i class="bi bi-diagram-3"></i> CU - Trazado
+                </div>
+                <h1 class="card-title">
+                    <i class="bi bi-diagram-3"></i>
+                    Trazado Unidad de Venta
+                </h1>
+                <p class="card-subtitle">
+                    Registra la trazabilidad completa de los lotes en operaciones de venta
+                </p>
+            </div>
         </div>
 
-        <!--
-          Fecha del movimiento de trazado:
-          - Bindeada a movimientoDTO.fechaMovimiento
-          - El script al final setea por defecto la fecha de hoy si viene vacía (TZ Buenos Aires)
-          - th:classappend agrega una clase para enfocar el primer campo con error si lo hay
-        -->
-        <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha de Cambio de Dictamen:</label>
-            <input class="form-control" id="fechaMovimiento"
-                   required
-                   th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
-                   th:field="*{fechaMovimiento}"
-                   type="date">
-            <!-- Mensaje de error server-side para la fecha -->
-            <div style="color: red; font-weight: bold;"
-                 th:errors="*{fechaMovimiento}"
-                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
-        </div>
+        <!-- Contenido del formulario -->
+        <div class="card-body">
+            <!-- Caja informativa -->
+            <div class="info-box">
+                <i class="bi bi-info-circle"></i>
+                <span>
+                    Completa los datos obligatorios para generar el registro de trazabilidad del lote seleccionado.
+                    Se registrará automáticamente la zona horaria de Argentina (Buenos Aires).
+                </span>
+            </div>
 
-        <!--
-  Traza inicial (solo para productos UNIDAD_VENTA):
-  - Visible si data-tipo-producto === 'UNIDAD_VENTA'
-  - Se pide para inicializar el rango de trazas generadas
--->
-        <div class="mb-2 hidden" id="trazaContainer">
-            <label class="form-label" for="trazaInicial">Nro traza inicial:</label>
-            <input class="form-control" id="trazaInicial" th:field="*{trazaInicial}" type="number">
-            <div class="text-danger fw-bold" th:errors="*{trazaInicial}" th:if="${#fields.hasErrors('trazaInicial')}"></div>
-        </div>
+            <!--
+              Form principal:
+              - Método POST contra /ventas/trazado/inicio-trazado
+              - th:object vincula los campos al movimientoDTO del backend
+            -->
+            <form method="post" th:action="@{/ventas/trazado/inicio-trazado}" th:object="${movimientoDTO}" id="trazadoForm">
+                <!-- Token CSRF requerido por el backend -->
+                <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
 
-        <!--
-          Observaciones:
-          - Campo opcional para notas adicionales del usuario
-          - Bindeado a movimientoDTO.observaciones
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones (opcional):</label>
-            <textarea class="form-control"
-                      id="observaciones"
-                      rows="2"
-                      th:field="*{observaciones}"></textarea>
-        </div>
+                <!-- Sección: Datos Obligatorios -->
+                <div class="form-group">
+                    <div class="section-title">
+                        <i class="bi bi-asterisk"></i>
+                        Datos Obligatorios
+                    </div>
 
-        <!-- Acciones principales de la vista -->
-        <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/ventas/trazado/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Trazar Lote</button>
+                    <!--
+                      Selector de Lote a Trazar:
+                      - Bindeado a movimientoDTO.codigoLote
+                      - Las options muestran información útil (producto, código interno, fechas, rango de trazas)
+                      - La lógica de negocio (qué lotes aparecen) viene prefiltrada desde el controlador
+                    -->
+                    <div class="form-group">
+                        <label class="form-label required" for="codigoLote">
+                            <i class="bi bi-box-seam"></i>
+                            Lote
+                        </label>
+                        <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
+                            <option value="">-- Seleccione un Lote --</option>
+                            <option th:each="loteDTO : ${loteTrazadoDtos}"
+                                    th:text="'Producto: ' + ${loteDTO.nombreProducto}
+                                     + ' | Código interno: ' + ${loteDTO.codigoLote}
+                                     + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}"
+                                    th:value="${loteDTO.codigoLote}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!--
+                      Fecha del movimiento de trazado:
+                      - Bindeada a movimientoDTO.fechaMovimiento
+                      - El script al final setea por defecto la fecha de hoy si viene vacía (TZ Buenos Aires)
+                      - th:classappend agrega una clase para enfocar el primer campo con error si lo hay
+                    -->
+                    <div class="form-group">
+                        <label class="form-label required" for="fechaMovimiento">
+                            <i class="bi bi-calendar-event"></i>
+                            Fecha de Trazado
+                        </label>
+                        <input class="form-control" id="fechaMovimiento"
+                               required
+                               th:classappend="${#fields.hasErrors('fechaMovimiento')} ? 'error-field' : ''"
+                               th:field="*{fechaMovimiento}"
+                               type="date">
+                        <!-- Mensaje de error server-side para la fecha -->
+                        <div class="text-danger"
+                             th:errors="*{fechaMovimiento}"
+                             th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
+                    </div>
+
+                    <!--
+                      Traza inicial (solo para productos UNIDAD_VENTA):
+                      - Visible si data-tipo-producto === 'UNIDAD_VENTA'
+                      - Se pide para inicializar el rango de trazas generadas
+                    -->
+                    <div class="form-group hidden" id="trazaContainer">
+                        <label class="form-label required" for="trazaInicial">
+                            <i class="bi bi-hash"></i>
+                            Número de Traza Inicial
+                        </label>
+                        <input class="form-control" id="trazaInicial" th:field="*{trazaInicial}" type="number">
+                        <div class="text-danger" th:errors="*{trazaInicial}" th:if="${#fields.hasErrors('trazaInicial')}"></div>
+                    </div>
+                </div>
+
+                <!-- Sección: Información Adicional -->
+                <div class="form-group">
+                    <div class="section-title">
+                        <i class="bi bi-file-text"></i>
+                        Información Adicional
+                    </div>
+
+                    <!--
+                      Observaciones:
+                      - Campo opcional para notas adicionales del usuario
+                      - Bindeado a movimientoDTO.observaciones
+                    -->
+                    <div class="form-group">
+                        <label class="form-label" for="observaciones">
+                            <i class="bi bi-chat-left-text"></i>
+                            Observaciones (Opcional)
+                        </label>
+                        <textarea class="form-control"
+                                  id="observaciones"
+                                  rows="3"
+                                  placeholder="Ingresa notas o comentarios adicionales sobre el trazado..."
+                                  th:field="*{observaciones}"></textarea>
+                    </div>
+                </div>
+
+                <!-- Grupo de botones de acción -->
+                <div class="button-group">
+                    <a class="btn btn-secondary" th:href="@{/ventas/trazado/cancelar}">
+                        <i class="bi bi-x-circle"></i>
+                        Cancelar
+                    </a>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-check-circle"></i>
+                        Trazar Lote
+                    </button>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
-<!-- Pie de página meramente informativo -->
-<footer class="text-center mt-4 text-muted">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
+<!-- Pie de página con información -->
+<footer>
+    <p>
+        <i class="bi bi-c-circle"></i>
+        2025 Conitrack - Sistema de Trazabilidad de Lotes. Todos los derechos reservados.
+    </p>
 </footer>
 
 <!-- =========================================================
      Script de inicialización de la vista
-     - Setea la fecha por defecto si el DTO no la trae
+     - Setea la fecha por defecto si el DTO no la trae (TZ Buenos Aires)
      - Enfoca el primer campo con error si existe
+     - Maneja visibilidad de campos condicionales
 ========================================================= -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         // Fecha proveniente del DTO (si el formulario vuelve con errores)
-        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
 
-        // Si no hay fecha seteada, usar la fecha actual en formato yyyy-MM-dd (en-CA)
+        // Si no hay fecha seteada, usar la fecha actual en formato yyyy-MM-dd (Zona Horaria: Argentina/Buenos Aires)
         if (fechaMovimientoDTO) {
             document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
         } else {
             const hoy = new Date();
+            // Obtener la fecha en zona horaria de Buenos Aires
             const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
             document.getElementById("fechaMovimiento").value = hoyFormateado;
         }
 
         // ---------- Mostrar/ocultar campo de Traza según tipo de producto ----------
         function toggleTrazaInput() {
-            const selectProd = document.getElementById('productoId');
+            const selectProd = document.getElementById('codigoLote');
             const opt        = selectProd.options[selectProd.selectedIndex];
             const tipo       = opt.getAttribute('data-tipo-producto'); // p.ej. 'UNIDAD_VENTA'
             const cont       = document.getElementById('trazaContainer');
@@ -139,12 +587,17 @@
 
         // Al cargar, intenta setear visibilidad correctamente
         toggleTrazaInput();
-        // Al cambiar el producto, volver a evaluar
-        document.getElementById('productoId').addEventListener('change', toggleTrazaInput);
+
+        // Al cambiar el lote, volver a evaluar
+        document.getElementById('codigoLote').addEventListener('change', toggleTrazaInput);
 
         // Si hay errores de validación, enfocar el primer campo marcado con .error-field
         const errorField = document.querySelector('.error-field');
-        if (errorField) errorField.focus();
+        if (errorField) {
+            errorField.focus();
+            // Scroll suave hacia el campo con error
+            errorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     });
 </script>
 </body>

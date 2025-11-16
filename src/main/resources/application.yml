@@ -55,16 +55,16 @@ server:
   port: ${PORT:8080}
   #  port: 8080
   error:
-    include-message: always
-    include-binding-errors: always
+    include-message: never
+    include-binding-errors: never
   servlet:
     session:
-      timeout: 300s
+      timeout: 1500s
 
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.thymeleaf.extras.springsecurity6: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.boot.devtools: DEBUG
-    org.springframework.jdbc.datasource.init: DEBUG
+    org.springframework.security: WARN
+    org.thymeleaf.extras.springsecurity6: WARN
+    org.springframework.web: WARN
+    org.springframework.boot.devtools: WARN
+    org.springframework.jdbc.datasource.init: WARN

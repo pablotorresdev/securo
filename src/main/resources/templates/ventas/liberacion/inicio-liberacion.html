@@ -2,118 +2,547 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Liberación Unidad de Venta</title>
-    <!-- Bootstrap para estilos básicos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Liberación Unidad de Venta - Conitrack</title>
+
+    <!-- Bootstrap 5.3.0 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Metadatos CSRF inyectados por Spring Security para proteger POST/PUT/DELETE -->
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Select2 CSS (Bootstrap 5 Theme) -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+
+    <!-- CSRF Tokens -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-</head>
-<body>
-<div class="container mt-5">
-    <h2 class="mb-4">Liberación Unidad de Venta</h2>
 
-    <!--
-      Form principal:
-      - Método POST contra /ventas/liberacion/inicio-liberacion
-      - th:object vincula los campos al movimientoDTO del backend
-    -->
-    <form method="post" th:action="@{/ventas/liberacion/inicio-liberacion}" th:object="${movimientoDTO}">
-        <!-- Token CSRF requerido por el backend -->
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-
-        <hr class="my-4">
-        <h5 class="mb-3 text-primary">Datos Obligatorios</h5>
-
-        <!--
-          Selector de Lote a liberar:
-          - Bindeado a movimientoDTO.codigoLote
-          - Las options muestran información útil (producto, código interno, fechas, rango de trazas)
-          - La lógica de negocio (qué lotes aparecen) viene prefiltrada desde el controlador
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="codigoLote">Lote:</label>
-            <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
-                <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${loteLiberacionProdDtos}"
-                        th:text="'Producto: ' + ${loteDTO.nombreProducto}
-                         + ' | Codigo interno: ' + ${loteDTO.codigoLote}
-                         + ' | Fecha ingreso: ' + ${loteDTO.fechaIngreso}
-                         + ' | Rango Trazas: ' + ${loteDTO.trazaInicial}
-                         + '/' + ${loteDTO.trazaFinal}"
-                        th:value="${loteDTO.codigoLote}">
-                </option>
-            </select>
-        </div>
-
-        <!--
-          Fecha del movimiento de liberación:
-          - Bindeada a movimientoDTO.fechaMovimiento
-          - El script al final setea por defecto la fecha de hoy si viene vacía (TZ Buenos Aires)
-          - th:classappend agrega una clase para enfocar el primer campo con error si lo hay
-        -->
-        <div class="mb-2">
-            <label class="form-label" for="fechaMovimiento">Fecha de Cambio de Dictamen:</label>
-            <input class="form-control" id="fechaMovimiento"
-                   required
-                   th:classappend="${#fields.hasErrors('fechaMovimiento')} ? ' error-field' : ''"
-                   th:field="*{fechaMovimiento}"
-                   type="date">
-            <!-- Mensaje de error server-side para la fecha -->
-            <div style="color: red; font-weight: bold;"
-                 th:errors="*{fechaMovimiento}"
-                 th:if="${#fields.hasErrors('fechaMovimiento')}"></div>
-        </div>
-
-        <!--
-          Observaciones:
-          - Campo opcional para notas adicionales del usuario
-          - Bindeado a movimientoDTO.observaciones
-        -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones (opcional):</label>
-            <textarea class="form-control"
-                      id="observaciones"
-                      rows="2"
-                      th:field="*{observaciones}"></textarea>
-        </div>
-
-        <!-- Acciones principales de la vista -->
-        <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/ventas/liberacion/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Liberar Producto</button>
-        </div>
-    </form>
-</div>
-
-<!-- Pie de página meramente informativo -->
-<footer class="text-center mt-4 text-muted">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
-</footer>
-
-<!-- =========================================================
-     Script de inicialización de la vista
-     - Setea la fecha por defecto si el DTO no la trae
-     - Enfoca el primer campo con error si existe
-========================================================= -->
-<script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-        // Fecha proveniente del DTO (si el formulario vuelve con errores)
-        var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
-
-        // Si no hay fecha seteada, usar la fecha actual en formato yyyy-MM-dd (en-CA)
-        if (fechaMovimientoDTO) {
-            document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
-        } else {
-            const hoy = new Date();
-            const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
-            document.getElementById("fechaMovimiento").value = hoyFormateado;
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --green-primary: #10b981;
+            --green-dark: #059669;
+            --green-light: #d1fae5;
+            --green-lighter: #ecfdf5;
         }
 
-        // Si hay errores de validación, enfocar el primer campo marcado con .error-field
-        const errorField = document.querySelector('.error-field');
-        if (errorField) errorField.focus();
-    });
-</script>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: linear-gradient(135deg, var(--green-primary) 0%, var(--green-dark) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ========== HEADER ========== */
+        .header-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-title h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--green-dark);
+            margin: 0;
+        }
+
+        .header-title i {
+            font-size: 2.25rem;
+            color: var(--green-primary);
+        }
+
+        .header-subtitle {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        /* ========== FORM CONTAINER ========== */
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            flex: 1;
+        }
+
+        /* ========== INFO BOX ========== */
+        .info-box {
+            background: linear-gradient(135deg, var(--green-lighter), var(--green-light));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .info-box i {
+            font-size: 1.5rem;
+            color: var(--green-dark);
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+
+        .info-box-content p {
+            margin: 0;
+            color: #065f46;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* ========== SECTION TITLE ========== */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid transparent;
+            background: linear-gradient(90deg, var(--green-primary), var(--green-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .section-title i {
+            font-size: 1.25rem;
+            -webkit-text-fill-color: var(--green-primary);
+        }
+
+        /* ========== FORM GROUPS ========== */
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .form-label .required-star {
+            color: #ef4444;
+        }
+
+        /* ========== FORM CONTROLS ========== */
+        .form-select,
+        .form-control {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+
+        .form-select:focus,
+        .form-control:focus {
+            border-color: var(--green-primary);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            outline: none;
+        }
+
+        .form-select option {
+            background-color: white;
+            color: #1f2937;
+        }
+
+        .form-control.error-field,
+        .form-select.error-field {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .form-control.error-field:focus,
+        .form-select.error-field:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* ========== ERROR MESSAGES ========== */
+        .error-message {
+            color: #dc2626;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .error-message i {
+            font-size: 0.9rem;
+        }
+
+        /* ========== SELECT2 CUSTOMIZATION ========== */
+        .select2-container--bootstrap-5 .select2-selection--single {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: #f9fafb;
+            height: auto;
+            padding: 0.3rem;
+        }
+
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection--single {
+            border-color: var(--green-primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            padding: 0.5rem 0.5rem;
+            color: #1f2937;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+            color: var(--green-primary);
+        }
+
+        .select2-results__option--highlighted {
+            background-color: var(--green-primary) !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-dropdown {
+            border-color: var(--green-primary);
+        }
+
+        /* ========== STICKY FOOTER ========== */
+        .sticky-footer {
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
+            margin-top: auto;
+        }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-success-gradient {
+            background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+            color: white;
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .btn-success-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-success-gradient:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary-outline {
+            background: white;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .btn-secondary-outline:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            color: #1f2937;
+            text-decoration: none;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .main-wrapper {
+                padding: 1rem 0.75rem;
+            }
+
+            .header-section,
+            .form-container {
+                padding: 1.5rem;
+            }
+
+            .header-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .header-title i {
+                font-size: 1.75rem;
+            }
+
+            .sticky-footer {
+                flex-direction: column-reverse;
+                gap: 0.75rem;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* ========== ACCESSIBILITY ========== */
+        .btn:focus {
+            outline: 2px solid var(--green-primary);
+            outline-offset: 2px;
+        }
+
+        input[type="date"]::-webkit-outer-spin-button,
+        input[type="date"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-container,
+        .header-section {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- ========== HEADER SECTION ========== -->
+        <div class="header-section">
+            <div class="header-badge">
+                <i class="bi bi-tag"></i> CU Liberación de Ventas
+            </div>
+            <div class="header-title">
+                <i class="bi bi-check-circle"></i>
+                <h1>Liberación Unidad de Venta</h1>
+            </div>
+            <p class="header-subtitle">
+                <i class="bi bi-info-circle"></i>
+                Autorizar y liberar unidades de venta aprobadas del inventario
+            </p>
+        </div>
+
+        <!-- ========== FORM SECTION ========== -->
+        <form method="post" th:action="@{/ventas/liberacion/inicio-liberacion}" th:object="${movimientoDTO}" class="form-container">
+            <!-- CSRF Token -->
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <i class="bi bi-lightbulb"></i>
+                <div class="info-box-content">
+                    <p>
+                        <strong>Liberación de Venta:</strong> Complete el formulario para autorizar y liberar las unidades de venta del inventario.
+                        Seleccione el lote, la fecha de cambio de dictamen y cualquier observación relevante.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Required Data Section -->
+            <h5 class="section-title">
+                <i class="bi bi-file-earmark-check"></i>
+                Datos Obligatorios
+            </h5>
+
+            <!-- Lot Selection -->
+            <div class="form-group">
+                <label class="form-label" for="codigoLote">
+                    <span>Lote a Liberar</span>
+                    <span class="required-star">*</span>
+                </label>
+                <select class="form-select" id="codigoLote" required th:field="*{codigoLote}">
+                    <option value="">-- Seleccione un Lote --</option>
+                    <option th:each="loteDTO : ${loteLiberacionProdDtos}"
+                            th:text="'Producto: ' + ${loteDTO.nombreProducto}
+                             + ' | Código: ' + ${loteDTO.codigoLote}
+                             + ' | Ingreso: ' + ${loteDTO.fechaIngreso}
+                             + ' | Trazas: ' + ${loteDTO.trazaInicial}
+                             + '/' + ${loteDTO.trazaFinal}"
+                            th:value="${loteDTO.codigoLote}">
+                    </option>
+                </select>
+                <div class="error-message" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span th:errors="*{codigoLote}"></span>
+                </div>
+            </div>
+
+            <!-- Movement Date -->
+            <div class="form-group">
+                <label class="form-label" for="fechaMovimiento">
+                    <span>Fecha de Cambio de Dictamen</span>
+                    <span class="required-star">*</span>
+                </label>
+                <input class="form-control"
+                       id="fechaMovimiento"
+                       required
+                       th:classappend="${#fields.hasErrors('fechaMovimiento')} ? 'error-field' : ''"
+                       th:field="*{fechaMovimiento}"
+                       type="date">
+                <div class="error-message" th:errors="*{fechaMovimiento}" th:if="${#fields.hasErrors('fechaMovimiento')}">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span th:errors="*{fechaMovimiento}"></span>
+                </div>
+            </div>
+
+            <!-- Observations -->
+            <div class="form-group">
+                <label class="form-label" for="observaciones">
+                    <span>Observaciones</span>
+                    <span style="color: #9ca3af; font-weight: normal;">(opcional)</span>
+                </label>
+                <textarea class="form-control"
+                          id="observaciones"
+                          rows="3"
+                          placeholder="Ingrese observaciones adicionales sobre la liberación..."
+                          th:field="*{observaciones}"></textarea>
+                <small class="text-muted d-block mt-2">
+                    <i class="bi bi-info-circle"></i>
+                    Campo opcional para notas y comentarios relevantes
+                </small>
+            </div>
+        </form>
+    </div>
+
+    <!-- ========== STICKY FOOTER ========== -->
+    <div class="sticky-footer">
+        <a class="btn btn-secondary-outline" th:href="@{/ventas/liberacion/cancelar}">
+            <i class="bi bi-x-circle"></i>
+            Cancelar
+        </a>
+        <button class="btn btn-success-gradient" form="liberacionForm" type="submit">
+            <i class="bi bi-check-lg"></i>
+            Liberar Producto
+        </button>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Initialization Script -->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            // ========== Set Default Date ==========
+            // Fecha proveniente del DTO (si el formulario vuelve con errores)
+            var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ [];
+
+            // Si no hay fecha seteada, usar la fecha actual en formato yyyy-MM-dd (Argentina TZ)
+            if (fechaMovimientoDTO) {
+                document.getElementById("fechaMovimiento").value = fechaMovimientoDTO;
+            } else {
+                const hoy = new Date();
+                const hoyFormateado = hoy.toLocaleDateString("en-CA", {
+                    timeZone: "America/Argentina/Buenos_Aires"
+                });
+                document.getElementById("fechaMovimiento").value = hoyFormateado;
+            }
+
+            // ========== Focus First Error Field ==========
+            const errorField = document.querySelector('.error-field');
+            if (errorField) {
+                errorField.focus();
+                errorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // ========== Initialize Select2 ==========
+            $('#codigoLote').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '-- Seleccione un Lote --',
+                allowClear: false,
+                language: {
+                    noResults: function() {
+                        return 'No hay resultados disponibles';
+                    },
+                    searching: function() {
+                        return 'Buscando...';
+                    }
+                }
+            });
+
+            // ========== Form ID Configuration ==========
+            document.querySelector('form').id = 'liberacionForm';
+        });
+    </script>
 </body>
 </html>

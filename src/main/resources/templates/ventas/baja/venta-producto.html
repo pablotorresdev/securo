@@ -2,151 +2,341 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Venta de Producto</title>
-    <!-- Bootstrap para estilos rápidos en la UI -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venta de Producto - CU2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Metadatos CSRF inyectados por Spring Security (usados por forms y fetch) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet"/>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #dc3545;
+        }
+
+        .form-header h2 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header .badge {
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 25px 0 20px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.08) 0%, rgba(200, 35, 51, 0.08) 100%);
+            border: 2px solid #dc3545;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h5 {
+            color: #c82333;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .bultos-card {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .bultos-card:hover {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.02);
+        }
+
+        .bultos-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #c82333;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+        }
+
+        .text-danger {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .error-field {
+            border-color: #dc3545 !important;
+        }
+
+        .sticky-footer {
+            background: white;
+            border-top: 3px solid #dc3545;
+            padding: 20px;
+            position: sticky;
+            bottom: 0;
+            margin: 30px -40px -40px -40px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+            .sticky-footer {
+                margin: 20px -20px -20px -20px;
+                flex-direction: column;
+            }
+            .sticky-footer .btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <div class="form-container">
+        <!-- Header -->
+        <div class="form-header">
+            <span class="badge bg-danger">
+                <i class="bi bi-cart-dash"></i> CU2
+            </span>
+            <h2>
+                <i class="bi bi-cart-dash"></i>
+                Venta de Producto
+            </h2>
+            <p class="text-muted mb-0">Registre la venta de un lote de producto a cliente</p>
+        </div>
 
-<div class="container mt-5">
-    <h2 class="mb-4">Venta de producto</h2>
+        <!-- Info -->
+        <div class="info-box">
+            <h5>
+                <i class="bi bi-info-circle-fill"></i>
+                Información
+            </h5>
+            <p class="mb-0">
+                Utilice este formulario para registrar la venta de un lote. Seleccione el lote que desea vender,
+                distribuya las cantidades entre los bultos disponibles y proporcione la información requerida.
+            </p>
+        </div>
 
-    <!--
-      Formulario principal:
-      - POST a /ventas/baja/venta-producto
-      - th:object vincula inputs con loteDTO (binding bidireccional vista <-> back)
-    -->
-    <form method="post" th:action="@{/ventas/baja/venta-producto}" th:object="${loteDTO}">
-        <!-- Token CSRF (campo oculto requerido por el backend) -->
-        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
-        <!-- Código interno del lote elegido. Se completa vía JS cuando seleccionás un lote. -->
-        <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
+        <!-- Formulario -->
+        <form method="post" th:action="@{/ventas/baja/venta-producto}" th:object="${loteDTO}">
+            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+            <input id="codigoLote" th:field="*{codigoLote}" type="hidden"/>
 
-        <!-- ============================
-             SELECCIÓN DEL LOTE (UI)
-             - Select sin binding (solo muestra opciones)
-             - Al cambiar, JS:
-               * setea el hidden codigoLote (bindeado)
-               * pinta panel informativo
-               * genera inputs por bulto
-           ============================ -->
-        <div class="mb-3">
-            <label class="form-label" for="loteSelect">Seleccione el Lote a Vender:</label>
-            <select class="form-select" id="loteSelect">
-                <option value="">-- Seleccione un Lote --</option>
-                <option th:each="loteDTO : ${loteVentaDTOs}"
-                        th:text="'Nombre: ' + ${loteDTO.nombreProducto} +
-                  ' | Nro Analisis: ' + ${loteDTO.getNroUltimoAnalisisDto()} +
-                  ' | Codigo Interno: ' + ${loteDTO.codigoLote}"
-                        th:value="${loteDTO.codigoLote}">
-                </option>
-            </select>
-            <!-- Mensaje de error server-side si faltó elegir lote (validación del DTO) -->
-            <div class="text-danger fw-bold"
-                 th:errors="*{codigoLote}"
-                 th:if="${#fields.hasErrors('codigoLote')}">
+            <!-- Datos de la Venta -->
+            <div class="section-title">
+                <i class="bi bi-clipboard-data"></i>
+                <span>Datos de la Venta</span>
             </div>
-        </div>
 
-        <!-- Panel informativo del lote seleccionado (se muestra cuando hay selección) -->
-        <div class="border p-3 bg-light mb-4" id="infoLote" style="display:none;">
-            <h5>Detalles del Lote</h5>
-            <div id="infoContent"></div>
-        </div>
+            <div class="row">
+                <!-- Selección del Lote -->
+                <div class="col-md-12 mb-3">
+                    <label class="form-label" for="loteSelect">
+                        <i class="bi bi-box-seam"></i> Lote a Vender
+                        <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="loteSelect" required
+                            th:classappend="${#fields.hasErrors('codigoLote')} ? 'error-field' : ''">
+                        <option value="">-- Seleccione un lote --</option>
+                        <option th:each="loteDTO : ${loteVentaDTOs}"
+                                th:text="'Código: ' + ${loteDTO.codigoLote} +
+                                    ' | Producto: ' + ${loteDTO.nombreProducto} +
+                                    ' | Análisis: ' + ${loteDTO.getNroUltimoAnalisisDto()}"
+                                th:value="${loteDTO.codigoLote}">
+                        </option>
+                    </select>
+                    <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
+                </div>
 
-        <!--
-          Sección dinámica para distribuir la venta por bultos:
-          - JS genera N filas (una por bulto) con:
-              * cantidad a vender
-              * unidad de medida (subunidades compatibles)
-              * nroBulto oculto (para que el back sepa qué bulto se afecta)
-          - El servidor valida que la suma no supere el stock disponible.
-        -->
-        <div class="border p-3 bg-light mb-4" id="consumoBultos" style="display:none;">
-            <h5>Cantidades por Bulto a consumir</h5>
-            <small class="text-muted">
-                La suma de todas las cantidades no debe superar el stock disponible del lote.
-            </small>
-            <!-- Errores server-side de la lista de cantidades -->
-            <div class="text-danger fw-bold"
-                 th:errors="*{cantidadesBultos}"
-                 th:if="${#fields.hasErrors('cantidadesBultos')}">
+                <!-- Fecha de Venta -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="fechaEgreso">
+                        <i class="bi bi-calendar-event"></i> Fecha de Venta
+                        <span class="required">*</span>
+                    </label>
+                    <input class="form-control" id="fechaEgreso" required
+                           th:classappend="${#fields.hasErrors('fechaEgreso')} ? 'error-field' : ''"
+                           th:field="*{fechaEgreso}"
+                           type="date">
+                    <div class="text-danger" th:errors="*{fechaEgreso}" th:if="${#fields.hasErrors('fechaEgreso')}"></div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="col-md-12 mb-3">
+                    <label class="form-label" for="observaciones">
+                        <i class="bi bi-chat-left-text"></i> Observaciones
+                    </label>
+                    <textarea class="form-control"
+                              id="observaciones"
+                              rows="3"
+                              placeholder="Ingrese observaciones adicionales sobre la venta..."
+                              th:field="*{observaciones}"></textarea>
+                    <small class="text-muted">Opcional - Puede incluir detalles del cliente o condiciones de venta</small>
+                </div>
             </div>
-            <!-- Aquí se inyectan las filas dinámicas por bulto -->
-            <div id="bultosContainer"></div>
-        </div>
 
-        <!-- Fecha de egreso/venta (default: hoy en TZ Buenos Aires si no vino en DTO) -->
-        <div class="mb-3">
-            <label class="form-label" for="fechaEgreso">Fecha de Venta de Producto:</label>
-            <input class="form-control" id="fechaEgreso" required th:field="*{fechaEgreso}" type="date">
-            <div class="text-danger fw-bold" th:errors="*{fechaEgreso}" th:if="${#fields.hasErrors('fechaEgreso')}">
+            <!-- Panel de Detalles del Lote Seleccionado -->
+            <div class="info-box" id="infoLote" style="display:none;">
+                <h5>
+                    <i class="bi bi-info-circle-fill"></i>
+                    Detalles del Lote
+                </h5>
+                <div id="infoContent"></div>
             </div>
-        </div>
 
-        <!-- Observaciones libres (opcional) -->
-        <div class="mb-3">
-            <label class="form-label" for="observaciones">Observaciones:</label>
-            <textarea class="form-control"
-                      id="observaciones"
-                      rows="3"
-                      th:field="*{observaciones}"></textarea>
-        </div>
+            <!-- Sección de Bultos -->
+            <div id="consumoBultos" style="display:none;">
+                <div class="section-title">
+                    <i class="bi bi-boxes"></i>
+                    <span>Cantidades por Bulto</span>
+                </div>
+                <small class="text-muted d-block mb-3">
+                    <i class="bi bi-exclamation-circle"></i>
+                    La suma de todas las cantidades no debe superar el stock disponible del lote.
+                </small>
+                <div class="text-danger" th:errors="*{cantidadesBultos}" th:if="${#fields.hasErrors('cantidadesBultos')}"></div>
+                <div id="bultosContainer"></div>
+            </div>
 
-        <!-- Acciones del formulario -->
-        <div class="d-flex justify-content-between mt-4">
-            <a class="btn btn-secondary" th:href="@{/ventas/baja/cancelar}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Realizar venta</button>
-        </div>
-    </form>
+            <!-- Sticky Footer -->
+            <div class="sticky-footer">
+                <a class="btn btn-secondary" th:href="@{/ventas/baja/cancelar}">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-check-circle"></i> Registrar Venta
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Pie de página simple -->
-<footer class="text-center p-3 mt-4" style="color: #aaa;">
-    <p>&copy; 2025 Conitrack. All rights reserved.</p>
-</footer>
-
-<!-- =========================================================
-     JS: Manejo de datos de lotes y generación de filas por bulto
-     - SIN fetch inicial para lotes (vienen inyectados)
-     - Carga de subunidades on-demand (fetch a /enums/subunidades)
-     - Restaura valores del DTO si hubo errores de validación
-========================================================= -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', () => {
-        /* ---------- datos básicos / CSRF ---------- */
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    document.addEventListener('DOMContentLoaded', function () {
+        // CSRF tokens
+        const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+        const csrfToken = /*[[${_csrf.token}]]*/ '';
 
-        /* ---------- fechaEgreso: valor del DTO o hoy (TZ Buenos Aires) ---------- */
-        const fechaInput = document.getElementById('fechaEgreso');
+        // Initialize Select2 for lot selector
+        $('#loteSelect').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un lote --',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Initialize date with current value or today's date (Buenos Aires timezone)
         const fechaEgresoDTO = /*[[${loteDTO.fechaEgreso}]]*/ null;
-        (function initFecha() {
-            if (fechaInput) {
-                if (fechaEgresoDTO) {
-                    fechaInput.value = fechaEgresoDTO;
-                } else {
-                    const hoy = new Date();
-                    const hoyFormateado = hoy.toLocaleDateString("en-CA", { timeZone: "America/Argentina/Buenos_Aires" });
-                    fechaInput.value = hoyFormateado;
-                }
-            }
-        })();
+        if (fechaEgresoDTO) {
+            document.getElementById("fechaEgreso").value = fechaEgresoDTO;
+        } else {
+            const hoy = new Date();
+            const hoyFormateado = hoy.toLocaleDateString("en-CA", {timeZone: "America/Argentina/Buenos_Aires"});
+            document.getElementById("fechaEgreso").value = hoyFormateado;
+        }
 
-        /* ---------- datasets inyectados por Thymeleaf ---------- */
-        // Lotes candidatos (string -> JSON si hace falta)
+        // Data from Thymeleaf
         let lotes = /*[[${loteVentaDTOs}]]*/ '[]';
         if (typeof lotes === 'string') {
             try { lotes = JSON.parse(lotes); } catch (_) { lotes = []; }
         }
 
-        // Valores previos del DTO (para restaurar tras validación fallida)
+        // Previous values from DTO (for form restoration after validation failure)
         let cantidadesPrev = /*[[${loteDTO.cantidadesBultos}]]*/ '[]';
-        let unidadesPrev   = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
+        let unidadesPrev = /*[[${loteDTO.unidadMedidaBultos}]]*/ '[]';
         if (typeof cantidadesPrev === 'string') {
             try { cantidadesPrev = JSON.parse(cantidadesPrev); } catch (_) { cantidadesPrev = []; }
         }
@@ -154,21 +344,21 @@
             try { unidadesPrev = JSON.parse(unidadesPrev); } catch (_) { unidadesPrev = []; }
         }
 
-        // Si hubo selección previa de lote, la recuperamos
+        // Previously selected lot code
         const codigoSeleccionado = /*[[${loteDTO.codigoLote != null ? loteDTO.codigoLote : ''}]]*/ '';
 
-        /* ---------- refs DOM ---------- */
-        const loteSelect       = document.getElementById('loteSelect');
-        const infoLoteDiv      = document.getElementById('infoLote');
-        const infoContent      = document.getElementById('infoContent');
+        // DOM references
+        const loteSelect = document.getElementById('loteSelect');
+        const infoLoteDiv = document.getElementById('infoLote');
+        const infoContent = document.getElementById('infoContent');
         const consumoBultosDiv = document.getElementById('consumoBultos');
-        const bultosContainer  = document.getElementById('bultosContainer');
+        const bultosContainer = document.getElementById('bultosContainer');
         const codigoLoteHidden = document.getElementById('codigoLote');
 
-        /* ---------- caché subunidades ---------- */
+        // Subunits cache
         const cacheSub = new Map();
         function loadSubunits(base, cb) {
-            if (!base) { cb([ 'UNIDAD' ]); return; }
+            if (!base) { cb(['UNIDAD']); return; }
             if (cacheSub.has(base)) { cb(cacheSub.get(base)); return; }
             fetch(`/enums/subunidades?unidad=${encodeURIComponent(base)}`, {
                 headers: { [csrfHeader]: csrfToken }
@@ -182,16 +372,17 @@
                 .catch(() => cb([base]));
         }
 
-        /* ---------- eventos ---------- */
+        // Event listeners
         if (loteSelect) {
             loteSelect.addEventListener('change', e => prepararPantalla(e.target.value));
         }
         if (codigoSeleccionado) {
             if (loteSelect) loteSelect.value = codigoSeleccionado;
+            $('#loteSelect').trigger('change');
             prepararPantalla(codigoSeleccionado);
         }
 
-        /* ---------- helpers UI ---------- */
+        // Reset screen
         function resetearPantalla() {
             if (infoContent) infoContent.innerHTML = '';
             if (bultosContainer) bultosContainer.innerHTML = '';
@@ -200,59 +391,58 @@
             if (codigoLoteHidden) codigoLoteHidden.value = '';
         }
 
+        // Prepare screen when lot is selected
         function prepararPantalla(codigo) {
             resetearPantalla();
             if (!codigo) return;
             const lote = lotes.find(l => l.codigoLote === codigo);
             if (!lote) return;
 
-            // seteamos el hidden para el back
             if (codigoLoteHidden) codigoLoteHidden.value = codigo;
-
-            // tarjeta informativa del lote
             pintarInfo(lote);
-
-            // filas dinámicas por bulto (nroBulto real + stock disponible)
             generarInputsBultos(lote);
         }
 
+        // Render lot information
         function pintarInfo(loteDTO) {
             const a = (loteDTO.ultimoAnalisisDtoDictaminado || {});
             const html = `
-      <hr>
-      <p><strong>Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
-      <p><strong>Código interno:</strong> ${loteDTO.codigoLote || 'N/D'}</p>
-      <p><strong>Producto destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
-      <hr>
-      <p><strong>Cantidad inicial:</strong> ${loteDTO.cantidadInicial ?? '—'} ${loteDTO.unidadMedida || ''}</p>
-      <p><strong>Stock actual:</strong> ${loteDTO.cantidadActual ?? '—'} ${loteDTO.unidadMedida || ''}</p>
-      <p><strong>Bultos totales:</strong> ${loteDTO.bultosTotales ?? '—'}</p>
-      <hr>
-      <p><strong>Nº análisis actual:</strong> ${a.nroAnalisis || '—'}</p>
-      <p><strong>Fecha realizado análisis:</strong> ${a.fechaRealizado || '—'}</p>
-      <p><strong>Fecha re-análisis:</strong> ${a.fechaReanalisis || '—'}</p>
-      <p><strong>Fecha vencimiento análisis:</strong> ${a.fechaVencimiento || '—'}</p>
-      <hr>
-      <p><strong>Re-análisis proveedor:</strong> ${loteDTO.fechaReanalisisProveedor || 'N/D'}</p>
-      <p><strong>Vto. proveedor:</strong> ${loteDTO.fechaVencimientoProveedor || 'N/D'}</p>
-    `;
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-tag"></i> Código:</strong> ${loteDTO.codigoLote || 'N/D'}</p>
+                        <p><strong><i class="bi bi-box"></i> Producto:</strong> ${loteDTO.nombreProducto || 'N/D'}</p>
+                        <p><strong><i class="bi bi-shuffle"></i> Destino:</strong> ${loteDTO.productoDestino || 'N/D'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-graph-up"></i> Cant. Inicial:</strong> ${loteDTO.cantidadInicial ?? '—'} ${loteDTO.unidadMedida || ''}</p>
+                        <p><strong><i class="bi bi-check2-circle"></i> Stock Actual:</strong> ${loteDTO.cantidadActual ?? '—'} ${loteDTO.unidadMedida || ''}</p>
+                        <p><strong><i class="bi bi-boxes"></i> Bultos:</strong> ${loteDTO.bultosTotales ?? '—'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-clipboard-check"></i> Nº Análisis:</strong> ${a.nroAnalisis || '—'}</p>
+                        <p><strong><i class="bi bi-calendar2-check"></i> Fecha Análisis:</strong> ${a.fechaRealizado || '—'}</p>
+                        <p><strong><i class="bi bi-calendar2-range"></i> Re-análisis:</strong> ${a.fechaReanalisis || '—'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-exclamation-triangle"></i> Vencimiento Análisis:</strong> ${a.fechaVencimiento || '—'}</p>
+                        <p><strong><i class="bi bi-calendar2-x"></i> Vto. Proveedor:</strong> ${loteDTO.fechaVencimientoProveedor || 'N/D'}</p>
+                    </div>
+                </div>
+            `;
             if (infoContent) infoContent.innerHTML = html;
             if (infoLoteDiv) infoLoteDiv.style.display = 'block';
         }
 
-        // ==== NUEVA implementación basada en bultos reales ====
+        // Generate input fields for bultos
         function generarInputsBultos(lote) {
             if (!bultosContainer) return;
 
-            // Detectamos el arreglo real de bultos en el JSON del lote
             const bultosCrudos =
-                Array.isArray(lote.bultos)     ? lote.bultos
-                    : Array.isArray(lote.bultosDto)  ? lote.bultosDto
+                Array.isArray(lote.bultos) ? lote.bultos
+                    : Array.isArray(lote.bultosDto) ? lote.bultosDto
                         : Array.isArray(lote.bultosDTOs) ? lote.bultosDTOs
                             : [];
 
-            // Normalizamos: nroBulto, stock (cantidadActual) y unidad
-            // Filtramos por stock > 0 (si querés mostrar todos, cambiar a >= 0 y deshabilitar los vacíos)
             const bultos = bultosCrudos
                 .map(b => ({
                     nroBulto: Number(b.nroBulto),
@@ -262,68 +452,68 @@
                 .filter(b => b.stock > 0)
                 .sort((a, b) => a.nroBulto - b.nroBulto);
 
-            // Si no hay bultos con stock disponible, ocultamos la sección
             if (!bultos.length) {
                 consumoBultosDiv && (consumoBultosDiv.style.display = 'none');
                 return;
             }
 
-            // Limpiamos contenedor
             bultosContainer.innerHTML = '';
 
-            // Pintamos una fila por cada bulto con stock
             for (let i = 0; i < bultos.length; i++) {
                 const b = bultos[i];
-
-                // Restauración de valores previos del DTO (si hubo errores)
                 const valorPrevio = (cantidadesPrev[i] != null) ? cantidadesPrev[i] : 0;
-                const unidadPrev  = (unidadesPrev[i] ?? b.unidad);
+                const unidadPrev = (unidadesPrev[i] ?? b.unidad);
 
-                const row = document.createElement('div');
-                row.className = 'row g-2 align-items-end mb-2';
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'bultos-card';
+                cardDiv.innerHTML = `
+                    <div class="bultos-card-header">
+                        <i class="bi bi-box"></i>
+                        Bulto #${b.nroBulto}
+                    </div>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-calculator"></i> Cantidad a Vender
+                                <span class="required">*</span>
+                                <small class="text-muted">(máx ${b.stock} ${b.unidad})</small>
+                            </label>
+                            <input type="number"
+                                   name="cantidadesBultos[${i}]"
+                                   class="form-control"
+                                   value="${valorPrevio}"
+                                   min="0"
+                                   step="0.01"
+                                   max="${b.stock}"
+                                   required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-rulers"></i> Unidad
+                                <span class="required">*</span>
+                            </label>
+                            <select name="unidadMedidaBultos[${i}]" class="form-select" required></select>
+                        </div>
+                    </div>
+                `;
 
-                // Columna cantidad
-                row.innerHTML += `
-        <div class="col-md-6">
-          <label class="form-label">
-            Cant. Bulto #${b.nroBulto} (máx ${b.stock} ${b.unidad}):
-          </label>
-          <input  type="number"
-                  name="cantidadesBultos[${i}]"
-                  class="form-control"
-                  value="${valorPrevio}"
-                  min="0" step="0.01" required>
-        </div>`;
+                bultosContainer.appendChild(cardDiv);
 
-                // Columna unidad (select, se llena con subunidades)
-                const colUni = document.createElement('div');
-                colUni.className = 'col-md-4';
-                colUni.innerHTML = '<label class="form-label">Unidad:</label>';
-                const sel = document.createElement('select');
-                sel.name = `unidadMedidaBultos[${i}]`;
-                sel.className = 'form-select';
-                sel.required = true;
-                colUni.appendChild(sel);
-                row.appendChild(colUni);
-
-                // Hidden con el nroBulto real (sin espacios)
-                row.insertAdjacentHTML(
-                    'beforeend',
-                    `<input type="hidden" name="nroBultoList[${i}]" value="${b.nroBulto}">`
-                );
-
-                // Agregamos la fila al contenedor
-                bultosContainer.appendChild(row);
-
-                // Poblar subunidades compatibles (con caché)
+                const selectEl = cardDiv.querySelector('select');
                 loadSubunits(b.unidad, arr => {
-                    sel.innerHTML = arr.map(u =>
+                    selectEl.innerHTML = arr.map(u =>
                         `<option value="${u}" ${u === unidadPrev ? 'selected' : ''}>${u}</option>`
                     ).join('');
                 });
+
+                // Add hidden field for bulto number
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = `nroBultoList[${i}]`;
+                hiddenInput.value = b.nroBulto;
+                cardDiv.appendChild(hiddenInput);
             }
 
-            // Mostramos la sección
             consumoBultosDiv && (consumoBultosDiv.style.display = 'block');
         }
     });

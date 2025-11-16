@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dictamen Cuarentena - CU2</title>
+    <title>Dictamen Cuarentena - CU10</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
@@ -12,7 +12,7 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
         body {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 20px 0;
@@ -23,7 +23,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             padding: 40px;
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -31,7 +31,7 @@
             text-align: center;
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 3px solid #f59e0b;
+            border-bottom: 3px solid #8b5cf6;
         }
 
         .form-header h2 {
@@ -46,89 +46,160 @@
         }
 
         .section-title {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
             color: white;
-            padding: 12px 20px;
+            padding: 15px 20px;
             border-radius: 10px;
-            margin: 25px 0 20px 0;
+            margin: 30px 0 20px 0;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
         .form-label {
             font-weight: 600;
             color: #495057;
-            display: flex;
-            align-items: center;
-            gap: 8px;
             margin-bottom: 8px;
         }
 
-        .required {
-            color: #f59e0b;
-            font-weight: bold;
+        .form-label .required {
+            color: #8b5cf6;
+            margin-left: 3px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s;
         }
 
         .form-control:focus, .form-select:focus {
-            border-color: #f59e0b;
-            box-shadow: 0 0 0 0.2rem rgba(245, 158, 11, 0.25);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
         }
 
         .info-box {
-            background: #fef3c7;
-            border: 2px solid #f59e0b;
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border: 2px solid #8b5cf6;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 30px;
         }
 
         .info-box h5 {
-            color: #92400e;
+            color: #6b21a8;
             font-weight: 600;
             margin-bottom: 10px;
         }
 
+        .info-box p {
+            color: #581c87;
+            margin-bottom: 0;
+        }
+
+        .details-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .details-box h5 {
+            color: #6b21a8;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item strong {
+            color: #475569;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .detail-value {
+            color: #1e293b;
+        }
+
         .warning-box {
-            background: #fef3c7;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             border: 2px solid #f59e0b;
             border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 20px;
+            margin-top: 20px;
         }
 
         .warning-box strong {
             color: #92400e;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        .warning-box p {
+            color: #78350f;
+            margin-bottom: 0;
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
             border: none;
             border-radius: 10px;
             padding: 12px 30px;
             font-weight: 600;
+            color: white;
             transition: all 0.3s;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+        .btn-custom-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+            color: white;
         }
 
-        .btn-secondary {
+        .btn-custom-secondary {
+            background: white;
+            border: 2px solid #8b5cf6;
             border-radius: 10px;
             padding: 12px 30px;
             font-weight: 600;
+            color: #8b5cf6;
             transition: all 0.3s;
         }
 
-        .btn-secondary:hover {
-            transform: translateY(-3px);
+        .btn-custom-secondary:hover {
+            background: #8b5cf6;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 0;
+            border-top: 2px solid #e0e0e0;
+            margin-top: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
         }
 
         .text-danger {
-            font-weight: 600;
+            font-size: 0.875rem;
             margin-top: 5px;
         }
 
@@ -140,6 +211,15 @@
             .form-container {
                 padding: 20px;
             }
+
+            .section-title {
+                font-size: 0.95rem;
+                padding: 12px 15px;
+            }
+
+            .detail-item strong {
+                min-width: 150px;
+            }
         }
     </style>
 </head>
@@ -148,9 +228,7 @@
     <div class="form-container">
         <!-- Header -->
         <div class="form-header">
-            <span class="badge bg-warning text-dark">
-                <i class="bi bi-exclamation-triangle"></i> CU2
-            </span>
+            <span class="badge bg-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;">CU10</span>
             <h2>
                 <i class="bi bi-shield-exclamation"></i>
                 Dictamen a Cuarentena
@@ -164,7 +242,7 @@
                 <i class="bi bi-info-circle-fill"></i>
                 Información
             </h5>
-            <p class="mb-0">
+            <p>
                 Este formulario permite cambiar el dictamen de un lote a <strong>CUARENTENA</strong>.
                 Seleccione el lote y proporcione los datos del análisis que motiva este cambio.
             </p>
@@ -180,8 +258,8 @@
                 <span>Datos del Dictamen</span>
             </div>
 
-            <div class="row">
-                <div class="col-md-12 mb-3">
+            <div class="row g-3">
+                <div class="col-md-12">
                     <label class="form-label" for="codigoLote">
                         <i class="bi bi-box-seam"></i> Lote
                         <span class="required">*</span>
@@ -204,7 +282,7 @@
                     <div class="text-danger" th:errors="*{codigoLote}" th:if="${#fields.hasErrors('codigoLote')}"></div>
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6">
                     <label class="form-label" for="fechaMovimiento">
                         <i class="bi bi-calendar-event"></i> Fecha del Cambio
                         <span class="required">*</span>
@@ -218,7 +296,7 @@
                 </div>
 
                 <!-- Número de Análisis EDITABLE (cuando dictamen es Recibido) -->
-                <div class="col-md-6 mb-3" id="grupoNroAnalisisEditable">
+                <div class="col-md-6" id="grupoNroAnalisisEditable">
                     <label class="form-label" for="nroAnalisis">
                         <i class="bi bi-hash"></i> Número de Análisis
                         <span class="required">*</span>
@@ -232,7 +310,7 @@
                 </div>
 
                 <!-- Número de Análisis READONLY (cuando ya existe análisis) -->
-                <div class="col-md-6 mb-3" id="grupoNroAnalisisSoloLectura" style="display: none;">
+                <div class="col-md-6" id="grupoNroAnalisisSoloLectura" style="display: none;">
                     <label class="form-label">
                         <i class="bi bi-hash"></i> Número de Análisis Actual
                     </label>
@@ -240,7 +318,7 @@
                 </div>
 
                 <!-- Número de ReAnálisis (cuando dictamen NO es Recibido) -->
-                <div class="col-md-6 mb-3" id="grupoNroReanalisis" style="display: none;">
+                <div class="col-md-6" id="grupoNroReanalisis" style="display: none;">
                     <label class="form-label" for="nroReanalisis">
                         <i class="bi bi-arrow-repeat"></i> Número de ReAnálisis
                         <span class="required">*</span>
@@ -253,7 +331,7 @@
                     <div class="text-danger" th:errors="*{nroReanalisis}" th:if="${#fields.hasErrors('nroReanalisis')}"></div>
                 </div>
 
-                <div class="col-md-12 mb-3">
+                <div class="col-md-12">
                     <label class="form-label" for="observaciones">
                         <i class="bi bi-chat-left-text"></i> Observaciones
                     </label>
@@ -268,38 +346,29 @@
 
             <div class="warning-box">
                 <strong><i class="bi bi-exclamation-triangle-fill"></i> Importante:</strong>
-                Al cambiar el dictamen a CUARENTENA, el lote quedará en estado de evaluación y no podrá ser utilizado hasta que se apruebe o rechace.
+                <p>Al cambiar el dictamen a CUARENTENA, el lote quedará en estado de evaluación y no podrá ser utilizado hasta que se apruebe o rechace.</p>
             </div>
 
-            <!-- Botones de acción -->
-            <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                <a class="btn btn-secondary" th:href="@{/calidad/dictamen/cancelar}">
-                    <i class="bi bi-x-circle"></i> Cancelar
-                </a>
-                <button class="btn btn-primary" type="submit">
-                    <i class="bi bi-eye"></i> Vista Previa
-                </button>
+            <!-- Footer Sticky -->
+            <div class="sticky-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a class="btn btn-custom-secondary" th:href="@{/calidad/dictamen/cancelar}">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button class="btn btn-custom-primary" type="submit">
+                        <i class="bi bi-eye"></i> Vista Previa
+                    </button>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         // CSRF token para peticiones AJAX
         const csrfToken = /*[[${_csrf.token}]]*/ '';
         const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
-
-        // Inicializar Select2 para el selector de lotes
-        $('#codigoLote').select2({
-            theme: 'bootstrap-5',
-            placeholder: '-- Seleccione un lote --',
-            allowClear: true,
-            width: '100%'
-        });
 
         // Referencias a elementos del DOM
         const loteSelect = document.getElementById('codigoLote');
@@ -309,6 +378,14 @@
         const nroAnalisisReadonlyInput = document.getElementById('nroAnalisisReadonly');
         const nroAnalisisInput = document.getElementById('nroAnalisis');
         const nroReanalisisInput = document.getElementById('nroReanalisis');
+
+        // Inicializar Select2 para el selector de lotes
+        $('#codigoLote').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un lote --',
+            allowClear: true,
+            width: '100%'
+        });
 
         // Valores que podrían volver del servidor si hubo errores de validación
         var fechaMovimientoDTO = /*[[${movimientoDTO.fechaMovimiento}]]*/ null;
@@ -403,7 +480,14 @@
 
         // Aplicar reglas al cargar la pantalla
         actualizarVisibilidadCampos();
+
+        // Enfocar primer error
+        document.querySelector('.error-field')?.focus();
     });
 </script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </body>
 </html>

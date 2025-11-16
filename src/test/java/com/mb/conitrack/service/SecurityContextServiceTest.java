@@ -172,4 +172,55 @@ class SecurityContextServiceTest {
 
         assertFalse(result);
     }
+
+    @Test
+    @DisplayName("getCurrentUsername lanza excepción si no hay autenticación")
+    void testGetCurrentUsernameNoAuthentication() {
+        when(securityContext.getAuthentication()).thenReturn(null);
+
+        assertThrows(SecurityException.class, () -> service.getCurrentUsername());
+    }
+
+    @Test
+    @DisplayName("getCurrentUsername lanza excepción si usuario no está autenticado")
+    void testGetCurrentUsernameNotAuthenticated() {
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+
+        assertThrows(SecurityException.class, () -> service.getCurrentUsername());
+    }
+
+    @Test
+    @DisplayName("isAuthenticated retorna false si usuario no está autenticado")
+    void testIsAuthenticatedNotAuthenticated() {
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+
+        boolean result = service.isAuthenticated();
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("hasRole retorna false si no está autenticado")
+    void testHasRoleNotAuthenticated() {
+        when(securityContext.getAuthentication()).thenReturn(null);
+
+        boolean result = service.hasRole("ADMIN");
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("hasRole retorna false si hay excepción al obtener usuario")
+    void testHasRoleException() {
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getName()).thenReturn("testuser");
+        when(userRepository.findByUsername("testuser")).thenThrow(new RuntimeException("Database error"));
+
+        boolean result = service.hasRole("ADMIN");
+
+        assertFalse(result);
+    }
 }
