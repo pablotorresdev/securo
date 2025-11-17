@@ -22,6 +22,7 @@ import com.mb.conitrack.enums.EstadoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.repository.LoteRepository;
+import com.mb.conitrack.utils.MovimientoModificacionUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -34,6 +35,18 @@ class FechaValidatorServiceTest {
 
     @Mock
     LoteRepository loteRepository;
+
+    @Mock
+    com.mb.conitrack.repository.maestro.UserRepository userRepository;
+
+    @Mock
+    com.mb.conitrack.repository.maestro.RoleRepository roleRepository;
+
+    @Mock
+    com.mb.conitrack.repository.AnalisisRepository analisisRepository;
+
+    @Mock
+    com.mb.conitrack.repository.MovimientoRepository movimientoRepository;
 
     private PrintStream originalOut;
     private ByteArrayOutputStream outContent;
@@ -326,6 +339,451 @@ class FechaValidatorServiceTest {
         lote.setActivo(true);
 
         return lote;
+    }
+
+    // ========== Tests adicionales para cobertura completa (14% -> 100%) ==========
+
+    @Nested
+    @DisplayName("getSystemUser() - Cobertura líneas 32-38")
+    class GetSystemUserTests {
+
+        @Test
+        @DisplayName("Debe retornar usuario existente cuando ya existe system_auto")
+        void getSystemUser_usuarioExistente_debeRetornar() {
+            // Given
+            com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+            adminRole.setId(1L);
+            com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+            systemUser.setId(1L);
+
+            when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+            // When
+            com.mb.conitrack.entity.maestro.User resultado = service.getSystemUser();
+
+            // Then
+            assertNotNull(resultado);
+            assertEquals("system_auto", resultado.getUsername());
+            assertEquals(1L, resultado.getId());
+            verify(userRepository).findByUsername("system_auto");
+            verify(roleRepository, never()).findByName(anyString());
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Debe crear nuevo usuario cuando no existe - con role ADMIN existente")
+        void getSystemUser_usuarioNoExistente_debeCrearNuevo_conRoleExistente() {
+            // Given
+            com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+            adminRole.setId(1L);
+
+            when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.empty());
+            when(roleRepository.findByName("ADMIN")).thenReturn(java.util.Optional.of(adminRole));
+            when(userRepository.save(any(com.mb.conitrack.entity.maestro.User.class)))
+                .thenAnswer(invocation -> {
+                    com.mb.conitrack.entity.maestro.User u = invocation.getArgument(0);
+                    u.setId(2L);
+                    return u;
+                });
+
+            // When
+            com.mb.conitrack.entity.maestro.User resultado = service.getSystemUser();
+
+            // Then
+            assertNotNull(resultado);
+            assertEquals("system_auto", resultado.getUsername());
+            assertEquals(2L, resultado.getId());
+            verify(userRepository).findByUsername("system_auto");
+            verify(roleRepository).findByName("ADMIN");
+            verify(userRepository).save(any(com.mb.conitrack.entity.maestro.User.class));
+            verify(roleRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Debe crear nuevo usuario Y nuevo role cuando ambos no existen")
+        void getSystemUser_usuarioYRoleNoExisten_debeCrearAmbos() {
+            // Given
+            com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+            adminRole.setId(1L);
+
+            when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.empty());
+            when(roleRepository.findByName("ADMIN")).thenReturn(java.util.Optional.empty());
+            when(roleRepository.save(any(com.mb.conitrack.entity.maestro.Role.class))).thenReturn(adminRole);
+            when(userRepository.save(any(com.mb.conitrack.entity.maestro.User.class)))
+                .thenAnswer(invocation -> {
+                    com.mb.conitrack.entity.maestro.User u = invocation.getArgument(0);
+                    u.setId(3L);
+                    return u;
+                });
+
+            // When
+            com.mb.conitrack.entity.maestro.User resultado = service.getSystemUser();
+
+            // Then
+            assertNotNull(resultado);
+            assertEquals("system_auto", resultado.getUsername());
+            assertEquals(3L, resultado.getId());
+            verify(userRepository).findByUsername("system_auto");
+            verify(roleRepository).findByName("ADMIN");
+            verify(roleRepository).save(any(com.mb.conitrack.entity.maestro.Role.class));
+            verify(userRepository).save(any(com.mb.conitrack.entity.maestro.User.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("validarFecha() - Método @Scheduled - Cobertura líneas 44-46")
+    class ValidarFechaScheduledTests {
+
+        @Test
+        @DisplayName("Debe llamar a procesarLotesAnalisisExpirado y procesarLotesVencidos")
+        void validarFecha_debeProcegarAmbosMetodos() {
+            // Given
+            when(loteRepository.findLotesConStockOrder()).thenReturn(List.of());
+
+            // When
+            service.validarFecha();
+
+            // Then
+            // Verificar que ambos métodos fueron invocados
+            verify(loteRepository, atLeastOnce()).findLotesConStockOrder();
+        }
+    }
+
+    @Nested
+    @DisplayName("persistirExpiracionAnalisis() - Cobertura líneas 79-86")
+    class PersistirExpiracionAnalisisTests {
+
+        @Test
+        @DisplayName("Debe procesar lista vacía sin errores")
+        void persistirExpiracionAnalisis_listaVacia_debeRetornarVacia() {
+            // Given
+            com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+            List<Lote> lotesVacios = List.of();
+
+            // When
+            List<Lote> resultado = service.persistirExpiracionAnalisis(dto, lotesVacios);
+
+            // Then
+            assertEquals(0, resultado.size());
+            verify(movimientoRepository, never()).save(any());
+            verify(loteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Debe procesar lotes y persistir movimientos correctamente")
+        void persistirExpiracionAnalisis_conLotes_debeProcesarYPersistir() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test");
+
+                Lote lote1 = crearLoteConFechaReanalisis(LocalDate.now());
+                Lote lote2 = crearLoteConFechaReanalisis(LocalDate.now().minusDays(1));
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                // Mock static method
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.ANALISIS_EXPIRADO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movMock);
+
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+                when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                // When
+                List<Lote> resultado = service.persistirExpiracionAnalisis(dto, List.of(lote1, lote2));
+
+                // Then
+                assertEquals(2, resultado.size());
+                verify(movimientoRepository, times(2)).save(any(com.mb.conitrack.entity.Movimiento.class));
+                verify(loteRepository, times(2)).save(any(Lote.class));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("persistirMovimientoExpiracionAnalisis() - Cobertura líneas 92-100")
+    class PersistirMovimientoExpiracionAnalisisTests {
+
+        @Test
+        @DisplayName("Debe crear movimiento con dictamen ANALISIS_EXPIRADO")
+        void persistirMovimientoExpiracionAnalisis_debeCrearMovimiento() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test expiracion");
+
+                Lote lote = crearLoteConFechaReanalisis(LocalDate.now());
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                // Mock static method and movement save
+                com.mb.conitrack.entity.Movimiento movSaved = new com.mb.conitrack.entity.Movimiento();
+                movSaved.setId(1L);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movSaved);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movSaved);
+
+                // When
+                com.mb.conitrack.entity.Movimiento resultado = service.persistirMovimientoExpiracionAnalisis(dto, lote);
+
+                // Then
+                assertNotNull(resultado);
+                assertEquals(1L, resultado.getId());
+                verify(userRepository).findByUsername("system_auto");
+                verify(movimientoRepository).save(any(com.mb.conitrack.entity.Movimiento.class));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("persistirMovimientoProductoVencido() - Cobertura líneas 106-114")
+    class PersistirMovimientoProductoVencidoTests {
+
+        @Test
+        @DisplayName("Debe crear movimiento con dictamen VENCIDO")
+        void persistirMovimientoProductoVencido_debeCrearMovimiento() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test vencimiento");
+
+                Lote lote = crearLoteConFechaVencimiento(LocalDate.now());
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                // Mock static method and movement save
+                com.mb.conitrack.entity.Movimiento movSaved = new com.mb.conitrack.entity.Movimiento();
+                movSaved.setId(2L);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movSaved);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movSaved);
+
+                // When
+                com.mb.conitrack.entity.Movimiento resultado = service.persistirMovimientoProductoVencido(dto, lote);
+
+                // Then
+                assertNotNull(resultado);
+                assertEquals(2L, resultado.getId());
+                verify(userRepository).findByUsername("system_auto");
+                verify(movimientoRepository).save(any(com.mb.conitrack.entity.Movimiento.class));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("persistirProductosVencidos() - Cobertura líneas 120-134")
+    class PersistirProductosVencidosTests {
+
+        @Test
+        @DisplayName("Debe procesar lista vacía sin errores")
+        void persistirProductosVencidos_listaVacia_debeRetornarVacia() {
+            // Given
+            com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+            List<Lote> lotesVacios = List.of();
+
+            // When
+            List<Lote> resultado = service.persistirProductosVencidos(dto, lotesVacios);
+
+            // Then
+            assertEquals(0, resultado.size());
+            verify(movimientoRepository, never()).save(any());
+            verify(loteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Debe cancelar análisis en curso si existe - líneas 127-129")
+        void persistirProductosVencidos_conAnalisisEnCurso_debeCancelar() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test");
+
+                Lote lote = crearLoteConFechaVencimiento(LocalDate.now());
+                // Análisis en curso (dictamen = null)
+                Analisis analisisEnCurso = new Analisis();
+                analisisEnCurso.setId(10L);
+                analisisEnCurso.setNroAnalisis("A-EN-CURSO");
+                analisisEnCurso.setDictamen(null); // EN CURSO
+                lote.getAnalisisList().add(analisisEnCurso);
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.VENCIDO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movMock);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+                when(analisisRepository.save(any(Analisis.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                // When
+                List<Lote> resultado = service.persistirProductosVencidos(dto, List.of(lote));
+
+                // Then
+                assertEquals(1, resultado.size());
+                // Verificar que el análisis fue cancelado
+                assertEquals(DictamenEnum.CANCELADO, lote.getUltimoAnalisis().getDictamen());
+                verify(analisisRepository).save(analisisEnCurso);
+                verify(movimientoRepository).save(any(com.mb.conitrack.entity.Movimiento.class));
+                verify(loteRepository).save(lote);
+            }
+        }
+
+        @Test
+        @DisplayName("No debe cancelar análisis si ya tiene dictamen")
+        void persistirProductosVencidos_analisisDictaminado_noDebeCancelar() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test");
+
+                Lote lote = crearLoteConFechaVencimiento(LocalDate.now());
+                // Análisis ya dictaminado
+                lote.getAnalisisList().get(0).setDictamen(DictamenEnum.APROBADO);
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.VENCIDO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movMock);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+                when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                // When
+                List<Lote> resultado = service.persistirProductosVencidos(dto, List.of(lote));
+
+                // Then
+                assertEquals(1, resultado.size());
+                // Verificar que el análisis NO fue modificado
+                assertEquals(DictamenEnum.APROBADO, lote.getUltimoAnalisis().getDictamen());
+                verify(analisisRepository, never()).save(any(Analisis.class));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("procesarLotesAnalisisExpirado() - Cobertura líneas 139-155")
+    class ProcesarLotesAnalisisExpiradoTests {
+
+        @Test
+        @DisplayName("Debe retornar inmediatamente si lista está vacía - línea 141")
+        void procesarLotesAnalisisExpirado_listaVacia_debeRetornar() {
+            // Given
+            List<Lote> lotesVacios = List.of();
+
+            // When
+            service.procesarLotesAnalisisExpirado(lotesVacios);
+
+            // Then
+            verify(movimientoRepository, never()).save(any());
+            verify(loteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Debe procesar lotes y mostrar log - líneas 143-154")
+        void procesarLotesAnalisisExpirado_conLotes_debeProcesarYLoggear() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                Lote lote1 = crearLoteConFechaReanalisis(LocalDate.now());
+                lote1.setLoteProveedor("LP-001");
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.ANALISIS_EXPIRADO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movMock);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+                when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                // When
+                service.procesarLotesAnalisisExpirado(List.of(lote1));
+
+                // Then
+                verify(movimientoRepository).save(any(com.mb.conitrack.entity.Movimiento.class));
+                verify(loteRepository).save(lote1);
+                String output = outContent.toString();
+                assertTrue(output.contains("Reanalisis expirado"));
+                assertTrue(output.contains("LP-001"));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("procesarLotesVencidos() - Cobertura líneas 159-172")
+    class ProcesarLotesVencidosTests {
+
+        @Test
+        @DisplayName("Debe retornar inmediatamente si lista está vacía - línea 161")
+        void procesarLotesVencidos_listaVacia_debeRetornar() {
+            // Given
+            List<Lote> lotesVacios = List.of();
+
+            // When
+            service.procesarLotesVencidos(lotesVacios);
+
+            // Then
+            verify(movimientoRepository, never()).save(any());
+            verify(loteRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Debe procesar lotes y mostrar log - líneas 163-171")
+        void procesarLotesVencidos_conLotes_debeProcesarYLoggear() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                Lote lote1 = crearLoteConFechaVencimiento(LocalDate.now());
+                lote1.setLoteProveedor("LP-002");
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.VENCIDO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movMock);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+                when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                // When
+                service.procesarLotesVencidos(List.of(lote1));
+
+                // Then
+                verify(movimientoRepository).save(any(com.mb.conitrack.entity.Movimiento.class));
+                verify(loteRepository).save(lote1);
+                String output = outContent.toString();
+                assertTrue(output.contains("Vencido"));
+                assertTrue(output.contains("LP-002"));
+            }
+        }
     }
 
 }

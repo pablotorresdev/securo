@@ -82,7 +82,17 @@
       "Bash(cmd /c \"gradlew.bat cleanTest test jacocoTestReport\")",
       "Bash(cmd /c \"type build\\test-results\\test\\TEST-com.mb.conitrack.service.cu.validator.FechaValidatorTest$ValidarFechaEgresoLoteDtoPosteriorLote.xml\")",
       "Bash(gradlew.bat cleanTest test:*)",
-      "Bash(cmd /c \"gradlew.bat cleanTest test --tests com.mb.conitrack.service.cu.validator.FechaValidatorTest\")"
+      "Bash(cmd /c \"gradlew.bat cleanTest test --tests com.mb.conitrack.service.cu.validator.FechaValidatorTest\")",
+      "Bash(cmd /c \"gradlew.bat test jacocoTestReport\")",
+      "Bash(cmd /c \"gradlew.bat clean\")",
+      "Bash(cmd /c \"dir /T:W build\\test-results\\test\\TEST-com.mb.conitrack.service.cu.BajaConsumoProduccionServiceTest$ValidarConsumoProduccionInput.xml | findstr xml\")",
+      "Bash(cmd /c \"gradlew.bat --stop\")",
+      "Bash(cmd /c \"cat build/test-results/test/TEST-com.mb.conitrack.service.cu.BajaConsumoProduccionServiceTest$ValidarConsumoProduccionInput.xml | findstr timestamp\")",
+      "Bash(cmd /c \"gradlew.bat clean test\")",
+      "Bash(cmd /c:*)",
+      "Bash(.gradlew.bat cleanTest test:*)",
+      "Bash(timeout:*)",
+      "Bash(del \"C:\\opt\\securo\\src\\test\\java\\com\\mb\\conitrack\\service\\cu\\MuestreoTrazableServiceTest.java\")"
     ],
     "deny": [],
     "ask": []

@@ -98,6 +98,26 @@ class CantidadValidatorTest {
             assertThat(resultado).isFalse();
             assertThat(binding.hasErrors()).isTrue();
         }
+
+        @Test
+        @DisplayName("debe retornar false cuando validarSumaBultosConvertida falla")
+        void debe_retornarFalse_cuandoValidarSumaBultosConvertidaFalla() {
+            // Given - Covers line 38: validarTipoDeDato passes but validarSumaBultosConvertida fails
+            LoteDTO dto = new LoteDTO();
+            dto.setBultosTotales(2);
+            dto.setCantidadInicial(new BigDecimal("100.00"));
+            dto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
+            dto.setCantidadesBultos(Arrays.asList(new BigDecimal("40.00"), new BigDecimal("50.00"))); // Suma != total
+            dto.setUnidadMedidaBultos(Arrays.asList(UnidadMedidaEnum.KILOGRAMO, UnidadMedidaEnum.KILOGRAMO));
+            BindingResult binding = new BeanPropertyBindingResult(dto, "dto");
+
+            // When
+            boolean resultado = CantidadValidator.validarBultos(dto, binding);
+
+            // Then
+            assertThat(resultado).isFalse();
+            assertThat(binding.hasErrors()).isTrue();
+        }
     }
 
     @Nested
@@ -457,6 +477,26 @@ class CantidadValidatorTest {
         }
 
         @Test
+        @DisplayName("debe retornar false cuando unidadMedidaBultos es vacía")
+        void debe_retornarFalse_cuandoUnidadMedidaBultosVacia() {
+            // Given
+            LoteDTO dto = new LoteDTO();
+            dto.setCantidadesBultos(Arrays.asList(new BigDecimal("10")));
+            dto.setUnidadMedidaBultos(new ArrayList<>());
+            Lote lote = new Lote();
+            BindingResult binding = new BeanPropertyBindingResult(dto, "dto");
+
+            // When
+            boolean resultado = CantidadValidator.validarCantidadesPorMedidas(dto, lote, binding);
+
+            // Then
+            assertThat(resultado).isFalse();
+            assertThat(binding.getFieldError("cantidadesBultos")).isNotNull();
+            assertThat(binding.getFieldError("cantidadesBultos").getDefaultMessage())
+                .isEqualTo("Debe ingresar las unidades de medida");
+        }
+
+        @Test
         @DisplayName("debe retornar false cuando cantidad individual es null")
         void debe_retornarFalse_cuandoCantidadIndividualNull() {
             // Given
@@ -761,6 +801,25 @@ class CantidadValidatorTest {
             dto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
             dto.setCantidadesBultos(Arrays.asList(new BigDecimal("50.00"), null));
             dto.setUnidadMedidaBultos(Arrays.asList(UnidadMedidaEnum.KILOGRAMO, UnidadMedidaEnum.KILOGRAMO));
+            BindingResult binding = new BeanPropertyBindingResult(dto, "dto");
+
+            // When
+            boolean resultado = CantidadValidator.validarSumaBultosConvertida(dto, binding);
+
+            // Then
+            assertThat(resultado).isTrue();
+            assertThat(binding.hasErrors()).isFalse();
+        }
+
+        @Test
+        @DisplayName("debe omitir elementos cuando unidadBulto es null")
+        void debe_omitirElementos_cuandoUnidadBultoNull() {
+            // Given - Covers line 226-227 (continue when unidadBulto is null)
+            LoteDTO dto = new LoteDTO();
+            dto.setCantidadInicial(new BigDecimal("50.00"));
+            dto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
+            dto.setCantidadesBultos(Arrays.asList(new BigDecimal("50.00"), new BigDecimal("10.00")));
+            dto.setUnidadMedidaBultos(Arrays.asList(UnidadMedidaEnum.KILOGRAMO, null));
             BindingResult binding = new BeanPropertyBindingResult(dto, "dto");
 
             // When

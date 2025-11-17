@@ -397,8 +397,8 @@ class FechaValidatorTest {
 
             // Then
             assertThat(resultado).isFalse();
-            assertThat(binding.getFieldError("fechaMovimiento")).isNotNull();
-            assertThat(binding.getFieldError("fechaMovimiento").getDefaultMessage())
+            assertThat(binding.getFieldError("fechaEgreso")).isNotNull();
+            assertThat(binding.getFieldError("fechaEgreso").getDefaultMessage())
                 .isEqualTo("La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
         }
 

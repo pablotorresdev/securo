@@ -771,8 +771,8 @@ class BajaConsumoProduccionServiceTest {
         }
 
         @Test
-        @DisplayName("test_validacionFechaEgresoAnteriorIngreso_debe_lanzarExcepcion")
-        void test_validacionFechaEgresoAnteriorIngreso_debe_lanzarExcepcion() {
+        @DisplayName("test_validacionFechaEgresoAnteriorIngreso_debe_agregarError")
+        void test_validacionFechaEgresoAnteriorIngreso_debe_agregarError() {
             // Given
             LoteDTO dto = new LoteDTO();
             dto.setCodigoLote("L-TEST-001");
@@ -786,12 +786,13 @@ class BajaConsumoProduccionServiceTest {
             // Mock repository
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
 
-            // When/Then
-            // Note: The validation method tries to reject to "fechaMovimiento" even though LoteDTO only has "fechaEgreso"
-            // (AbstractCuService:375 - validarFechaEgresoLoteDtoPosteriorLote rejects to "fechaMovimiento")
-            // This causes NotReadablePropertyException because LoteDTO doesn't have fechaMovimiento property
-            assertThatThrownBy(() -> service.validarConsumoProduccionInput(dto, binding))
-                .isInstanceOf(org.springframework.beans.NotReadablePropertyException.class);
+            // When
+            boolean resultado = service.validarConsumoProduccionInput(dto, binding);
+
+            // Then
+            assertThat(resultado).isFalse();
+            assertThat(binding.hasErrors()).isTrue();
+            assertThat(binding.getFieldError("fechaEgreso")).isNotNull();
         }
 
         @Test

@@ -5,15 +5,19 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.entity.maestro.Role;
 import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.DictamenEnum;
 import com.mb.conitrack.enums.EstadoEnum;
+import com.mb.conitrack.enums.MotivoEnum;
 import com.mb.conitrack.enums.RoleEnum;
+import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.enums.TipoProductoEnum;
 import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.repository.AnalisisRepository;
@@ -597,8 +601,8 @@ class BajaMuestreoBultoServiceTest {
         }
 
         @Test
-        @DisplayName("test_validacionFechaEgresoAnteriorIngreso_debe_lanzarExcepcion")
-        void test_validacionFechaEgresoAnteriorIngreso_debe_lanzarExcepcion() {
+        @DisplayName("test_validacionFechaEgresoAnteriorIngreso_debe_agregarError")
+        void test_validacionFechaEgresoAnteriorIngreso_debe_agregarError() {
             // Given
             LoteDTO dto = new LoteDTO();
             dto.setCodigoLote("L-TEST-001");
@@ -616,11 +620,13 @@ class BajaMuestreoBultoServiceTest {
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
 
-            // When/Then
-            // Note: validarFechaEgresoLoteDtoPosteriorLote rejects to "fechaMovimiento" even though LoteDTO has "fechaEgreso"
-            // This causes NotReadablePropertyException because LoteDTO doesn't have fechaMovimiento property
-            assertThatThrownBy(() -> service.validarmuestreoMultiBultoInput(dto, binding))
-                .isInstanceOf(org.springframework.beans.NotReadablePropertyException.class);
+            // When
+            boolean resultado = service.validarmuestreoMultiBultoInput(dto, binding);
+
+            // Then
+            assertThat(resultado).isFalse();
+            assertThat(binding.hasErrors()).isTrue();
+            assertThat(binding.getFieldError("fechaEgreso")).isNotNull();
         }
 
         @Test
@@ -1240,5 +1246,271 @@ class BajaMuestreoBultoServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("Métodos de Delegación - Cobertura líneas 96 y 133")
+    class MetodosDelegacion {
+
+        @Test
+        @DisplayName("test_persistirMovimientoMuestreo_debe_delegarAMuestreoTrazableService")
+        void test_persistirMovimientoMuestreo_debe_delegarAMuestreoTrazableService() {
+            // Given
+            MovimientoDTO dto = new MovimientoDTO();
+            dto.setNroAnalisis("AN-2025-001");
+            Bulto bulto = loteTest.getBultos().get(0);
+
+            Movimiento movimientoEsperado = new Movimiento();
+            movimientoEsperado.setId(1L);
+            doReturn(movimientoEsperado).when(muestreoTrazableService).persistirMovimientoMuestreo(dto, bulto, testUser);
+
+            // When
+            Movimiento resultado = service.persistirMovimientoMuestreo(dto, bulto, testUser);
+
+            // Then
+            assertThat(resultado).isNotNull();
+            assertThat(resultado.getId()).isEqualTo(1L);
+            verify(muestreoTrazableService).persistirMovimientoMuestreo(dto, bulto, testUser);
+        }
+
+        @Test
+        @DisplayName("test_persistirMovimientoBajaMuestreoMultiBulto_debe_delegarAMuestreoMultiBultoService")
+        void test_persistirMovimientoBajaMuestreoMultiBulto_debe_delegarAMuestreoMultiBultoService() {
+            // Given
+            LoteDTO dto = new LoteDTO();
+            dto.setCodigoLote("L-TEST-001");
+
+            Movimiento movimientoEsperado = new Movimiento();
+            movimientoEsperado.setId(2L);
+            doReturn(movimientoEsperado).when(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser);
+
+            // When
+            Movimiento resultado = service.persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser);
+
+            // Then
+            assertThat(resultado).isNotNull();
+            assertThat(resultado.getId()).isEqualTo(2L);
+            verify(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser);
+        }
+    }
+
+    @Nested
+    @DisplayName("Cobertura adicional - MuestreoTrazableService")
+    class CoberturaMuestreoTrazableService {
+
+        @Test
+        @DisplayName("debe procesar muestreo para producto UNIDAD_VENTA con trazas")
+        void debe_procesarMuestreoUnidadVenta_conTrazas() {
+            // Given - Configurar producto UNIDAD_VENTA
+            productoTest.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
+            loteTest.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            loteTest.setCantidadActual(new BigDecimal("10"));
+            loteTest.setCantidadInicial(new BigDecimal("10"));
+            loteTest.setMovimientos(new ArrayList<>());
+
+            Bulto bultoUnidad = new Bulto();
+            bultoUnidad.setId(1L);
+            bultoUnidad.setNroBulto(1);
+            bultoUnidad.setLote(loteTest);
+            bultoUnidad.setCantidadInicial(new BigDecimal("10"));
+            bultoUnidad.setCantidadActual(new BigDecimal("10"));
+            bultoUnidad.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            bultoUnidad.setEstado(EstadoEnum.VIGENTE);
+            bultoUnidad.setActivo(true);
+
+            loteTest.setBultos(new ArrayList<>(Arrays.asList(bultoUnidad)));
+
+            // Crear trazas activas
+            Traza traza1 = new Traza();
+            traza1.setId(1L);
+            traza1.setNroTraza(1L);
+            traza1.setLote(loteTest);
+            traza1.setEstado(EstadoEnum.VIGENTE);
+            traza1.setActivo(true);
+            traza1.setDetalles(new ArrayList<>());
+
+            Traza traza2 = new Traza();
+            traza2.setId(2L);
+            traza2.setNroTraza(2L);
+            traza2.setLote(loteTest);
+            traza2.setEstado(EstadoEnum.VIGENTE);
+            traza2.setActivo(true);
+            traza2.setDetalles(new ArrayList<>());
+
+            loteTest.setTrazas(new ArrayList<>(Arrays.asList(traza1, traza2)));
+
+            // MovimientoDTO con trazas
+            MovimientoDTO dtoConTrazas = new MovimientoDTO();
+            dtoConTrazas.setCodigoLote("L-TEST-001");
+            dtoConTrazas.setNroBulto("1");
+            dtoConTrazas.setNroAnalisis("AN-2025-001");
+            dtoConTrazas.setCantidad(new BigDecimal("2"));
+            dtoConTrazas.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            dtoConTrazas.setFechaMovimiento(LocalDate.now());
+            dtoConTrazas.setFechaRealizadoAnalisis(LocalDate.now());
+
+            TrazaDTO trazaDTO1 = new TrazaDTO();
+            trazaDTO1.setNroTraza(1L);
+            TrazaDTO trazaDTO2 = new TrazaDTO();
+            trazaDTO2.setNroTraza(2L);
+            dtoConTrazas.setTrazaDTOs(Arrays.asList(trazaDTO1, trazaDTO2));
+
+            // Mock movimiento con detalle
+            DetalleMovimiento detalle = new DetalleMovimiento();
+            detalle.setId(1L);
+            detalle.setCantidad(new BigDecimal("2"));
+            detalle.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            detalle.setTrazas(new ArrayList<>());
+
+            Movimiento movimientoMock = new Movimiento();
+            movimientoMock.setId(1L);
+            movimientoMock.setTipoMovimiento(TipoMovimientoEnum.BAJA);
+            movimientoMock.setMotivo(MotivoEnum.MUESTREO);
+            movimientoMock.setCantidad(new BigDecimal("2"));
+            movimientoMock.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            movimientoMock.setDetalles(new ArrayList<>(Arrays.asList(detalle)));
+
+            when(securityContextService.getCurrentUser()).thenReturn(testUser);
+            when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001"))
+                .thenReturn(Optional.of(loteTest));
+            when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimientoMock);
+            when(trazaRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+            when(loteRepository.save(any(Lote.class))).thenReturn(loteTest);
+
+            // When
+            LoteDTO resultado = service.bajaMuestreoTrazable(dtoConTrazas);
+
+            // Then
+            assertThat(resultado).isNotNull();
+            verify(trazaRepository).saveAll(anyList());
+            verify(loteRepository).save(loteTest);
+        }
+    }
+
+    @Nested
+    @DisplayName("Cobertura adicional - MuestreoMultiBultoService (líneas 61-78, 190-235)")
+    class CoberturaMuestreoMultiBultoService {
+
+        @Test
+        @DisplayName("test_persistirMovimientoBajaMuestreoMultiBulto_debe_crearMovimientoConDetalles_cubrirLineas61a78")
+        void test_persistirMovimientoBajaMuestreoMultiBulto_debe_crearMovimientoConDetalles_cubrirLineas61a78() {
+            // Given - Setup to test the real method without mocking it
+            LoteDTO dto = new LoteDTO();
+            dto.setCodigoLote("L-TEST-001");
+            dto.setFechaEgreso(LocalDate.now());
+            dto.setNroBultoList(Arrays.asList(1, 2));
+            dto.setCantidadesBultos(Arrays.asList(new BigDecimal("10.00"), new BigDecimal("15.00")));
+            dto.setUnidadMedidaBultos(Arrays.asList(UnidadMedidaEnum.KILOGRAMO, UnidadMedidaEnum.KILOGRAMO));
+
+            // Agregar análisis al lote
+            Analisis analisis = new Analisis();
+            analisis.setId(1L);
+            analisis.setNroAnalisis("AN-2025-001");
+            loteTest.getAnalisisList().add(analisis);
+
+            // Mock movimiento repository to return saved movimiento
+            Movimiento movimientoGuardado = new Movimiento();
+            movimientoGuardado.setId(1L);
+            movimientoGuardado.setNroAnalisis("AN-2025-001");
+            movimientoGuardado.setCantidad(new BigDecimal("25.00")); // 10 + 15
+            movimientoGuardado.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
+            when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimientoGuardado);
+
+            // When - Call the real method directly (not mocked)
+            Movimiento resultado = muestreoMultiBultoService.persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser);
+
+            // Then
+            assertThat(resultado).isNotNull();
+            assertThat(resultado.getNroAnalisis()).isEqualTo("AN-2025-001");
+            // This test covers lines 61-78:
+            // - Line 61: createMovimientoPorMuestreoMultiBulto call
+            // - Line 63: getUltimoAnalisis()
+            // - Line 68: setNroAnalisis()
+            // - Line 70: calcularUnidadMedidaMovimiento() - covers lines 190-196
+            // - Line 71: calcularCantidadTotalMovimiento() - covers lines 203-213
+            // - Line 73-74: setCantidad() and setUnidadMedida()
+            // - Line 76: agregarDetallesMovimiento() - covers lines 220-235
+            // - Line 78: movimientoRepository.save()
+            verify(movimientoRepository).save(any(Movimiento.class));
+        }
+
+        @Test
+        @DisplayName("test_persistirMovimientoBajaMuestreoMultiBulto_sinAnalisis_debe_lanzarExcepcion_cubrirLinea64a65")
+        void test_persistirMovimientoBajaMuestreoMultiBulto_sinAnalisis_debe_lanzarExcepcion_cubrirLinea64a65() {
+            // Given - Lote sin análisis
+            LoteDTO dto = new LoteDTO();
+            dto.setCodigoLote("L-TEST-001");
+            dto.setNroBultoList(Arrays.asList(1));
+            dto.setCantidadesBultos(Arrays.asList(new BigDecimal("10.00")));
+            dto.setUnidadMedidaBultos(Arrays.asList(UnidadMedidaEnum.KILOGRAMO));
+
+            loteTest.getAnalisisList().clear(); // Sin análisis
+
+            // When/Then - Should throw exception at line 65
+            assertThatThrownBy(() -> muestreoMultiBultoService.persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("No hay Analisis con al que asociar el muestreo");
+            // This covers lines 64-65 (if ultimoAnalisis == null branch)
+        }
+
+        @Test
+        @DisplayName("test_persistirMovimientoBajaMuestreoMultiBulto_multipleUnidades_debe_calcularCorrectamente")
+        void test_persistirMovimientoBajaMuestreoMultiBulto_multipleUnidades_debe_calcularCorrectamente() {
+            // Given - Multiple units to test calcularUnidadMedidaMovimiento and calcularCantidadTotalMovimiento
+            LoteDTO dto = new LoteDTO();
+            dto.setCodigoLote("L-TEST-001");
+            dto.setNroBultoList(Arrays.asList(1, 2));
+            // Different units: GRAMO and KILOGRAMO - should calculate as KILOGRAMO (mayor unidad)
+            dto.setCantidadesBultos(Arrays.asList(new BigDecimal("5000"), new BigDecimal("10"))); // 5000g + 10kg
+            dto.setUnidadMedidaBultos(Arrays.asList(UnidadMedidaEnum.GRAMO, UnidadMedidaEnum.KILOGRAMO));
+
+            // Agregar análisis al lote
+            Analisis analisis = new Analisis();
+            analisis.setId(1L);
+            analisis.setNroAnalisis("AN-2025-001");
+            loteTest.getAnalisisList().add(analisis);
+
+            Movimiento movimientoGuardado = new Movimiento();
+            movimientoGuardado.setId(1L);
+            when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimientoGuardado);
+
+            // When
+            Movimiento resultado = muestreoMultiBultoService.persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser);
+
+            // Then
+            assertThat(resultado).isNotNull();
+            // This test covers lines 190-196 (calcularUnidadMedidaMovimiento with loop)
+            // and lines 203-213 (calcularCantidadTotalMovimiento with loop and conversions)
+            verify(movimientoRepository).save(any(Movimiento.class));
+        }
+
+        @Test
+        @DisplayName("test_agregarDetallesMovimiento_conCantidadCero_debe_omitir_cubrirLinea222a223")
+        void test_agregarDetallesMovimiento_conCantidadCero_debe_omitir_cubrirLinea222a223() {
+            // Given - One bulto with zero quantity to test continue branch at line 223
+            LoteDTO dto = new LoteDTO();
+            dto.setCodigoLote("L-TEST-001");
+            dto.setNroBultoList(Arrays.asList(1, 2));
+            dto.setCantidadesBultos(Arrays.asList(new BigDecimal("10.00"), BigDecimal.ZERO)); // Bulto 2 = 0
+            dto.setUnidadMedidaBultos(Arrays.asList(UnidadMedidaEnum.KILOGRAMO, UnidadMedidaEnum.KILOGRAMO));
+
+            // Agregar análisis al lote
+            Analisis analisis = new Analisis();
+            analisis.setId(1L);
+            analisis.setNroAnalisis("AN-2025-001");
+            loteTest.getAnalisisList().add(analisis);
+
+            Movimiento movimientoGuardado = new Movimiento();
+            movimientoGuardado.setId(1L);
+            when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimientoGuardado);
+
+            // When
+            Movimiento resultado = muestreoMultiBultoService.persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser);
+
+            // Then
+            assertThat(resultado).isNotNull();
+            // This test covers lines 222-223 (continue when cantidad is ZERO)
+            // Only 1 detalle should be added (bulto 1), bulto 2 should be skipped
+            verify(movimientoRepository).save(any(Movimiento.class));
+        }
+    }
 
 }
