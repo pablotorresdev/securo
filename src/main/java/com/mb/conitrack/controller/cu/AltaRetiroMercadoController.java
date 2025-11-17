@@ -89,14 +89,14 @@ public class AltaRetiroMercadoController extends AbstractCuController {
         movimientoDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final List<LoteDTO> resultDTO = retiroMercadoService.persistirRetiroMercado(movimientoDTO);
 
-        redirectAttributes.addFlashAttribute("loteRecallDTO", resultDTO.get(0));
-        redirectAttributes.addFlashAttribute("loteVentaDTO", resultDTO.get(1));
-        redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);
-        redirectAttributes.addFlashAttribute(
-            resultDTO != null ? "success" : "error",
-            resultDTO != null
-                ? "Ingreso de stock por devolución exitoso."
-                : "Hubo un error en el ingreso de stock por devolución.");
+        if (resultDTO != null && !resultDTO.isEmpty()) {
+            redirectAttributes.addFlashAttribute("loteRecallDTO", resultDTO.get(0));
+            redirectAttributes.addFlashAttribute("loteVentaDTO", resultDTO.get(1));
+            redirectAttributes.addFlashAttribute("movimientoDTO", movimientoDTO);
+            redirectAttributes.addFlashAttribute("success", "Ingreso de stock por devolución exitoso.");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Hubo un error en el ingreso de stock por devolución.");
+        }
     }
 
 }

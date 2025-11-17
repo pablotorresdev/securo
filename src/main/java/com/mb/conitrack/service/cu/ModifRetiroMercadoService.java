@@ -1,13 +1,10 @@
 package com.mb.conitrack.service.cu;
 
-import com.mb.conitrack.dto.DetalleMovimientoDTO;
 import com.mb.conitrack.dto.LoteDTO;
 import com.mb.conitrack.dto.MovimientoDTO;
-import com.mb.conitrack.dto.TrazaDTO;
-import com.mb.conitrack.entity.*;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.User;
-import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.enums.UnidadMedidaEnum;
 import com.mb.conitrack.service.SecurityContextService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,35 +12,39 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static com.mb.conitrack.dto.DTOUtils.fromLoteEntities;
-import static com.mb.conitrack.enums.EstadoEnum.DISPONIBLE;
-import static com.mb.conitrack.enums.EstadoEnum.RECALL;
-import static com.mb.conitrack.utils.MovimientoAltaUtils.createMovimientoAltaRecall;
-import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimientoModifRecall;
 import static java.lang.Boolean.TRUE;
 
+/**
+ * Servicio coordinador para el retiro de mercado (CU24 - Recall).
+ * Delega la lógica específica a servicios especializados:
+ * - AltaRecallService: Para crear lotes de retiro de mercado
+ * - ModificacionRecallService: Para modificar estado de lotes a RECALL
+ */
 @Service
 public class ModifRetiroMercadoService extends AbstractCuService {
 
     @Autowired
     private SecurityContextService securityContextService;
 
-    private static Bulto initBulto(final Lote clone) {
-        Bulto bulto = new Bulto();
-        bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-        bulto.setEstado(RECALL);
-        bulto.setActivo(TRUE);
-        bulto.setLote(clone);
-        return bulto;
-    }
+    @Autowired
+    private AltaRecallService altaRecallService;
+
+    @Autowired
+    private ModificacionRecallService modificacionRecallService;
 
     //***********CU24 ALTA/MODIF: RECALL***********
 
+    /**
+     * Método principal que coordina el proceso de retiro de mercado (recall).
+     * Ejecuta dos operaciones:
+     * 1. ALTA: Crea un nuevo lote recall derivado del lote de venta
+     * 2. MODIFICACION: Cambia el estado del lote de venta original a RECALL
+     */
     @Transactional
     public List<LoteDTO> persistirRetiroMercado(final MovimientoDTO dto) {
         User currentUser = securityContextService.getCurrentUser();
@@ -57,220 +58,18 @@ public class ModifRetiroMercadoService extends AbstractCuService {
                 .orElseThrow(() -> new IllegalArgumentException("El movmiento de origen no existe."));
 
         //************ALTA RECALL************
-        procesarAltaRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result, currentUser);
+        altaRecallService.procesarAltaRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result, currentUser);
 
         //************MODIFICACION RECALL************
-        procesarModificacionRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result, currentUser);
+        modificacionRecallService.procesarModificacionRecall(dto, loteVentaOrigen, movimientoVentaOrigen, result, currentUser);
+
         return fromLoteEntities(result);
     }
 
-    private void procesarModificacionRecall(
-            final MovimientoDTO dto,
-            final Lote loteOrigenRecall,
-            final Movimiento movimientoVentaOrigen,
-            final List<Lote> result,
-            User currentUser) {
-
-        if (loteOrigenRecall.getEstado() == RECALL) {
-            loteRepository.findById(loteOrigenRecall.getId()).ifPresent(result::add);
-            return;
-        }
-
-        final Movimiento movimientoModifRecall = createMovimientoModifRecall(dto, currentUser);
-        movimientoModifRecall.setDictamenInicial(loteOrigenRecall.getDictamen());
-        movimientoModifRecall.setMovimientoOrigen(movimientoVentaOrigen);
-        movimientoModifRecall.setLote(loteOrigenRecall);
-
-        if (TRUE.equals(loteOrigenRecall.getTrazado())) {
-            for (Bulto bulto : loteOrigenRecall.getBultos()) {
-                final Set<Traza> trazas = bulto.getTrazas();
-                final List<Traza> trazasRecall = new ArrayList<>();
-                boolean recall = false;
-                for (Traza tr : trazas) {
-                    if (tr.getEstado() != DISPONIBLE) {
-                        continue;
-                    }
-
-                    tr.setEstado(RECALL);
-                    trazasRecall.add(tr);
-                    recall = true;
-                }
-                if (recall) {
-                    bulto.setEstado(RECALL);
-                }
-                trazaRepository.saveAll(trazasRecall);
-            }
-        } else {
-            for (Bulto bultoRecall : loteOrigenRecall.getBultos()) {
-                if (bultoRecall.getCantidadActual().compareTo(BigDecimal.ZERO) > 0) {
-                    bultoRecall.setEstado(RECALL);
-                }
-            }
-        }
-
-        final Movimiento savedMovModifRecall = movimientoRepository.save(movimientoModifRecall);
-
-        bultoRepository.saveAll(loteOrigenRecall.getBultos());
-
-        loteOrigenRecall.setEstado(RECALL);
-        loteOrigenRecall.getMovimientos().add(savedMovModifRecall);
-
-        if (loteOrigenRecall.getUltimoAnalisis() != null && loteOrigenRecall.getUltimoAnalisis().getDictamen() == null) {
-            loteOrigenRecall.getUltimoAnalisis().setDictamen(DictamenEnum.CANCELADO);
-            analisisRepository.save(loteOrigenRecall.getUltimoAnalisis());
-        }
-        loteRepository.findById(loteRepository.save(loteOrigenRecall).getId()).ifPresent(result::add);
-    }
-
-    private void procesarAltaRecall(
-            final MovimientoDTO dto,
-            final Lote loteOrigenRecall,
-            final Movimiento movimientoVentaOrigen,
-            final List<Lote> result,
-            User currentUser) {
-
-        Lote loteAltaRecall = crearLoteRecall(loteOrigenRecall, dto);
-
-        final Movimiento movimientoAltaRecall = createMovimientoAltaRecall(dto, loteAltaRecall, currentUser);
-        movimientoAltaRecall.setMovimientoOrigen(movimientoVentaOrigen);
-
-        final Lote loteRecallGuardado = loteRepository.save(loteAltaRecall);
-
-        if (TRUE.equals(loteOrigenRecall.getTrazado())) {
-            altaRecallUnidadesTrazadas(dto, loteOrigenRecall, loteAltaRecall, movimientoAltaRecall);
-        } else {
-            altaRecallUnidadesPorBulto(loteAltaRecall, movimientoAltaRecall);
-        }
-
-        loteRepository.findById(loteRepository.save(loteRecallGuardado).getId()).ifPresent(result::add);
-    }
-
-    private void altaRecallUnidadesPorBulto(final Lote loteAltaRecall, final Movimiento movimientoAltaRecall) {
-        BigDecimal cantidadMovimiento = BigDecimal.ZERO;
-        for (Bulto bultoRecall : loteAltaRecall.getBultos()) {
-
-            final DetalleMovimiento det = DetalleMovimiento.builder()
-                    .movimiento(movimientoAltaRecall)
-                    .bulto(bultoRecall)
-                    // Cantidad = cantidad de trazas devueltas (campo NOT NULL) — no impacta stock
-                    .cantidad(bultoRecall.getCantidadActual())
-                    .unidadMedida(UnidadMedidaEnum.UNIDAD)
-                    .activo(TRUE)
-                    .build();
-
-            cantidadMovimiento = cantidadMovimiento.add(bultoRecall.getCantidadActual());
-
-            // Colgar el detalle AL movimiento (habilita cascade para insertar detalle + join table)
-            movimientoAltaRecall.getDetalles().add(det);
-
-            bultoRepository.save(bultoRecall);
-        }
-        movimientoAltaRecall.setCantidad(cantidadMovimiento);
-        movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-        movimientoRepository.save(movimientoAltaRecall);
-
-        loteAltaRecall.setBultosTotales(loteAltaRecall.getBultos().size());
-    }
-
-    private void altaRecallUnidadesTrazadas(
-            final MovimientoDTO dto,
-            final Lote loteOrigenRecall,
-            final Lote loteAltaRecall,
-            final Movimiento movimientoAltaRecall) {
-        BigDecimal cantidadMovimiento = BigDecimal.ZERO;
-        final Map<Integer, List<TrazaDTO>> trazasDTOporBultoMap = dto.getTrazaDTOs().stream()
-                .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
-
-        for (Entry<Integer, List<TrazaDTO>> mapEntry : trazasDTOporBultoMap.entrySet()) {
-
-            final Integer nroBulto = mapEntry.getKey();
-            final List<TrazaDTO> trazasDTOsPorNroBulto = mapEntry.getValue();
-
-            final Bulto bultoOriginal = loteOrigenRecall.getBultoByNro(nroBulto);
-            final Bulto bultoRecall = loteAltaRecall.getBultoByNro(nroBulto);
-
-            final DetalleMovimiento det = DetalleMovimiento.builder()
-                    .movimiento(movimientoAltaRecall)
-                    .bulto(bultoRecall)
-                    .cantidad(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()))
-                    .unidadMedida(UnidadMedidaEnum.UNIDAD)
-                    .activo(TRUE)
-                    .build();
-
-            cantidadMovimiento = cantidadMovimiento.add(BigDecimal.valueOf(trazasDTOsPorNroBulto.size()));
-
-            movimientoAltaRecall.getDetalles().add(det);
-
-            for (TrazaDTO t : trazasDTOsPorNroBulto) {
-                final Traza trazaBulto = bultoOriginal.getTrazaByNro(t.getNroTraza());
-                trazaBulto.setLote(loteAltaRecall);
-                trazaBulto.setBulto(bultoRecall);
-                trazaBulto.setEstado(RECALL);
-                det.getTrazas().add(trazaBulto);
-            }
-            trazaRepository.saveAll(det.getTrazas());
-            bultoRepository.save(bultoRecall);
-        }
-        movimientoAltaRecall.setCantidad(cantidadMovimiento);
-        movimientoAltaRecall.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-        movimientoRepository.save(movimientoAltaRecall);
-
-        loteAltaRecall.setBultosTotales(trazasDTOporBultoMap.size());
-    }
-
-    @Transactional
-    public Lote crearLoteRecall(final Lote original, final MovimientoDTO dto) {
-
-        Lote clone = initLoteRecall(original, dto);
-        if (TRUE.equals(original.getTrazado())) {
-            final Map<Integer, List<TrazaDTO>> trazaDTOporBultoMap = dto.getTrazaDTOs().stream()
-                    .collect(Collectors.groupingBy(TrazaDTO::getNroBulto));
-            for (Map.Entry<Integer, List<TrazaDTO>> trazaDTOporBulto : trazaDTOporBultoMap.entrySet()) {
-
-                final Integer trazaDTOEnNroBulto = trazaDTOporBulto.getKey();
-
-                final List<TrazaDTO> trazasDTOsPorBulto = trazaDTOporBulto.getValue();
-
-                Bulto bulto = initBulto(clone);
-                bulto.setNroBulto(trazaDTOEnNroBulto);
-                bulto.setCantidadInicial(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
-                bulto.setCantidadActual(BigDecimal.valueOf(trazasDTOsPorBulto.size()));
-
-                clone.getBultos().add(bulto);
-            }
-            clone.setCantidadInicial(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
-            clone.setCantidadActual(BigDecimal.valueOf(dto.getTrazaDTOs().size()));
-        } else {
-            final List<DetalleMovimientoDTO> detalleMovimientoDTOs = dto.getDetalleMovimientoDTOs();
-            BigDecimal cantidad = BigDecimal.ZERO;
-
-            for (DetalleMovimientoDTO detalleMovimientoDTO : detalleMovimientoDTOs) {
-
-                BigDecimal cantidadDetalle = detalleMovimientoDTO.getCantidad() != null
-                        ? detalleMovimientoDTO.getCantidad()
-                        : BigDecimal.ZERO;
-
-                if (BigDecimal.ZERO.compareTo(cantidadDetalle) == 0) {
-                    continue;
-                }
-
-                cantidad = cantidad.add(cantidadDetalle);
-
-                Bulto bulto = initBulto(clone);
-                bulto.setNroBulto(detalleMovimientoDTO.getNroBulto());
-                bulto.setCantidadInicial(cantidadDetalle);
-                bulto.setCantidadActual(cantidadDetalle);
-
-                clone.getBultos().add(bulto);
-            }
-            clone.setCantidadInicial(cantidad);
-            clone.setCantidadActual(cantidad); // o: original.getCantidadInicial()
-        }
-
-        clone.setBultosTotales(clone.getBultos().size());
-        return clone;
-    }
-
+    /**
+     * Valida los datos de entrada para el retiro de mercado.
+     * Verifica lote, fecha, trazas y movimiento origen.
+     */
     @Transactional
     public boolean validarRetiroMercadoInput(
             final @Valid MovimientoDTO dto,
@@ -304,36 +103,4 @@ public class ModifRetiroMercadoService extends AbstractCuService {
 
         return validarMovimientoOrigen(dto, bindingResult, movOrigen.get());
     }
-
-    private Lote initLoteRecall(final Lote original, final MovimientoDTO dto) {
-        Lote clone = new Lote();
-
-        clone.setId(null);
-        clone.setLoteOrigen(original);
-
-        clone.setFechaYHoraCreacion(dto.getFechaYHoraCreacion());
-        clone.setFechaIngreso(dto.getFechaYHoraCreacion().toLocalDate());
-
-        final List<Lote> lotesByLoteOrigen = loteRepository.findLotesByLoteOrigen(original.getCodigoLote());
-
-        clone.setCodigoLote(original.getCodigoLote() +
-                "_R_" +
-                (lotesByLoteOrigen.size() + 1));
-
-        clone.setTrazado(original.getTrazado());
-        clone.setProducto(original.getProducto());
-        clone.setProveedor(original.getProveedor());
-        clone.setFabricante(original.getFabricante());
-        clone.setPaisOrigen(original.getPaisOrigen());
-        clone.setOrdenProduccionOrigen(original.getOrdenProduccionOrigen());
-        clone.setLoteProveedor(original.getLoteProveedor());
-        clone.setFechaVencimientoProveedor(original.getFechaVencimientoVigente());
-        clone.setEstado(RECALL);
-        clone.setDictamen(DictamenEnum.RETIRO_MERCADO);
-        clone.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-        clone.setDetalleConservacion(original.getDetalleConservacion());
-        clone.setActivo(TRUE);
-        return clone;
-    }
-
 }

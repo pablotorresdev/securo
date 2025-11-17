@@ -26,6 +26,9 @@ import com.mb.conitrack.repository.LoteRepository;
 import com.mb.conitrack.repository.MovimientoRepository;
 import com.mb.conitrack.repository.TrazaRepository;
 import com.mb.conitrack.service.cu.BajaMuestreoBultoService;
+import com.mb.conitrack.service.cu.MuestreoTrazableService;
+import com.mb.conitrack.service.cu.MuestreoMultiBultoService;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -65,6 +68,9 @@ class BajaMuestreoBultoServiceTest {
     @InjectMocks
     BajaMuestreoBultoService muestreoBultoService;
 
+    private MuestreoTrazableService muestreoTrazableService;
+    private MuestreoMultiBultoService muestreoMultiBultoService;
+
     private User testUser;
 
     @org.junit.jupiter.api.BeforeEach
@@ -74,6 +80,25 @@ class BajaMuestreoBultoServiceTest {
         testUser = new User("testuser", "password", adminRole);
         testUser.setId(1L);
         lenient().when(securityContextService.getCurrentUser()).thenReturn(testUser);
+
+        // Create real instances of specialized services
+        muestreoTrazableService = new MuestreoTrazableService();
+        muestreoMultiBultoService = new MuestreoMultiBultoService();
+
+        // Inject mocked repositories into specialized services
+        ReflectionTestUtils.setField(muestreoTrazableService, "loteRepository", loteRepository);
+        ReflectionTestUtils.setField(muestreoTrazableService, "movimientoRepository", movimientoRepository);
+        ReflectionTestUtils.setField(muestreoTrazableService, "analisisRepository", analisisRepository);
+        ReflectionTestUtils.setField(muestreoTrazableService, "trazaRepository", trazaRepository);
+
+        ReflectionTestUtils.setField(muestreoMultiBultoService, "loteRepository", loteRepository);
+        ReflectionTestUtils.setField(muestreoMultiBultoService, "movimientoRepository", movimientoRepository);
+        ReflectionTestUtils.setField(muestreoMultiBultoService, "analisisRepository", analisisRepository);
+        ReflectionTestUtils.setField(muestreoMultiBultoService, "trazaRepository", trazaRepository);
+
+        // Inject specialized services into coordinator
+        ReflectionTestUtils.setField(muestreoBultoService, "muestreoTrazableService", muestreoTrazableService);
+        ReflectionTestUtils.setField(muestreoBultoService, "muestreoMultiBultoService", muestreoMultiBultoService);
     }
 
     @Test

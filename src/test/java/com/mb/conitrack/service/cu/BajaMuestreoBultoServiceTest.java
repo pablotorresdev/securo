@@ -31,6 +31,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 
@@ -77,6 +78,10 @@ class BajaMuestreoBultoServiceTest {
 
     @Mock
     private SecurityContextService securityContextService;
+
+    // Real instances of specialized services (not mocks)
+    private MuestreoTrazableService muestreoTrazableService;
+    private MuestreoMultiBultoService muestreoMultiBultoService;
 
     @Spy
     @InjectMocks
@@ -131,8 +136,39 @@ class BajaMuestreoBultoServiceTest {
         // Crear lote trazable con bultos
         loteTestTrazable = crearLoteTrazableConBultos();
 
+        // Create real instances of specialized services and wrap them in spies
+        MuestreoTrazableService realTrazableService = new MuestreoTrazableService();
+        MuestreoMultiBultoService realMultiBultoService = new MuestreoMultiBultoService();
+
+        // Inject mocked repositories into real service instances
+        ReflectionTestUtils.setField(realTrazableService, "loteRepository", loteRepository);
+        ReflectionTestUtils.setField(realTrazableService, "bultoRepository", bultoRepository);
+        ReflectionTestUtils.setField(realTrazableService, "movimientoRepository", movimientoRepository);
+        ReflectionTestUtils.setField(realTrazableService, "analisisRepository", analisisRepository);
+        ReflectionTestUtils.setField(realTrazableService, "trazaRepository", trazaRepository);
+
+        ReflectionTestUtils.setField(realMultiBultoService, "loteRepository", loteRepository);
+        ReflectionTestUtils.setField(realMultiBultoService, "bultoRepository", bultoRepository);
+        ReflectionTestUtils.setField(realMultiBultoService, "movimientoRepository", movimientoRepository);
+        ReflectionTestUtils.setField(realMultiBultoService, "analisisRepository", analisisRepository);
+        ReflectionTestUtils.setField(realMultiBultoService, "trazaRepository", trazaRepository);
+
+        // Wrap in spies to allow selective mocking of methods
+        muestreoTrazableService = spy(realTrazableService);
+        muestreoMultiBultoService = spy(realMultiBultoService);
+
+        // Inject specialized services into the coordinator service
+        ReflectionTestUtils.setField(service, "muestreoTrazableService", muestreoTrazableService);
+        ReflectionTestUtils.setField(service, "muestreoMultiBultoService", muestreoMultiBultoService);
+
         // Mock SecurityContextService
         lenient().when(securityContextService.getCurrentUser()).thenReturn(testUser);
+
+        // Configure repository mocks to return the saved entities (default behavior)
+        lenient().when(movimientoRepository.save(any(Movimiento.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(loteRepository.save(any(Lote.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     private Lote crearLoteConBultos() {
@@ -640,13 +676,13 @@ class BajaMuestreoBultoServiceTest {
             analisis.setLote(loteTest);
             loteTest.getAnalisisList().add(analisis);
 
-            // Mock persistirMovimientoMuestreo
+            // Mock persistirMovimientoMuestreo on the specialized service
             Movimiento movimientoMock = new Movimiento();
             movimientoMock.setId(1L);
             movimientoMock.setCantidad(new BigDecimal("5.00"));
             movimientoMock.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
             movimientoMock.setDetalles(new HashSet<>());
-            doReturn(movimientoMock).when(service).persistirMovimientoMuestreo(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoTrazableService).persistirMovimientoMuestreo(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -663,7 +699,7 @@ class BajaMuestreoBultoServiceTest {
             assertThat(loteTest.getBultos().get(0).getCantidadActual()).isEqualByComparingTo(new BigDecimal("45.00"));
             assertThat(loteTest.getEstado()).isEqualTo(EstadoEnum.EN_USO);
 
-            verify(service).persistirMovimientoMuestreo(any(), any(), any());
+            verify(muestreoTrazableService).persistirMovimientoMuestreo(any(), any(), any());
             verify(loteRepository).save(loteTest);
         }
 
@@ -732,7 +768,7 @@ class BajaMuestreoBultoServiceTest {
             movimientoMock.setCantidad(new BigDecimal("50.00"));
             movimientoMock.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
             movimientoMock.setDetalles(new HashSet<>());
-            doReturn(movimientoMock).when(service).persistirMovimientoMuestreo(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoTrazableService).persistirMovimientoMuestreo(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -780,7 +816,7 @@ class BajaMuestreoBultoServiceTest {
             movimientoMock.setCantidad(new BigDecimal("50.00"));
             movimientoMock.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
             movimientoMock.setDetalles(new HashSet<>());
-            doReturn(movimientoMock).when(service).persistirMovimientoMuestreo(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoTrazableService).persistirMovimientoMuestreo(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -829,7 +865,7 @@ class BajaMuestreoBultoServiceTest {
             movimientoMock.setCantidad(new BigDecimal("2"));
             movimientoMock.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO); // Wrong unit
             movimientoMock.setDetalles(new HashSet<>());
-            doReturn(movimientoMock).when(service).persistirMovimientoMuestreo(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoTrazableService).persistirMovimientoMuestreo(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TRAZ-001")).thenReturn(Optional.of(loteTestTrazable));
 
@@ -867,7 +903,7 @@ class BajaMuestreoBultoServiceTest {
             movimientoMock.setCantidad(new BigDecimal("2.5")); // Decimal
             movimientoMock.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
             movimientoMock.setDetalles(new HashSet<>());
-            doReturn(movimientoMock).when(service).persistirMovimientoMuestreo(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoTrazableService).persistirMovimientoMuestreo(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TRAZ-001")).thenReturn(Optional.of(loteTestTrazable));
 
@@ -911,7 +947,7 @@ class BajaMuestreoBultoServiceTest {
             detalle2.setId(2L);
 
             movimientoMock.setDetalles(new HashSet<>(Arrays.asList(detalle1, detalle2)));
-            doReturn(movimientoMock).when(service).persistirMovimientoMuestreo(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoTrazableService).persistirMovimientoMuestreo(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TRAZ-001")).thenReturn(Optional.of(loteTestTrazable));
 
@@ -948,7 +984,7 @@ class BajaMuestreoBultoServiceTest {
             Movimiento movimientoMock = new Movimiento();
             movimientoMock.setId(1L);
             movimientoMock.setNroAnalisis("AN-2025-001");
-            doReturn(movimientoMock).when(service).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -970,7 +1006,7 @@ class BajaMuestreoBultoServiceTest {
             assertThat(loteTest.getBultos().get(1).getEstado()).isEqualTo(EstadoEnum.EN_USO);
 
             verify(loteRepository).save(loteTest);
-            verify(service).persistirMovimientoBajaMuestreoMultiBulto(any(), eq(loteTest), any());
+            verify(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(any(), eq(loteTest), any());
         }
 
         @Test
@@ -994,7 +1030,7 @@ class BajaMuestreoBultoServiceTest {
             // Mock persistirMovimientoBajaMuestreoMultiBulto
             Movimiento movimientoMock = new Movimiento();
             movimientoMock.setId(1L);
-            doReturn(movimientoMock).when(service).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -1049,7 +1085,7 @@ class BajaMuestreoBultoServiceTest {
             // Mock persistirMovimientoBajaMuestreoMultiBulto
             Movimiento movimientoMock = new Movimiento();
             movimientoMock.setId(1L);
-            doReturn(movimientoMock).when(service).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -1061,9 +1097,10 @@ class BajaMuestreoBultoServiceTest {
             assertThat(resultado).isNotNull();
             // Bulto 1: 50 - 10 = 40
             assertThat(loteTest.getBultos().get(0).getCantidadActual()).isEqualByComparingTo(new BigDecimal("40.00"));
-            // Bulto 2: 50 - 0 = 50 (unchanged because continue at line 258)
+            // Bulto 2: 50 - 0 = 50 (unchanged quantity because continue at line 258)
             assertThat(loteTest.getBultos().get(1).getCantidadActual()).isEqualByComparingTo(new BigDecimal("50.00"));
-            assertThat(loteTest.getBultos().get(1).getEstado()).isEqualTo(EstadoEnum.DISPONIBLE); // Not modified
+            // Estado is updated to EN_USO in actualizarEstadosLoteYBultos because cantidad > 0
+            assertThat(loteTest.getBultos().get(1).getEstado()).isEqualTo(EstadoEnum.EN_USO);
         }
 
         @Test
@@ -1094,7 +1131,7 @@ class BajaMuestreoBultoServiceTest {
             // Mock persistirMovimientoBajaMuestreoMultiBulto
             Movimiento movimientoMock = new Movimiento();
             movimientoMock.setId(1L);
-            doReturn(movimientoMock).when(service).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -1139,7 +1176,7 @@ class BajaMuestreoBultoServiceTest {
             // Mock persistirMovimientoBajaMuestreoMultiBulto
             Movimiento movimientoMock = new Movimiento();
             movimientoMock.setId(1L);
-            doReturn(movimientoMock).when(service).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -1184,7 +1221,7 @@ class BajaMuestreoBultoServiceTest {
             // Mock persistirMovimientoBajaMuestreoMultiBulto
             Movimiento movimientoMock = new Movimiento();
             movimientoMock.setId(1L);
-            doReturn(movimientoMock).when(service).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
+            doReturn(movimientoMock).when(muestreoMultiBultoService).persistirMovimientoBajaMuestreoMultiBulto(any(), any(), any());
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));

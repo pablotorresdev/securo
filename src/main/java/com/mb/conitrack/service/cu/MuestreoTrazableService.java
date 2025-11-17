@@ -1,0 +1,250 @@
+package com.mb.conitrack.service.cu;
+
+import com.mb.conitrack.dto.DTOUtils;
+import com.mb.conitrack.dto.LoteDTO;
+import com.mb.conitrack.dto.MovimientoDTO;
+import com.mb.conitrack.dto.TrazaDTO;
+import com.mb.conitrack.entity.Analisis;
+import com.mb.conitrack.entity.Bulto;
+import com.mb.conitrack.entity.DetalleMovimiento;
+import com.mb.conitrack.entity.Lote;
+import com.mb.conitrack.entity.Movimiento;
+import com.mb.conitrack.entity.Traza;
+import com.mb.conitrack.entity.maestro.User;
+import com.mb.conitrack.enums.TipoProductoEnum;
+import com.mb.conitrack.enums.UnidadMedidaEnum;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static com.mb.conitrack.enums.EstadoEnum.CONSUMIDO;
+import static com.mb.conitrack.enums.EstadoEnum.EN_USO;
+import static com.mb.conitrack.utils.LoteEntityUtils.getAnalisisEnCurso;
+import static com.mb.conitrack.utils.MovimientoBajaUtils.createMovimientoMuestreoConAnalisis;
+import static com.mb.conitrack.utils.UnidadMedidaUtils.restarMovimientoConvertido;
+import static java.lang.Integer.parseInt;
+
+/**
+ * Servicio especializado para muestreo de productos trazables.
+ * Maneja el flujo completo de muestreo asociado a análisis con trazabilidad de unidades.
+ * - Procesamiento de muestreo trazable
+ * - Asociación con análisis (en curso o dictaminado)
+ * - Gestión de trazas (marcado como CONSUMIDO)
+ * - Validación de entrada para productos trazables
+ */
+@Service
+public class MuestreoTrazableService extends AbstractCuService {
+
+    /**
+     * Procesa muestreo de producto trazable asociándolo a análisis.
+     * Marca trazas como CONSUMIDO y actualiza cantidades de bulto y lote.
+     */
+    @Transactional
+    public LoteDTO procesarMuestreoTrazable(final MovimientoDTO dto, final User currentUser) {
+        Lote lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote())
+            .orElseThrow(() -> new IllegalArgumentException("El lote no existe."));
+
+        final Bulto bulto = lote.getBultoByNro(parseInt(dto.getNroBulto()));
+        final String currentNroAnalisis = lote.getUltimoNroAnalisis();
+        if (!currentNroAnalisis.equals(dto.getNroAnalisis())) {
+            throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
+        }
+
+        final Movimiento movimiento = persistirMovimientoMuestreo(dto, bulto, currentUser);
+
+        bulto.setCantidadActual(restarMovimientoConvertido(dto, bulto));
+        lote.setCantidadActual(restarMovimientoConvertido(dto, lote));
+
+        boolean unidadVenta = lote.getProducto().getTipoProducto() == TipoProductoEnum.UNIDAD_VENTA;
+
+        if (unidadVenta) {
+            procesarTrazasUnidadVenta(dto, lote, movimiento);
+        }
+
+        actualizarEstadoBulto(bulto);
+        actualizarEstadoLote(lote);
+
+        lote.getMovimientos().add(movimiento);
+        return DTOUtils.fromLoteEntity(loteRepository.save(lote));
+    }
+
+    /**
+     * Persiste el movimiento de muestreo asociándolo al análisis correspondiente.
+     */
+    @Transactional
+    public Movimiento persistirMovimientoMuestreo(final MovimientoDTO dto, Bulto bulto, User currentUser) {
+        final List<Analisis> analisisList = bulto.getLote().getAnalisisList();
+        if (analisisList.isEmpty()) {
+            throw new IllegalStateException("No hay Analisis con al que asociar el muestreo");
+        } else {
+            final Optional<Analisis> analisisEnCurso = getAnalisisEnCurso(analisisList);
+            if (analisisEnCurso.isPresent()) {
+                // Muestreo de un producto con Analisis en Curso
+                return crearMovimientoMuestreoConAnalisisEnCurso(dto, bulto, analisisEnCurso, currentUser);
+            } else {
+                // Muestreo un producto con Analisis Dictaminado
+                return crearMovimientoMuestreoConAnalisisDictaminado(dto, bulto, currentUser);
+            }
+        }
+    }
+
+    /**
+     * Crea movimiento de muestreo asociado a un análisis en curso.
+     */
+    @Transactional
+    public Movimiento crearMovimientoMuestreoConAnalisisEnCurso(
+            final MovimientoDTO dto,
+            final Bulto bulto,
+            final Optional<Analisis> analisisEnCurso,
+            User currentUser) {
+        //Si el lote tiene un analisis en curso, se guarda el movimiento y se asocia al analisis en curso
+        //El lote puede tiene n analisis realizados siempre se asocia al analisis en curso
+        if (dto.getNroAnalisis()
+            .equals(analisisEnCurso.orElseThrow(() -> new IllegalArgumentException("El número de análisis esta vacio"))
+                .getNroAnalisis())) {
+            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, analisisEnCurso.get(), currentUser));
+        } else {
+            throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
+        }
+    }
+
+    /**
+     * Crea movimiento de muestreo asociado a un análisis ya dictaminado.
+     */
+    @Transactional
+    public Movimiento crearMovimientoMuestreoConAnalisisDictaminado(final MovimientoDTO dto, final Bulto bulto, User currentUser) {
+        //Si el lote tiene n analisis realizados, se guarda el movimiento y se asocia al ultimo analisis realizado
+        Analisis ultimoAnalisis = bulto.getLote().getUltimoAnalisis();
+        if (dto.getNroAnalisis().equals(ultimoAnalisis.getNroAnalisis())) {
+            return movimientoRepository.save(createMovimientoMuestreoConAnalisis(dto, bulto, ultimoAnalisis, currentUser));
+        } else {
+            throw new IllegalArgumentException("El número de análisis no coincide con el análisis en curso");
+        }
+    }
+
+    /**
+     * Valida la entrada para muestreo trazable.
+     */
+    @Transactional
+    public boolean validarMuestreoTrazableInput(final MovimientoDTO dto, final BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return false;
+        }
+
+        if (!validarNroAnalisisNotNull(dto, bindingResult)) {
+            return false;
+        }
+
+        final Optional<Lote> lote = loteRepository.findByCodigoLoteAndActivoTrue(dto.getCodigoLote());
+
+        if (lote.isEmpty()) {
+            bindingResult.rejectValue("codigoLote", "", "Lote no encontrado.");
+            return false;
+        }
+
+        final boolean esUnidadVenta = lote.get().getProducto().getTipoProducto() ==
+            TipoProductoEnum.UNIDAD_VENTA;
+
+        if (esUnidadVenta) {
+            if (dto.getTrazaDTOs() == null || dto.getTrazaDTOs().isEmpty()) {
+                bindingResult.rejectValue("trazaDTOs", "", "Debe seleccionar al menos una unidad a muestrear.");
+                return false;
+            }
+        }
+
+        if (!validarFechaMovimientoPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult)) {
+            return false;
+        }
+
+        if (!validarFechaAnalisisPosteriorIngresoLote(dto, lote.get().getFechaIngreso(), bindingResult)) {
+            return false;
+        }
+
+        final Optional<Bulto> bulto = bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue(
+            dto.getCodigoLote(),
+            parseInt(dto.getNroBulto()));
+
+        if (bulto.isEmpty()) {
+            bindingResult.rejectValue("nroBulto", "", "Bulto no encontrado.");
+            return false;
+        }
+
+        return validarCantidadesMovimiento(dto, bulto.get(), bindingResult);
+    }
+
+    // ========== Métodos Privados de Soporte ==========
+
+    /**
+     * Procesa trazas para productos de tipo UNIDAD_VENTA.
+     */
+    private void procesarTrazasUnidadVenta(final MovimientoDTO dto, final Lote lote, final Movimiento movimiento) {
+        final BigDecimal cantidad = movimiento.getCantidad();
+        if (movimiento.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
+            throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
+        }
+
+        if (cantidad.stripTrailingZeros().scale() > 0) {
+            throw new IllegalStateException("La cantidad de Unidades debe ser entero");
+        }
+
+        final List<Traza> trazas = obtenerTrazasSeleccionadas(dto, lote);
+
+        if (movimiento.getDetalles().size() > 1) {
+            throw new IllegalArgumentException("Multimuestreo no soportado aun");
+        }
+
+        final DetalleMovimiento detalleMovimiento = movimiento.getDetalles().stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("El detalle del movimiento de muestreo no existe."));
+
+        for (Traza traza : trazas) {
+            traza.setEstado(CONSUMIDO);
+            traza.getDetalles().addAll(movimiento.getDetalles());
+        }
+        detalleMovimiento.getTrazas().addAll(trazas);
+        trazaRepository.saveAll(trazas);
+        dto.setTrazaDTOs(trazas.stream().map(DTOUtils::fromTrazaEntity).toList());
+    }
+
+    /**
+     * Obtiene las trazas seleccionadas desde el DTO.
+     */
+    private List<Traza> obtenerTrazasSeleccionadas(final MovimientoDTO dto, final Lote lote) {
+        final List<Traza> trazas = new ArrayList<>();
+        for (TrazaDTO trazaDTO : dto.getTrazaDTOs()) {
+            final Long nroTraza = trazaDTO.getNroTraza();
+            for (Traza trazasLote : lote.getActiveTrazas()) {
+                if (trazasLote.getNroTraza().equals(nroTraza)) {
+                    trazas.add(trazasLote);
+                    break;
+                }
+            }
+        }
+        return trazas;
+    }
+
+    /**
+     * Actualiza el estado del bulto según su cantidad actual.
+     */
+    private void actualizarEstadoBulto(final Bulto bulto) {
+        if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
+            bulto.setEstado(CONSUMIDO);
+        } else {
+            bulto.setEstado(EN_USO);
+        }
+    }
+
+    /**
+     * Actualiza el estado del lote según el estado de sus bultos.
+     */
+    private void actualizarEstadoLote(final Lote lote) {
+        boolean todosConsumidos = lote.getBultos().stream()
+            .allMatch(b -> b.getEstado() == CONSUMIDO);
+        lote.setEstado(todosConsumidos ? CONSUMIDO : EN_USO);
+    }
+}
