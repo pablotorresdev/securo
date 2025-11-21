@@ -29,7 +29,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mockito;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
@@ -90,7 +91,7 @@ class AltaIngresoCompraServiceTest {
     @Autowired
     private MovimientoRepository movimientoRepository;
 
-    @MockBean
+    @MockitoBean
     private com.mb.conitrack.service.SecurityContextService securityContextService;
 
     private Producto productoTest;

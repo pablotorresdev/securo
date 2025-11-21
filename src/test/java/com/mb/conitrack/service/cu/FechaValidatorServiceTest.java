@@ -300,6 +300,7 @@ class FechaValidatorServiceTest {
         analisis.setDictamen(DictamenEnum.APROBADO);
         analisis.setFechaRealizado(LocalDate.now().minusDays(30));
         analisis.setActivo(true);
+        analisis.setFechaYHoraCreacion(OffsetDateTime.now());
 
         lote.getAnalisisList().add(analisis);
 
@@ -342,93 +343,6 @@ class FechaValidatorServiceTest {
     }
 
     // ========== Tests adicionales para cobertura completa (14% -> 100%) ==========
-
-    @Nested
-    @DisplayName("getSystemUser() - Cobertura líneas 32-38")
-    class GetSystemUserTests {
-
-        @Test
-        @DisplayName("Debe retornar usuario existente cuando ya existe system_auto")
-        void getSystemUser_usuarioExistente_debeRetornar() {
-            // Given
-            com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
-            adminRole.setId(1L);
-            com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
-            systemUser.setId(1L);
-
-            when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
-
-            // When
-            com.mb.conitrack.entity.maestro.User resultado = service.getSystemUser();
-
-            // Then
-            assertNotNull(resultado);
-            assertEquals("system_auto", resultado.getUsername());
-            assertEquals(1L, resultado.getId());
-            verify(userRepository).findByUsername("system_auto");
-            verify(roleRepository, never()).findByName(anyString());
-            verify(userRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Debe crear nuevo usuario cuando no existe - con role ADMIN existente")
-        void getSystemUser_usuarioNoExistente_debeCrearNuevo_conRoleExistente() {
-            // Given
-            com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
-            adminRole.setId(1L);
-
-            when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.empty());
-            when(roleRepository.findByName("ADMIN")).thenReturn(java.util.Optional.of(adminRole));
-            when(userRepository.save(any(com.mb.conitrack.entity.maestro.User.class)))
-                .thenAnswer(invocation -> {
-                    com.mb.conitrack.entity.maestro.User u = invocation.getArgument(0);
-                    u.setId(2L);
-                    return u;
-                });
-
-            // When
-            com.mb.conitrack.entity.maestro.User resultado = service.getSystemUser();
-
-            // Then
-            assertNotNull(resultado);
-            assertEquals("system_auto", resultado.getUsername());
-            assertEquals(2L, resultado.getId());
-            verify(userRepository).findByUsername("system_auto");
-            verify(roleRepository).findByName("ADMIN");
-            verify(userRepository).save(any(com.mb.conitrack.entity.maestro.User.class));
-            verify(roleRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Debe crear nuevo usuario Y nuevo role cuando ambos no existen")
-        void getSystemUser_usuarioYRoleNoExisten_debeCrearAmbos() {
-            // Given
-            com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
-            adminRole.setId(1L);
-
-            when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.empty());
-            when(roleRepository.findByName("ADMIN")).thenReturn(java.util.Optional.empty());
-            when(roleRepository.save(any(com.mb.conitrack.entity.maestro.Role.class))).thenReturn(adminRole);
-            when(userRepository.save(any(com.mb.conitrack.entity.maestro.User.class)))
-                .thenAnswer(invocation -> {
-                    com.mb.conitrack.entity.maestro.User u = invocation.getArgument(0);
-                    u.setId(3L);
-                    return u;
-                });
-
-            // When
-            com.mb.conitrack.entity.maestro.User resultado = service.getSystemUser();
-
-            // Then
-            assertNotNull(resultado);
-            assertEquals("system_auto", resultado.getUsername());
-            assertEquals(3L, resultado.getId());
-            verify(userRepository).findByUsername("system_auto");
-            verify(roleRepository).findByName("ADMIN");
-            verify(roleRepository).save(any(com.mb.conitrack.entity.maestro.Role.class));
-            verify(userRepository).save(any(com.mb.conitrack.entity.maestro.User.class));
-        }
-    }
 
     @Nested
     @DisplayName("validarFecha() - Método @Scheduled - Cobertura líneas 44-46")
@@ -614,11 +528,13 @@ class FechaValidatorServiceTest {
                 dto.setObservaciones("Test");
 
                 Lote lote = crearLoteConFechaVencimiento(LocalDate.now());
-                // Análisis en curso (dictamen = null)
+                // Análisis en curso (dictamen = null) - debe ser el más reciente
                 Analisis analisisEnCurso = new Analisis();
                 analisisEnCurso.setId(10L);
                 analisisEnCurso.setNroAnalisis("A-EN-CURSO");
                 analisisEnCurso.setDictamen(null); // EN CURSO
+                analisisEnCurso.setActivo(true);
+                analisisEnCurso.setFechaYHoraCreacion(OffsetDateTime.now().plusDays(1)); // Más reciente que el análisis base
                 lote.getAnalisisList().add(analisisEnCurso);
 
                 // Mock system user

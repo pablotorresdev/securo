@@ -154,7 +154,7 @@ class ModifReanalisisLoteServiceTest {
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("nroAnalisis", "", "Debe indicar el Nro de Análisis.");
+            verify(bindingResult).rejectValue("nroAnalisis", "nroAnalisis.nulo", "Ingrese un nro de analisis");
         }
 
         @Test
@@ -163,17 +163,24 @@ class ModifReanalisisLoteServiceTest {
             // Given
             MovimientoDTO dto = new MovimientoDTO();
             dto.setNroAnalisis("A-001");
+            dto.setCodigoLote("LOTE-002");
+
+            Lote loteExistente = new Lote();
+            loteExistente.setCodigoLote("LOTE-OTRO");
+
+            Analisis analisisExistente = new Analisis();
+            analisisExistente.setLote(loteExistente);
 
             BindingResult bindingResult = mock(BindingResult.class);
             when(bindingResult.hasErrors()).thenReturn(false);
-            when(analisisRepository.existsByNroAnalisisAndActivoTrue("A-001")).thenReturn(true);
+            when(analisisRepository.findByNroAnalisisAndActivoTrue("A-001")).thenReturn(analisisExistente);
 
             // When
             boolean resultado = service.validarReanalisisLoteInput(dto, bindingResult);
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("nroAnalisis", "", "El nro de Análisis ya existe.");
+            verify(bindingResult).rejectValue("nroAnalisis", "", "Nro de analisis ya registrado en otro lote.");
         }
 
         @Test
@@ -186,7 +193,7 @@ class ModifReanalisisLoteServiceTest {
 
             BindingResult bindingResult = mock(BindingResult.class);
             when(bindingResult.hasErrors()).thenReturn(false);
-            when(analisisRepository.existsByNroAnalisisAndActivoTrue("A-NEW")).thenReturn(false);
+            when(analisisRepository.findByNroAnalisisAndActivoTrue("A-NEW")).thenReturn(null);
             when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-999")).thenReturn(Optional.empty());
 
             // When
@@ -211,7 +218,7 @@ class ModifReanalisisLoteServiceTest {
 
             BindingResult bindingResult = mock(BindingResult.class);
             when(bindingResult.hasErrors()).thenReturn(false);
-            when(analisisRepository.existsByNroAnalisisAndActivoTrue("A-NEW")).thenReturn(false);
+            when(analisisRepository.findByNroAnalisisAndActivoTrue("A-NEW")).thenReturn(null);
             when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
 
             // When
@@ -219,7 +226,7 @@ class ModifReanalisisLoteServiceTest {
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movimiento debe ser posterior a la fecha de ingreso del lote.");
+            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
         }
 
         @Test
@@ -230,14 +237,14 @@ class ModifReanalisisLoteServiceTest {
             dto.setCodigoLote("LOTE-001");
             dto.setNroAnalisis("A-NEW");
             dto.setFechaMovimiento(LocalDate.of(2024, 6, 15));
-            dto.setFechaAnalisis(LocalDate.of(2024, 6, 10));
+            dto.setFechaRealizadoAnalisis(LocalDate.of(2024, 6, 10));
 
             Lote lote = crearLote();
             lote.setFechaIngreso(LocalDate.of(2024, 6, 1));
 
             BindingResult bindingResult = mock(BindingResult.class);
             when(bindingResult.hasErrors()).thenReturn(false);
-            when(analisisRepository.existsByNroAnalisisAndActivoTrue("A-NEW")).thenReturn(false);
+            when(analisisRepository.findByNroAnalisisAndActivoTrue("A-NEW")).thenReturn(null);
             when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
 
             // When

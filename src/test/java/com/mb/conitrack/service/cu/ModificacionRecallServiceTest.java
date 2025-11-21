@@ -207,7 +207,9 @@ class ModificacionRecallServiceTest {
                 analisisEnCurso.setId(1L);
                 analisisEnCurso.setNroAnalisis("A-001");
                 analisisEnCurso.setDictamen(null); // Sin dictamen
-                lote.setUltimoAnalisis(analisisEnCurso);
+                analisisEnCurso.setActivo(true);
+                analisisEnCurso.setFechaYHoraCreacion(java.time.OffsetDateTime.now());
+                lote.setAnalisisList(new ArrayList<>(List.of(analisisEnCurso)));
 
                 Movimiento movimientoVenta = crearMovimiento();
                 Movimiento movimientoRecall = crearMovimiento();
@@ -248,7 +250,9 @@ class ModificacionRecallServiceTest {
                 analisisCompleto.setId(1L);
                 analisisCompleto.setNroAnalisis("A-001");
                 analisisCompleto.setDictamen(DictamenEnum.APROBADO); // Ya tiene dictamen
-                lote.setUltimoAnalisis(analisisCompleto);
+                analisisCompleto.setActivo(true);
+                analisisCompleto.setFechaYHoraCreacion(java.time.OffsetDateTime.now());
+                lote.setAnalisisList(new ArrayList<>(List.of(analisisCompleto)));
 
                 Movimiento movimientoVenta = crearMovimiento();
                 Movimiento movimientoRecall = crearMovimiento();
@@ -283,7 +287,7 @@ class ModificacionRecallServiceTest {
                 lote.setEstado(EstadoEnum.DISPONIBLE);
                 lote.setTrazado(false);
                 lote.setBultos(new ArrayList<>());
-                lote.setUltimoAnalisis(null); // Sin análisis
+                lote.setAnalisisList(new ArrayList<>()); // Sin análisis
 
                 Movimiento movimientoVenta = crearMovimiento();
                 Movimiento movimientoRecall = crearMovimiento();
@@ -394,7 +398,7 @@ class ModificacionRecallServiceTest {
     private Bulto crearBulto() {
         Bulto bulto = new Bulto();
         bulto.setId(1L);
-        bulto.setNroBulto("BULTO-001");
+        bulto.setNroBulto(1);
         bulto.setCantidadInicial(new BigDecimal("50"));
         bulto.setCantidadActual(new BigDecimal("50"));
         bulto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
@@ -407,9 +411,7 @@ class ModificacionRecallServiceTest {
     private Traza crearTraza() {
         Traza traza = new Traza();
         traza.setId(1L);
-        traza.setNroTraza("TRAZA-001");
-        traza.setCantidad(new BigDecimal("10"));
-        traza.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
+        traza.setNroTraza(1L);
         traza.setEstado(EstadoEnum.DISPONIBLE);
         traza.setActivo(true);
         return traza;
@@ -420,7 +422,7 @@ class ModificacionRecallServiceTest {
         mov.setId(1L);
         mov.setCodigoMovimiento("MOV-001");
         mov.setTipoMovimiento(TipoMovimientoEnum.MODIFICACION);
-        mov.setMotivo(MotivoEnum.RECALL);
+        mov.setMotivo(MotivoEnum.RETIRO_MERCADO);
         mov.setFechaYHoraCreacion(OffsetDateTime.now());
         mov.setActivo(true);
         return mov;

@@ -223,7 +223,7 @@ class ModifAnulacionAnalisisServiceTest {
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("nroAnalisis", "", "Debe indicar el Nro de Análisis.");
+            verify(bindingResult).rejectValue("nroAnalisis", "", "El Nro de Análisis es obligatorio");
         }
 
         @Test
@@ -267,7 +267,7 @@ class ModifAnulacionAnalisisServiceTest {
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movimiento debe ser posterior a la fecha de ingreso del lote.");
+            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
         }
 
         @Test

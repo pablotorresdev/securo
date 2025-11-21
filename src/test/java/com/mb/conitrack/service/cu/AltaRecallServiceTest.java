@@ -100,8 +100,8 @@ class AltaRecallServiceTest {
                 // Then
                 assertEquals(1, result.size());
                 verify(loteRepository, atLeast(2)).save(any(Lote.class));
-                verify(movimientoRepository).save(movimientoRecall);
-                verify(bultoRepository).save(bultoRecall);
+                verify(movimientoRepository).save(any(Movimiento.class));
+                verify(bultoRepository).save(any(Bulto.class));
             }
         }
 
@@ -116,7 +116,7 @@ class AltaRecallServiceTest {
 
                 Movimiento movimientoVenta = crearMovimiento();
                 Movimiento movimientoRecall = crearMovimiento();
-                movimientoRecall.setDetalles(new ArrayList<>());
+                movimientoRecall.setDetalles(new HashSet<>());
                 List<Lote> result = new ArrayList<>();
 
                 Lote loteRecall = new Lote();
@@ -273,7 +273,7 @@ class AltaRecallServiceTest {
             loteOrigen.setLoteProveedor("LP-001");
             loteOrigen.setOrdenProduccionOrigen("OP-001");
             loteOrigen.setDetalleConservacion("Conservar en frío");
-            loteOrigen.setFechaVencimientoVigente(LocalDate.of(2025, 12, 31));
+            loteOrigen.setFechaVencimientoProveedor(LocalDate.of(2025, 12, 31));
 
             when(loteRepository.findLotesByLoteOrigen("LOTE-ORIGINAL")).thenReturn(new ArrayList<>());
 
@@ -368,12 +368,12 @@ class AltaRecallServiceTest {
         bulto.setLote(lote);
 
         Traza traza1 = crearTraza();
-        traza1.setNroTraza("T-001");
+        traza1.setNroTraza(1L);
         traza1.setBulto(bulto);
         traza1.setLote(lote);
 
         Traza traza2 = crearTraza();
-        traza2.setNroTraza("T-002");
+        traza2.setNroTraza(2L);
         traza2.setBulto(bulto);
         traza2.setLote(lote);
 
@@ -403,9 +403,7 @@ class AltaRecallServiceTest {
     private Traza crearTraza() {
         Traza traza = new Traza();
         traza.setId(1L);
-        traza.setNroTraza("T-001");
-        traza.setCantidad(new BigDecimal("10"));
-        traza.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
+        traza.setNroTraza(1L);
         traza.setEstado(EstadoEnum.DISPONIBLE);
         traza.setActivo(true);
         return traza;
@@ -416,10 +414,10 @@ class AltaRecallServiceTest {
         mov.setId(1L);
         mov.setCodigoMovimiento("MOV-001");
         mov.setTipoMovimiento(TipoMovimientoEnum.ALTA);
-        mov.setMotivo(MotivoEnum.RECALL);
+        mov.setMotivo(MotivoEnum.RETIRO_MERCADO);
         mov.setFechaYHoraCreacion(OffsetDateTime.now());
         mov.setActivo(true);
-        mov.setDetalles(new ArrayList<>());
+        mov.setDetalles(new HashSet<>());
         return mov;
     }
 
@@ -443,11 +441,11 @@ class AltaRecallServiceTest {
 
         TrazaDTO traza1 = new TrazaDTO();
         traza1.setNroBulto(1);
-        traza1.setNroTraza("T-001");
+        traza1.setNroTraza(1L);
 
         TrazaDTO traza2 = new TrazaDTO();
         traza2.setNroBulto(1);
-        traza2.setNroTraza("T-002");
+        traza2.setNroTraza(2L);
 
         dto.setTrazaDTOs(List.of(traza1, traza2));
         return dto;

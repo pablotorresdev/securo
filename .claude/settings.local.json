@@ -92,7 +92,10 @@
       "Bash(cmd /c:*)",
       "Bash(.gradlew.bat cleanTest test:*)",
       "Bash(timeout:*)",
-      "Bash(del \"C:\\opt\\securo\\src\\test\\java\\com\\mb\\conitrack\\service\\cu\\MuestreoTrazableServiceTest.java\")"
+      "Bash(del \"C:\\opt\\securo\\src\\test\\java\\com\\mb\\conitrack\\service\\cu\\MuestreoTrazableServiceTest.java\")",
+      "Bash(powershell -Command \"Rename-Item -Path ''C:\\opt\\securo\\docs\\ANMAT-COMPLIANCE-INDEX.md'' -NewName ''ANMAT-COMPLIANCE-INDEX.DEPRECATED.md''\")",
+      "Bash(powershell -Command:*)",
+      "Bash(test_output.txt)"
     ],
     "deny": [],
     "ask": []

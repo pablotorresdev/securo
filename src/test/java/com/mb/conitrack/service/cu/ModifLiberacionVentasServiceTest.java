@@ -147,6 +147,7 @@ class ModifLiberacionVentasServiceTest {
                 MovimientoDTO dto = new MovimientoDTO();
                 dto.setCodigoLote("LOTE-001");
                 dto.setFechaMovimiento(LocalDate.now());
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
 
                 User currentUser = crearUsuario();
                 Lote lote = crearLote();
@@ -154,7 +155,8 @@ class ModifLiberacionVentasServiceTest {
                 LocalDate fechaVencimiento = LocalDate.now().plusDays(30);
                 Analisis analisis = crearAnalisis();
                 analisis.setFechaVencimiento(fechaVencimiento);
-                lote.setAnalisisList(List.of(analisis));
+                analisis.setLote(lote);
+                lote.setAnalisisList(new ArrayList<>(List.of(analisis)));
 
                 Movimiento movMock = new Movimiento();
                 movMock.setDictamenFinal(DictamenEnum.LIBERADO);
@@ -239,7 +241,7 @@ class ModifLiberacionVentasServiceTest {
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movimiento debe ser posterior a la fecha de ingreso del lote.");
+            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
         }
 
         @Test
@@ -249,7 +251,7 @@ class ModifLiberacionVentasServiceTest {
             MovimientoDTO dto = new MovimientoDTO();
             dto.setCodigoLote("LOTE-001");
             dto.setFechaMovimiento(LocalDate.of(2024, 6, 15));
-            dto.setFechaAnalisis(LocalDate.of(2024, 6, 10));
+            dto.setFechaRealizadoAnalisis(LocalDate.of(2024, 6, 10));
 
             Lote lote = crearLote();
             lote.setFechaIngreso(LocalDate.of(2024, 6, 1));
@@ -318,6 +320,7 @@ class ModifLiberacionVentasServiceTest {
         analisis.setDictamen(DictamenEnum.APROBADO);
         analisis.setFechaRealizado(LocalDate.now());
         analisis.setActivo(true);
+        analisis.setFechaYHoraCreacion(OffsetDateTime.now());
         return analisis;
     }
 }

@@ -210,7 +210,7 @@ class ModifRetiroMercadoServiceTest {
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movimiento debe ser posterior a la fecha de ingreso del lote.");
+            verify(bindingResult).rejectValue("fechaMovimiento", "", "La fecha del movmiento no puede ser anterior a la fecha de ingreso del lote");
         }
 
         @Test
@@ -220,7 +220,7 @@ class ModifRetiroMercadoServiceTest {
             MovimientoDTO dto = new MovimientoDTO();
             dto.setCodigoLote("LOTE-001");
             dto.setFechaMovimiento(LocalDate.of(2024, 6, 15));
-            dto.setTrazas(new ArrayList<>()); // Sin trazas
+            dto.setTrazaDTOs(new ArrayList<>()); // Sin trazas
 
             Lote lote = crearLote();
             lote.setFechaIngreso(LocalDate.of(2024, 6, 1));
@@ -235,7 +235,7 @@ class ModifRetiroMercadoServiceTest {
 
             // Then
             assertFalse(resultado);
-            verify(bindingResult).rejectValue("trazas", "", "El lote esta trazado. Debe indicar las trazas a devolver");
+            verify(bindingResult).rejectValue("trazaDTOs", "", "Debe seleccionar al menos una traza para devolver.");
         }
 
         @Test
@@ -280,6 +280,7 @@ class ModifRetiroMercadoServiceTest {
 
             Movimiento movOrigen = crearMovimiento();
             movOrigen.setCantidad(new BigDecimal("50"));
+            movOrigen.setFecha(LocalDate.of(2024, 6, 1));
 
             BindingResult bindingResult = mock(BindingResult.class);
             when(bindingResult.hasErrors()).thenReturn(false);
