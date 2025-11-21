@@ -95,7 +95,10 @@
       "Bash(del \"C:\\opt\\securo\\src\\test\\java\\com\\mb\\conitrack\\service\\cu\\MuestreoTrazableServiceTest.java\")",
       "Bash(powershell -Command \"Rename-Item -Path ''C:\\opt\\securo\\docs\\ANMAT-COMPLIANCE-INDEX.md'' -NewName ''ANMAT-COMPLIANCE-INDEX.DEPRECATED.md''\")",
       "Bash(powershell -Command:*)",
-      "Bash(test_output.txt)"
+      "Bash(test_output.txt)",
+      "Bash(.gradlew compileTestJava)",
+      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/ModifReversoMovimientoService.java.html)",
+      "Bash(.gradlew.bat clean compileTestJava)"
     ],
     "deny": [],
     "ask": []

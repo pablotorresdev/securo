@@ -97,6 +97,29 @@ class ModifReversoMovimientoServiceTest {
                     .hasMessage("Cantidad incorrecta de movimientos");
         }
 
+        @Test
+        @DisplayName("Debe lanzar excepción cuando tipo de movimiento es null")
+        void persistirReversoMovmiento_tipoMovimientoNull_debeLanzarExcepcion() {
+            // Given
+            MovimientoDTO dto = new MovimientoDTO();
+            dto.setCodigoMovimientoOrigen("MOV-001");
+
+            User currentUser = crearUsuario();
+            Movimiento movOrigen = crearMovimiento();
+            movOrigen.setTipoMovimiento(null); // Tipo nulo
+
+            when(securityContextService.getCurrentUser()).thenReturn(currentUser);
+            when(movimientoRepository.findAllByCodigoMovimiento("MOV-001")).thenReturn(List.of(movOrigen));
+            doNothing().when(reversoAuthorizationService).validarPermisoReverso(movOrigen, currentUser);
+
+            // When & Then
+            assertThatThrownBy(() -> service.persistirReversoMovmiento(dto))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Tipo de movimiento no puede ser nulo.");
+
+            verify(reversoAuthorizationService).validarPermisoReverso(movOrigen, currentUser);
+        }
+
         // ========== Tests para ALTA ==========
 
         @Test
@@ -613,6 +636,32 @@ class ModifReversoMovimientoServiceTest {
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("Motivo de MODIFICACION no soportado para reverso");
         }
+
+        @Test
+        @DisplayName("Debe lanzar excepción cuando hay múltiples movimientos con mismo código - cubre branch línea 69")
+        void persistirReversoMovmiento_multiples_movimientos_debeLanzarExcepcion() {
+            // Given
+            MovimientoDTO dto = new MovimientoDTO();
+            dto.setCodigoMovimientoOrigen("MOV-001");
+
+            User currentUser = crearUsuario();
+            Movimiento mov1 = crearMovimiento();
+            Movimiento mov2 = crearMovimiento();
+            mov2.setId(2L);
+
+            when(securityContextService.getCurrentUser()).thenReturn(currentUser);
+            when(movimientoRepository.findAllByCodigoMovimiento("MOV-001"))
+                    .thenReturn(List.of(mov1, mov2)); // Múltiples movimientos
+
+            // When & Then
+            assertThatThrownBy(() -> service.persistirReversoMovmiento(dto))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Cantidad incorrecta de movimientos");
+
+            // No debe validar permisos porque falla antes
+            verify(reversoAuthorizationService, never()).validarPermisoReverso(any(), any());
+        }
+
     }
 
     // ========== Métodos auxiliares ==========

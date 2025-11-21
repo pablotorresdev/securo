@@ -294,6 +294,44 @@ class ModifRetiroMercadoServiceTest {
             assertTrue(resultado);
             verify(movimientoRepository).findByCodigoMovimientoAndActivoTrue("MOV-001");
         }
+
+        @Test
+        @DisplayName("Debe retornar true cuando lote trazado tiene trazas válidas - cubre branch faltante línea 92")
+        void validarRetiroMercadoInput_loteTrazadoConTrazasValidas_debeRetornarTrue() {
+            // Given
+            MovimientoDTO dto = new MovimientoDTO();
+            dto.setCodigoLote("LOTE-001");
+            dto.setFechaMovimiento(LocalDate.of(2024, 6, 15));
+            dto.setCodigoMovimientoOrigen("MOV-001");
+            dto.setCantidad(new BigDecimal("10"));
+
+            // Crear trazas válidas
+            com.mb.conitrack.dto.TrazaDTO trazaDTO = new com.mb.conitrack.dto.TrazaDTO();
+            trazaDTO.setNroTraza(1001L);
+            dto.setTrazaDTOs(List.of(trazaDTO));
+
+            Lote lote = crearLote();
+            lote.setFechaIngreso(LocalDate.of(2024, 6, 1));
+            lote.setTrazado(true); // Lote trazado
+
+            Movimiento movOrigen = crearMovimiento();
+            movOrigen.setCantidad(new BigDecimal("50"));
+            movOrigen.setFecha(LocalDate.of(2024, 6, 1));
+
+            BindingResult bindingResult = mock(BindingResult.class);
+            when(bindingResult.hasErrors()).thenReturn(false);
+            when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
+            when(movimientoRepository.findByCodigoMovimientoAndActivoTrue("MOV-001")).thenReturn(Optional.of(movOrigen));
+
+            // When
+            boolean resultado = service.validarRetiroMercadoInput(dto, bindingResult);
+
+            // Then
+            assertTrue(resultado); // Debe retornar true porque las trazas son válidas
+            verify(movimientoRepository).findByCodigoMovimientoAndActivoTrue("MOV-001");
+            // validarTrazasDevolucion retorna true, entonces NO entra al if de línea 92-94
+            // y continúa con la validación del movimiento origen
+        }
     }
 
     // ========== Métodos auxiliares ==========

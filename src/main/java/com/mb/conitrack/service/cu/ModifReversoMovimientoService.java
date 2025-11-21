@@ -5,6 +5,7 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.entity.Movimiento;
 import com.mb.conitrack.entity.maestro.User;
 import com.mb.conitrack.enums.MotivoEnum;
+import com.mb.conitrack.enums.TipoMovimientoEnum;
 import com.mb.conitrack.service.ReversoAuthorizationService;
 import com.mb.conitrack.service.SecurityContextService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,22 +55,19 @@ public class ModifReversoMovimientoService extends AbstractCuService {
             // VALIDACIÓN DE AUTORIZACIÓN: Verificar si el usuario puede reversar
             reversoAuthorizationService.validarPermisoReverso(movOrigen, currentUser);
 
-            switch (movOrigen.getTipoMovimiento()) {
-                case ALTA -> {
-                    return delegarReversoAlta(dto, movOrigen, currentUser);
-                }
-                case MODIFICACION -> {
-                    return delegarReversoModificacion(dto, movOrigen, currentUser);
-                }
-                case BAJA -> {
-                    return delegarReversoBaja(dto, movOrigen, currentUser);
-                }
+            final TipoMovimientoEnum tipo = movOrigen.getTipoMovimiento();
+            if (tipo == null) {
+                throw new IllegalArgumentException("Tipo de movimiento no puede ser nulo.");
             }
+
+            return switch (tipo) {
+                case ALTA -> delegarReversoAlta(dto, movOrigen, currentUser);
+                case MODIFICACION -> delegarReversoModificacion(dto, movOrigen, currentUser);
+                case BAJA -> delegarReversoBaja(dto, movOrigen, currentUser);
+            };
         } else {
             throw new IllegalArgumentException("Cantidad incorrecta de movimientos");
         }
-
-        return new LoteDTO();
     }
 
     /**

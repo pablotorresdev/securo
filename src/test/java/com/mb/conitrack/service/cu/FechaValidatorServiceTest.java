@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.mb.conitrack.entity.Analisis;
@@ -598,6 +599,45 @@ class FechaValidatorServiceTest {
                 verify(analisisRepository, never()).save(any(Analisis.class));
             }
         }
+
+        @Test
+        @DisplayName("No debe cancelar análisis cuando lote no tiene análisis - cubre branch faltante línea 127")
+        void persistirProductosVencidos_sinAnalisis_noDebeCancelar() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test");
+
+                Lote lote = crearLoteConFechaVencimiento(LocalDate.now());
+                // CLAVE: Lote SIN análisis - lista vacía para que getUltimoAnalisis() retorne null
+                lote.setAnalisisList(new ArrayList<>());
+
+                // Mock system user
+                com.mb.conitrack.entity.maestro.Role adminRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                com.mb.conitrack.entity.maestro.User systemUser = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", adminRole);
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.of(systemUser));
+
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.VENCIDO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                    .thenReturn(movMock);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+                when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                // When
+                List<Lote> resultado = service.persistirProductosVencidos(dto, List.of(lote));
+
+                // Then
+                assertEquals(1, resultado.size());
+                // Verificar que getUltimoAnalisis() es null y por lo tanto no se intenta cancelar
+                assertNull(lote.getUltimoAnalisis());
+                // No se debe guardar ningún análisis porque no existe
+                verify(analisisRepository, never()).save(any(Analisis.class));
+                // El lote se procesa normalmente
+                verify(loteRepository).save(lote);
+            }
+        }
     }
 
     @Nested
@@ -698,6 +738,93 @@ class FechaValidatorServiceTest {
                 String output = outContent.toString();
                 assertTrue(output.contains("Vencido"));
                 assertTrue(output.contains("LP-002"));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("getSystemUser() - Cobertura completa de lambdas")
+    class GetSystemUserTests {
+
+        @Test
+        @DisplayName("Debe crear nuevo usuario y rol cuando no existen - líneas 33-37")
+        void getSystemUser_noExiste_debeCrearNuevoUsuarioYRol() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                Lote lote = crearLoteConFechaVencimiento(LocalDate.now());
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test");
+
+                // Mock que NO existe usuario system_auto
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.empty());
+
+                // Mock que NO existe el rol ADMIN
+                when(roleRepository.findByName("ADMIN")).thenReturn(java.util.Optional.empty());
+
+                // Mock que guarda un nuevo rol
+                com.mb.conitrack.entity.maestro.Role nuevoRole = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                when(roleRepository.save(any(com.mb.conitrack.entity.maestro.Role.class))).thenReturn(nuevoRole);
+
+                // Mock que guarda un nuevo usuario
+                com.mb.conitrack.entity.maestro.User nuevoUsuario = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", nuevoRole);
+                when(userRepository.save(any(com.mb.conitrack.entity.maestro.User.class))).thenReturn(nuevoUsuario);
+
+                // Mock movimiento
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.VENCIDO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                        .thenReturn(movMock);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+
+                // When - Llamar a un método que internamente usa getSystemUser()
+                service.persistirMovimientoProductoVencido(dto, lote);
+
+                // Then - Verificar que se creó el rol y el usuario
+                verify(userRepository).findByUsername("system_auto");
+                verify(roleRepository).findByName("ADMIN");
+                verify(roleRepository).save(any(com.mb.conitrack.entity.maestro.Role.class));
+                verify(userRepository).save(any(com.mb.conitrack.entity.maestro.User.class));
+                verify(movimientoRepository).save(any(com.mb.conitrack.entity.Movimiento.class));
+            }
+        }
+
+        @Test
+        @DisplayName("Debe crear solo usuario cuando rol ya existe - línea 34")
+        void getSystemUser_rolExiste_debeCrearSoloUsuario() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                Lote lote = crearLoteConFechaVencimiento(LocalDate.now());
+                com.mb.conitrack.dto.MovimientoDTO dto = new com.mb.conitrack.dto.MovimientoDTO();
+                dto.setFechaYHoraCreacion(OffsetDateTime.now());
+                dto.setObservaciones("Test");
+
+                // Mock que NO existe usuario system_auto
+                when(userRepository.findByUsername("system_auto")).thenReturn(java.util.Optional.empty());
+
+                // Mock que SÍ existe el rol ADMIN
+                com.mb.conitrack.entity.maestro.Role roleExistente = com.mb.conitrack.entity.maestro.Role.fromEnum(com.mb.conitrack.enums.RoleEnum.ADMIN);
+                when(roleRepository.findByName("ADMIN")).thenReturn(java.util.Optional.of(roleExistente));
+
+                // Mock que guarda un nuevo usuario
+                com.mb.conitrack.entity.maestro.User nuevoUsuario = new com.mb.conitrack.entity.maestro.User("system_auto", "N/A", roleExistente);
+                when(userRepository.save(any(com.mb.conitrack.entity.maestro.User.class))).thenReturn(nuevoUsuario);
+
+                // Mock movimiento
+                com.mb.conitrack.entity.Movimiento movMock = new com.mb.conitrack.entity.Movimiento();
+                movMock.setDictamenFinal(DictamenEnum.VENCIDO);
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModificacion(any(), any(), any()))
+                        .thenReturn(movMock);
+                when(movimientoRepository.save(any(com.mb.conitrack.entity.Movimiento.class))).thenReturn(movMock);
+
+                // When
+                service.persistirMovimientoProductoVencido(dto, lote);
+
+                // Then - Verificar que NO se creó el rol pero SÍ el usuario
+                verify(userRepository).findByUsername("system_auto");
+                verify(roleRepository).findByName("ADMIN");
+                verify(roleRepository, never()).save(any(com.mb.conitrack.entity.maestro.Role.class));
+                verify(userRepository).save(any(com.mb.conitrack.entity.maestro.User.class));
             }
         }
     }

@@ -309,6 +309,60 @@ class ModificacionRecallServiceTest {
         }
 
         @Test
+        @DisplayName("Debe procesar recall con trazas pero ninguna DISPONIBLE - no marca bulto como RECALL")
+        void procesarModificacionRecall_trazasSinDisponibles_noMarcaBultoComoRecall() {
+            try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {
+                // Given
+                MovimientoDTO dto = new MovimientoDTO();
+                dto.setFechaMovimiento(LocalDate.now());
+
+                User currentUser = crearUsuario();
+                Lote lote = crearLote();
+                lote.setEstado(EstadoEnum.DISPONIBLE);
+                lote.setTrazado(true);
+
+                Traza traza1 = crearTraza();
+                traza1.setEstado(EstadoEnum.VENDIDO); // No DISPONIBLE
+                Traza traza2 = crearTraza();
+                traza2.setEstado(EstadoEnum.CONSUMIDO); // No DISPONIBLE
+
+                Set<Traza> trazas = new HashSet<>();
+                trazas.add(traza1);
+                trazas.add(traza2);
+
+                Bulto bulto = crearBulto();
+                bulto.setEstado(EstadoEnum.EN_USO);
+                bulto.setTrazas(trazas);
+                lote.setBultos(List.of(bulto));
+
+                Movimiento movimientoVenta = crearMovimiento();
+                Movimiento movimientoRecall = crearMovimiento();
+                List<Lote> result = new ArrayList<>();
+
+                mockedStatic.when(() -> MovimientoModificacionUtils.createMovimientoModifRecall(dto, currentUser))
+                        .thenReturn(movimientoRecall);
+                when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimientoRecall);
+                when(bultoRepository.saveAll(any())).thenReturn(List.of(bulto));
+                when(trazaRepository.saveAll(any())).thenReturn(new ArrayList<>());
+                when(loteRepository.save(any(Lote.class))).thenReturn(lote);
+                when(loteRepository.findById(lote.getId())).thenReturn(Optional.of(lote));
+
+                // When
+                service.procesarModificacionRecall(dto, lote, movimientoVenta, result, currentUser);
+
+                // Then
+                assertEquals(1, result.size());
+                assertEquals(EstadoEnum.RECALL, lote.getEstado());
+                assertEquals(EstadoEnum.VENDIDO, traza1.getEstado()); // No cambió
+                assertEquals(EstadoEnum.CONSUMIDO, traza2.getEstado()); // No cambió
+                assertEquals(EstadoEnum.EN_USO, bulto.getEstado()); // No cambió a RECALL porque ninguna traza era DISPONIBLE
+                verify(trazaRepository).saveAll(any()); // Se llama pero con lista vacía
+                verify(movimientoRepository).save(any(Movimiento.class));
+                verify(loteRepository).save(lote);
+            }
+        }
+
+        @Test
         @DisplayName("Debe configurar movimiento de modificación correctamente")
         void procesarModificacionRecall_configuracionMovimiento_debeSerCorrecta() {
             try (MockedStatic<MovimientoModificacionUtils> mockedStatic = mockStatic(MovimientoModificacionUtils.class)) {

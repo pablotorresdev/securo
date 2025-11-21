@@ -5,26 +5,14 @@ import com.mb.conitrack.dto.MovimientoDTO;
 import com.mb.conitrack.dto.TrazaDTO;
 import com.mb.conitrack.entity.Analisis;
 import com.mb.conitrack.entity.Bulto;
-import com.mb.conitrack.entity.DetalleMovimiento;
 import com.mb.conitrack.entity.Lote;
 import com.mb.conitrack.entity.Movimiento;
-import com.mb.conitrack.entity.Traza;
 import com.mb.conitrack.entity.maestro.Producto;
 import com.mb.conitrack.entity.maestro.Proveedor;
 import com.mb.conitrack.entity.maestro.Role;
 import com.mb.conitrack.entity.maestro.User;
-import com.mb.conitrack.enums.DictamenEnum;
-import com.mb.conitrack.enums.EstadoEnum;
-import com.mb.conitrack.enums.MotivoEnum;
-import com.mb.conitrack.enums.RoleEnum;
-import com.mb.conitrack.enums.TipoMovimientoEnum;
-import com.mb.conitrack.enums.TipoProductoEnum;
-import com.mb.conitrack.enums.UnidadMedidaEnum;
-import com.mb.conitrack.repository.AnalisisRepository;
-import com.mb.conitrack.repository.BultoRepository;
-import com.mb.conitrack.repository.LoteRepository;
-import com.mb.conitrack.repository.MovimientoRepository;
-import com.mb.conitrack.repository.TrazaRepository;
+import com.mb.conitrack.enums.*;
+import com.mb.conitrack.repository.*;
 import com.mb.conitrack.service.SecurityContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,11 +29,9 @@ import org.springframework.validation.BindingResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,7 +42,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests unitarios con mocks para BajaMuestreoBultoService (CU3).
  * Usa Mockito para verificar lógica del service sin dependencias de BD.
- *
+ * <p>
  * Cobertura completa del flujo CU3:
  * - Validación de entrada para muestreo trazable
  * - Validación de entrada para muestreo multi-bulto
@@ -171,9 +157,9 @@ class BajaMuestreoBultoServiceTest {
 
         // Configure repository mocks to return the saved entities (default behavior)
         lenient().when(movimientoRepository.save(any(Movimiento.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(loteRepository.save(any(Lote.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     private Lote crearLoteConBultos() {
@@ -283,7 +269,7 @@ class BajaMuestreoBultoServiceTest {
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue("L-TEST-001", 1))
-                .thenReturn(Optional.of(loteTest.getBultos().get(0)));
+                    .thenReturn(Optional.of(loteTest.getBultos().get(0)));
 
             // When
             boolean resultado = service.validarMuestreoTrazableInput(dto, binding);
@@ -417,7 +403,7 @@ class BajaMuestreoBultoServiceTest {
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue("L-TEST-001", 999))
-                .thenReturn(Optional.empty());
+                    .thenReturn(Optional.empty());
 
             // When
             boolean resultado = service.validarMuestreoTrazableInput(dto, binding);
@@ -453,7 +439,7 @@ class BajaMuestreoBultoServiceTest {
             assertThat(binding.hasErrors()).isTrue();
             assertThat(binding.getFieldError("trazaDTOs")).isNotNull();
             assertThat(binding.getFieldError("trazaDTOs").getDefaultMessage())
-                .isEqualTo("Debe seleccionar al menos una unidad a muestrear.");
+                    .isEqualTo("Debe seleccionar al menos una unidad a muestrear.");
         }
 
         @Test
@@ -472,7 +458,7 @@ class BajaMuestreoBultoServiceTest {
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue("L-TEST-001", 1))
-                .thenReturn(Optional.of(loteTest.getBultos().get(0)));
+                    .thenReturn(Optional.of(loteTest.getBultos().get(0)));
 
             // When
             boolean resultado = service.validarMuestreoTrazableInput(dto, binding);
@@ -499,7 +485,7 @@ class BajaMuestreoBultoServiceTest {
 
             when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001")).thenReturn(Optional.of(loteTest));
             when(bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue("L-TEST-001", 1))
-                .thenReturn(Optional.of(loteTest.getBultos().get(0)));
+                    .thenReturn(Optional.of(loteTest.getBultos().get(0)));
 
             // When
             boolean resultado = service.validarMuestreoTrazableInput(dto, binding);
@@ -603,7 +589,7 @@ class BajaMuestreoBultoServiceTest {
             assertThat(binding.hasErrors()).isTrue();
             assertThat(binding.getFieldError("codigoLote")).isNotNull();
             assertThat(binding.getFieldError("codigoLote").getDefaultMessage())
-                .isEqualTo("El lote no tiene Analisis asociado.");
+                    .isEqualTo("El lote no tiene Analisis asociado.");
         }
 
         @Test
@@ -730,8 +716,8 @@ class BajaMuestreoBultoServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> service.bajaMuestreoTrazable(dto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El lote no existe.");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("El lote no existe.");
         }
 
         @Test
@@ -755,8 +741,8 @@ class BajaMuestreoBultoServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> service.bajaMuestreoTrazable(dto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El número de análisis no coincide con el análisis en curso");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("El número de análisis no coincide con el análisis en curso");
         }
 
         @Test
@@ -887,8 +873,8 @@ class BajaMuestreoBultoServiceTest {
 
             // When/Then - Should throw exception at line 72
             assertThatThrownBy(() -> service.bajaMuestreoTrazable(dto))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("La traza solo es aplicable a UNIDADES");
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("La traza solo es aplicable a UNIDADES");
         }
 
         @Test
@@ -925,8 +911,8 @@ class BajaMuestreoBultoServiceTest {
 
             // When/Then - Should throw exception at line 76
             assertThatThrownBy(() -> service.bajaMuestreoTrazable(dto))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("La cantidad de Unidades debe ser entero");
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("La cantidad de Unidades debe ser entero");
         }
 
         @Test
@@ -969,8 +955,8 @@ class BajaMuestreoBultoServiceTest {
 
             // When/Then - Should throw exception at line 91
             assertThatThrownBy(() -> service.bajaMuestreoTrazable(dto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Multimuestreo no soportado aun");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Multimuestreo no soportado aun");
         }
     }
 
@@ -1065,8 +1051,8 @@ class BajaMuestreoBultoServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> service.bajamuestreoMultiBulto(dto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El lote no existe.");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("El lote no existe.");
         }
 
         @Test
@@ -1267,118 +1253,6 @@ class BajaMuestreoBultoServiceTest {
     }
 
     @Nested
-    @DisplayName("Cobertura adicional - MuestreoTrazableService")
-    class CoberturaMuestreoTrazableService {
-
-        @Test
-        @org.junit.jupiter.api.Disabled("Test complejo con múltiples mocks - requiere investigación adicional")
-        @DisplayName("debe procesar muestreo para producto UNIDAD_VENTA con trazas")
-        void debe_procesarMuestreoUnidadVenta_conTrazas() {
-            // Given - Configurar producto UNIDAD_VENTA
-            productoTest.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
-            loteTest.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-            loteTest.setCantidadActual(new BigDecimal("10"));
-            loteTest.setCantidadInicial(new BigDecimal("10"));
-            loteTest.setMovimientos(new ArrayList<>());
-
-            Bulto bultoUnidad = new Bulto();
-            bultoUnidad.setId(1L);
-            bultoUnidad.setNroBulto(1);
-            bultoUnidad.setLote(loteTest);
-            bultoUnidad.setCantidadInicial(new BigDecimal("10"));
-            bultoUnidad.setCantidadActual(new BigDecimal("10"));
-            bultoUnidad.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-            bultoUnidad.setEstado(EstadoEnum.DISPONIBLE);
-            bultoUnidad.setActivo(true);
-            bultoUnidad.setTrazas(new HashSet<>());
-
-            loteTest.setBultos(new ArrayList<>(Arrays.asList(bultoUnidad)));
-
-            // Configurar Analisis para que getUltimoNroAnalisis() no retorne null
-            Analisis analisis = new Analisis();
-            analisis.setId(1L);
-            analisis.setNroAnalisis("AN-2025-001");
-            analisis.setActivo(true);
-            analisis.setDictamen(DictamenEnum.APROBADO);
-            analisis.setFechaYHoraCreacion(OffsetDateTime.now());
-            analisis.setFechaRealizado(LocalDate.now());
-            analisis.setLote(loteTest);
-            loteTest.setAnalisisList(new ArrayList<>(Arrays.asList(analisis)));
-
-            // Crear trazas activas
-            Traza traza1 = new Traza();
-            traza1.setId(1L);
-            traza1.setNroTraza(1L);
-            traza1.setLote(loteTest);
-            traza1.setEstado(EstadoEnum.DISPONIBLE);
-            traza1.setActivo(true);
-            traza1.setDetalles(new ArrayList<>());
-
-            Traza traza2 = new Traza();
-            traza2.setId(2L);
-            traza2.setNroTraza(2L);
-            traza2.setLote(loteTest);
-            traza2.setEstado(EstadoEnum.DISPONIBLE);
-            traza2.setActivo(true);
-            traza2.setDetalles(new ArrayList<>());
-
-            loteTest.setTrazas(new HashSet<>(Arrays.asList(traza1, traza2)));
-
-            // MovimientoDTO con trazas
-            MovimientoDTO dtoConTrazas = new MovimientoDTO();
-            dtoConTrazas.setCodigoLote("L-TEST-001");
-            dtoConTrazas.setNroBulto("1");
-            dtoConTrazas.setNroAnalisis("AN-2025-001");
-            dtoConTrazas.setCantidad(new BigDecimal("2"));
-            dtoConTrazas.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-            dtoConTrazas.setFechaMovimiento(LocalDate.now());
-            dtoConTrazas.setFechaRealizadoAnalisis(LocalDate.now());
-            dtoConTrazas.setFechaYHoraCreacion(java.time.OffsetDateTime.now());
-
-            TrazaDTO trazaDTO1 = new TrazaDTO();
-            trazaDTO1.setNroTraza(1L);
-            TrazaDTO trazaDTO2 = new TrazaDTO();
-            trazaDTO2.setNroTraza(2L);
-            dtoConTrazas.setTrazaDTOs(Arrays.asList(trazaDTO1, trazaDTO2));
-
-            // Mock movimiento con detalle
-            DetalleMovimiento detalle = new DetalleMovimiento();
-            detalle.setId(1L);
-            detalle.setCantidad(new BigDecimal("2"));
-            detalle.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-            detalle.setTrazas(new HashSet<>());
-            detalle.setBulto(bultoUnidad);
-
-            Movimiento movimientoMock = new Movimiento();
-            movimientoMock.setId(1L);
-            movimientoMock.setCodigoMovimiento("MOV-TEST-001");
-            movimientoMock.setTipoMovimiento(TipoMovimientoEnum.BAJA);
-            movimientoMock.setMotivo(MotivoEnum.MUESTREO);
-            movimientoMock.setCantidad(new BigDecimal("2"));
-            movimientoMock.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
-            movimientoMock.setDetalles(new HashSet<>(Arrays.asList(detalle)));
-            movimientoMock.setLote(loteTest);
-            movimientoMock.setActivo(true);
-            detalle.setMovimiento(movimientoMock);
-
-            when(securityContextService.getCurrentUser()).thenReturn(testUser);
-            when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001"))
-                .thenReturn(Optional.of(loteTest));
-            when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimientoMock);
-            when(trazaRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
-            when(loteRepository.save(any(Lote.class))).thenReturn(loteTest);
-
-            // When
-            LoteDTO resultado = service.bajaMuestreoTrazable(dtoConTrazas);
-
-            // Then
-            assertThat(resultado).isNotNull();
-            verify(trazaRepository).saveAll(anyList());
-            verify(loteRepository).save(loteTest);
-        }
-    }
-
-    @Nested
     @DisplayName("Cobertura adicional - MuestreoMultiBultoService (líneas 61-78, 190-235)")
     class CoberturaMuestreoMultiBultoService {
 
@@ -1443,8 +1317,8 @@ class BajaMuestreoBultoServiceTest {
 
             // When/Then - Should throw exception at line 65
             assertThatThrownBy(() -> muestreoMultiBultoService.persistirMovimientoBajaMuestreoMultiBulto(dto, loteTest, testUser))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("No hay Analisis con al que asociar el muestreo");
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("No hay Analisis con al que asociar el muestreo");
             // This covers lines 64-65 (if ultimoAnalisis == null branch)
         }
 
