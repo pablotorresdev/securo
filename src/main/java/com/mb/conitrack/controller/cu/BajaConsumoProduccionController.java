@@ -60,13 +60,13 @@ public class BajaConsumoProduccionController extends AbstractCuController {
         return "produccion/baja/consumo-produccion-ok";
     }
 
-    private void initModelConsumoProduccion(final LoteDTO loteDTO, final Model model) {
+    void initModelConsumoProduccion(final LoteDTO loteDTO, final Model model) {
         List<LoteDTO> loteProduccionDTOs = loteService.findAllForConsumoProduccionDTOs();
         model.addAttribute("loteProduccionDTOs", loteProduccionDTOs);
         model.addAttribute("loteDTO", loteDTO); //  ← mantiene lo que el usuario ingresó
     }
 
-    private void procesarConsumoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+    void procesarConsumoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
 
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO resultDTO = consumoProduccionService.bajaConsumoProduccion(loteDTO);

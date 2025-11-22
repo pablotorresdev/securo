@@ -41,7 +41,7 @@ public class AltaDevolucionVentaService extends AbstractCuService {
     @Autowired
     private SecurityContextService securityContextService;
 
-    private static Bulto initBulto(final Lote clone) {
+    static Bulto initBulto(final Lote clone) {
         Bulto bulto = new Bulto();
         bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
         bulto.setEstado(DEVUELTO);
@@ -80,7 +80,7 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         return fromLoteEntities(lotes);
     }
 
-    private void altaDevolucionUnidadesPorBulto(final Lote loteAltaDevolucion, final Movimiento movDevolucionVenta) {
+    void altaDevolucionUnidadesPorBulto(final Lote loteAltaDevolucion, final Movimiento movDevolucionVenta) {
         BigDecimal cantidadMovimiento = BigDecimal.ZERO;
         for (Bulto bultoDevolucion : loteAltaDevolucion.getBultos()) {
 
@@ -107,7 +107,7 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         loteAltaDevolucion.setBultosTotales(loteAltaDevolucion.getBultos().size());
     }
 
-    private void altaDevolucionUnidadesTrazadas(
+    void altaDevolucionUnidadesTrazadas(
         final MovimientoDTO dto,
         final Lote loteVentaOrigen,
         final Lote loteAltaDevolucion,
@@ -246,7 +246,7 @@ public class AltaDevolucionVentaService extends AbstractCuService {
         return clone;
     }
 
-    private Lote initLoteDevolucion(final Lote original, final MovimientoDTO dto) {
+    Lote initLoteDevolucion(final Lote original, final MovimientoDTO dto) {
         Lote clone = new Lote();
 
         clone.setId(null);

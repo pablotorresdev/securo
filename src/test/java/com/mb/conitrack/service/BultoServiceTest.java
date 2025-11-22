@@ -50,7 +50,7 @@ class BultoServiceTest {
         bulto2 = crearBultoTest(loteTest, 2);
     }
 
-    private Bulto crearBultoTest(Lote lote, int nroBulto) {
+    Bulto crearBultoTest(Lote lote, int nroBulto) {
         Bulto bulto = new Bulto();
         bulto.setId((long) nroBulto);
         bulto.setNroBulto(nroBulto);

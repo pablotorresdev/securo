@@ -509,6 +509,151 @@ class MuestreoTrazableServiceTest {
         }
     }
 
+    // ========== Direct Tests for Package-Protected Methods ==========
+
+    @Test
+    @DisplayName("procesarTrazasUnidadVenta - Debe procesar trazas exitosamente")
+    void procesarTrazasUnidadVenta_conTrazasValidas_debeProcesarCorrectamente() {
+        // Given
+        dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        dto.setCantidad(new BigDecimal("2"));
+
+        TrazaDTO trazaDTO1 = new TrazaDTO();
+        trazaDTO1.setNroTraza(1L);
+        TrazaDTO trazaDTO2 = new TrazaDTO();
+        trazaDTO2.setNroTraza(2L);
+        dto.setTrazaDTOs(new ArrayList<>(List.of(trazaDTO1, trazaDTO2)));
+
+        Traza traza1 = crearTraza(1L);
+        Traza traza2 = crearTraza(2L);
+        Set<Traza> trazasSet = new HashSet<>();
+        trazasSet.add(traza1);
+        trazasSet.add(traza2);
+        lote.setTrazas(trazasSet);
+
+        Movimiento movimiento = new Movimiento();
+        movimiento.setId(1L);
+        movimiento.setCantidad(new BigDecimal("2"));
+        movimiento.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+
+        DetalleMovimiento detalle = new DetalleMovimiento();
+        detalle.setId(1L);
+        detalle.setTrazas(new HashSet<>());
+        detalle.setMovimiento(movimiento);
+
+        Set<DetalleMovimiento> detalles = new HashSet<>();
+        detalles.add(detalle);
+        movimiento.setDetalles(detalles);
+
+        when(trazaRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        dtoUtilsMock.when(() -> DTOUtils.fromTrazaEntity(any(Traza.class))).thenReturn(new TrazaDTO());
+
+        // When
+        service.procesarTrazasUnidadVenta(dto, lote, movimiento);
+
+        // Then
+        assertThat(traza1.getEstado()).isEqualTo(EstadoEnum.CONSUMIDO);
+        assertThat(traza2.getEstado()).isEqualTo(EstadoEnum.CONSUMIDO);
+        assertThat(detalle.getTrazas()).hasSize(2);
+        assertThat(detalle.getTrazas()).contains(traza1, traza2);
+        verify(trazaRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("obtenerTrazasSeleccionadas - Debe retornar trazas que coinciden con DTOs")
+    void obtenerTrazasSeleccionadas_conTrazasCoincidentes_debeRetornarLista() {
+        // Given
+        TrazaDTO trazaDTO1 = new TrazaDTO();
+        trazaDTO1.setNroTraza(1L);
+        TrazaDTO trazaDTO2 = new TrazaDTO();
+        trazaDTO2.setNroTraza(2L);
+        dto.setTrazaDTOs(List.of(trazaDTO1, trazaDTO2));
+
+        Traza traza1 = crearTraza(1L);
+        Traza traza2 = crearTraza(2L);
+        Traza traza3 = crearTraza(3L);
+
+        Set<Traza> trazasSet = new HashSet<>();
+        trazasSet.add(traza1);
+        trazasSet.add(traza2);
+        trazasSet.add(traza3);
+        lote.setTrazas(trazasSet);
+
+        // When
+        List<Traza> resultado = service.obtenerTrazasSeleccionadas(dto, lote);
+
+        // Then
+        assertThat(resultado).hasSize(2);
+        assertThat(resultado).contains(traza1, traza2);
+        assertThat(resultado).doesNotContain(traza3);
+    }
+
+    @Test
+    @DisplayName("actualizarEstadoBulto - Debe cambiar estado a CONSUMIDO cuando cantidad es cero")
+    void actualizarEstadoBulto_cantidadCero_debeCambiarAConsumido() {
+        // Given
+        bulto.setCantidadActual(BigDecimal.ZERO);
+        bulto.setEstado(EstadoEnum.DISPONIBLE);
+
+        // When
+        service.actualizarEstadoBulto(bulto);
+
+        // Then
+        assertThat(bulto.getEstado()).isEqualTo(EstadoEnum.CONSUMIDO);
+    }
+
+    @Test
+    @DisplayName("actualizarEstadoBulto - Debe cambiar estado a EN_USO cuando cantidad es mayor a cero")
+    void actualizarEstadoBulto_cantidadMayorCero_debeCambiarAEnUso() {
+        // Given
+        bulto.setCantidadActual(new BigDecimal("50"));
+        bulto.setEstado(EstadoEnum.DISPONIBLE);
+
+        // When
+        service.actualizarEstadoBulto(bulto);
+
+        // Then
+        assertThat(bulto.getEstado()).isEqualTo(EstadoEnum.EN_USO);
+    }
+
+    @Test
+    @DisplayName("actualizarEstadoLote - Debe marcar lote como CONSUMIDO cuando todos los bultos están consumidos")
+    void actualizarEstadoLote_todosBultosConsumidos_debeCambiarAConsumido() {
+        // Given
+        Bulto bulto1 = new Bulto();
+        bulto1.setEstado(EstadoEnum.CONSUMIDO);
+        Bulto bulto2 = new Bulto();
+        bulto2.setEstado(EstadoEnum.CONSUMIDO);
+
+        lote.setBultos(List.of(bulto1, bulto2));
+        lote.setEstado(EstadoEnum.DISPONIBLE);
+
+        // When
+        service.actualizarEstadoLote(lote);
+
+        // Then
+        assertThat(lote.getEstado()).isEqualTo(EstadoEnum.CONSUMIDO);
+    }
+
+    @Test
+    @DisplayName("actualizarEstadoLote - Debe marcar lote como EN_USO cuando al menos un bulto no está consumido")
+    void actualizarEstadoLote_algunBultoNoConsumido_debeCambiarAEnUso() {
+        // Given
+        Bulto bulto1 = new Bulto();
+        bulto1.setEstado(EstadoEnum.CONSUMIDO);
+        Bulto bulto2 = new Bulto();
+        bulto2.setEstado(EstadoEnum.EN_USO);
+
+        lote.setBultos(List.of(bulto1, bulto2));
+        lote.setEstado(EstadoEnum.DISPONIBLE);
+
+        // When
+        service.actualizarEstadoLote(lote);
+
+        // Then
+        assertThat(lote.getEstado()).isEqualTo(EstadoEnum.EN_USO);
+    }
+
     // ========== Helper Methods ==========
 
     private Traza crearTraza(Long nroTraza) {

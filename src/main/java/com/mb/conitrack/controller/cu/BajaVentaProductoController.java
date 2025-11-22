@@ -62,7 +62,7 @@ public class BajaVentaProductoController extends AbstractCuController {
         return "ventas/baja/venta-producto-ok";
     }
 
-    private Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
+    Map<Integer, List<Long>> getTrazaPorBultoDTOs(final LoteDTO loteDTO) {
         Map<Integer, List<Long>> trazasVentaPorBulto =
             loteDTO.getTrazaDTOs().stream()
                 .collect(java.util.stream.Collectors.groupingBy(
@@ -82,12 +82,12 @@ public class BajaVentaProductoController extends AbstractCuController {
         return trazasVentaPorBulto;
     }
 
-    private void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
+    void initModelVentaProducto(final LoteDTO loteDTO, final Model model) {
         model.addAttribute("loteVentaDTOs", loteService.findAllForVentaProductoDTOs());
         model.addAttribute("loteDTO", loteDTO);
     }
 
-    private void procesarVentaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+    void procesarVentaProducto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO resultDTO = ventaProductoService.bajaVentaProducto(loteDTO);
 

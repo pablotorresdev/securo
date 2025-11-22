@@ -112,7 +112,7 @@ public class MuestreoMultiBultoService extends AbstractCuService {
     /**
      * Procesa el descuento de cantidades en cada bulto con conversión de unidades.
      */
-    private void procesarDescontarCantidadesPorBulto(final LoteDTO loteDTO, final Lote lote) {
+    void procesarDescontarCantidadesPorBulto(final LoteDTO loteDTO, final Lote lote) {
         final List<Integer> nroBultoList = loteDTO.getNroBultoList();
         final List<BigDecimal> cantidadesBultos = loteDTO.getCantidadesBultos();
         final List<UnidadMedidaEnum> unidadMedidaBultos = loteDTO.getUnidadMedidaBultos();
@@ -134,7 +134,7 @@ public class MuestreoMultiBultoService extends AbstractCuService {
     /**
      * Descuenta cantidad del bulto con conversión de unidades si es necesario.
      */
-    private void descontarCantidadBulto(final Bulto bulto, final BigDecimal cantidad, final UnidadMedidaEnum unidad) {
+    void descontarCantidadBulto(final Bulto bulto, final BigDecimal cantidad, final UnidadMedidaEnum unidad) {
         if (bulto.getUnidadMedida() == unidad) {
             bulto.setCantidadActual(bulto.getCantidadActual().subtract(cantidad));
         } else {
@@ -149,7 +149,7 @@ public class MuestreoMultiBultoService extends AbstractCuService {
     /**
      * Descuenta cantidad del lote con conversión de unidades si es necesario.
      */
-    private void descontarCantidadLote(final Lote lote, final BigDecimal cantidad, final UnidadMedidaEnum unidad) {
+    void descontarCantidadLote(final Lote lote, final BigDecimal cantidad, final UnidadMedidaEnum unidad) {
         if (lote.getUnidadMedida() == unidad) {
             lote.setCantidadActual(lote.getCantidadActual().subtract(cantidad));
         } else {
@@ -164,7 +164,7 @@ public class MuestreoMultiBultoService extends AbstractCuService {
     /**
      * Actualiza el estado del lote y sus bultos según cantidades actuales.
      */
-    private void actualizarEstadosLoteYBultos(final LoteDTO loteDTO, final Lote lote) {
+    void actualizarEstadosLoteYBultos(final LoteDTO loteDTO, final Lote lote) {
         final List<Integer> nroBultoList = loteDTO.getNroBultoList();
 
         for (int nroBulto : nroBultoList) {
@@ -186,7 +186,7 @@ public class MuestreoMultiBultoService extends AbstractCuService {
     /**
      * Calcula la unidad de medida del movimiento (la mayor entre todos los bultos).
      */
-    private UnidadMedidaEnum calcularUnidadMedidaMovimiento(final LoteDTO loteDTO) {
+    UnidadMedidaEnum calcularUnidadMedidaMovimiento(final LoteDTO loteDTO) {
         UnidadMedidaEnum uniMedidaMovimiento = loteDTO.getUnidadMedidaBultos().get(0);
 
         for (int i = 1; i < loteDTO.getCantidadesBultos().size(); i++) {
@@ -199,7 +199,7 @@ public class MuestreoMultiBultoService extends AbstractCuService {
     /**
      * Calcula la cantidad total del movimiento sumando todas las cantidades convertidas.
      */
-    private BigDecimal calcularCantidadTotalMovimiento(final LoteDTO loteDTO, final UnidadMedidaEnum uniMedidaMovimiento) {
+    BigDecimal calcularCantidadTotalMovimiento(final LoteDTO loteDTO, final UnidadMedidaEnum uniMedidaMovimiento) {
         BigDecimal cantidad = BigDecimal.ZERO;
 
         for (int i = 0; i < loteDTO.getCantidadesBultos().size(); i++) {
@@ -216,7 +216,7 @@ public class MuestreoMultiBultoService extends AbstractCuService {
     /**
      * Agrega los detalles de movimiento por cada bulto muestreado.
      */
-    private void agregarDetallesMovimiento(final LoteDTO loteDTO, final Lote loteEntity, final Movimiento movimiento) {
+    void agregarDetallesMovimiento(final LoteDTO loteDTO, final Lote loteEntity, final Movimiento movimiento) {
         for (int i = 0; i < loteDTO.getNroBultoList().size(); i++) {
             final Integer nroBulto = loteDTO.getNroBultoList().get(i);
             if (BigDecimal.ZERO.compareTo(loteDTO.getCantidadesBultos().get(i)) == 0) {

@@ -107,7 +107,7 @@ class AltaIngresoCompraServiceTest {
         verifyNoInteractions(productoRepository, loteRepository, bultoService, movimientoService);
     }
 
-    private LoteDTO dtoBase() {
+    LoteDTO dtoBase() {
         LoteDTO dto = new LoteDTO();
         dto.setProveedorId(1L);
         dto.setProductoId(2L);

@@ -144,12 +144,12 @@ public class BajaMuestreoBultoController extends AbstractCuController {
             loteDTO != null ? "Muestreo registrado correctamente." : "Hubo un error persistiendo el muestreo.");
     }
 
-    private void initModelmuestreoMultiBulto(final LoteDTO loteDTO, final Model model) {
+    void initModelmuestreoMultiBulto(final LoteDTO loteDTO, final Model model) {
         model.addAttribute("loteMuestreoMultiBultoDTOs", loteService.findAllForMuestreoMultiBultoDTOs());
         model.addAttribute("loteDTO", loteDTO); //  ← mantiene lo que el usuario ingresó
     }
 
-    private void procesarmuestreoMultiBulto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+    void procesarmuestreoMultiBulto(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
 
         // Preservar las cantidades muestreadas originales antes de que se pierdan
         final java.util.List<java.math.BigDecimal> cantidadesMuestreadas = new java.util.ArrayList<>(loteDTO.getCantidadesBultos());

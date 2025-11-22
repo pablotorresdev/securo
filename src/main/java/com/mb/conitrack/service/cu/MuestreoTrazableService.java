@@ -182,7 +182,7 @@ public class MuestreoTrazableService extends AbstractCuService {
     /**
      * Procesa trazas para productos de tipo UNIDAD_VENTA.
      */
-    private void procesarTrazasUnidadVenta(final MovimientoDTO dto, final Lote lote, final Movimiento movimiento) {
+    void procesarTrazasUnidadVenta(final MovimientoDTO dto, final Lote lote, final Movimiento movimiento) {
         final BigDecimal cantidad = movimiento.getCantidad();
         if (movimiento.getUnidadMedida() != UnidadMedidaEnum.UNIDAD) {
             throw new IllegalStateException("La traza solo es aplicable a UNIDADES");
@@ -214,7 +214,7 @@ public class MuestreoTrazableService extends AbstractCuService {
     /**
      * Obtiene las trazas seleccionadas desde el DTO.
      */
-    private List<Traza> obtenerTrazasSeleccionadas(final MovimientoDTO dto, final Lote lote) {
+    List<Traza> obtenerTrazasSeleccionadas(final MovimientoDTO dto, final Lote lote) {
         final List<Traza> trazas = new ArrayList<>();
         for (TrazaDTO trazaDTO : dto.getTrazaDTOs()) {
             final Long nroTraza = trazaDTO.getNroTraza();
@@ -231,7 +231,7 @@ public class MuestreoTrazableService extends AbstractCuService {
     /**
      * Actualiza el estado del bulto según su cantidad actual.
      */
-    private void actualizarEstadoBulto(final Bulto bulto) {
+    void actualizarEstadoBulto(final Bulto bulto) {
         if (bulto.getCantidadActual().compareTo(BigDecimal.ZERO) == 0) {
             bulto.setEstado(CONSUMIDO);
         } else {
@@ -242,7 +242,7 @@ public class MuestreoTrazableService extends AbstractCuService {
     /**
      * Actualiza el estado del lote según el estado de sus bultos.
      */
-    private void actualizarEstadoLote(final Lote lote) {
+    void actualizarEstadoLote(final Lote lote) {
         boolean todosConsumidos = lote.getBultos().stream()
             .allMatch(b -> b.getEstado() == CONSUMIDO);
         lote.setEstado(todosConsumidos ? CONSUMIDO : EN_USO);

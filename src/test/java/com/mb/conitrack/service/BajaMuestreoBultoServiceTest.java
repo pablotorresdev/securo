@@ -229,7 +229,7 @@ class BajaMuestreoBultoServiceTest {
        crearMovimientoConPrimerAnalisis
        ============================== */
 
-    private Bulto bultoConLote(String codLote, int nroBulto) {
+    Bulto bultoConLote(String codLote, int nroBulto) {
         Lote lote = new Lote();
         lote.setCodigoLote(codLote);
 
@@ -240,7 +240,7 @@ class BajaMuestreoBultoServiceTest {
     }
 
     /* ---------- helpers ---------- */
-    private MovimientoDTO dtoBase(String nroAnalisis) {
+    MovimientoDTO dtoBase(String nroAnalisis) {
         MovimientoDTO dto = new MovimientoDTO();
         dto.setNroAnalisis(nroAnalisis);
         dto.setFechaYHoraCreacion(OffsetDateTime.now());

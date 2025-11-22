@@ -66,7 +66,7 @@ public class MovimientoService {
         return calcularMaximoRetornoPorBulto(codigoMovimiento);
     }
 
-    private ArrayList<Integer> calcularMaximoRetornoPorBulto(final String codigoMovimiento) {
+    List<Integer> calcularMaximoRetornoPorBulto(final String codigoMovimiento) {
         final Optional<Movimiento> movVentaMaybe = movimientoRepository.findMovimientosVentaByCodigoMovimiento(
             codigoMovimiento);
 

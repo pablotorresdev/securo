@@ -63,13 +63,13 @@ public class ModifTrazadoLoteController extends AbstractCuController {
         return "ventas/trazado/inicio-trazado-ok";
     }
 
-    private void initModelTrazadoLote(final MovimientoDTO movimientoDTO, final Model model) {
+    void initModelTrazadoLote(final MovimientoDTO movimientoDTO, final Model model) {
         final List<LoteDTO> loteTrazadoDtos = loteService.findAllForTrazadoLoteDTOs();
         model.addAttribute("loteTrazadoDtos", loteTrazadoDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void procesarTrazadoLote(
+    void procesarTrazadoLote(
         final MovimientoDTO dto,
         final RedirectAttributes redirectAttributes) {
 

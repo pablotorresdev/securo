@@ -62,7 +62,7 @@ public class AltaRecallService extends AbstractCuService {
     /**
      * Procesa recall para productos no trazados (por bulto).
      */
-    private void altaRecallUnidadesPorBulto(final Lote loteAltaRecall, final Movimiento movimientoAltaRecall) {
+    void altaRecallUnidadesPorBulto(final Lote loteAltaRecall, final Movimiento movimientoAltaRecall) {
         BigDecimal cantidadMovimiento = BigDecimal.ZERO;
         for (Bulto bultoRecall : loteAltaRecall.getBultos()) {
 
@@ -92,7 +92,7 @@ public class AltaRecallService extends AbstractCuService {
     /**
      * Procesa recall para productos trazados (transferencia de trazas individuales).
      */
-    private void altaRecallUnidadesTrazadas(
+    void altaRecallUnidadesTrazadas(
             final MovimientoDTO dto,
             final Lote loteOrigenRecall,
             final Lote loteAltaRecall,
@@ -198,7 +198,7 @@ public class AltaRecallService extends AbstractCuService {
     /**
      * Inicializa un bulto para el lote recall.
      */
-    private static Bulto initBulto(final Lote clone) {
+    static Bulto initBulto(final Lote clone) {
         Bulto bulto = new Bulto();
         bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
         bulto.setEstado(RECALL);
@@ -210,7 +210,7 @@ public class AltaRecallService extends AbstractCuService {
     /**
      * Inicializa el lote recall con datos base clonados del original.
      */
-    private Lote initLoteRecall(final Lote original, final MovimientoDTO dto) {
+    Lote initLoteRecall(final Lote original, final MovimientoDTO dto) {
         Lote clone = new Lote();
 
         clone.setId(null);

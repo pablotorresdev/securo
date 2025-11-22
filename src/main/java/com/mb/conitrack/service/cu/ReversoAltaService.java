@@ -109,7 +109,7 @@ public class ReversoAltaService extends AbstractCuService {
     /**
      * Reversa el movimiento de ALTA del recall
      */
-    private void reversarAltaRecall(MovimientoDTO dto, Movimiento movRecallOrigen, User currentUser) {
+    void reversarAltaRecall(MovimientoDTO dto, Movimiento movRecallOrigen, User currentUser) {
         Movimiento movReversoAltaRecall = createMovimientoReverso(dto, movRecallOrigen, currentUser);
         movRecallOrigen.setActivo(false);
         movReversoAltaRecall.setActivo(false);
@@ -144,7 +144,7 @@ public class ReversoAltaService extends AbstractCuService {
     /**
      * Reversa la modificación del lote de venta origen que fue marcado como RECALL
      */
-    private LoteDTO reversarModificacionRecall(MovimientoDTO dto, Movimiento movRecallOrigen, User currentUser) {
+    LoteDTO reversarModificacionRecall(MovimientoDTO dto, Movimiento movRecallOrigen, User currentUser) {
         Movimiento movimientoVentaOrigen = movRecallOrigen.getMovimientoOrigen();
         final List<Movimiento> allByCodigoMovimiento = movimientoRepository
                 .findByMovimientoOrigen(movimientoVentaOrigen.getCodigoMovimiento());
@@ -160,7 +160,7 @@ public class ReversoAltaService extends AbstractCuService {
     /**
      * Lógica interna para reversar la modificación de estado RECALL en el lote de venta
      */
-    private LoteDTO reversarModificacionRecallInterno(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
+    LoteDTO reversarModificacionRecallInterno(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
         if (movOrigen.getTipoMovimiento() != com.mb.conitrack.enums.TipoMovimientoEnum.MODIFICACION) {
             throw new IllegalStateException("El movimiento de venta asociado al recall no es de modificacion.");
         }
@@ -209,7 +209,7 @@ public class ReversoAltaService extends AbstractCuService {
     /**
      * Restaura el estado de un bulto según su cantidad
      */
-    private void restaurarEstadoBulto(Bulto bulto) {
+    void restaurarEstadoBulto(Bulto bulto) {
         if (bulto.getCantidadInicial().compareTo(bulto.getCantidadActual()) == 0) {
             bulto.setEstado(EstadoEnum.NUEVO);
         } else {
@@ -224,7 +224,7 @@ public class ReversoAltaService extends AbstractCuService {
     /**
      * Restaura el estado de un lote según su cantidad
      */
-    private void restaurarEstadoLote(Lote lote) {
+    void restaurarEstadoLote(Lote lote) {
         if (lote.getCantidadInicial().compareTo(lote.getCantidadActual()) == 0) {
             lote.setEstado(EstadoEnum.NUEVO);
         } else {

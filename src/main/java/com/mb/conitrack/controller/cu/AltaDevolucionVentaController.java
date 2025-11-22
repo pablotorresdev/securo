@@ -79,7 +79,7 @@ public class AltaDevolucionVentaController extends AbstractCuController {
     }
 
     /** Resuelve nombres de lote desde código para mostrar en confirmación. */
-    private void resolverNombresParaConfirmacion(MovimientoDTO movimientoDTO) {
+    void resolverNombresParaConfirmacion(MovimientoDTO movimientoDTO) {
         // Resolver información del lote
         if (movimientoDTO.getCodigoLote() != null) {
             loteService.findByCodigoLote(movimientoDTO.getCodigoLote()).ifPresent(lote -> {
@@ -95,12 +95,12 @@ public class AltaDevolucionVentaController extends AbstractCuController {
         return "ventas/alta/devolucion-venta-ok";
     }
 
-    private void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
+    void initModelDevolucionVenta(final MovimientoDTO movimientoDTO, final Model model) {
         model.addAttribute("lotesDevolucion", loteService.findAllForDevolucionDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void procesarDevolucionVenta(
+    void procesarDevolucionVenta(
         final @Valid MovimientoDTO movimientoDTO,
         final RedirectAttributes redirectAttributes) {
 

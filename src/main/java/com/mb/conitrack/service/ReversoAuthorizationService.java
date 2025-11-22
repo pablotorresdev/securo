@@ -100,7 +100,7 @@ public class ReversoAuthorizationService {
     /**
      * Construye mensaje de error descriptivo según el caso.
      */
-    private String construirMensajeError(Movimiento movimiento, User userActual) {
+    String construirMensajeError(Movimiento movimiento, User userActual) {
         // Caso: AUDITOR
         if (userActual.isAuditor()) {
             return "Los auditores no tienen permisos para reversar movimientos. " +
@@ -134,7 +134,7 @@ public class ReversoAuthorizationService {
     /**
      * Verifica si el usuario es ADMIN.
      */
-    private boolean esAdmin(User user) {
+    boolean esAdmin(User user) {
         return RoleEnum.ADMIN.name().equals(user.getRole().getName());
     }
 

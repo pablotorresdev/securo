@@ -27,7 +27,7 @@ import static com.mb.conitrack.utils.MovimientoModificacionUtils.createMovimient
 public class FechaValidatorService extends AbstractCuService {
 
     // Usuario del sistema para procesos automáticos
-    private User getSystemUser() {
+    User getSystemUser() {
         // Buscar o crear un usuario del sistema (ADMIN) para procesos automáticos
         return userRepository.findByUsername("system_auto")
             .orElseGet(() -> {

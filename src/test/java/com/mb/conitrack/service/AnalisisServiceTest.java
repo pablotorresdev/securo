@@ -49,7 +49,7 @@ class AnalisisServiceTest {
         analisis2 = crearAnalisisTest("AN-2025-002", null); // En curso
     }
 
-    private Analisis crearAnalisisTest(String nroAnalisis, DictamenEnum dictamen) {
+    Analisis crearAnalisisTest(String nroAnalisis, DictamenEnum dictamen) {
         Analisis analisis = new Analisis();
         analisis.setId(1L);
         analisis.setNroAnalisis(nroAnalisis);

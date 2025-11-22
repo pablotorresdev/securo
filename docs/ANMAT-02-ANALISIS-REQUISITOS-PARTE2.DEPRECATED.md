@@ -264,7 +264,7 @@ public class AuditTrailAspect {
         return result;
     }
 
-    private void recordChanges(Map<String, Object> oldValues,
+    void recordChanges(Map<String, Object> oldValues,
                                Map<String, Object> newValues,
                                Signature signature) {
 

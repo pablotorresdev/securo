@@ -77,12 +77,12 @@ public class AltaRetiroMercadoController extends AbstractCuController {
         return "ventas/recall/retiro-mercado-ok";
     }
 
-    private void initModelRetiroMercado(final MovimientoDTO movimientoDTO, final Model model) {
+    void initModelRetiroMercado(final MovimientoDTO movimientoDTO, final Model model) {
         model.addAttribute("lotesRecall", loteService.findAllForRecallDTOs());
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void prcesarRetiroMercado(
+    void prcesarRetiroMercado(
         final @Valid MovimientoDTO movimientoDTO,
         final RedirectAttributes redirectAttributes) {
 

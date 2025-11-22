@@ -98,7 +98,11 @@
       "Bash(test_output.txt)",
       "Bash(.gradlew compileTestJava)",
       "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/ModifReversoMovimientoService.java.html)",
-      "Bash(.gradlew.bat clean compileTestJava)"
+      "Bash(.gradlew.bat clean compileTestJava)",
+      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/MuestreoTrazableService.java.html)",
+      "Bash(gradlew.bat clean test:*)",
+      "Bash(MuestreoTrazableServiceTest_original.java)",
+      "Bash(Select-String -Pattern \"tests completed|FAILED|SUCCESSFUL|JaCoCo\")"
     ],
     "deny": [],
     "ask": []

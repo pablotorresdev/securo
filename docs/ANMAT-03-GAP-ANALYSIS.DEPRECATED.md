@@ -831,7 +831,7 @@ public class AccountLockoutService {
         }
     }
 
-    private void lockAccount(String username) {
+    void lockAccount(String username) {
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 

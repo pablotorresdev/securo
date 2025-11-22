@@ -73,7 +73,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     /**
      * Delega el reverso de movimientos ALTA al servicio especializado
      */
-    private LoteDTO delegarReversoAlta(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
+    LoteDTO delegarReversoAlta(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
         if (movOrigen.getMotivo() == MotivoEnum.COMPRA) { //CU1
             return reversoAltaService.reversarAltaIngresoCompra(dto, movOrigen, currentUser);
         }
@@ -92,7 +92,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     /**
      * Delega el reverso de movimientos MODIFICACION al servicio especializado
      */
-    private LoteDTO delegarReversoModificacion(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
+    LoteDTO delegarReversoModificacion(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
         if (movOrigen.getMotivo() == MotivoEnum.ANALISIS) { //CU2/CU8
             return reversoModificacionService.reversarModifDictamenCuarentena(dto, movOrigen, currentUser);
         }
@@ -126,7 +126,7 @@ public class ModifReversoMovimientoService extends AbstractCuService {
     /**
      * Delega el reverso de movimientos BAJA al servicio especializado
      */
-    private LoteDTO delegarReversoBaja(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
+    LoteDTO delegarReversoBaja(MovimientoDTO dto, Movimiento movOrigen, User currentUser) {
         if (movOrigen.getMotivo() == MotivoEnum.DEVOLUCION_COMPRA) { //CU4
             return reversoBajaService.reversarBajaDevolucionCompra(dto, movOrigen, currentUser);
         }

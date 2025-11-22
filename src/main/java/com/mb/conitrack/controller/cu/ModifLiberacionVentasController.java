@@ -63,13 +63,13 @@ public class ModifLiberacionVentasController extends AbstractCuController {
         return "ventas/liberacion/inicio-liberacion-ok";
     }
 
-    private void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
+    void initModelLiberacionProducto(final MovimientoDTO movimientoDTO, final Model model) {
         final List<LoteDTO> loteLiberacionProdDtos = loteService.findAllForLiberacionProductoDTOs();
         model.addAttribute("loteLiberacionProdDtos", loteLiberacionProdDtos);
         model.addAttribute("movimientoDTO", movimientoDTO);
     }
 
-    private void procesarLiberacionProducto(
+    void procesarLiberacionProducto(
         final MovimientoDTO dto,
         final RedirectAttributes redirectAttributes) {
 

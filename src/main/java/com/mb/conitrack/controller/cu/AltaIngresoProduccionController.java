@@ -80,7 +80,7 @@ public class AltaIngresoProduccionController extends AbstractCuController {
     }
 
     /** Resuelve nombres de producto desde IDs para mostrar en confirmación. */
-    private void resolverNombresParaConfirmacion(LoteDTO loteDTO) {
+    void resolverNombresParaConfirmacion(LoteDTO loteDTO) {
         // Resolver nombre del producto
         if (loteDTO.getProductoId() != null) {
             productoService.findById(loteDTO.getProductoId()).ifPresent(producto -> {
@@ -96,7 +96,7 @@ public class AltaIngresoProduccionController extends AbstractCuController {
         return "produccion/alta/ingreso-produccion-ok"; // Template Thymeleaf
     }
 
-    private void initModelIngresoProduccion(final LoteDTO loteDTO, final Model model) {
+    void initModelIngresoProduccion(final LoteDTO loteDTO, final Model model) {
         model.addAttribute("productos", productoService.getProductosInternos());
 
         if (loteDTO.getCantidadesBultos() == null) {
@@ -108,7 +108,7 @@ public class AltaIngresoProduccionController extends AbstractCuController {
         model.addAttribute("loteDTO", loteDTO);
     }
 
-    private void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
+    void procesarIngresoProduccion(final LoteDTO loteDTO, final RedirectAttributes redirectAttributes) {
 
         loteDTO.setFechaYHoraCreacion(OffsetDateTime.now());
         final LoteDTO resultDTO = ingresoProduccionService.altaStockPorProduccion(loteDTO);

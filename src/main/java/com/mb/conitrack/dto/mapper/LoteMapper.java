@@ -93,7 +93,7 @@ public class LoteMapper {
     /**
      * Agrega análisis del lote y del lote origen (si existe) al DTO.
      */
-    private static void addAnalisisDTOs(final Lote entity, final LoteDTO loteDTO) {
+    static void addAnalisisDTOs(final Lote entity, final LoteDTO loteDTO) {
         for (Analisis analisis : entity.getAnalisisList()) {
             if (TRUE.equals(analisis.getActivo())) {
                 loteDTO.getAnalisisDTOs().add(AnalisisMapper.fromEntity(analisis));
@@ -111,7 +111,7 @@ public class LoteMapper {
     /**
      * Agrega bultos activos del lote al DTO.
      */
-    private static void addBultoDTOs(final Lote entity, final LoteDTO loteDTO) {
+    static void addBultoDTOs(final Lote entity, final LoteDTO loteDTO) {
         for (Bulto bulto : entity.getBultos()) {
             if (TRUE.equals(bulto.getActivo())) {
                 final BultoDTO bultoDto = BultoMapper.fromEntity(bulto);
@@ -123,7 +123,7 @@ public class LoteMapper {
     /**
      * Agrega información básica del lote al DTO.
      */
-    private static void addInfoLote(final Lote entity, final LoteDTO loteDTO) {
+    static void addInfoLote(final Lote entity, final LoteDTO loteDTO) {
         loteDTO.setCodigoLote(entity.getCodigoLote());
         loteDTO.setFechaIngreso(entity.getFechaIngreso());
         loteDTO.setBultosTotales(entity.getBultosTotales());
@@ -136,7 +136,7 @@ public class LoteMapper {
     /**
      * Agrega información del producto al DTO.
      */
-    private static void addInfoProducto(final Lote loteEntity, final LoteDTO loteDTO) {
+    static void addInfoProducto(final Lote loteEntity, final LoteDTO loteDTO) {
         if (loteEntity.getProducto() != null) {
             final Producto producto = loteEntity.getProducto();
             loteDTO.setProductoId(producto.getId());
@@ -150,7 +150,7 @@ public class LoteMapper {
     /**
      * Agrega información del proveedor y fabricante al DTO.
      */
-    private static void addInfoProveedor(final Lote bultoEntity, final LoteDTO loteDTO) {
+    static void addInfoProveedor(final Lote bultoEntity, final LoteDTO loteDTO) {
         loteDTO.setProveedorId(bultoEntity.getProveedor() != null ? bultoEntity.getProveedor().getId() : null);
         loteDTO.setNombreProveedor(bultoEntity.getProveedor() != null
                 ? bultoEntity.getProveedor().getRazonSocial()
@@ -170,7 +170,7 @@ public class LoteMapper {
     /**
      * Agrega movimientos activos del lote al DTO.
      */
-    private static void addMovimientoDTOs(final Lote entity, final LoteDTO loteDTO) {
+    static void addMovimientoDTOs(final Lote entity, final LoteDTO loteDTO) {
         for (Movimiento movimiento : entity.getMovimientos()) {
             if (TRUE.equals(movimiento.getActivo())) {
                 loteDTO.getMovimientoDTOs().add(MovimientoMapper.fromEntity(movimiento));
@@ -181,7 +181,7 @@ public class LoteMapper {
     /**
      * Agrega trazas activas del lote al DTO.
      */
-    private static void addTrazaDTOs(final Lote entity, final LoteDTO loteDTO) {
+    static void addTrazaDTOs(final Lote entity, final LoteDTO loteDTO) {
         loteDTO.setTrazado(entity.getTrazado() != null && entity.getTrazado());
         for (Traza traza : entity.getActiveTrazas()) {
             loteDTO.getTrazaDTOs().add(TrazaMapper.fromEntity(traza));

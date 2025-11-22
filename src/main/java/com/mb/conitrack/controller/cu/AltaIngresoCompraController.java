@@ -83,7 +83,7 @@ public class AltaIngresoCompraController extends AbstractCuController {
     }
 
     /** Resuelve nombres de producto, proveedor y fabricante desde IDs para mostrar en confirmación. */
-    private void resolverNombresParaConfirmacion(LoteDTO loteDTO) {
+    void resolverNombresParaConfirmacion(LoteDTO loteDTO) {
         // Resolver nombre del producto
         if (loteDTO.getProductoId() != null) {
             productoService.findById(loteDTO.getProductoId()).ifPresent(producto -> {

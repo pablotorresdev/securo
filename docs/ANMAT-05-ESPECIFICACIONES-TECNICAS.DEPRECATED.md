@@ -691,7 +691,7 @@ public class AuditTrailAspect {
     /**
      * Compara estados y registra cambios.
      */
-    private void recordChanges(
+    void recordChanges(
             Map<String, Object> beforeState,
             Map<String, Object> afterState,
             ChangeType changeType,

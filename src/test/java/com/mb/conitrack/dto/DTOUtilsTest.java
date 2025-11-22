@@ -175,7 +175,7 @@ class DTOUtilsTest {
         return dto;
     }
 
-    private Bulto bulto(
+    Bulto bulto(
         int nro, BigDecimal cantIni, BigDecimal cantAct,
         UnidadMedidaEnum um, EstadoEnum estado) {
 
@@ -194,7 +194,7 @@ class DTOUtilsTest {
         return b;
     }
 
-    private EstadoEnum estado(String valor, int prioridad) {
+    EstadoEnum estado(String valor, int prioridad) {
         EstadoEnum e = mock(EstadoEnum.class);
         when(e.getValor()).thenReturn(valor);
         when(e.getPrioridad()).thenReturn(prioridad);
@@ -204,7 +204,7 @@ class DTOUtilsTest {
     /* ---------------------------------
      *          Test individuales
      * --------------------------------- */
-    private Lote lote() {
+    Lote lote() {
         Lote l = new Lote();
         l.setActivo(true);
         l.setCodigoLote("L-001");
@@ -266,7 +266,7 @@ class DTOUtilsTest {
     /* -------------------------------------------------
      *  Utils para crear mocks/objetos de prueba simples
      * ------------------------------------------------- */
-    private Producto producto() {
+    Producto producto() {
         Producto pr = mock(Producto.class);
         when(pr.getId()).thenReturn(1L);
         when(pr.getNombreGenerico()).thenReturn("Paracetamol");
@@ -276,7 +276,7 @@ class DTOUtilsTest {
         return pr;
     }
 
-    private UnidadMedidaEnum um(int ordinal) {
+    UnidadMedidaEnum um(int ordinal) {
         // Tomamos cualquier constante real; garantiza ≠ si ordinal cambia
         return UnidadMedidaEnum.values()[ordinal];
     }

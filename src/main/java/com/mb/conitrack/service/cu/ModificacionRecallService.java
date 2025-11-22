@@ -76,7 +76,7 @@ public class ModificacionRecallService extends AbstractCuService {
     /**
      * Procesa recall para productos trazados: marca trazas DISPONIBLE como RECALL.
      */
-    private void procesarRecallTrazado(final Lote loteOrigenRecall) {
+    void procesarRecallTrazado(final Lote loteOrigenRecall) {
         for (Bulto bulto : loteOrigenRecall.getBultos()) {
             final Set<Traza> trazas = bulto.getTrazas();
             final List<Traza> trazasRecall = new ArrayList<>();
@@ -100,7 +100,7 @@ public class ModificacionRecallService extends AbstractCuService {
     /**
      * Procesa recall para productos no trazados: marca bultos con stock como RECALL.
      */
-    private void procesarRecallSinTrazas(final Lote loteOrigenRecall) {
+    void procesarRecallSinTrazas(final Lote loteOrigenRecall) {
         for (Bulto bultoRecall : loteOrigenRecall.getBultos()) {
             if (bultoRecall.getCantidadActual().compareTo(BigDecimal.ZERO) > 0) {
                 bultoRecall.setEstado(RECALL);
@@ -112,7 +112,7 @@ public class ModificacionRecallService extends AbstractCuService {
      * Cancela el análisis en curso si existe y no tiene dictamen.
      * Esto evita que se complete un análisis para un lote que ya está en recall.
      */
-    private void cancelarAnalisisEnCurso(final Lote loteOrigenRecall) {
+    void cancelarAnalisisEnCurso(final Lote loteOrigenRecall) {
         if (loteOrigenRecall.getUltimoAnalisis() != null &&
             loteOrigenRecall.getUltimoAnalisis().getDictamen() == null) {
             loteOrigenRecall.getUltimoAnalisis().setDictamen(DictamenEnum.CANCELADO);
