@@ -222,7 +222,19 @@ class MuestreoTrazableServiceTest {
     @DisplayName("procesarMuestreoTrazable() - Tests")
     class ProcesarMuestreoTrazableTests {
 
+        @Test
+        @DisplayName("Debe lanzar excepción cuando número de análisis no coincide - cubre línea 54-55")
+        void procesarMuestreoTrazable_nroAnalisisNoCoincide_debeLanzarExcepcion() {
+            // Given
+            bulto.setActivo(true); // Fix NPE
+            dto.setNroAnalisis("AN-999"); // Different from current análisis
+            when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
 
+            // When & Then
+            assertThatThrownBy(() -> service.procesarMuestreoTrazable(dto, currentUser))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("El número de análisis no coincide con el análisis en curso");
+        }
 
         @Test
         @DisplayName("Debe lanzar excepción cuando lote no existe")
@@ -409,6 +421,75 @@ class MuestreoTrazableServiceTest {
     @DisplayName("procesarTrazasUnidadVenta() - Tests (via procesarMuestreoTrazable)")
     class ProcesarTrazasUnidadVentaTests {
 
+        @Test
+        @DisplayName("Debe procesar trazas para UNIDAD_VENTA en flujo completo - cubre línea 66")
+        void procesarMuestreoTrazable_unidadVenta_debeProcesarTrazas() {
+            // Given
+            producto.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
+            lote.setProducto(producto);
+            lote.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            bulto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            bulto.setCantidadActual(new BigDecimal("10"));
+            bulto.setActivo(true); // Fix NPE
+            lote.setCantidadActual(new BigDecimal("10"));
+
+            dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            dto.setCantidad(new BigDecimal("2"));
+
+            TrazaDTO trazaDTO1 = new TrazaDTO();
+            trazaDTO1.setNroTraza(1L);
+            TrazaDTO trazaDTO2 = new TrazaDTO();
+            trazaDTO2.setNroTraza(2L);
+            dto.setTrazaDTOs(new ArrayList<>(List.of(trazaDTO1, trazaDTO2)));
+
+            Traza traza1 = crearTraza(1L);
+            Traza traza2 = crearTraza(2L);
+            Set<Traza> trazasSet = new HashSet<>();
+            trazasSet.add(traza1);
+            trazasSet.add(traza2);
+            lote.setTrazas(trazasSet);
+
+            Movimiento movimiento = new Movimiento();
+            movimiento.setId(1L);
+            movimiento.setCantidad(new BigDecimal("2"));
+            movimiento.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+
+            DetalleMovimiento detalle = new DetalleMovimiento();
+            detalle.setId(1L);
+            detalle.setTrazas(new HashSet<>());
+            detalle.setMovimiento(movimiento);
+
+            Set<DetalleMovimiento> detalles = new HashSet<>();
+            detalles.add(detalle);
+            movimiento.setDetalles(detalles);
+
+            // Mock utility methods
+            loteEntityUtilsMock.when(() -> LoteEntityUtils.getAnalisisEnCurso(any())).thenReturn(Optional.of(analisis));
+            movimientoBajaUtilsMock.when(() -> MovimientoBajaUtils.createMovimientoMuestreoConAnalisis(any(), any(), any(), any()))
+                    .thenReturn(movimiento);
+            unidadMedidaUtilsMock.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(any(MovimientoDTO.class), any(Bulto.class)))
+                    .thenReturn(new BigDecimal("8"));
+            unidadMedidaUtilsMock.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(any(MovimientoDTO.class), any(Lote.class)))
+                    .thenReturn(new BigDecimal("8"));
+            dtoUtilsMock.when(() -> DTOUtils.fromTrazaEntity(any(Traza.class))).thenReturn(new TrazaDTO());
+            dtoUtilsMock.when(() -> DTOUtils.fromLoteEntity(any(Lote.class))).thenReturn(new LoteDTO());
+
+            // Mock repositories
+            when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
+            when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimiento);
+            when(trazaRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            LoteDTO resultado = service.procesarMuestreoTrazable(dto, currentUser);
+
+            // Then
+            assertNotNull(resultado);
+            assertThat(traza1.getEstado()).isEqualTo(EstadoEnum.CONSUMIDO);
+            assertThat(traza2.getEstado()).isEqualTo(EstadoEnum.CONSUMIDO);
+            verify(trazaRepository).saveAll(any());
+            verify(loteRepository).save(lote);
+        }
     }
 
     @Nested
@@ -421,6 +502,59 @@ class MuestreoTrazableServiceTest {
             // Given
             BindingResult bindingResult = mock(BindingResult.class);
             when(bindingResult.hasErrors()).thenReturn(true);
+
+            // When
+            boolean resultado = service.validarMuestreoTrazableInput(dto, bindingResult);
+
+            // Then
+            assertFalse(resultado);
+        }
+
+        @Test
+        @DisplayName("Debe retornar false cuando validarNroAnalisisNotNull falla - cubre línea 139-140")
+        void validarMuestreoTrazableInput_nroAnalisisNull_debeRetornarFalse() {
+            // Given
+            BindingResult bindingResult = mock(BindingResult.class);
+            when(bindingResult.hasErrors()).thenReturn(false);
+
+            // Mock the validator to return false
+            analisisValidatorMock.when(() -> AnalisisValidator.validarNroAnalisisNotNull(any(), any())).thenReturn(false);
+
+            // When
+            boolean resultado = service.validarMuestreoTrazableInput(dto, bindingResult);
+
+            // Then
+            assertFalse(resultado);
+        }
+
+        @Test
+        @DisplayName("Debe retornar false cuando validarFechaMovimientoPosteriorIngresoLote falla - cubre línea 160-161")
+        void validarMuestreoTrazableInput_fechaMovimientoInvalida_debeRetornarFalse() {
+            // Given
+            BindingResult bindingResult = mock(BindingResult.class);
+            when(bindingResult.hasErrors()).thenReturn(false);
+            when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
+
+            // Mock fecha validator to return false
+            fechaValidatorMock.when(() -> FechaValidator.validarFechaMovimientoPosteriorIngresoLote(any(), any(), any())).thenReturn(false);
+
+            // When
+            boolean resultado = service.validarMuestreoTrazableInput(dto, bindingResult);
+
+            // Then
+            assertFalse(resultado);
+        }
+
+        @Test
+        @DisplayName("Debe retornar false cuando validarFechaAnalisisPosteriorIngresoLote falla - cubre línea 164-165")
+        void validarMuestreoTrazableInput_fechaAnalisisInvalida_debeRetornarFalse() {
+            // Given
+            BindingResult bindingResult = mock(BindingResult.class);
+            when(bindingResult.hasErrors()).thenReturn(false);
+            when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
+
+            // Mock fecha analysis validator to return false
+            fechaValidatorMock.when(() -> FechaValidator.validarFechaAnalisisPosteriorIngresoLote(any(), any(), any())).thenReturn(false);
 
             // When
             boolean resultado = service.validarMuestreoTrazableInput(dto, bindingResult);
@@ -520,6 +654,29 @@ class MuestreoTrazableServiceTest {
             // Then
             assertTrue(resultado);
         }
+
+        @Test
+        @DisplayName("Debe validar correctamente cuando producto es UNIDAD_VENTA con trazas - cubre línea 154 branch trazaDTOs NOT empty")
+        void validarMuestreoTrazableInput_unidadVentaConTrazas_debeValidarCorrectamente() {
+            // Given
+            producto.setTipoProducto(TipoProductoEnum.UNIDAD_VENTA);
+            TrazaDTO trazaDTO = new TrazaDTO();
+            trazaDTO.setNroTraza(1L);
+            dto.setTrazaDTOs(List.of(trazaDTO)); // NOT null AND NOT empty - cubre branch línea 154
+
+            BindingResult bindingResult = mock(BindingResult.class);
+            when(bindingResult.hasErrors()).thenReturn(false);
+            when(loteRepository.findByCodigoLoteAndActivoTrue("LOTE-001")).thenReturn(Optional.of(lote));
+            when(bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue(eq("LOTE-001"), eq(1))).thenReturn(Optional.of(bulto));
+
+            lenient().when(bindingResult.hasFieldErrors(anyString())).thenReturn(false);
+
+            // When
+            boolean resultado = service.validarMuestreoTrazableInput(dto, bindingResult);
+
+            // Then
+            assertTrue(resultado);
+        }
     }
 
     // ========== Direct Tests for Package-Protected Methods ==========
@@ -570,6 +727,84 @@ class MuestreoTrazableServiceTest {
         assertThat(detalle.getTrazas()).hasSize(2);
         assertThat(detalle.getTrazas()).contains(traza1, traza2);
         verify(trazaRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("procesarTrazasUnidadVenta - Debe lanzar excepción cuando unidad no es UNIDAD - cubre línea 187-188")
+    void procesarTrazasUnidadVenta_unidadNoEsUnidad_debeLanzarExcepcion() {
+        // Given
+        dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        dto.setCantidad(new BigDecimal("2"));
+
+        TrazaDTO trazaDTO = new TrazaDTO();
+        trazaDTO.setNroTraza(1L);
+        dto.setTrazaDTOs(Arrays.asList(trazaDTO));
+
+        Movimiento movimiento = new Movimiento();
+        movimiento.setId(1L);
+        movimiento.setCantidad(new BigDecimal("2"));
+        movimiento.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO); // NOT UNIDAD
+        movimiento.setDetalles(new HashSet<>());
+
+        // When & Then
+        assertThatThrownBy(() -> service.procesarTrazasUnidadVenta(dto, lote, movimiento))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("La traza solo es aplicable a UNIDADES");
+    }
+
+    @Test
+    @DisplayName("procesarTrazasUnidadVenta - Debe lanzar excepción cuando cantidad tiene decimales - cubre línea 191-192")
+    void procesarTrazasUnidadVenta_cantidadConDecimales_debeLanzarExcepcion() {
+        // Given
+        dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        dto.setCantidad(new BigDecimal("2.5")); // Decimal
+
+        TrazaDTO trazaDTO = new TrazaDTO();
+        trazaDTO.setNroTraza(1L);
+        dto.setTrazaDTOs(Arrays.asList(trazaDTO));
+
+        Movimiento movimiento = new Movimiento();
+        movimiento.setId(1L);
+        movimiento.setCantidad(new BigDecimal("2.5")); // Decimal
+        movimiento.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        movimiento.setDetalles(new HashSet<>());
+
+        // When & Then
+        assertThatThrownBy(() -> service.procesarTrazasUnidadVenta(dto, lote, movimiento))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("La cantidad de Unidades debe ser entero");
+    }
+
+    @Test
+    @DisplayName("procesarTrazasUnidadVenta - Debe lanzar excepción cuando múltiples detalles - cubre línea 197-198")
+    void procesarTrazasUnidadVenta_multiplesDetalles_debeLanzarExcepcion() {
+        // Given
+        dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        dto.setCantidad(new BigDecimal("2"));
+
+        TrazaDTO trazaDTO = new TrazaDTO();
+        trazaDTO.setNroTraza(1L);
+        dto.setTrazaDTOs(Arrays.asList(trazaDTO));
+
+        Traza traza1 = crearTraza(1L);
+        lote.setTrazas(new HashSet<>(Arrays.asList(traza1)));
+
+        Movimiento movimiento = new Movimiento();
+        movimiento.setId(1L);
+        movimiento.setCantidad(new BigDecimal("2"));
+        movimiento.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+
+        // Multiple detalles
+        DetalleMovimiento detalle1 = new DetalleMovimiento();
+        detalle1.setId(1L);
+        DetalleMovimiento detalle2 = new DetalleMovimiento();
+        detalle2.setId(2L);
+        movimiento.setDetalles(new HashSet<>(Arrays.asList(detalle1, detalle2)));
+
+        // When & Then
+        assertThatThrownBy(() -> service.procesarTrazasUnidadVenta(dto, lote, movimiento))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Multimuestreo no soportado aun");
     }
 
     @Test

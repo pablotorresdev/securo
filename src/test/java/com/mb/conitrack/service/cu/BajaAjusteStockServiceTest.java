@@ -1040,6 +1040,41 @@ class BajaAjusteStockServiceTest {
             assertThat(binding.hasErrors()).isTrue();
             assertThat(binding.getFieldError("trazaDTOs")).isNotNull();
         }
+
+        @Test
+        @DisplayName("test_validacionLoteTrazadoConTrazas_debe_retornarTrue - cubre línea 135 branch trazaDTOs NOT empty")
+        void test_validacionLoteTrazadoConTrazas_debe_retornarTrue() {
+            // Given
+            loteTestTrazable.setTrazado(true);
+            MovimientoDTO dto = new MovimientoDTO();
+            dto.setCodigoLote("L-TRAZ-001");
+            dto.setNroBulto("1");
+            dto.setCantidad(new BigDecimal("2"));
+            dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+            dto.setFechaMovimiento(LocalDate.now());
+
+            TrazaDTO trazaDTO = new TrazaDTO();
+            trazaDTO.setNroTraza(1L);
+            dto.setTrazaDTOs(List.of(trazaDTO)); // NOT null AND NOT empty - cubre branch línea 135
+
+            BindingResult binding = new BeanPropertyBindingResult(dto, "movimientoDTO");
+
+            when(loteRepository.findByCodigoLoteAndActivoTrue("L-TRAZ-001"))
+                .thenReturn(Optional.of(loteTestTrazable));
+            when(bultoRepository.findFirstByLoteCodigoLoteAndNroBultoAndActivoTrue("L-TRAZ-001", 1))
+                .thenReturn(Optional.of(loteTestTrazable.getBultos().get(0)));
+            doReturn(true).when(service).validarFechaMovimientoPosteriorIngresoLote(
+                any(MovimientoDTO.class), any(LocalDate.class), any(BindingResult.class));
+            doReturn(true).when(service).validarCantidadesMovimiento(
+                any(MovimientoDTO.class), any(Bulto.class), any(BindingResult.class));
+
+            // When
+            boolean resultado = service.validarAjusteStockInput(dto, binding);
+
+            // Then
+            assertThat(resultado).isTrue();
+            assertThat(binding.hasErrors()).isFalse();
+        }
     }
 
     @Nested
@@ -1089,7 +1124,7 @@ class BajaAjusteStockServiceTest {
         }
 
         @Test
-        @DisplayName("test_ajusteStockLoteSinStockYSinAnalisis_noDebeCancelarAnalisis - cubre línea 106")
+        @DisplayName("test_ajusteStockLoteSinStockYSinAnalisis_noDebeCancelarAnalisis - cubre línea 106 branch 1")
         void test_ajusteStockLoteSinStockYSinAnalisis_noDebeCancelarAnalisis() {
             // Given
             MovimientoDTO dto = new MovimientoDTO();
@@ -1128,6 +1163,61 @@ class BajaAjusteStockServiceTest {
             // Then
             assertThat(resultado).isNotNull();
             verify(analisisRepository, never()).save(any(Analisis.class)); // No debe guardar análisis
+        }
+
+        @Test
+        @DisplayName("test_ajusteStockLoteSinStockConAnalisisDictaminado_noDebeCancelarAnalisis - cubre línea 106 branch 2")
+        void test_ajusteStockLoteSinStockConAnalisisDictaminado_noDebeCancelarAnalisis() {
+            // Given
+            MovimientoDTO dto = new MovimientoDTO();
+            dto.setCodigoLote("L-TEST-001");
+            dto.setNroBulto("1");
+            dto.setCantidad(new BigDecimal("50"));
+            dto.setUnidadMedida(UnidadMedidaEnum.KILOGRAMO);
+
+            // Análisis con dictamen (NO debe cancelarse)
+            Analisis analisisAprobado = new Analisis();
+            analisisAprobado.setId(1L);
+            analisisAprobado.setNroAnalisis("AN-2025-001");
+            analisisAprobado.setDictamen(DictamenEnum.APROBADO); // Ya tiene dictamen
+            analisisAprobado.setLote(loteTest);
+            analisisAprobado.setActivo(true);
+            analisisAprobado.setFechaYHoraCreacion(OffsetDateTime.now());
+            loteTest.setAnalisisList(new ArrayList<>(List.of(analisisAprobado)));
+
+            // Preparar lote para consumirse completamente
+            loteTest.getBultos().get(1).setCantidadActual(BigDecimal.ZERO);
+            loteTest.getBultos().get(1).setEstado(EstadoEnum.CONSUMIDO);
+
+            when(securityContextService.getCurrentUser()).thenReturn(testUser);
+            when(loteRepository.findByCodigoLoteAndActivoTrue("L-TEST-001"))
+                .thenReturn(Optional.of(loteTest));
+
+            Movimiento movimiento = crearMovimientoTest(dto);
+            movimientoBajaUtilsMock.when(() -> MovimientoBajaUtils.createMovimientoAjusteStock(
+                any(MovimientoDTO.class), any(Bulto.class), any(User.class)))
+                .thenReturn(movimiento);
+            when(movimientoRepository.save(any(Movimiento.class))).thenReturn(movimiento);
+
+            unidadMedidaUtilsMock.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(
+                any(MovimientoDTO.class), any(Bulto.class)))
+                .thenReturn(BigDecimal.ZERO);
+            unidadMedidaUtilsMock.when(() -> UnidadMedidaUtils.restarMovimientoConvertido(
+                any(MovimientoDTO.class), any(Lote.class)))
+                .thenReturn(BigDecimal.ZERO);
+
+            when(loteRepository.save(any(Lote.class))).thenReturn(loteTest);
+            dtoUtilsMock.when(() -> DTOUtils.fromLoteEntity(any(Lote.class)))
+                .thenReturn(new LoteDTO());
+
+            // When
+            LoteDTO resultado = service.bajaAjusteStock(dto);
+
+            // Then
+            assertThat(resultado).isNotNull();
+            assertThat(loteTest.getCantidadActual()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(analisisAprobado.getDictamen()).isEqualTo(DictamenEnum.APROBADO); // No debe cambiar
+            verify(analisisRepository, never()).save(any(Analisis.class)); // No debe guardar
         }
 
         private Movimiento crearMovimientoTest(MovimientoDTO dto) {
