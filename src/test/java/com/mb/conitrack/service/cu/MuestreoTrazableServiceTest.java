@@ -41,8 +41,10 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.BeanPropertyBindingResult;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -347,6 +349,17 @@ class MuestreoTrazableServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("El número de análisis no coincide con el análisis en curso");
         }
+
+        @Test
+        @DisplayName("Debe lanzar excepción cuando analisisEnCurso está vacío - cubre línea 108")
+        void crearMovimientoMuestreoConAnalisisEnCurso_analisisVacio_debeLanzarExcepcion() {
+            // Given - Optional.empty() para ejecutar el orElseThrow de línea 108
+
+            // When & Then
+            assertThatThrownBy(() -> service.crearMovimientoMuestreoConAnalisisEnCurso(dto, bulto, Optional.empty(), currentUser))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("El número de análisis esta vacio");
+        }
     }
 
     @Nested
@@ -557,6 +570,32 @@ class MuestreoTrazableServiceTest {
         assertThat(detalle.getTrazas()).hasSize(2);
         assertThat(detalle.getTrazas()).contains(traza1, traza2);
         verify(trazaRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("procesarTrazasUnidadVenta - Debe lanzar excepción cuando detalles está vacío - cubre línea 203")
+    void procesarTrazasUnidadVenta_sinDetalles_debeLanzarExcepcion() {
+        // Given
+        dto.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        dto.setCantidad(new BigDecimal("2"));
+
+        TrazaDTO trazaDTO = new TrazaDTO();
+        trazaDTO.setNroTraza(1L);
+        dto.setTrazaDTOs(Arrays.asList(trazaDTO));
+
+        Traza traza1 = crearTraza(1L);
+        lote.setTrazas(new HashSet<>(Arrays.asList(traza1)));
+
+        Movimiento movimiento = new Movimiento();
+        movimiento.setId(1L);
+        movimiento.setCantidad(new BigDecimal("2"));
+        movimiento.setUnidadMedida(UnidadMedidaEnum.UNIDAD);
+        movimiento.setDetalles(new HashSet<>()); // Empty set - ejecutará orElseThrow línea 203
+
+        // When & Then
+        assertThatThrownBy(() -> service.procesarTrazasUnidadVenta(dto, lote, movimiento))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("El detalle del movimiento de muestreo no existe.");
     }
 
     @Test

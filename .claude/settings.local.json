@@ -102,7 +102,11 @@
       "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/MuestreoTrazableService.java.html)",
       "Bash(gradlew.bat clean test:*)",
       "Bash(MuestreoTrazableServiceTest_original.java)",
-      "Bash(Select-String -Pattern \"tests completed|FAILED|SUCCESSFUL|JaCoCo\")"
+      "Bash(Select-String -Pattern \"tests completed|FAILED|SUCCESSFUL|JaCoCo\")",
+      "Bash(start build/reports/jacoco/test/html/com.mb.conitrack.service.cu/MuestreoTrazableService.html)",
+      "Bash(gradlew.bat clean:*)",
+      "Bash(.gradlew.bat compileTestJava:*)",
+      "Bash(Select-String -Pattern \"ReversoAlta\" -Context 5,5)"
     ],
     "deny": [],
     "ask": []
